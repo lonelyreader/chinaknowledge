@@ -1,0 +1,46 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+.cursor/
+.claude/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+!.env*.example
+*.pem
+credentials.json
+
+# Dependencies & builds
+node_modules/
+.pnpm-store/
+dist/
+build/
+.next/
+.turbo/
+out/
+coverage/
+*.tsbuildinfo
+
+# Logs & caches
+*.log
+.npm/
+.cache/
+tmp/
+temp/
+
+# Python (dataset pipelines may use it)
+__pycache__/
+.venv/
+venv/
+*.pyc
+
+# Generated locally (keep committed dataset artifacts intentional)
+.vercel/
