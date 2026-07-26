@@ -106,7 +106,7 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 - Do not explain the interface in the interface.
 - Do not use generic product claims such as “unlock China,” “seamless insights,” “your gateway,” “all-in-one,” or “next-generation.”
 - Do not add capability descriptions to cards, empty states, forms, or heroes.
-- Example public labels: `Travel`, `Live`, `Study`, `Work`, `Business`, `Understand`, `People`, `Subscribe`, `Read`, `About the author`.
+- Example public labels: `Stories`, `Guides`, `Places`, `People`, `Visit`, `Move`, `Study`, `Work`, `Build`, `Subscribe`, `Read`, `About the author`.
 - Example author statuses: `Draft`, `Submitted`, `In review`, `Changes requested`, `Public`.
 
 ## 11. Anti-Patterns

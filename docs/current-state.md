@@ -17,6 +17,7 @@ max_lines: 160
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
 - 正式品牌名已经确定为 **China, in Fact**；域名、商标和品牌资产尚未确定。
+- 信息架构采用稳定内容对象与任务集合分层：`Stories / Guides / Places / People` 为内容入口，`Visit / Move / Study / Work / Build` 为任务集合。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。
 - 正式应用、CMS、数据库和部署项目尚未创建。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。

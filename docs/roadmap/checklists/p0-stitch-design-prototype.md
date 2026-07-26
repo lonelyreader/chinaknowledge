@@ -49,7 +49,7 @@ approval_gates: product-code, paid-service, account-activation, production-deplo
 
 - [x] 产品定位、用户、角色和阶段基线。
 - [x] 从零调研跨地区国家信息产品，不沿用既有栏目作为输入。
-- [ ] 评审信息架构候选并批准产品结构。
+- [x] 评审信息架构候选并批准产品结构。
 - [x] Stitch 视觉、交互、响应式和文案规则。
 - [x] 正式品牌名确定为 `China, in Fact`。
 - [ ] 生成第一轮公共站页面。
@@ -69,7 +69,7 @@ approval_gates: product-code, paid-service, account-activation, production-deplo
 - 被接受的页面有可追溯设计文件或截图，并由 reference router 挂载。
 - P1 能从被接受的设计和本文恢复实现范围，不依赖聊天记录。
 
-在信息架构决定写回 `docs/product-brief.md` 前，不生成以旧六栏目为前提的新原型。
+后续原型使用已接受的分层结构，不生成以旧六栏目为前提的新页面。
 
 ## Validation
 

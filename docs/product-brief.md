@@ -73,44 +73,47 @@ flowchart LR
 
 ### 编辑团队
 
-- 主编负责内容标准、首页策展、栏目归类和最终发布。
+- 主编负责内容标准、首页策展、内容对象、任务集合与主题归类，以及最终发布。
 - 超级管理员负责账号、权限、站点设置和后期分类配置。
 
 ## 5. 信息架构
 
-### 首期一级栏目
+### 稳定内容对象
 
-一级栏目按读者的来华意图组织，首期固定为：
+首期主导航按稳定对象组织：
 
-| 栏目 | 覆盖范围 | 示例主题 |
-|---|---|---|
-| Travel | 短期旅行与入境体验 | itineraries、transport、payments、local etiquette |
-| Live | 搬迁与日常生活 | housing、healthcare、insurance、banking、driving |
-| Study | 留学、交换与语言学习 | universities、applications、campus life、Mandarin |
-| Work | 就业与职业生活 | job search、work culture、permits、career stories |
-| Business | 经商、创业与合作 | market entry、company setup、tax、sourcing、partnerships |
-| Understand | 中国社会、文化与研究 | society、history、ideas、media、field notes |
+| 对象 | 覆盖范围 |
+|---|---|
+| Stories | 个人故事、报道、分析和时效更新 |
+| Guides | 可执行、需要持续核验的实用指南 |
+| Places | 城市、地区和具体地点的聚合入口 |
+| People | 作者、专家和当地人物的长期主页 |
+
+### 任务集合
+
+`Visit / Move / Study / Work / Build` 为读者提供目标入口。同一内容可以进入多个任务集合，不复制内容，也不以任务集合决定唯一 URL。
+
+`Build` 当前覆盖经商、创业、投资、采购与合作；公开命名可在原型文案评审中继续检验，但不得恢复成与内容对象同权的一级栏目。
 
 设计原则：
 
-- 一篇内容只有一个主要栏目，保证导航和 URL 稳定。
-- `visa`、`insurance`、`driving`、`healthcare`、`money`、`internet` 等是跨栏目主题标签，不升级成一级导航。
-- 城市、地区、受众阶段和内容形式使用筛选或标签表达。
-- 首页不平均展示所有栏目，由主编策展出当前最值得读的内容和人物。
-- 首期栏目写在代码配置中；后续保留迁移为后台可配置分类的接口，不把判断逻辑散落在页面组件里。
+- 每篇内容有一个内容形式；它决定进入 Stories 或 Guides，不由任务集合决定 URL。
+- `visa`、`insurance`、`driving`、`healthcare`、`money`、`internet` 等是跨内容主题，不升级成主导航。
+- 城市和地区由 Places 承载；受众阶段、语言和更新状态是横向维度。
+- 首页不平均展示所有入口，由主编策展出当前最值得读的内容、地点和人物。
+- 对象类型保持稳定；任务集合和主题由编辑配置，不把判断逻辑散落在页面组件里。
 
 ### 公共站首期页面
 
 ```text
 /[locale]
-├── /travel
-├── /live
-├── /study
-├── /work
-├── /business
-├── /understand
+├── /stories
+│   └── /[slug]
+├── /guides
+│   └── /[slug]
+├── /places/[slug]
+├── /goals/[slug]
 ├── /topics/[slug]
-├── /articles/[slug]
 ├── /people
 ├── /people/[author-slug]
 ├── /newsletter
@@ -135,8 +138,8 @@ flowchart LR
 - 标题、摘要、正文、封面图。
 - 原始语言与公开语言版本。
 - 作者。
-- 一个主要栏目。
-- 零到多个主题、地点和受众标签。
+- 一个内容形式，由此进入 Stories 或 Guides。
+- 零到多个任务集合、主题、地点和受众阶段。
 - 内容形式、发布时间、更新时间。
 - 来源或事实核查备注。
 - 编辑状态。

@@ -15,6 +15,7 @@ max_lines: 80
 | 主题 | 状态 | 入口 |
 |---|---|---|
 | 技术栈建议 | deferred，未形成架构决定 | [`technical-stack-proposal.md`](technical-stack-proposal.md) |
+| 设计与信息架构证据 | 按子目录标注 | [`design/README.md`](design/README.md) |
 
 规则：
 

@@ -2,7 +2,7 @@
 
 面向英语区和西班牙语区用户的中国信息与人物网络。
 
-平台把来自中国作者的旅行、生活、学习、工作、商业和研究内容编辑成可信的主题入口。读者可以继续订阅 Newsletter、加入 Discord，或从作者主页进入作者自己的渠道。
+平台把来自中国作者的故事、指南、地点知识和专业经验编辑成可信入口。读者既可按内容和人物浏览，也可从来华目标进入，并继续订阅 Newsletter、加入 Discord，或从作者主页进入作者自己的渠道。
 
 ## 产品结构
 
@@ -16,11 +16,11 @@ flowchart LR
     R --> P["作者主页与外部渠道"]
 ```
 
-一级栏目首期固定为：
+稳定内容入口为：
 
-`Travel / Live / Study / Work / Business / Understand`
+`Stories / Guides / Places / People`
 
-具体事项使用跨栏目主题表达，例如 `visa`、`insurance`、`driving`、`healthcare` 和 `money`。
+`Visit / Move / Study / Work / Build` 是任务集合，不承担文章的唯一归属。具体事项使用跨内容主题表达，例如 `visa`、`insurance`、`driving`、`healthcare` 和 `money`。
 
 ## 仓库入口
 
