@@ -36,7 +36,7 @@ coverage/
 tmp/
 temp/
 
-# Python (dataset pipelines may use it)
+# Python
 __pycache__/
 .venv/
 venv/

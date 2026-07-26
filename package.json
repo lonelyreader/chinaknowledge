@@ -1,0 +1,9 @@
+{
+  "name": "china-knowledge-hub",
+  "private": true,
+  "scripts": {
+    "docs:governance:check": "node scripts/check-doc-governance.mjs",
+    "change:intake:verify": "node scripts/check-change-intake.mjs",
+    "governance:check": "npm run docs:governance:check && npm run change:intake:verify"
+  }
+}

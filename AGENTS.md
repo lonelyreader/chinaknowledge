@@ -1,58 +1,41 @@
-# AGENTS.md — 给 AI Agent 与人类协作者的公约
+# AGENTS.md — China Knowledge Hub Agent Router
 
-> 本仓库服务「中国知识出海」。大多数贡献者是 **技术小白 + AI Agent**。Agent 必须先读完本文再改代码或内容。
+做路由。产品见 `docs/product-brief.md`，设计见 `DESIGN.md`，治理见 `docs/architecture/README.md`。
 
-## 项目目标（一句话）
+## Start
 
-用深度、可信的中国相关信息与工具，服务海外用户与开发者，沉淀长期信任。
+非轻量任务先运行 `git status --short --branch`，再读 `README.md` 和 `docs/START-HERE.md`。由 `START-HERE.md` 按任务补最小材料，证据足够后停止扩读。
 
-## 目录职责（不许越界）
+## Authorization
 
-| 路径 | 是什么 | Agent 可以做什么 | 禁止 |
-|------|--------|------------------|------|
-| `inbox/` | 原始 Markdown 内容源（source of truth） | 新增/修订 md、补全 frontmatter | 建深层子目录；把 md 挪去别处当主源 |
-| `dataset/` | 由 inbox **派生** 的机器可读数据 | 只通过约定脚本生成/更新 | 手改当权威；绕过 inbox 直接写“正文真相” |
-| `apps/` | 可部署的应用 | 在对应 app 内开发功能、读 inbox/dataset | 每个 app 各造一套内容体系 |
-| `packages/` | 跨 app 共享代码与 schema | 抽公共逻辑、统一类型与校验 | 塞业务只属于某一个 app 的逻辑 |
-| `docs/` | 给人/给 agent 的规范与设计 | 更新规范、补示例 | 用 docs 替代真正的产品代码 |
-| `.github/` | Issue/PR 模板与 CI | 按模板协作；改 CI 需说明 | 跳过模板直接糊弄描述 |
+- 回答、审计、诊断和计划默认只读；修改请求只授权范围内本地编辑与验证。
+- commit、merge、migration、生产部署、真实数据、批量内容公开、付费、DNS、密钥和破坏性操作分别批准。
+- 保留无关脏树，不擅自清理、回退、暂存、提交或归属其他改动。
+- 规则见 [任务授权与完成合同](docs/architecture/development-governance.md#任务授权与完成合同)。
 
-**原则：`inbox` 是内容真相；`dataset` 可重建；`apps` 只消费约定 schema。**
+## Hard Boundaries
 
-## 默认工作流（人 + Agent）
+- UI 遵守 `DESIGN.md`；不用解释性文案补偿结构，不暴露内部术语或操作指导。
+- 权限、schema、多语言公开、个人数据和生产动作属于 upgraded 风险，需权限负例、恢复和独立复审。
+- migration、部署、真实数据和内容公开分别验证、分别授权。
 
-1. **先对齐任务**：在 Issue 或对话里写清「改哪一层、成功标准、不要做什么」。
-2. **小步提交**：一次 PR 只做一件事（例如：只加 3 篇 inbox，或只改一个 app 的一个功能）。
-3. **改内容走 inbox**：写 Markdown + frontmatter；不要在 app 里硬编码大段文章。
-4. **改产品走 apps**：功能、页面、API 在 `apps/<name>/`。
-5. **生成数据走脚本**：需要检索/结构化时，更新 pipeline，再生成 `dataset/`，不要手搓一堆无法复现的 JSON。
-6. **开 PR**：用 `.github` 模板；标题说清「为什么」；让人过目事实性内容。
+## Intake And Writeback
 
-## inbox Markdown 约定
+- 新需求、bug 和优化进入唯一 active checklist；已有覆盖时不重复建。
+- Checklist 必须声明范围、禁止项、风险、验收、验证、写回和审批门禁。
+- 验证只选 `slice`、`work_item` 或 `phase_release` 中一层，再补 changed-path 检查。
+- 事实写 current，规则写 architecture，执行写 roadmap，决定写 decisions，证据写 reference，历史写 archive。
+- 改动完成后运行 `npm run governance:check` 和 `git diff --check`。
 
-- 文件放在 `inbox/` **根目录**（尽量扁平）。
-- 文件名：小写、短横线、可含日期或主题，例如 `2026-07-china-visa-basics.md`。
-- 必须有 YAML frontmatter。最小字段见 `docs/inbox-frontmatter.md`。
-- `status: draft | review | published`。未 `published` 的内容默认不应被生产 App 展示（除非 app 明确做预览）。
+## Documentation Shape
 
-## 对 Agent 的硬性要求
+- Router 只放去哪里、何时读、不要读什么；不放清单、长历史或证据。
+- 每个 scope 只有一个 canonical 文档；所有 `docs/**/*.md` 必须带 `DocContractV1` 和行数预算。
+- 超预算时按职责拆分并由原 router 挂载，不建平行真相。
+- 详细规则见 [文档治理合同](docs/architecture/document-governance.md)。
 
-- **先读再改**：改某 app 前先看该 app 的 README（若有）和本文件。
-- **不编造事实**：中国相关事实、政策、数据不确定时，标注 `needs-source` 或向人类提问，禁止装作权威。
-- **不提交密钥**：禁止提交 `.env`、token、私钥。
-- **不跑破坏性 git**：禁止 `push --force` 到 `main`、禁止改 git config、禁止无请求的 amend。
-- **不擅自扩 scope**：用户没要的 App、重构、依赖升级，先问再做。
-- **中文沟通默认**：与仓库主人对话默认中文；面向海外用户的产品文案默认英文（除非任务另有说明）。
+## Safety
 
-## 人类负责人保留的决策
-
-- 品牌、合规、对外口径
-- 哪些内容可以 `published`
-- 第一个正式上线的 App 与垂直切口
-- 仓库权限与发布到生产环境
-
-## 成功协作的标志
-
-- Issue/PR 描述小白也能看懂
-- Agent 改动可复查、可回滚
-- 内容与代码边界清晰，不会「文章写进组件、数据写进偶然文件」
+- 不提交 `.env`、token、私钥、账号或个人数据。
+- 不无请求升级依赖、扩大 scope、创建额外 App 或修改 Git 配置。
+- 完成时报告验证、写回、未触碰范围和剩余事项。
