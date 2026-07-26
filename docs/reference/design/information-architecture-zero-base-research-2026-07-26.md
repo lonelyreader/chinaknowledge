@@ -4,7 +4,7 @@ doc_type: reference
 authority: evidence
 status: accepted
 scope: zero-base-information-architecture-research
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 max_lines: 240
 change_id: P0-STITCH-001
 ---
@@ -24,15 +24,16 @@ change_id: P0-STITCH-001
 
 它们不是同一层级。压成一排一级栏目后，签证、支付、城市、作者、政策更新等内容都会反复跨栏。
 
-当前最值得进入产品决策的候选，是**内容对象作为稳定主导航，用户任务作为第二入口**：
+当前被接受的结构是**内容对象作为稳定主导航，用户目的作为第二入口，语义分类作为横向发现层**：
 
 ```text
 主导航：Stories / Guides / Places / People
-任务入口：Visit / Move / Study / Work / Build
-横向维度：Topics / Region / Stage / Language / Freshness
+目的入口：Understand / Visit / Live / Study / Work / Business
+语义分类：Topics / Geography / Situation
+独立维度：Language / Freshness
 ```
 
-该分层结构已于 2026-07-26 获得批准；其中 `Build` 仍是可在原型中检验的公开文案。`Latest` 可作为首页状态或内容流，不必与稳定对象并列。首期不需要把 jobs、housing、classifieds 或服务目录做成产品能力。
+基础分层于 2026-07-26 获得批准，扩展受众后的修订于 2026-07-27 获得批准。`Understand` 服务没有来华任务、但希望理解中国的读者；`Live` 覆盖准备进入、在华生活、离境、离华后与长期往返；`Business` 取代含义含混的 `Build`。`Topics` 应成为全站可见的发现入口，但不升级成第五个内容对象。`Language` 是独立出版轴，`Freshness` 是维护与内容流状态，两者不属于主题分类。
 
 ## 研究约束
 
@@ -40,7 +41,7 @@ change_id: P0-STITCH-001
 - 采样时不使用 `Travel / Live / Study / Work / Business / Understand` 作为字段或筛选条件。
 - 先记录每个产品的入口承诺、导航、任务路径、内容对象、服务对象、地点、人物、更新机制和商业模式，再聚类。
 - 旧方案只在候选结构独立形成后比较。
-- 本报告保存证据；产品决定见 ADR-0003 与 `docs/product-brief.md`。
+- 本报告保存基础证据；扩展研究见 [`information-architecture-expanded-research-2026-07-26.md`](information-architecture-expanded-research-2026-07-26.md)，产品决定见 [ADR-0003](../../decisions/0003-layered-information-architecture.md)、[ADR-0004](../../decisions/0004-broaden-purpose-and-context-classification.md) 与 [`product-brief.md`](../../product-brief.md)。
 
 ## 样本范围
 
@@ -90,13 +91,14 @@ change_id: P0-STITCH-001
 - 在地参与：城市、餐饮、活动、场馆、兴趣社群、志愿活动和当地人物。
 - 时效信息：政策变化、临时关闭、票务、极端天气、交通与安全更新。
 
-压力测试暴露出五个结构问题：
+压力测试与扩展受众复核暴露出六个结构问题：
 
 1. **同一任务跨多个目的。** 支付、签证、交通、医疗同时服务游客、学生、职员、家庭和商务人员。
 2. **同一读者会连续变换阶段。** “考虑来华—短访—留学—工作—定居”不是互斥身份。
 3. **地点本身是强入口。** 上海、成都、云南或大湾区不能只做某个目的栏目的子项。
 4. **人物不是文章标签。** 作者、专家和当地人的长期主页是产品承诺的一部分。
 5. **时效要求不同。** 深度故事、常青指南和政策更新需要不同的更新时间、核验与展示规则。
+6. **中国关系不只发生在来华旅程中。** 理解中国、离华后生活、长期往返、华裔与跨国家庭、中国企业和海外社区都无法被一次性的来华阶段完整描述。
 
 ## 三套候选结构
 
@@ -124,17 +126,23 @@ change_id: P0-STITCH-001
 
 稳定对象：`Stories / Guides / Places / People`
 
-任务集合：`Visit / Move / Study / Work / Build`
+目的集合：`Understand / Visit / Live / Study / Work / Business`
 
-横向维度：主题、地区、阶段、语言、内容形态、更新状态。
+语义分类：`Topics / Geography / Situation`。语言版本与更新状态独立管理。
 
-优点：保留对象稳定性，同时让明确目标有直达入口；人物和地点是一等对象；一个指南可出现在多个任务集合中而不复制主归属；适合 100–200 位作者持续增长。
+优点：保留对象稳定性，同时覆盖理解、来华、在华、离华后与跨境关系；人物和地点是一等对象；一个内容可进入多个目的集合而不复制主归属；适合 100–200 位作者持续增长。
 
-风险：需要编辑团队明确“对象类型、主题、任务集合”是不同字段；设计上必须让两个入口互补，不能出现两套同权导航。
+风险：需要编辑团队明确“对象类型、主题、目的集合”是不同字段；设计上必须让两个入口互补，不能出现两套同权导航。
 
 ## 推荐进入产品评审的结构
 
-选择 C 作为下一轮原型基线，并将分层关系写入产品真相。
+选择 C 作为下一轮原型基线，并按扩展受众修订第二层与横向分类。
+
+- `Stories` 对外保持一个入口，内部区分 `Reporting / Analysis / First-person / Update`。
+- `Guides` 只承载可执行、需要维护的指南，不吸收解释性内容。
+- `Places` 同时覆盖中国境内地点和与中国直接相关的海外地理节点。
+- `People` 只表示自然人；机构与服务通过内容、搜索或外部链接被找到。
+- `Situation` 表示关系状态：`Exploring / Preparing / In China / Leaving / After China / Cross-border`，不是强制线性旅程。
 
 建议对象关系：
 
@@ -144,11 +152,16 @@ flowchart LR
     H --> G["Guides"]
     H --> L["Places"]
     H --> P["People"]
-    J["Visit / Move / Study / Work / Build"] --> G
+    J["Understand / Visit / Live / Study / Work / Business"] --> G
     J --> S
-    T["Topics / Region / Stage / Language / Freshness"] --> S
+    J --> L
+    J --> P
+    T["Topics / Geography / Situation"] --> S
     T --> G
     T --> L
+    T --> P
+    X["Language / Freshness"] -.出版与维护.-> S
+    X -.出版与维护.-> G
     P --> S
     P --> G
 ```
@@ -158,26 +171,29 @@ flowchart LR
 ```text
 /{locale}/stories/{slug}
 /{locale}/guides/{slug}
+/{locale}/places
 /{locale}/places/{slug}
 /{locale}/people/{slug}
-/{locale}/goals/{visit|move|study|work|build}
+/{locale}/purposes
+/{locale}/purposes/{understand|visit|live|study|work|business}
+/{locale}/topics
 /{locale}/topics/{slug}
 ```
 
-`goals` 是内部结构名，不要求成为可见 URL。首页应通过策展区同时证明“了解中国”和“解决来华问题”两种价值，而不是平均展示所有入口。
+`purposes` 是结构示意，不锁定最终可见 URL。目的集合不拥有内容或唯一 URL。首页应同时证明“理解中国”和“解决与中国相关的实际问题”两种价值，而不是平均展示所有入口。`Latest` 只作为首页与内容流状态。
 
 ## 最后才与旧方案比较
 
 | 旧项 | 零基研究后的处理 |
 |---|---|
-| Travel | 保留为 `Visit` 任务集合，不再承担稳定内容归属 |
-| Live | 拆成 `Move` 旅程与日常主题；不再作为单一大栏目 |
-| Study | 保留为任务集合与主题 |
-| Work | 保留为任务集合与主题 |
-| Business | 改成更具体的 `Build` 工作名，待文案评审；作为任务集合与专业主题 |
-| Understand | 取消兜底栏目；相关内容进入 Stories，并由社会、历史、文化、经济等主题组织 |
+| Travel | 改为 `Visit` 目的集合，不再承担稳定内容归属 |
+| Live | 保留为 `Live` 目的集合，扩展到准备、在华、离境、离华后与长期往返 |
+| Study | 保留为目的集合；具体内容仍由对象和 Topics 组织 |
+| Work | 保留为目的集合；具体内容仍由对象和 Topics 组织 |
+| Business | 保留为 `Business` 目的集合，不采用含义含混的 `Build` |
+| Understand | 恢复为目的与策展入口，服务非任务型读者；不作为内容兜底桶 |
 
-因此，旧六项不是全部作废：其中五项仍能作为任务入口发挥作用。需要放弃的是“六项同时承担一级导航、文章主归属和 URL 骨架”这一做法。
+因此，旧六项不是简单恢复：它们改成可交叉的目的入口。需要放弃的仍是“六项同时承担一级导航、文章主归属和 URL 骨架”这一做法。
 
 ## 证据偏差与未决问题
 
@@ -187,7 +203,7 @@ flowchart LR
 - 政府门户任务清楚，人物感和编辑判断较弱。
 - 商业专业站以服务获客为目标，不能直接决定公共媒体结构。
 - 英语样本多于西班牙语样本；下一轮需专门验证西语栏目词义和拉美读者理解。
-- 本轮验证了信息架构，没有验证各入口的搜索量、内容供给量或作者招募意愿。
+- 64 个任务是研究者合成的压力测试，不是真实用户验证；本轮也没有验证各入口的搜索量、内容供给量或作者招募意愿。
 
 ## 主要来源
 
@@ -200,4 +216,4 @@ flowchart LR
 - 其他：[Vietnam Briefing](https://www.vietnam-briefing.com/)、[Tico Times](https://ticotimes.net/)、[Expat.com](https://www.expat.com/)
 - 中国：[International Services Shanghai](https://english.shanghai.gov.cn/en-LivinginShanghai/index.html)、[Beijing International Web Portal](https://english.beijing.gov.cn/)、[China Briefing](https://www.china-briefing.com/)、[SmartShanghai](https://www.smartshanghai.com/)、[Sixth Tone](https://www.sixthtone.com/)、[Study in China](https://apply.studyinchina.edu.cn/)、[the Beijinger 产品说明](https://truerun.com/our-products/)
 
-所有页面于 2026-07-26 重新检查。结论来自结构比较，不代表对各站内容质量或立场的背书。
+所有外部页面于 2026-07-26 重新检查；2026-07-27 结合扩展受众研究完成结构复核。结论来自结构比较，不代表对各站内容质量或立场的背书。

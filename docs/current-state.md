@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 max_lines: 160
 ---
 
@@ -17,7 +17,9 @@ max_lines: 160
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
 - 正式品牌名已经确定为 **China, in Fact**；域名、商标和品牌资产尚未确定。
-- 信息架构采用稳定内容对象与任务集合分层：`Stories / Guides / Places / People` 为内容入口，`Visit / Move / Study / Work / Build` 为任务集合。
+- 信息架构采用稳定内容对象、目的入口与横向语义分层：`Stories / Guides / Places / People` 为主导航，`Understand / Visit / Live / Study / Work / Business` 为目的入口，`Topics / Geography / Situation` 为横向发现。
+- 产品进一步明确为由真实中国作者共同构成、经编辑组织和把关的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。
+- Stitch 公共站、People 机制、作者与编辑工作流及 Newsletter 状态已经形成 P1 结构基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；后台区分作者提交与修订、编辑审核与分类、独立公开确认和移动端轻量审核。产品负责人已接受功能边界；Stitch 旧缓存中的模板文案、fixture、页脚和错误字体不属于接受资产，P1 必须按 `DESIGN.md` 重新通过视觉与 copy gate。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。
 - 正式应用、CMS、数据库和部署项目尚未创建。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
@@ -42,6 +44,6 @@ P0 Google Stitch 设计原型，不授权产品编码、账号接入或部署。
 - 没有本地产品服务。
 - 没有 preview 或 production 环境。
 - 没有生产数据库和真实作者数据。
-- 没有已接受的 Stitch 页面资产。
+- 已有被接受的 Stitch 结构与状态基线，但没有产品 App 或实现后的页面资产。
 
 当上述事实发生变化时更新本页；计划和愿望不得写成当前能力。

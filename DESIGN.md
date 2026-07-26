@@ -4,7 +4,7 @@
 
 ## 1. Visual Theme & Atmosphere
 
-Create an international editorial publication with a visible human network behind it. The product should feel informed, worldly, calm, and personal: closer to an independent magazine and a trusted city guide than a tourism portal, government site, corporate consultancy, or generic news feed.
+Create a people-powered international editorial publication. Editorial discipline gives every page authority; named people, recognizable voices, and lived experience give it warmth. The visitor should sense that a real, varied group of Chinese contributors is present throughout the product, not hidden behind an institutional masthead.
 
 - The public brand name is `China, in Fact`. Retain the comma in the wordmark and running text.
 
@@ -12,8 +12,9 @@ Create an international editorial publication with a visible human network behin
 - **Variance:** 7/10 — asymmetric compositions, offset columns, and varied story scale.
 - **Motion:** 4/10 — restrained, purposeful transitions rather than cinematic spectacle.
 - Use real editorial hierarchy: one dominant story, a small number of supporting stories, and strong section rhythm.
-- People are a primary visual subject. Author identity must be present throughout the public site without turning every surface into a profile card.
+- People are both a primary object and the persistent human layer beneath Stories, Guides, and Places. Author identity must be present throughout the public site without turning every surface into a profile card.
 - Content and people should feel discovered through curation, not retrieved from a database.
+- Professionalism comes from hierarchy, editing, sourcing, and maintenance states. Warmth comes from portraits, names, locations, individual voices, and visible links between a person and their contributions.
 
 ## 2. Color Palette & Roles
 
@@ -42,18 +43,27 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 - Favor documentary photography, portraits, street details, workspaces, homes, campuses, and lived environments.
 - Show contemporary China through specific people and places. Avoid skyline montages, flag imagery, dragons, lantern clichés, map pins, and stock photos of handshakes.
 - Use candid portraits for authors. Avatars should not all share identical crops or artificial studio lighting.
+- Let portraits show varied ages, settings, occupations, cities, and degrees of formality. Do not make the contributor network look like a corporate team page, a school cohort, or a stock-photo directory.
 - Place small documentary images inline with selected display headlines on the homepage, acting as visual punctuation. On mobile these images move below the headline.
 - Image captions and credits remain quiet but readable.
 
 ## 5. Public Components
 
-- **Global navigation:** compact wordmark, six primary sections, People, language switch, and one Subscribe action. Add deeper navigation only when content scale and observed use require it.
+- **Global navigation:** compact wordmark, four stable object sections (`Stories / Guides / Places / People`), language switch, and one Subscribe action. Purpose and Topics appear as secondary discovery controls, not additional equal-weight sections.
 - **Story presentation:** use scale, image ratio, rules, and whitespace. Do not wrap every story in a rounded card.
 - **Section index:** strong title, one lead story, then an asymmetric editorial grid or divided list.
-- **Article page:** narrow reading column, calm margin, persistent but understated author identity, clear source notes, and a quiet continuation path.
-- **Author identity:** portrait, name, short identity line, topic labels, and direct external links. No follower counts or social-score treatment.
+- **Homepage:** pair the dominant story with a clearly identifiable author, then include a compact, editorially selected people passage before the page ends. Show people through what they notice or know; never announce a contributor count as a marketing claim.
+- **Homepage composition:** visually distinguish one scheduled lead story, a small editorial selection, automatic `Recently updated` and `Latest` streams, and a rotating `People to know` passage. Do not expose scheduling or ranking logic in public copy.
+- **Article and Guide page:** narrow reading column, calm margin, clear source notes, and a visible author passage near the title or opening. Do not postpone the person behind the content to the footer.
+- **Compact byline:** portrait or distinctive image, full name, short identity, and city when relevant. Use it consistently on lead stories and selected index items; lighter text-only bylines may serve dense lists.
+- **People index:** an editorial portrait and contribution index with varied scale, a weekly three-person Spotlight, and divided lists for the rest. The Spotlight uses one dominant person and two supporting people; every person is visibly tied to a recent contribution. It must not resemble a staff directory, alumni page, marketplace, or equal avatar grid.
+- **People at scale:** the Spotlight is a stable window into the network, not a permanent featured trio or a carousel. Follow it with a compact `All people` area containing name search, Topics, Places, Language, a functional result count, and explicit pagination of roughly 24 people per page. Each row links identity, place, topics, and a recent contribution. Do not render 100–200 portraits in one continuous wall.
+- **Contextual people:** Stories, Guides, Places, Topics, and Purpose surfaces may show a small number of automatically matched people through their published contributions. Present the contribution relationship, not recommendation scores or matching explanations.
+- **Author profile:** portrait, chosen identity, location, readable first-person introduction, topics and places, selected work, full archive, and direct external links. It is a continuing publication surface, not a résumé or social profile.
+- **Community continuation:** Discord may appear as one restrained continuation action after a person or story relationship is established. Do not use acquisition banners or repeated community promotion.
+- **Author identity:** no follower counts, ratings, availability badges, popularity rank, transaction controls, or social-score treatment.
 - **Newsletter module:** one field, one primary action, compact success and error states.
-- **Topic filters:** short horizontal labels with clear selected state. They are secondary to the six main sections.
+- **Topic filters:** short horizontal labels with clear selected state. Topics remain globally discoverable and secondary to the four object sections.
 - **Buttons:** modest radius, flat fill, no outer glow. Active state translates down by `1px`.
 - **Inputs:** visible label above, error below, accent focus ring. No floating labels.
 - **Loading:** exact-dimension skeletons. No generic circular spinner.
@@ -62,10 +72,13 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 
 - Admin screens are operational, calm, and compact. Use `Satoshi` and `Geist Mono` only.
 - The author view prioritizes title, language, last edited time, and editorial status.
+- Author screens use a compact `My work` list and a focused editor. Author actions are limited to saving drafts, previewing, submitting, and responding to requested changes; never show a publish action.
 - The editor queue prioritizes author, submission age, main section, language, and the next editorial action.
+- Review detail separates reading and source checks from classification. Final scheduling or immediate publication uses a distinct confirmation state with title, locale, URL, date, and freshness information visible together.
 - Status is communicated by text and shape as well as color.
 - Publishing controls are unavailable to authors; the layout should make role boundaries visible through available actions.
-- Classification uses one required main section plus optional topics. Do not expose a complex taxonomy tree without an observed editorial need.
+- Mobile supports status checks, revision responses, queue triage, and light review. High-risk publication controls must not become a single sticky tap or share space with ordinary save actions.
+- Classification uses one required public object plus optional Purpose, Topics, Geography, and Situation. Language and Freshness remain separate publication fields. Do not expose a complex taxonomy tree without an observed editorial need.
 - Tables collapse into stacked rows on mobile with the primary action retained.
 
 ## 7. Layout Principles
@@ -75,6 +88,8 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 - Homepage and section heroes are left-aligned or split; never centered.
 - Replace repeated three-equal-card rows with a lead-and-supporting grid, offset two-column composition, or divided editorial list.
 - Use spacing to group content before adding containers.
+- Create warmth through proximity between portrait, name, voice, and contribution. Do not add testimonial quotes or explanatory community copy to manufacture warmth.
+- Dense People results use divided rows or a restrained two-column list; portraits become smaller but names and contribution links remain readable. Mobile uses one column, a compact filter control, and pagination rather than endless scroll.
 - No overlapping elements. Every image, label, and text block owns a clear spatial zone.
 - Use CSS Grid for primary page structure.
 - Full-height sections use `min-height: 100dvh`, never a fixed viewport height.
@@ -106,7 +121,8 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 - Do not explain the interface in the interface.
 - Do not use generic product claims such as “unlock China,” “seamless insights,” “your gateway,” “all-in-one,” or “next-generation.”
 - Do not add capability descriptions to cards, empty states, forms, or heroes.
-- Example public labels: `Stories`, `Guides`, `Places`, `People`, `Visit`, `Move`, `Study`, `Work`, `Build`, `Subscribe`, `Read`, `About the author`.
+- Do not call contributors a team, experts, volunteers, students, creators, or community as a blanket public label. Describe each person specifically.
+- Example public labels: `Stories`, `Guides`, `Places`, `People`, `Understand`, `Visit`, `Live`, `Study`, `Work`, `Business`, `Subscribe`, `Read`, `About the author`.
 - Example author statuses: `Draft`, `Submitted`, `In review`, `Changes requested`, `Public`.
 
 ## 11. Anti-Patterns
@@ -124,5 +140,6 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 - No China visual clichés.
 - No map-first homepage.
 - No service marketplace treatment unless that product direction is separately approved.
+- No corporate team grid, creator leaderboard, social feed, follower metrics, ratings, or generic community-member counters.
 - No article text inside application components as hardcoded production content.
 - No instructional phrases such as “click,” “scroll,” “choose,” or “learn how this works.”

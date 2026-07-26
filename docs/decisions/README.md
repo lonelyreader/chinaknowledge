@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: decisions-index
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 max_lines: 100
 ---
 
@@ -16,7 +16,8 @@ max_lines: 100
 |---|---|---|
 | `ADR-0001` | accepted | [`Governance V1 与文档路由`](0001-governance-v1.md) |
 | `ADR-0002` | accepted | [`正式品牌名 China, in Fact`](0002-brand-name.md) |
-| `ADR-0003` | accepted | [`内容对象与任务集合分层`](0003-layered-information-architecture.md) |
+| `ADR-0003` | accepted | [`内容对象与目的入口分层`](0003-layered-information-architecture.md) |
+| `ADR-0004` | accepted | [`拓宽目的入口与横向分类`](0004-broaden-purpose-and-context-classification.md) |
 
 ## 登记规则
 

@@ -1,15 +1,15 @@
 # China, in Fact
 
-面向英语区和西班牙语区用户的中国信息与人物网络。
+一个由真实中国人共同构成、由编辑机制组织和把关，面向英语区和西班牙语区用户的中国信息与人物网络。
 
-平台把来自中国作者的故事、指南、地点知识和专业经验编辑成可信入口。读者既可按内容和人物浏览，也可从来华目标进入，并继续订阅 Newsletter、加入 Discord，或从作者主页进入作者自己的渠道。
+平台把来自中国作者的故事、指南、地点知识和专业经验编辑成可信入口。读者既能获得专业、系统的信息，也能认识内容背后具体的人，并继续订阅 Newsletter、加入 Discord，或从作者主页进入作者自己的渠道。
 
 ## 产品结构
 
 ```mermaid
 flowchart LR
     E["平台与主编<br/>策展、审核、分类、分发"] --> H["China, in Fact"]
-    A["中国作者与服务者<br/>内容、人物、专业能力"] --> H
+    A["真实中国作者与贡献者<br/>内容、经历、专业能力"] --> H
     H --> R["英语与西班牙语读者"]
     R --> N["Newsletter"]
     R --> D["Discord"]
@@ -20,7 +20,7 @@ flowchart LR
 
 `Stories / Guides / Places / People`
 
-`Visit / Move / Study / Work / Build` 是任务集合，不承担文章的唯一归属。具体事项使用跨内容主题表达，例如 `visa`、`insurance`、`driving`、`healthcare` 和 `money`。
+`Understand / Visit / Live / Study / Work / Business` 是目的入口，不承担文章的唯一归属。`Topics / Geography / Situation` 提供横向发现；Language 与 Freshness 分别属于出版和维护维度。
 
 ## 仓库入口
 
