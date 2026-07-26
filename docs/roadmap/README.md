@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 max_lines: 100
 ---
 
@@ -16,15 +16,17 @@ max_lines: 100
 
 | 工作项 | Checklist | 当前边界 |
 |---|---|---|
-| P0 Google Stitch 设计原型 | [`P0-STITCH-001`](checklists/p0-stitch-design-prototype.md) | 只完成设计、关键状态和人工验收；不创建产品 App |
+| P1 可运行公共产品切片 | [`P1-WEB-001`](checklists/p1-public-runnable-slice.md) | fixture-only 公共 App；产品代码和依赖安装仍待单独批准 |
 
 ## Deferred
 
 | 工作项 | 进入条件 |
 |---|---|
-| P1 可运行产品切片 | P0 关键公共页面与后台流程获得人工接受 |
+| P1 编辑工作流与 CMS 接入 | 公共产品切片完成，技术栈确定，并为权限、数据和公开路径建立 upgraded checklist |
 | P2 上线准备 | P1 投稿—审核—公开流程和权限复审通过 |
 | P3 平台深化 | 有真实访问、订阅和作者运营数据 |
+
+P0 Stitch 设计原型已经完成，历史与交接见 [`P0-STITCH-001`](../archive/p0-stitch-design-prototype.md)。
 
 ## 状态规则
 

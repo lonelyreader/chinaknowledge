@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: archive-index
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 max_lines: 80
 ---
 
@@ -15,6 +15,7 @@ max_lines: 80
 | ID | 结果 | 归档材料 |
 |---|---|---|
 | `GOV-001` | Governance V1 已建立为仓库基线 | [`gov-001-governance-bootstrap.md`](gov-001-governance-bootstrap.md) |
+| `P0-STITCH-001` | 产品、信息架构与 Stitch 设计基线已接受 | [`p0-stitch-design-prototype.md`](p0-stitch-design-prototype.md) |
 
 规则：
 

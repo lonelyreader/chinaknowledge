@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: p0-stitch-design-prototype
 last_verified: 2026-07-27
 max_lines: 260
@@ -65,7 +65,7 @@ approval_gates: product-code, paid-service, account-activation, production-deplo
 - [x] 评审角色边界、审核路径和移动端。
 - [x] 补齐 Newsletter 成功与错误状态，并清理最终状态的模板文案。
 - [x] 收敛被接受的设计资产与证据。
-- [ ] 写回 current-state，关闭并归档本清单。
+- [x] 写回 current-state，关闭并归档本清单。
 
 ## Acceptance
 
@@ -84,9 +84,9 @@ approval_gates: product-code, paid-service, account-activation, production-deplo
 
 后续原型使用已接受的分层结构，不把目的入口做成与四个内容对象同权的栏目，也不把 Language 或 Freshness 当成主题分类。
 
-公共站接受证据见 [`stitch-public-prototype-round-1-2026-07-27.md`](../../reference/design/stitch-public-prototype-round-1-2026-07-27.md)。画布保留原稿、人物驱动修订稿和机制证明页用于追溯；P1 只继承已接受的结构、机制和 Final 状态，不继承旧页面中的模板 fixture、项目级错误 token 或残留解释性文案。
+公共站接受证据见 [`stitch-public-prototype-round-1-2026-07-27.md`](../reference/design/stitch-public-prototype-round-1-2026-07-27.md)。画布保留原稿、人物驱动修订稿和机制证明页用于追溯；P1 只继承已接受的结构、机制和 Final 状态，不继承旧页面中的模板 fixture、项目级错误 token 或残留解释性文案。
 
-作者与编辑后台证据见 [`stitch-editorial-workflow-prototype-2026-07-27.md`](../../reference/design/stitch-editorial-workflow-prototype-2026-07-27.md)。八张 Refined 页面证明角色动作和公开确认分层；产品负责人已接受功能边界。Stitch 下载预览中的修正前缓存不进入实现，P1 组件仍须重新通过权限、移动端和 copy gate。
+作者与编辑后台证据见 [`stitch-editorial-workflow-prototype-2026-07-27.md`](../reference/design/stitch-editorial-workflow-prototype-2026-07-27.md)。八张 Refined 页面证明角色动作和公开确认分层；产品负责人已接受功能边界。Stitch 下载预览中的修正前缓存不进入实现，P1 组件仍须重新通过权限、移动端和 copy gate。
 
 2026-07-27，产品负责人确认当前公共站与后台功能边界通过，剩余视觉和文案问题由实现阶段按 `DESIGN.md` 收口。P0 只剩 Git closeout 门禁：先提交当前 P0 设计与证据基线，再归档本清单并建立 `P1-WEB-001` active checklist；未获得 commit 与 product-code 单独批准前不跨越这两个门禁。
 
@@ -101,6 +101,15 @@ approval_gates: product-code, paid-service, account-activation, production-deplo
 - 完成本切片后，再建立 upgraded checklist 接入投稿、审核、公开和权限负例。
 
 该拆法允许尽快开始真实代码，同时不把未经验证的 Payload、PostgreSQL、账号和生产边界一次性带入第一个 diff。
+
+## Completion
+
+- 公共站结构、首页编排、People 规模机制和人物页边界已接受。
+- 作者提交、编辑审核、分类与独立公开确认的角色边界已接受。
+- Newsletter 成功与错误状态已补齐，接受证据已进入 design reference。
+- `P1-WEB-001` 已建立为唯一 active checklist。
+- `npm run governance:check` 与 `git diff --check` 通过。
+- 本阶段未创建产品 App，未接入 CMS、数据库、真实数据或部署。
 
 ## Validation
 

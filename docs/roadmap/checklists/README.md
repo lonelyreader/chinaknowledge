@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: active-checklists
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 max_lines: 80
 ---
 
@@ -14,6 +14,6 @@ max_lines: 80
 
 | ID | 风险 | 验证层级 | Checklist |
 |---|---|---|---|
-| `P0-STITCH-001` | base | work_item | [`p0-stitch-design-prototype.md`](p0-stitch-design-prototype.md) |
+| `P1-WEB-001` | upgraded | work_item | [`p1-public-runnable-slice.md`](p1-public-runnable-slice.md) |
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。
