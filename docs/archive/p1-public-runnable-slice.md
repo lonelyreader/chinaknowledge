@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: p1-public-runnable-slice
 last_verified: 2026-07-27
 max_lines: 220
@@ -57,9 +57,16 @@ approval_gates: product-code, dependency-install, paid-service, account-activati
 - [x] 建立 typed fixtures、`en / es` 内容和语言路由。
 - [x] 实现首页、Guide、People 列表和作者主页。
 - [x] 实现 Newsletter 默认、成功与错误状态。
-- [x] 完成自动检查、浏览器验收、截图和人工 copy gate。证据见 [`p1-public-runnable-slice-2026-07-27.md`](../../reference/implementation/p1-public-runnable-slice-2026-07-27.md)。
+- [x] 完成自动检查、浏览器验收、截图和人工 copy gate。证据见 [`p1-public-runnable-slice-2026-07-27.md`](../reference/implementation/p1-public-runnable-slice-2026-07-27.md)。
 - [x] 产品负责人作为非实现者完成独立复审并给出 PASS（2026-07-27）。
-- [ ] 完成归档收口并提交本清单。
+- [x] 完成归档收口并提交本清单。
+
+## Completion
+
+- Result：实现者验证与产品负责人独立复审均为 PASS。
+- Evidence：[`P1 Public Runnable Slice Evidence`](../reference/implementation/p1-public-runnable-slice-2026-07-27.md)。
+- Implementation commit：`6e075ea`（`feat: build P1 public runnable slice`）。
+- Boundary：未接入 CMS、认证、数据库、邮件发送、真实数据或部署；生产依赖审计为 0，开发工具链的 9 个告警已在 evidence 中记录。
 
 ## Acceptance
 

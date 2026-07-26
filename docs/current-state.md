@@ -12,16 +12,16 @@ max_lines: 160
 
 ## 当前阶段
 
-项目处于 **P1：可运行公共产品切片实现复审**。
+项目已完成 **P1：可运行公共产品切片**，下一项执行工作尚未立项。
 
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
 - 正式品牌名已经确定为 **China, in Fact**；域名、商标和品牌资产尚未确定。
 - 信息架构采用稳定内容对象、目的入口与横向语义分层：`Stories / Guides / Places / People` 为主导航，`Understand / Visit / Live / Study / Work / Business` 为目的入口，`Topics / Geography / Situation` 为横向发现。
 - 产品进一步明确为由真实中国作者共同构成、经编辑组织和把关的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。
-- Stitch 公共站、People 机制、作者与编辑工作流及 Newsletter 状态已经形成 P1 结构基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；后台区分作者提交与修订、编辑审核与分类、独立公开确认和移动端轻量审核。产品负责人已接受功能边界；Stitch 旧缓存中的模板文案、fixture、页脚和错误字体不属于接受资产，P1 必须按 `DESIGN.md` 重新通过视觉与 copy gate。
-- P0 Stitch 设计原型已经完成并归档；`P1-WEB-001` 是唯一 active checklist。
-- `apps/web` 已建立为 Next.js 16 公共应用，使用 typed fixtures 实现 `en / es` 首页、Guide、People、作者页和 Newsletter 成功/错误状态。lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；只剩 Git 归档收口。
+- Stitch 公共站、People 机制、作者与编辑工作流及 Newsletter 状态已经形成 P1 结构基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；后台区分作者提交与修订、编辑审核与分类、独立公开确认和移动端轻量审核。产品负责人已接受功能边界；Stitch 旧缓存中的模板文案、fixture、页脚和错误字体没有进入接受资产，P1 实现已按 `DESIGN.md` 通过视觉与 copy gate。
+- P0 Stitch 设计原型与 P1 可运行公共产品切片均已完成并归档；当前没有 active checklist。
+- `apps/web` 已建立为 Next.js 16 公共应用，使用 typed fixtures 实现 `en / es` 首页、Guide、People、作者页和 Newsletter 成功/错误状态。lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。
 - CMS、数据库和部署项目尚未创建。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
@@ -38,8 +38,8 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前唯一 active 工作是
-[`P1-WEB-001`](roadmap/checklists/p1-public-runnable-slice.md)：fixture-only 的本地公共 Web App 已通过实现者验证和产品负责人复审，commit 已获批准，当前只剩归档收口。CMS、数据库、真实数据和部署不在当前授权内。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前没有 active checklist；P1 完成记录见
+[`P1-WEB-001`](archive/p1-public-runnable-slice.md)。下一项改动必须先建立并批准新的 checklist。CMS、数据库、真实数据和部署仍未获得授权。
 
 ## 当前运行边界
 

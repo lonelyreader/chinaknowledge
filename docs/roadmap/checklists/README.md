@@ -14,6 +14,6 @@ max_lines: 80
 
 | ID | 风险 | 验证层级 | Checklist |
 |---|---|---|---|
-| `P1-WEB-001` | upgraded | work_item | [`p1-public-runnable-slice.md`](p1-public-runnable-slice.md) |
+| — | — | — | 当前没有 active checklist |
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

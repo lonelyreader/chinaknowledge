@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | Checklist | 当前边界 |
 |---|---|---|
-| P1 可运行公共产品切片 | [`P1-WEB-001`](checklists/p1-public-runnable-slice.md) | 实现者验证与产品负责人复审通过；等待 Git 归档收口 |
+| — | — | 当前没有 active 工作 |
 
 ## Deferred
 
@@ -26,7 +26,7 @@ max_lines: 100
 | P2 上线准备 | P1 投稿—审核—公开流程和权限复审通过 |
 | P3 平台深化 | 有真实访问、订阅和作者运营数据 |
 
-P0 Stitch 设计原型已经完成，历史与交接见 [`P0-STITCH-001`](../archive/p0-stitch-design-prototype.md)。
+P0 Stitch 设计原型与 P1 可运行公共产品切片已经完成，历史与交接分别见 [`P0-STITCH-001`](../archive/p0-stitch-design-prototype.md) 和 [`P1-WEB-001`](../archive/p1-public-runnable-slice.md)。
 
 ## 状态规则
 

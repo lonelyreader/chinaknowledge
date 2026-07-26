@@ -15,7 +15,7 @@ change_id: P1-WEB-001
 
 `apps/web` 已实现 fixture-only 的英语与西班牙语公共站切片，覆盖首页、Guides、Guide、Stories、Places、People、24 位人物主页和 Newsletter 浏览器状态。CMS、认证、数据库、邮件发送、真实数据和部署均未接入。
 
-本页记录实现者验证与非实现者复审。2026-07-27，产品负责人完成页面评审并确认 `P1 通过，批准提交`；P1 checklist 只剩 Git 归档收口。
+本页记录实现者验证与非实现者复审。2026-07-27，产品负责人完成页面评审并确认 `P1 通过，批准提交`；实现基线已提交为 `6e075ea`，P1 checklist 已归档。
 
 ## Automated Checks
 
