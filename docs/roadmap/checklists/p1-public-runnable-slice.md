@@ -9,7 +9,7 @@ max_lines: 220
 change_id: P1-WEB-001
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: package.json, package-lock.json, apps/README.md, apps/web/**, docs/current-state.md, docs/architecture/**, docs/decisions/**, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/p1-public-runnable-slice.md, docs/reference/**
+allowed_paths: package.json, package-lock.json, apps/README.md, apps/web/**, docs/current-state.md, docs/architecture/**, docs/decisions/**, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/p1-public-runnable-slice.md, docs/archive/README.md, docs/reference/**
 approval_gates: product-code, dependency-install, paid-service, account-activation, cms, database-schema, migration, real-data, production-deploy, content-publication
 ---
 
@@ -50,15 +50,16 @@ approval_gates: product-code, dependency-install, paid-service, account-activati
 
 ## Work
 
-- [ ] 确认技术栈、运行边界与目录，并写入 ADR。
-- [ ] 获得 `product-code` 与 `dependency-install` 单独批准。
-- [ ] 建立 `apps/web` 和本地开发命令。
-- [ ] 实现 tokens、公共布局、导航与响应式基础。
-- [ ] 建立 typed fixtures、`en / es` 内容和语言路由。
-- [ ] 实现首页、Guide、People 列表和作者主页。
-- [ ] 实现 Newsletter 默认、成功与错误状态。
-- [ ] 完成自动检查、浏览器验收、截图和人工 copy gate。
-- [ ] 完成独立复审，写回 current 与 reference，并归档本清单。
+- [x] 确认技术栈、运行边界与目录，并写入 ADR。
+- [x] 获得 `product-code` 与 `dependency-install` 单独批准（2026-07-27，产品负责人确认“全部批准”）。
+- [x] 建立 `apps/web` 和本地开发命令。
+- [x] 实现 tokens、公共布局、导航与响应式基础。
+- [x] 建立 typed fixtures、`en / es` 内容和语言路由。
+- [x] 实现首页、Guide、People 列表和作者主页。
+- [x] 实现 Newsletter 默认、成功与错误状态。
+- [x] 完成自动检查、浏览器验收、截图和人工 copy gate。证据见 [`p1-public-runnable-slice-2026-07-27.md`](../../reference/implementation/p1-public-runnable-slice-2026-07-27.md)。
+- [x] 产品负责人作为非实现者完成独立复审并给出 PASS（2026-07-27）。
+- [ ] 完成归档收口并提交本清单。
 
 ## Acceptance
 
@@ -91,4 +92,4 @@ approval_gates: product-code, dependency-install, paid-service, account-activati
 
 ## Approval Gates
 
-本清单成为 active 只建立范围，不自动批准产品代码或依赖安装。开始实现前仍需分别批准 `product-code` 与 `dependency-install`；CMS、数据库、真实数据、部署和内容公开继续留在后续独立门禁。
+`product-code` 与 `dependency-install` 已于 2026-07-27 获得批准。CMS、数据库、真实数据、部署和内容公开未获授权，继续留在后续独立门禁。

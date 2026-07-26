@@ -7,6 +7,10 @@
 [`docs/reference/technical-stack-proposal.md`](../docs/reference/technical-stack-proposal.md)
 保存。
 
+| App | 当前职责 | 入口 |
+|---|---|---|
+| `web` | fixture-only 的英语与西班牙语公共阅读切片 | [`web/README.md`](web/README.md) |
+
 规则：
 
 - 不把长篇生产正文写进 React 组件。

@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | Checklist | 当前边界 |
 |---|---|---|
-| P1 可运行公共产品切片 | [`P1-WEB-001`](checklists/p1-public-runnable-slice.md) | fixture-only 公共 App；产品代码和依赖安装仍待单独批准 |
+| P1 可运行公共产品切片 | [`P1-WEB-001`](checklists/p1-public-runnable-slice.md) | 实现者验证与产品负责人复审通过；等待 Git 归档收口 |
 
 ## Deferred
 
