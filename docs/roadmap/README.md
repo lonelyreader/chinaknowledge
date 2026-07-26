@@ -16,7 +16,6 @@ max_lines: 100
 
 | 工作项 | Checklist | 当前边界 |
 |---|---|---|
-| Governance V1 仓库基线 | [`GOV-001`](checklists/gov-001-governance-bootstrap.md) | 只完成已批准的治理重整、检查和首次基线准备 |
 | P0 Google Stitch 设计原型 | [`P0-STITCH-001`](checklists/p0-stitch-design-prototype.md) | 只完成设计、关键状态和人工验收；不创建产品 App |
 
 ## Deferred

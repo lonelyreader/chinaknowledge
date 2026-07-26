@@ -14,7 +14,6 @@ max_lines: 80
 
 | ID | 风险 | 验证层级 | Checklist |
 |---|---|---|---|
-| `GOV-001` | base | work_item | [`gov-001-governance-bootstrap.md`](gov-001-governance-bootstrap.md) |
 | `P0-STITCH-001` | base | work_item | [`p0-stitch-design-prototype.md`](p0-stitch-design-prototype.md) |
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

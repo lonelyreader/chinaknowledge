@@ -17,7 +17,7 @@ max_lines: 160
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
 - 正式品牌名已经确定为 **China, in Fact**；域名、商标和品牌资产尚未确定。
-- Governance V1 已在当前工作树中建立，但尚未提交为仓库基线。
+- Governance V1 已建立并提交为仓库基线（`d1bd435`）。
 - 正式应用、CMS、数据库和部署项目尚未创建。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
@@ -33,8 +33,8 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。治理启动项只覆盖
-当前仓库重整，不授权产品编码、账号接入或部署。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前唯一 active 工作是
+P0 Google Stitch 设计原型，不授权产品编码、账号接入或部署。
 
 ## 当前运行边界
 

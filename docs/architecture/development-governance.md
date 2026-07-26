@@ -51,7 +51,7 @@ approval_gates: 仍需单独批准的动作
 - 代码 diff 必须落在 `allowed_paths`。
 - 已有 active checklist 且覆盖当前工作时，不重复创建 intake。
 - 同一个代码 diff 中临时补写的清单不能掩盖未经登记的实现。
-- 正常 diff 由 `HEAD` 中已经 active 的 checklist 授权；该合同可以覆盖自身完成和归档的 closeout diff。
+- 正常 diff 由 `HEAD` 中已经 active 的 checklist 授权；该合同可以覆盖自身完成并以同名文件移入 `docs/archive/` 的 closeout diff。
 - 唯一例外是首次建立本治理基线：必须有用户明确授权、标记 `bootstrap: true`，并在首次治理提交后立即归档；此例外不能再次使用。
 - 完成后 checklist 进入 archive，当前事实写回 current；不要把完成项长期留在 active 队列。
 

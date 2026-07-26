@@ -1,8 +1,8 @@
 ---
 doc_contract: DocContractV1
-doc_type: checklist
-authority: execution
-status: active
+doc_type: archive
+authority: historical
+status: completed
 scope: governance-v1-bootstrap
 last_verified: 2026-07-26
 max_lines: 220
@@ -14,7 +14,7 @@ approval_gates: commit, merge, push
 bootstrap: true
 ---
 
-# GOV-001 Governance V1 Bootstrap
+# GOV-001 Governance V1 Bootstrap — Completed
 
 目标：把已经明确批准的仓库重整收敛为短路由、单一真相源、可检查的任务合同和可提交的首次治理基线。
 
@@ -45,7 +45,7 @@ bootstrap: true
 - [x] 删除根 Agent 路由中的具体阶段和重复任务表。
 - [x] 增加 changed-path 覆盖检查。
 - [x] 运行完整治理验证并复核工作树范围。
-- [ ] 经用户批准后提交首次治理基线并归档本清单。
+- [x] 经用户批准后提交首次治理基线并归档本清单。
 
 ## Acceptance
 
@@ -75,4 +75,5 @@ bootstrap: true
 
 ## Approval Gates
 
-本清单授权当前范围内的本地文档、模板、配置和检查脚本修改。Commit、merge 和 push 仍需分别批准。
+用户于 2026-07-26 批准完成本项并提交首次治理基线。基线提交为 `d1bd435`。
+未执行 merge 或 push。

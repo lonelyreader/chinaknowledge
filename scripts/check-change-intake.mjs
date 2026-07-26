@@ -118,6 +118,7 @@ if (baselineInHead) {
       .split(',')
       .map((value) => value.trim())
       .filter(Boolean)
+    allowedPaths.push(`docs/archive/${path.basename(relativeFile)}`)
     contracts.push({
       changeId: contractMetadata.change_id || path.basename(relativeFile),
       allowedPaths,

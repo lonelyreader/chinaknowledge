@@ -12,7 +12,9 @@ max_lines: 80
 
 本目录保存已完成、被替代或退出执行状态的 checklist 与历史材料。
 
-当前没有已归档工作。
+| ID | 结果 | 归档材料 |
+|---|---|---|
+| `GOV-001` | Governance V1 已建立为仓库基线 | [`gov-001-governance-bootstrap.md`](gov-001-governance-bootstrap.md) |
 
 规则：
 
