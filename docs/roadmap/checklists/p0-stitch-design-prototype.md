@@ -9,18 +9,18 @@ max_lines: 260
 change_id: P0-STITCH-001
 risk_tier: base
 validation_profile: work_item
-allowed_paths: README.md, DESIGN.md, docs/product-brief.md, docs/current-state.md, docs/architecture/development-governance.md, docs/decisions/**, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/p0-stitch-design-prototype.md, docs/reference/design/**
+allowed_paths: README.md, DESIGN.md, docs/product-brief.md, docs/current-state.md, docs/architecture/development-governance.md, docs/decisions/**, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/p0-stitch-design-prototype.md, docs/reference/README.md, docs/reference/design/**
 approval_gates: product-code, paid-service, account-activation, production-deploy
 ---
 
 # P0 Stitch Design Prototype
 
-目标：用已确认的产品和设计合同完成可评审的公共站、作者与编辑后台原型，为 P1 实现提供唯一设计输入。
+目标：先完成信息架构零基研究与产品决定，再用被确认的产品和设计合同完成可评审的公共站、作者与编辑后台原型，为 P1 实现提供唯一设计输入。
 
 ## Scope
 
 - 首页，桌面和移动端。
-- `Live` 栏目页。
+- 信息架构决定后选定的代表性栏目或集合页。
 - 长篇 Guide 文章页。
 - People 列表与作者主页。
 - Newsletter 成功与错误状态。
@@ -47,7 +47,9 @@ approval_gates: product-code, paid-service, account-activation, production-deplo
 
 ## Work
 
-- [x] 产品定位、用户、栏目、角色和阶段基线。
+- [x] 产品定位、用户、角色和阶段基线。
+- [x] 从零调研跨地区国家信息产品，不沿用既有栏目作为输入。
+- [ ] 评审信息架构候选并批准产品结构。
 - [x] Stitch 视觉、交互、响应式和文案规则。
 - [x] 正式品牌名确定为 `China, in Fact`。
 - [ ] 生成第一轮公共站页面。
@@ -60,12 +62,14 @@ approval_gates: product-code, paid-service, account-activation, production-deplo
 ## Acceptance
 
 - 第一眼呈现可信的国际编辑媒体和真实人物网络。
-- 六个栏目、文章、主题和作者之间的浏览关系清楚。
+- 被批准的稳定内容对象、任务入口、主题、地点和作者之间的浏览关系清楚。
 - 作者无法误触让内容公开，编辑能完成审核与分类。
 - 桌面与移动端没有结构性断裂或横向溢出。
 - 可见文案通过人工 copy gate。
 - 被接受的页面有可追溯设计文件或截图，并由 reference router 挂载。
 - P1 能从被接受的设计和本文恢复实现范围，不依赖聊天记录。
+
+在信息架构决定写回 `docs/product-brief.md` 前，不生成以旧六栏目为前提的新原型。
 
 ## Validation
 
