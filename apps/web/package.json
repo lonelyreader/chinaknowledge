@@ -2,17 +2,34 @@
   "name": "web",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "payload": "payload",
+    "cms:db:up": "docker compose up -d cms-db",
+    "cms:db:stop": "docker compose stop cms-db",
+    "cms:types": "payload generate:types",
+    "cms:importmap": "payload generate:importmap",
+    "cms:migration:create": "payload migrate:create",
+    "cms:migration:status": "payload migrate:status",
+    "test:editorial": "tsx tests/editorial-workflow.ts"
   },
   "dependencies": {
+    "@payloadcms/db-postgres": "3.86.0",
+    "@payloadcms/next": "3.86.0",
+    "@payloadcms/richtext-lexical": "3.86.0",
+    "@payloadcms/ui": "3.86.0",
+    "dotenv": "16.4.7",
+    "graphql": "16.11.0",
     "next": "16.2.12",
+    "payload": "3.86.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "sharp": "0.35.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -22,9 +39,11 @@
     "eslint": "9.39.5",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
+    "tsx": "4.22.4",
     "typescript": "^5"
   },
   "overrides": {
+    "dompurify": "3.4.12",
     "postcss": "8.5.23",
     "sharp": "0.35.3"
   }

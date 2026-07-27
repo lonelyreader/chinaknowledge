@@ -2,14 +2,14 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: p1-editorial-cms-foundation
 last_verified: 2026-07-27
 max_lines: 240
 change_id: P1-EDITORIAL-001
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: .gitignore, package.json, package-lock.json, compose.yaml, apps/README.md, apps/web/**, apps/cms/**, docs/current-state.md, docs/architecture/**, docs/decisions/**, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/p1-editorial-cms-foundation.md, docs/archive/README.md, docs/reference/README.md, docs/reference/technical-stack-proposal.md, docs/reference/implementation/**
+allowed_paths: .gitignore, package.json, package-lock.json, compose.yaml, apps/README.md, apps/web/**, apps/cms/**, docs/current-state.md, docs/architecture/**, docs/decisions/**, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/p1-editorial-cms-foundation.md, docs/archive/README.md, docs/archive/p1-editorial-cms-foundation.md, docs/reference/README.md, docs/reference/technical-stack-proposal.md, docs/reference/implementation/**
 approval_gates: checklist-commit, product-code, dependency-install, cms, local-database, database-schema, migration, account-activation, real-data, preview-deploy, production-deploy, content-publication
 ---
 
@@ -49,7 +49,7 @@ approval_gates: checklist-commit, product-code, dependency-install, cms, local-d
 - `permission_boundary`：Author 只能管理自己的资料与内容且不能批准或公开；Editor 可审核全部内容并执行独立公开确认；Super Admin 额外管理用户和角色。UI 隐藏不算权限证明。
 - `audit_boundary`：记录状态变化、操作者、时间、退回意见、批准和公开确认；不记录密码、token 或无关个人数据。
 - `recovery`：schema 和 migration 在执行前给出回退方式；本地数据可导出或清空重建；当前 fixture 公共站在 CMS 验收完成前保持可恢复。
-- `independent_review`：非实现者用三个角色和匿名读者复核主流程、权限负例、双语隔离、响应式和可见文案，并给出 PASS 或 BLOCK。
+- `independent_review`：产品负责人或其明确授权代理用三个角色和匿名读者复核主流程、权限负例、双语隔离、响应式和可见文案，并给出 PASS 或 BLOCK；代理复审必须如实记录，不冒充人员隔离。
 
 ## Acceptance Fixture
 
@@ -65,17 +65,23 @@ approval_gates: checklist-commit, product-code, dependency-install, cms, local-d
 
 - [x] 将本清单作为唯一 active checklist 提交，建立后续改动的 HEAD 授权基线（2026-07-27，产品负责人批准）。
 - [x] 刷新 Payload 官方兼容性、权限、草稿、双语状态与 PostgreSQL 能力证据。
-- [ ] 用最小 spike 比较同应用集成与独立 CMS 应用，写入 ADR 后再固定目录。
-- [ ] 决定业务状态模型、双语内容关系、公开状态和审计事件，不依赖 CMS 默认值猜测。
-- [ ] 单独获得 `product-code`、`dependency-install`、`cms`、`local-database` 与 `database-schema` 批准。
-- [ ] 建立可清空重建的本地 CMS 与虚构测试账户，不连接任何外部账号或真实数据。
-- [ ] 实现 People、Article、分类、来源、评论、版本和工作流状态。
-- [ ] 实现 Author 所有权、Editor 审核与公开、Super Admin 账户角色权限及服务端负例。
-- [ ] 实现 `en / es` 独立内容与公开状态，并接入现有公共内容 loader 边界。
-- [ ] 跑通 Acceptance Fixture 的桌面主流程与必要移动端状态。
-- [ ] 完成自动检查、权限矩阵、schema / recovery 证据、浏览器截图和人工 copy gate。
-- [ ] 产品负责人作为非实现者完成独立复审并给出 PASS 或 BLOCK。
-- [ ] 获得 commit 批准，提交实现与证据后完成归档收口。
+- [x] 用最小 spike 比较同应用集成与独立 CMS 应用，并由 [`ADR-0006`](../decisions/0006-editorial-cms-foundation.md) 固定同应用集成与本地 PostgreSQL 方案。
+- [x] 决定独立语言文档、业务状态、Payload 公开状态和审计事件的职责，不依赖 CMS 默认值猜测。
+- [x] 单独获得 `product-code`、`dependency-install`、`cms`、`local-database` 与 `database-schema` 批准（2026-07-27，产品负责人确认“全部批准”）。
+- [x] 建立可清空重建的本地 CMS 与虚构测试账户，不连接任何外部账号或真实数据。
+- [x] 实现 People、Article、分类、来源、评论、版本和工作流状态。
+- [x] 实现 Author 所有权、Editor 审核与公开、Super Admin 账户角色权限及服务端负例。
+- [x] 实现 `en / es` 独立内容与公开状态，并接入现有公共内容 loader 边界。
+- [x] 跑通 Acceptance Fixture 的桌面主流程与必要移动端状态。
+- [x] 完成自动检查、权限矩阵、schema / recovery 证据、浏览器截图和人工 copy gate；见 [`P1-EDITORIAL-001 evidence`](../reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
+- [x] 产品负责人授权 Codex 代理完成独立复审；补齐公开前摘要并修复后台按钮与公共 Guide 移动端宽度后复核 PASS（2026-07-27；不是不同人员隔离）。
+- [x] 获得 commit 批准，提交实现与证据并完成归档收口（2026-07-27）。
+
+## Completion
+
+- Result：实现者验证与产品负责人授权的代理独立复审均为 PASS。
+- Evidence：[`P1 Editorial CMS Foundation Evidence`](../reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
+- Boundary：migration 尚未执行；没有外部账号、真实数据、preview、production 或对外内容公开。
 
 ## Acceptance
 
@@ -112,4 +118,4 @@ approval_gates: checklist-commit, product-code, dependency-install, cms, local-d
 
 ## Approval Gates
 
-当前只获得建立 P1 编辑 CMS 执行合同与刷新只读技术证据的授权。安装依赖、创建 CMS 代码、本地数据库、schema 和 migration 必须在本清单进入 HEAD 后分别批准。账号开通、真实数据、preview、production 和内容公开继续保持未授权。
+`product-code`、`dependency-install`、`cms`、`local-database`、`database-schema` 与 commit 已于 2026-07-27 获得批准并完成。Migration 执行、账号开通、真实数据、preview、production 和内容公开继续保持未授权；本轮只生成并审查了 migration 文件，没有执行共享或生产 migration。

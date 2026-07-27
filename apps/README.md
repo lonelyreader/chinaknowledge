@@ -9,7 +9,7 @@
 
 | App | 当前职责 | 入口 |
 |---|---|---|
-| `web` | fixture-only 的英语与西班牙语公共阅读切片 | [`web/README.md`](web/README.md) |
+| `web` | 英语与西班牙语公共阅读产品及同应用本地编辑 CMS | [`web/README.md`](web/README.md) |
 
 规则：
 

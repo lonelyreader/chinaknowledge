@@ -1,0 +1,131 @@
+:root {
+  --theme-elevation-0: #fffdf8;
+  --theme-elevation-100: #f3eee4;
+  --theme-elevation-800: #28241f;
+  --theme-elevation-1000: #171411;
+}
+
+.workflow-actions {
+  border-top: 1px solid var(--theme-elevation-150);
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 1.25rem;
+}
+
+.workflow-actions__label {
+  color: var(--theme-elevation-600);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.workflow-actions__status {
+  font-size: 1rem;
+}
+
+.workflow-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.workflow-actions__buttons .btn {
+  margin: 0;
+}
+
+.publication-check {
+  border-top: 1px solid var(--theme-elevation-150);
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+}
+
+.publication-check__title {
+  font-size: 0.9rem;
+}
+
+.publication-check__state,
+.publication-check__error {
+  color: var(--theme-elevation-600);
+  font-size: 0.8rem;
+}
+
+.publication-check__error {
+  color: var(--theme-error-500);
+}
+
+.publication-check__details {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.publication-check__details > div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.publication-check__details dt {
+  color: var(--theme-elevation-600);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.publication-check__details dd {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+// Payload's implementation labels and operation hint are not part of the
+// editorial interface. The controls remain available without this copy.
+.payload-settings > h3,
+.file-field__dragAndDropText,
+.upload__dragAndDropText,
+.bulk-upload--add-files__dragAndDropText {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .workflow-actions__buttons .btn {
+    min-height: 44px;
+  }
+
+  .doc-controls__meta {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .doc-controls__list-item {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .doc-controls__value-wrap {
+    flex-wrap: wrap;
+  }
+
+  .doc-controls__label,
+  .doc-controls__value {
+    white-space: normal;
+  }
+
+  .app-header__step-nav {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .app-header__step-nav-wrapper {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .nav__header {
+    width: calc(100% - 32px);
+  }
+}

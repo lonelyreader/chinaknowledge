@@ -19,6 +19,7 @@ max_lines: 100
 | `ADR-0003` | accepted | [`内容对象与目的入口分层`](0003-layered-information-architecture.md) |
 | `ADR-0004` | accepted | [`拓宽目的入口与横向分类`](0004-broaden-purpose-and-context-classification.md) |
 | `ADR-0005` | accepted | [`公共 Web 基础栈`](0005-public-web-foundation.md) |
+| `ADR-0006` | accepted | [`编辑 CMS 基础`](0006-editorial-cms-foundation.md) |
 
 ## 登记规则
 
