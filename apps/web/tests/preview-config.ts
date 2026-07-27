@@ -14,6 +14,7 @@ process.env.PAYLOAD_SECRET = "fictional-preview-secret-at-least-32-characters";
 process.env.VERCEL_ENV = "preview";
 
 const { default: configPromise } = await import("@payload-config");
+const { normalizeUploadBuffers } = await import("@/cms/media-hooks");
 const config = await configPromise;
 const media = config.collections?.find((collection) => collection.slug === "media");
 
@@ -25,5 +26,23 @@ assert.equal(
   false,
   "Blob storage must not create preview-only database fields.",
 );
+
+const shared = new SharedArrayBuffer(4);
+const sharedBuffer = Buffer.from(shared);
+sharedBuffer.set([1, 2, 3, 4]);
+const resizedShared = new SharedArrayBuffer(2);
+const resizedBuffer = Buffer.from(resizedShared);
+resizedBuffer.set([5, 6]);
+const request = {
+  file: { data: sharedBuffer },
+  payloadUploadSizes: { card: resizedBuffer },
+};
+
+normalizeUploadBuffers({ doc: {}, req: request } as never);
+
+assert.equal(request.file.data.buffer instanceof SharedArrayBuffer, false);
+assert.deepEqual([...request.file.data], [1, 2, 3, 4]);
+assert.equal(request.payloadUploadSizes.card.buffer instanceof SharedArrayBuffer, false);
+assert.deepEqual([...request.payloadUploadSizes.card], [5, 6]);
 
 console.log("Preview storage configuration PASS.");

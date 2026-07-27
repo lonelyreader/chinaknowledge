@@ -2,6 +2,7 @@ import path from "node:path";
 import type { CollectionConfig } from "payload";
 
 import { authenticated, authenticatedField, editorial } from "@/cms/access";
+import { normalizeUploadBuffers } from "@/cms/media-hooks";
 import { isCMSUser } from "@/cms/roles";
 
 export const Media: CollectionConfig = {
@@ -22,6 +23,7 @@ export const Media: CollectionConfig = {
     ],
   },
   hooks: {
+    afterChange: [normalizeUploadBuffers],
     beforeChange: [
       ({ data, req }) => {
         if (!data.uploadedBy && isCMSUser(req.user)) data.uploadedBy = req.user.id;
