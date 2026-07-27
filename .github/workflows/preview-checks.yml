@@ -1,0 +1,48 @@
+name: Preview checks
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/preview-checks.yml"
+      - "apps/web/**"
+      - "docs/**"
+      - "scripts/**"
+      - "package.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      APP_ENV: local
+      CMS_READ_MODE: fixtures
+      DATABASE_URL: postgresql://ci.invalid/china_in_fact
+      PAYLOAD_SECRET: fictional-ci-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Verify repository governance
+        run: npm run governance:check
+      - name: Install web dependencies
+        run: npm ci
+        working-directory: apps/web
+      - name: Verify environment boundaries
+        run: npm run test:environment && npm run test:preview-config
+        working-directory: apps/web
+      - name: Lint and typecheck
+        run: npm run lint && npm run typecheck
+        working-directory: apps/web
+      - name: Audit production dependencies
+        run: npm run audit:production
+        working-directory: apps/web
+      - name: Build fixture read path
+        run: npm run build
+        working-directory: apps/web

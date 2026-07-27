@@ -59,13 +59,18 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 ## Work
 
 - [x] 产品负责人批准进入 P2，并同意先建立 preview release candidate 清单（2026-07-27）。
-- [ ] 获得 checklist commit 批准并提交本清单，建立后续改动的 HEAD 授权基线。
-- [ ] 只读核验当前官方托管、PostgreSQL、对象存储、Payload migration 与成本边界，形成候选比较。
-- [ ] 用 ADR 固定 preview 架构、环境边界、供应商退出方式和 production 仍未授权的事实。
-- [ ] 分别获得 product code、依赖、供应商选择、账号、付费、密钥、preview 数据库、对象存储、migration 和 preview deploy 所需批准。
-- [ ] 实现环境校验、持久化媒体、部署前检查、健康检查、安全头和 preview `noindex`。
-- [ ] 建立 migration plan、备份、恢复与删除资源步骤；批准前只做 dry-run 和静态检查。
-- [ ] 在批准后创建 preview 资源、执行 migration、装载虚构验收数据并部署。
+- [x] 获得 checklist commit 批准并提交本清单，建立后续改动的 HEAD 授权基线（`142052f`；router 写回 `6f2f2ca`）。
+- [x] 只读核验当前官方托管、PostgreSQL、对象存储、Payload migration 与成本边界，形成候选比较；见 [`provider research`](../../reference/implementation/p2-preview-provider-research-2026-07-27.md)。
+- [x] 用 ADR 固定 preview 架构、环境边界、供应商退出方式和 production 仍未授权的事实；见 [`ADR-0007`](../../decisions/0007-preview-hosting-foundation.md)。
+- [x] 产品负责人接受 Vercel Pro + Neon Free + Vercel Blob 与 `US$20/月` preview 预算上限（2026-07-27）。
+- [x] 产品负责人接受 Vercel Functions/Blob `iad1` 与 Neon AWS `us-east-1`，撤回未获批准的新加坡建议（2026-07-27）。
+- [x] 获得 product code 与 dependency install 批准，完成应用修改并安装 Payload 官方 Vercel Blob adapter（2026-07-27）。
+- [x] 获得 Vercel account activation 批准，在现有 `lonelyreader` Pro 团队创建并绑定零 deployment 的 `china-in-fact` project；没有新增购买，CLI 自动下载的临时 OIDC 环境文件已删除（2026-07-27）。
+- [x] 获得密钥、preview 数据库与对象存储批准；创建 Preview-only Neon Free 数据库与 public `iad1` Blob store，配置五个应用必需键且没有把值写入仓库或留在本机（2026-07-27）。
+- [x] 获得当前 P2 baseline commit、Preview migration、虚构验收数据、受保护 Preview deploy 与部署后验证批准；Production、正式域名、真实数据和内容公开不在本次授权内（2026-07-27）。
+- [x] 实现环境校验、preview-only 持久化媒体配置、部署前检查、健康检查、安全头、CI 和 preview `noindex`；本地与静态配置验证通过。见 [`local preparation evidence`](../../reference/implementation/p2-preview-local-preparation-2026-07-27.md)。
+- [x] 建立 migration plan、备份、恢复与删除资源步骤；资源基线已回读，尚未执行 migration、数据装载或部署。见 [`migration and recovery plan`](../../reference/implementation/p2-preview-migration-recovery-plan-2026-07-27.md)。
+- [ ] 在批准后执行 migration、装载虚构验收数据并部署。
 - [ ] 复跑 Acceptance Fixture、权限负例、响应式、copy gate、秘密扫描和发布后回读。
 - [ ] 由独立复审者给出 PASS 或 BLOCK；PASS 后再决定是否建立 production launch checklist。
 - [ ] 获得 commit 批准，提交实现与证据后完成归档收口。
@@ -103,4 +108,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-2026-07-27 已获得“进入 P2”的产品阶段批准，仅授权建立本 active checklist。Checklist commit、产品代码、依赖、供应商选择、外部账号、付费、密钥、preview 数据库、对象存储、migration、preview deploy、真实数据、DNS、production deploy 和内容公开仍需分别批准。
+2026-07-27 已获得“进入 P2”、两次 checklist 文档提交、供应商选择、`US$20/月` preview 预算、美国东部区域、product code、dependency install、Vercel account activation、Preview 数据库、对象存储、密钥、当前 baseline commit、Preview migration、虚构验收数据、受保护 Preview deploy 与部署后验证批准。新增付费、真实数据、DNS、production deploy 和内容公开仍未授权。

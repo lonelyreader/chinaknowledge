@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | Checklist | 当前边界 |
 |---|---|---|
-| P2 Preview release candidate | [`P2-PREVIEW-001`](checklists/p2-preview-release-candidate.md) | 阶段进入已批准；仅建立 checklist，等待 checklist commit 批准后开始只读技术核验 |
+| P2 Preview release candidate | [`P2-PREVIEW-001`](checklists/p2-preview-release-candidate.md) | Preview 资源已就绪；baseline commit、migration 与受保护 deploy 已批准并执行中 |
 
 ## Deferred
 

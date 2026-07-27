@@ -2,6 +2,8 @@ import Link from "next/link";
 import { drivingGuide, localize, requireLocale, ui } from "@/content";
 import { cmsReadEnabled, getPublishedCMSGuides } from "@/content/cms";
 
+export const dynamic = "force-dynamic";
+
 export default async function GuidesPage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = requireLocale((await params).locale);
   const copy = ui[locale];

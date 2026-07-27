@@ -6,6 +6,8 @@ import { getGuide, getPerson, guides, localize, locales, requireLocale, ui } fro
 import { cmsReadEnabled, getPublishedCMSGuide } from "@/content/cms";
 import { notFound } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
   return locales.flatMap((locale) => guides.map((guide) => ({ locale, slug: guide.slug })));
 }
