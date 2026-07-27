@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 邮件与 Newsletter slice 独立复审 PASS；下一门禁为 Production Neon、Blob 和备份资源 |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production Neon 与 Blob 已创建；下一门禁为恢复窗口、异地备份和恢复演练 |
 
 ## Deferred
 

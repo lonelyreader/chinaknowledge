@@ -48,9 +48,10 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Current Blockers
 
-- Production 环境守卫已改为依赖独立资源与变量放行，索引默认关闭；当前尚缺数据库、Blob 与备份目标。
+- 独立 Production Neon Launch 与 Blob 已创建并连接 Production；当前尚缺异地备份目标、Neon 7 天恢复窗口回读和恢复演练。
 - 当前 Vercel project `live: false`，只有受保护 Preview 和生成的 `.vercel.app` 域名；已购正式域名尚未绑定项目。
-- Production 数据库、Blob store、备份和真实数据仍不存在；Resend 域名、密钥与发件配置已经就绪。
+- Production 数据库为空、Blob 为 0B，migration、真实数据和真实媒体仍未写入；Resend 域名、密钥与发件配置已经就绪。
+- Vercel Marketplace 已创建 Neon 账号，但 Neon Console 要求先验证 `gexu@lonelyreader.io`；验证完成后才能回读并设置 7 天恢复窗口。
 - Newsletter 已使用 Resend Contacts/Topic 真实写路径并保持 Preview 失败关闭；Production 端点有按 IP 限流且不会由公开重复提交逆转退订状态；People 页已接正式 website Discord invite。
 - fixture 占位外链已经移除，最低隐私与订阅同意已实现；首批真实内容及其作者外链仍未审核。
 
@@ -79,7 +80,9 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - 人工邮箱已就绪：复用现有飞书组织启用 `chinainfact.com`，创建公共邮箱 `hello@chinainfact.com` 并授权给产品负责人；没有新增邮箱供应商或账号。
 - Discord 已就绪：`China, in Fact` server 的 website invite 已实时验证为永久有效并进入 `start-here`；无需新建 server 或 invite。
 - Resend 已就绪：`mail.chinainfact.com / us-east-1` 已验证，Topic、locale 属性、两把职责隔离的 Production key 与八项 Vercel 变量均已回读。
-- 后续由 Codex 创建：Production Neon Launch resource、Production Blob store、备份目标及其 Production secrets。
+- 已创建：`china-in-fact-production-db` 为 Neon Launch、`iad1 / us-east-1`、仅连接 Production；`china-in-fact-production-media` 为公开 Blob、`iad1`、仅连接 Production。
+- Production 已具备独立数据库、Blob、Payload、CMS、邮件和 `noindex` 变量；环境校验通过，数据库 public schema 为 0 张表，Blob 为 0B。
+- 后续由 Codex 配置：Neon 7 天恢复窗口、异地备份目标及恢复演练。
 - 异地媒体备份供应商尚未决定；现在不要先开 AWS、Cloudflare 或其他 storage account，先完成候选核验再过资源门禁。
 - Neon Launch 或其他付费资源出现结算/条款确认时由产品负责人完成；Codex 不代替接受付费条款。
 
@@ -98,6 +101,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 创建并验证 `mail.chinainfact.com / us-east-1`、Topic、locale 属性、职责隔离的 Production keys 与 Vercel 变量；事务邮件实发收达，临时联系人/key 清理后 Contacts 为零（2026-07-27）。
 - [x] 配置并发布 Vercel Firewall 规则 `Newsletter signup rate limit`：仅匹配 Production `POST /api/newsletter`，每 IP 每 600 秒 5 次，超限返回 rate-limit；路由同时拒绝缺失或跨域 Origin，已有联系人只更新 locale、不覆盖退订偏好（2026-07-27）。
 - [x] 邮件与 Newsletter slice 经同一非主持实现者两轮独立复审；首轮 3 个 P1 与 2 个 P2 全部修复，第二轮 PASS，剩余 P0/P1/P2 为零（2026-07-27）。
+- [x] 产品负责人批准进入 Production 资源阶段；创建并回读独立 Neon Launch `china-in-fact-production-db` 与 Blob `china-in-fact-production-media`，均仅连接 Production，环境校验为 `cms + blob + noindex`，空库与空 Blob 未执行 migration 或真实数据写入（2026-07-27）。
 - [ ] 创建并回读 Production Neon、Blob 与备份目标及其 secrets。
 - [ ] 在 migration 前生成并验证数据库与媒体恢复点，再执行 Production migration 和状态回读。
 - [ ] 分别批准真实作者账户、人物、文章、媒体、外链与公开状态；完成编辑审核。
@@ -138,4 +142,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-产品负责人已接受 Production 基线并统一批准后续执行；域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord 和 Production 代码已完成并回读。Production 数据库、对象存储、备份、migration、真实数据、内容公开、Production deploy、网站域名绑定和公开索引仍未执行。
+产品负责人已接受 Production 基线并统一批准后续执行；域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 代码、独立 Neon 和独立 Blob 已完成并回读。备份、migration、真实数据、内容公开、Production deploy、网站域名绑定和公开索引仍未执行。

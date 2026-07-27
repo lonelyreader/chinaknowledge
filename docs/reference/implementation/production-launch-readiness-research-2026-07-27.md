@@ -15,7 +15,7 @@ change_id: PROD-LAUNCH-001
 
 首个 Production 应延续 P2 已验证的应用结构和美国东部区域，但必须使用独立 Production 数据库、Blob、环境变量与恢复点。产品负责人已于 2026-07-27 接受现有 Vercel Pro project + Neon Launch + Vercel Blob + Resend 基线；接受决定不授权购买、创建资源、迁移、部署、DNS 或公开内容。
 
-Production 当前仍不能部署，因为独立数据库、Blob、备份和完整运行变量尚未创建，Vercel project 状态仍为 `live: false`，正式域名也未绑定网站 project。此前的环境固定拒绝、Newsletter 假成功、Discord 通用入口和 fixture 占位外链已在本轮代码中修复。
+Production 当前仍不能部署：独立 Neon Launch、Blob 和完整运行变量已经创建，但异地备份、恢复演练、migration 与真实内容尚未完成；Vercel project 状态仍为 `live: false`，正式域名也未绑定网站 project。此前的环境固定拒绝、Newsletter 假成功、Discord 通用入口和 fixture 占位外链已在本轮代码中修复。
 
 ## Current Evidence
 
@@ -26,7 +26,9 @@ Production 当前仍不能部署，因为独立数据库、Blob、备份和完�
 - Newsletter 表单已改为真实 `/api/newsletter` 写路径，要求明确同意，处理新增与重复订阅，并在 Local/Preview 失败关闭；缺失或跨域 Origin 被拒绝，Production 另有按 IP 限流。
 - People 页已接正式 Discord invite；fixture 中的 `example.com` 与假 Newsletter 外链已移除。
 - `/Volumes/External/codex-ops` registry 已保存 website、newsletter、X、YouTube 和 partners 五个 source invite；2026-07-27 实时验证 website invite `https://discord.gg/CCUbfaRVd2` 指向 guild `China, in Fact` 的 `start-here`，且无到期时间。
-- Production 已存在八项 Resend、发件与公开索引配置变量；数据库、对象存储、备份、真实账户和真实内容仍不存在。
+- Production 已补齐 Resend、发件、环境、数据库、Blob 与公开索引配置变量；异地备份、migration、真实账户和真实内容仍不存在。
+- 2026-07-27 创建 `china-in-fact-production-db`：Neon Launch、`iad1 / us-east-1`、仅 Production，PostgreSQL 17.10，public schema 为 0 张表；Neon Console 仍等待 `gexu@lonelyreader.io` 激活后设置 7 天恢复窗口。
+- 2026-07-27 创建 `china-in-fact-production-media`：公开 Blob、`iad1`、仅 Production，回读为 0B / 0 文件。Production 环境补齐独立数据库、Blob、`APP_ENV=production`、`CMS_READ_MODE=cms`、Payload secret 与邮件变量后，校验通过且索引保持关闭。
 
 ## Accepted Foundation
 
@@ -101,7 +103,7 @@ Production 当前仍不能部署，因为独立数据库、Blob、备份和完�
 
 ## Decision Boundary
 
-研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私和环境代码已随后获得执行批准；下一资源门禁是独立 Production Neon、Blob 与备份目标。
+研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私、环境代码、独立 Production Neon 与 Blob 已随后执行；下一资源门禁是 Neon 7 天恢复窗口、异地备份目标与恢复演练。
 
 ## Official Sources
 

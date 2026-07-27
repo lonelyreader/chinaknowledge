@@ -29,7 +29,7 @@ max_lines: 160
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。
-- CMS migration `20260727_054408_p1_editorial_foundation` 已在 Preview 执行一次。当前只有 3 个虚构账户、1 个人物、2 篇分语言文章、1 个媒体记录及其 2 个 Blob 对象；英语 Guide 已公开，西班牙语版本保持未公开。Production 数据库、对象存储、环境变量和真实数据均不存在。
+- CMS migration `20260727_054408_p1_editorial_foundation` 已在 Preview 执行一次。当前 Preview 只有 3 个虚构账户、1 个人物、2 篇分语言文章、1 个媒体记录及其 2 个 Blob 对象；英语 Guide 已公开，西班牙语版本保持未公开。Production 数据库与 Blob 已独立创建但为空，运行变量已就绪，migration 和真实数据均不存在。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
 ## 当前真相源
@@ -44,15 +44,15 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已实现并经两轮独立复审收敛为 PASS，P0/P1/P2 为零；下一步是独立 Production 数据库、Blob 与备份资源。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、migration、真实数据、正式内容公开、部署和索引仍未执行。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已独立复审 PASS；独立 Production Neon Launch 与 Blob 也已创建。下一步是 Neon 恢复窗口、异地备份与恢复演练。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、migration、真实数据、正式内容公开、部署和索引仍未执行。
 
 ## 当前运行边界
 
 - 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
 - Preview deployment `dpl_9cTeUwsM9JBNCdfps3HEzF3mBhA7` 为 `READY`，匿名请求进入 Vercel SSO，授权健康检查返回 200。隔离恢复库已完成 23 张表和全部虚构 fixture 回读并删除；数据库不可用的 fixtures 灾备 deployment 也已验证后保留为短期证据。没有正式域名或可用的 production URL。
 - 首次 CLI 部署误取 production target，但环境守卫在构建期拒绝并留下一个 `ERROR` 记录；没有启动 production runtime、写入 production 数据或生成可用地址。后续部署均显式使用 Preview。
-- 没有生产数据库和真实作者数据。
+- Production Neon 数据库已创建但仍为空，没有真实作者数据；Production Blob 已创建且为 0B。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容。
-- Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project。Production runtime 不再被阶段名固定拒绝，但独立数据库、Blob、备份和完整变量尚不存在，因此仍无法部署。Payload Resend adapter、Newsletter Contacts/Topic opt-in、最低隐私页、真实 Discord invite 和占位外链清理已实现；公开订阅端点有 Production-only IP 限流，重复提交不会改写已有联系人的退订状态，Local 与 Preview 不写真实订阅者。
+- Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project。独立 Production Neon Launch、Blob 与运行变量已就绪，环境校验为 `cms + blob + noindex`；异地备份、恢复演练和 migration 尚未完成，因此仍不部署。Payload Resend adapter、Newsletter Contacts/Topic opt-in、最低隐私页、真实 Discord invite 和占位外链清理已实现；公开订阅端点有 Production-only IP 限流，重复提交不会改写已有联系人的退订状态，Local 与 Preview 不写真实订阅者。
 
 当上述事实发生变化时更新本页；计划和愿望不得写成当前能力。
