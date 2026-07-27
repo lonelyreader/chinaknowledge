@@ -1,0 +1,196 @@
+name: Production backup and restore smoke
+
+on:
+  schedule:
+    - cron: "17 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-backup
+  cancel-in-progress: false
+
+jobs:
+  backup-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install media backup dependencies
+        run: npm ci --ignore-scripts
+        working-directory: apps/web
+
+      - name: Validate backup configuration
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.PRODUCTION_BLOB_READ_WRITE_TOKEN }}
+          PRODUCTION_DATABASE_BACKUP_URL: ${{ secrets.PRODUCTION_DATABASE_BACKUP_URL }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_BACKUP_BUCKET: ${{ vars.R2_BACKUP_BUCKET }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            BLOB_READ_WRITE_TOKEN
+            PRODUCTION_DATABASE_BACKUP_URL
+            R2_ACCESS_KEY_ID
+            R2_BACKUP_BUCKET
+            R2_ENDPOINT
+            R2_SECRET_ACCESS_KEY
+          )
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "Missing required backup setting: ${name}" >&2
+              exit 1
+            fi
+          done
+
+      - name: Export database and media
+        id: export
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.PRODUCTION_BLOB_READ_WRITE_TOKEN }}
+          PRODUCTION_DATABASE_BACKUP_URL: ${{ secrets.PRODUCTION_DATABASE_BACKUP_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          captured_at="$(date -u +'%Y-%m-%dT%H-%M-%SZ')"
+          date_path="$(date -u +'%Y/%m/%d')"
+          database_dir="${RUNNER_TEMP}/database"
+          media_dir="${RUNNER_TEMP}/media"
+          mkdir -p "${database_dir}" "${media_dir}"
+
+          docker run --rm \
+            -e PRODUCTION_DATABASE_BACKUP_URL \
+            -v "${database_dir}:/backup" \
+            postgres:17-alpine \
+            sh -eu -c 'pg_dump --format=custom --no-owner --no-privileges --file=/backup/production.dump "$PRODUCTION_DATABASE_BACKUP_URL"'
+
+          BACKUP_CAPTURED_AT="${captured_at}" \
+            node apps/web/scripts/export-production-media.mjs "${media_dir}"
+
+          database_sha="$(sha256sum "${database_dir}/production.dump" | cut -d' ' -f1)"
+          database_key="database/${date_path}/${captured_at}.dump"
+          database_manifest_key="database/${date_path}/${captured_at}.sha256"
+          media_manifest_key="media/manifests/${date_path}/${captured_at}.json"
+          printf '%s  production.dump\n' "${database_sha}" > "${database_dir}/production.sha256"
+
+          {
+            echo "captured_at=${captured_at}"
+            echo "database_key=${database_key}"
+            echo "database_manifest_key=${database_manifest_key}"
+            echo "media_manifest_key=${media_manifest_key}"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Upload immutable recovery points
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_BACKUP_BUCKET: ${{ vars.R2_BACKUP_BUCKET }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          database_dir="${RUNNER_TEMP}/database"
+          media_dir="${RUNNER_TEMP}/media"
+
+          node apps/web/scripts/r2-object.mjs upload \
+            "${{ steps.export.outputs.database_key }}" \
+            "${database_dir}/production.dump"
+          node apps/web/scripts/r2-object.mjs upload \
+            "${{ steps.export.outputs.database_manifest_key }}" \
+            "${database_dir}/production.sha256"
+
+          while IFS= read -r object_path; do
+            object_id="$(basename "${object_path}")"
+            object_key="media/objects/${object_id}"
+            node apps/web/scripts/r2-object.mjs upload-if-missing \
+              "${object_key}" "${object_path}"
+          done < <(find "${media_dir}/objects" -type f -print | sort)
+
+          node apps/web/scripts/r2-object.mjs upload \
+            "${{ steps.export.outputs.media_manifest_key }}" \
+            "${media_dir}/manifest.json"
+
+      - name: Read back and restore database
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_BACKUP_BUCKET: ${{ vars.R2_BACKUP_BUCKET }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          readback_dir="${RUNNER_TEMP}/readback"
+          container="production-backup-restore-${GITHUB_RUN_ID}"
+          mkdir -p "${readback_dir}"
+
+          node apps/web/scripts/r2-object.mjs download \
+            "${{ steps.export.outputs.database_key }}" \
+            "${readback_dir}/production.dump"
+          node apps/web/scripts/r2-object.mjs download \
+            "${{ steps.export.outputs.database_manifest_key }}" \
+            "${readback_dir}/production.sha256"
+          (
+            cd "${readback_dir}"
+            sha256sum --check production.sha256
+          )
+
+          trap 'docker rm -f "${container}" >/dev/null 2>&1 || true' EXIT
+          docker run -d --name "${container}" \
+            -e POSTGRES_PASSWORD=restore-smoke-only \
+            postgres:17-alpine >/dev/null
+          for attempt in {1..30}; do
+            if docker exec "${container}" pg_isready -U postgres >/dev/null 2>&1; then
+              break
+            fi
+            if [[ "${attempt}" == 30 ]]; then
+              echo "Restore database did not become ready." >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          docker exec "${container}" createdb -U postgres restore_smoke
+          docker cp "${readback_dir}/production.dump" "${container}:/tmp/production.dump"
+          docker exec "${container}" pg_restore \
+            --exit-on-error --no-owner --no-privileges \
+            --username postgres --dbname restore_smoke /tmp/production.dump
+          docker exec "${container}" psql -U postgres -d restore_smoke -v ON_ERROR_STOP=1 \
+            -c "SELECT count(*) AS restored_public_tables FROM information_schema.tables WHERE table_schema = 'public';"
+
+      - name: Read back and verify media
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_BACKUP_BUCKET: ${{ vars.R2_BACKUP_BUCKET }}
+          R2_ENDPOINT: ${{ vars.R2_ENDPOINT }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          readback_dir="${RUNNER_TEMP}/media-readback"
+          mkdir -p "${readback_dir}"
+          node apps/web/scripts/r2-object.mjs download \
+            "${{ steps.export.outputs.media_manifest_key }}" \
+            "${readback_dir}/manifest.json"
+
+          count="$(jq -r '.count' "${readback_dir}/manifest.json")"
+          if [[ "${count}" == "0" ]]; then
+            echo "Media source is empty; the zero-object manifest was read back successfully."
+            exit 0
+          fi
+
+          object_key="$(jq -r '.objects[0].backupKey' "${readback_dir}/manifest.json")"
+          expected_sha="$(jq -r '.objects[0].sha256' "${readback_dir}/manifest.json")"
+          node apps/web/scripts/r2-object.mjs download \
+            "${object_key}" "${readback_dir}/sample"
+          actual_sha="$(sha256sum "${readback_dir}/sample" | cut -d' ' -f1)"
+          test "${actual_sha}" = "${expected_sha}"

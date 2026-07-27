@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-07-27
+last_verified: 2026-07-28
 max_lines: 100
 ---
 
@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production Neon、Blob 与 7 天恢复窗口已就绪；下一门禁为 Cloudflare R2 账号连接和恢复演练 |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production Neon、Blob、R2 与首次恢复演练已就绪；下一门禁为 migration 前恢复点确认和 Production migration |
 
 ## Deferred
 

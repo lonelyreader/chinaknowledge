@@ -4,7 +4,7 @@ doc_type: decision
 authority: canonical
 status: accepted
 scope: decision-production-launch-foundation
-last_verified: 2026-07-27
+last_verified: 2026-07-28
 max_lines: 160
 change_id: PROD-LAUNCH-001
 ---
@@ -23,7 +23,7 @@ P2 已证明 Next.js + Payload + PostgreSQL 在受保护 Preview 中可部署、
 - Production 使用独立环境变量、Neon database 和 Vercel Blob store，不共享或复制 Preview 密钥和虚构验收数据。
 - Functions 与 Blob 保持 `iad1`，Neon 使用 AWS `us-east-1`；公开静态资源继续由 CDN 分发。
 - Production PostgreSQL 使用 Neon Launch，restore window 设为 7 天；migration 前另建 snapshot 或逻辑导出并完成隔离恢复演练。
-- Production 媒体使用独立 Vercel Blob store，并定期复制到另一供应商的 S3-compatible storage；备份供应商在创建资源前单独选择。
+- Production 媒体使用独立 Vercel Blob store，并每日增量复制到 Cloudflare R2 Standard 私有桶；R2 采用北美东部位置提示、全部对象 30 天防删，数据库逻辑备份保留 90 天，源端删除不向媒体副本传播。
 - Payload 事务邮件与 Newsletter Contacts/Broadcasts 统一使用 Resend；初期使用 Free tier，超额升级另行批准。
 - 正式域名为 `chinainfact.com`。Vercel Standard Protection 继续保护 Preview 和生成 deployment URL；自定义 Production domain 在 release PASS 后公开，不购买 Advanced Protection add-on。
 - Production 发布前必须提供真实 Discord invite；没有可用入口时隐藏 Discord CTA。公开面不得保留 `example.com` 或其他占位外链。
@@ -48,6 +48,7 @@ P2 已证明 Next.js + Payload + PostgreSQL 在受保护 Preview 中可部署、
 - 代码：保留上一通过 deployment，可用 Vercel rollback 恢复。
 - 数据库：7 天 PITR/restore；migration 前 snapshot 或逻辑导出，目标 `RPO <= 24h / RTO <= 4h`。
 - 媒体：异地副本，目标 `RPO <= 7d / RTO <= 8h`；恢复演练必须证明 Payload 引用可重新读取。
+- 自动化：GitHub Actions 每日生成数据库逻辑备份与媒体增量副本，写入 R2 后立即读回并在隔离 PostgreSQL 17 中恢复；凭据只进入 Actions secrets，R2 token 只具备指定桶的对象读写权限。
 - DNS：域名绑定与 DNS 留在 release 最后阶段，失败时撤销 alias 或恢复上一记录。
 - 代码回滚不被视为数据库、媒体或 Newsletter 数据恢复。
 
