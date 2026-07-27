@@ -5,6 +5,7 @@ type EnvironmentSource = Record<string, string | undefined>;
 
 export type ServerEnvironment = {
   blobStorageEnabled: boolean;
+  cmsReadMode: "cms" | "fixtures";
   environment: AppEnvironment;
   indexable: boolean;
 };
@@ -53,6 +54,15 @@ function hasPostgresURL(value: string | undefined) {
   }
 }
 
+export function normalizePostgresConnectionString(value: string) {
+  const url = new URL(value);
+  const sslMode = url.searchParams.get("sslmode");
+  if (sslMode && ["prefer", "require", "verify-ca"].includes(sslMode)) {
+    url.searchParams.set("sslmode", "verify-full");
+  }
+  return url.toString();
+}
+
 function hasVercelBlobToken(value: string | undefined) {
   return Boolean(value?.match(/^vercel_blob_rw_[a-z\d]+_[a-z\d]+$/i));
 }
@@ -62,6 +72,7 @@ export function validateServerEnvironment(
 ): ServerEnvironment {
   const environment = resolveAppEnvironment(env);
   const errors: string[] = [];
+  const cmsReadMode = env.CMS_READ_MODE;
 
   if (!hasPostgresURL(env.DATABASE_URL)) {
     errors.push("DATABASE_URL must be a PostgreSQL connection URL.");
@@ -69,13 +80,13 @@ export function validateServerEnvironment(
   if (!hasValue(env.PAYLOAD_SECRET)) {
     errors.push("PAYLOAD_SECRET is required.");
   }
-  if (env.CMS_READ_MODE && !["fixtures", "cms"].includes(env.CMS_READ_MODE)) {
+  if (cmsReadMode && !["fixtures", "cms"].includes(cmsReadMode)) {
     errors.push("CMS_READ_MODE must be fixtures or cms.");
   }
 
   if (environment === "preview") {
-    if (env.CMS_READ_MODE !== "cms") {
-      errors.push("Preview requires CMS_READ_MODE=cms.");
+    if (!cmsReadMode || !["fixtures", "cms"].includes(cmsReadMode)) {
+      errors.push("Preview requires CMS_READ_MODE=cms or fixtures.");
     }
     if (!hasVercelBlobToken(env.BLOB_READ_WRITE_TOKEN)) {
       errors.push("Preview requires a valid BLOB_READ_WRITE_TOKEN.");
@@ -95,6 +106,7 @@ export function validateServerEnvironment(
 
   return {
     blobStorageEnabled: environment === "preview",
+    cmsReadMode: cmsReadMode === "cms" ? "cms" : "fixtures",
     environment,
     indexable: environment === "production",
   };

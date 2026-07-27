@@ -14,7 +14,10 @@ import { People } from "@/collections/People";
 import { Taxonomies } from "@/collections/Taxonomies";
 import { Users } from "@/collections/Users";
 import { WorkflowEvents } from "@/collections/WorkflowEvents";
-import { validateServerEnvironment } from "@/config/environment";
+import {
+  normalizePostgresConnectionString,
+  validateServerEnvironment,
+} from "@/config/environment";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverEnvironment = validateServerEnvironment();
@@ -28,7 +31,9 @@ export default buildConfig({
   collections: [Users, People, Taxonomies, Media, Articles, WorkflowEvents],
   db: postgresAdapter({
     migrationDir: path.resolve(dirname, "migrations"),
-    pool: { connectionString: process.env.DATABASE_URL! },
+    pool: {
+      connectionString: normalizePostgresConnectionString(process.env.DATABASE_URL!),
+    },
     push:
       serverEnvironment.environment === "local" &&
       process.env.NODE_ENV === "development",
