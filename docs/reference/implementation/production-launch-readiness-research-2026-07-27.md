@@ -15,7 +15,7 @@ change_id: PROD-LAUNCH-001
 
 首个 Production 应延续 P2 已验证的应用结构和美国东部区域，但必须使用独立 Production 数据库、Blob、环境变量与恢复点。产品负责人已于 2026-07-27 接受现有 Vercel Pro project + Neon Launch + Vercel Blob + Resend 基线；接受决定不授权购买、创建资源、迁移、部署、DNS 或公开内容。
 
-Production 当前仍不能部署：独立 Neon Launch、Blob、完整运行变量与 Cloudflare R2 恢复链路已经创建，但 migration 与真实内容尚未完成；Vercel project 状态仍为 `live: false`，正式域名也未绑定网站 project。此前的环境固定拒绝、Newsletter 假成功、Discord 通用入口和 fixture 占位外链已在本轮代码中修复。
+Production 当前仍不能部署：独立 Neon Launch、Blob、完整运行变量、Cloudflare R2 与 migration 已完成，但迁移后恢复 workflow 尚未 PASS，真实内容也不存在；Vercel project 状态仍为 `live: false`，正式域名没有绑定网站 project。
 
 ## Current Evidence
 
@@ -26,7 +26,7 @@ Production 当前仍不能部署：独立 Neon Launch、Blob、完整运行变�
 - Newsletter 表单已改为真实 `/api/newsletter` 写路径，要求明确同意，处理新增与重复订阅，并在 Local/Preview 失败关闭；缺失或跨域 Origin 被拒绝，Production 另有按 IP 限流。
 - People 页已接正式 Discord invite；fixture 中的 `example.com` 与假 Newsletter 外链已移除。
 - `/Volumes/External/codex-ops` registry 已保存 website、newsletter、X、YouTube 和 partners 五个 source invite；2026-07-27 实时验证 website invite `https://discord.gg/CCUbfaRVd2` 指向 guild `China, in Fact` 的 `start-here`，且无到期时间。
-- Production 已补齐 Resend、发件、环境、数据库、Blob 与公开索引配置变量；R2 凭据和独立只读 Neon backup role 只进入 GitHub Actions secrets，migration、真实账户和真实内容仍不存在。
+- Production 已补齐 Resend、发件、环境、数据库、Blob 与公开索引配置变量；R2 凭据和独立只读 Neon backup role 只进入 GitHub Actions secrets。Migration 已执行，真实账户和真实内容仍不存在。
 - 2026-07-27 创建 `china-in-fact-production-db`：Neon Launch、`iad1 / us-east-1`、仅 Production，PostgreSQL 17.10，public schema 为 0 张表；Neon Console 完成账号激活后已将 `History retention` 从 1 day 调整并回读为 7 days。
 - 2026-07-27 创建 `china-in-fact-production-media`：公开 Blob、`iad1`、仅 Production，回读为 0B / 0 文件。Production 环境补齐独立数据库、Blob、`APP_ENV=production`、`CMS_READ_MODE=cms`、Payload secret 与邮件变量后，校验通过且索引保持关闭。
 
@@ -112,7 +112,7 @@ Production 当前仍不能部署：独立 Neon Launch、Blob、完整运行变�
 
 ## Decision Boundary
 
-研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私、环境代码、独立 Production Neon、Blob、7 天恢复窗口与 R2 恢复链路已随后执行；下一门禁是 migration 前恢复点确认与 Production migration。
+研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私、Production 资源、恢复链路与 migration 已执行；下一门禁是迁移后恢复 workflow PASS。
 
 ## Official Sources
 

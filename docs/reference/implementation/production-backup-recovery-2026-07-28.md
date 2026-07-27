@@ -51,8 +51,15 @@ GitHub Actions secrets 为 `PRODUCTION_DATABASE_BACKUP_URL`、`PRODUCTION_BLOB_R
 - Database：远程 run 上传带时间戳的 dump 与 SHA-256 文件，读回后 `production.dump: OK`，隔离恢复为 0 张 `public` 表。
 - Media：远程 run 上传并读回 zero-object manifest，日志确认 Production Blob 当前为 0 个对象。
 
+## Production Migration And Recovery Retry
+
+- Migration：2026-07-28 01:00 Asia/Shanghai 执行 `20260727_054408_p1_editorial_foundation`，耗时 958ms；状态回读为 Batch 1 / `Ran: Yes`。
+- Live schema：23 张 `public` 表、1 条 migration；users/people/articles/media/workflow_events 均为 0。重新生成 Payload types 无差异，typecheck 通过。
+- First post-migration run：[`30287433284`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30287433284) 已完成只读 dump、R2 上传、读回和 `production.dump: OK`；官方 PostgreSQL 镜像临时初始化 server 随后 shutdown，`createdb` 命中竞态，数据库恢复失败，媒体读回被跳过。
+- Fix：恢复容器先等待 `PostgreSQL init process complete; ready for start up.`，再等待最终 server 的 `pg_isready`。恢复后新增硬断言：23 张 `public` 表、1 条且名称正确的 migration、6 张关键业务表；只打印表数不再视为 PASS。
+
 ## Remaining Gate
 
-- Production migration 前确认最新数据库恢复点存在；migration 后再次运行 workflow，要求恢复库出现预期 schema。
+- 修复后的 hosted workflow 必须全绿，并回读 23/1/1/6 schema assertion 后，迁移后恢复门禁才可关闭。
 - 第一批真实媒体写入后再次运行 workflow，要求至少一个媒体对象从 R2 读回且校验一致。
 - 这些验收通过前不部署、不绑定网站域名、不公开内容或索引。

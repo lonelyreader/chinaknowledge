@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production Neon、Blob、R2 与首次恢复演练已就绪；下一门禁为 migration 前恢复点确认和 Production migration |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production migration 已执行；迁移后 dump 已读回，下一门禁为修复并通过隔离恢复 workflow |
 
 ## Deferred
 

@@ -21,7 +21,7 @@ max_lines: 160
 - 产品进一步明确为由真实中国作者共同构成、经编辑组织和把关的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。
 - Stitch 公共站、People 机制、作者与编辑工作流及 Newsletter 状态已经形成 P1 结构基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；后台区分作者提交与修订、编辑审核与分类、独立公开确认和移动端轻量审核。产品负责人已接受功能边界；Stitch 旧缓存中的模板文案、fixture、页脚和错误字体没有进入接受资产，P1 实现已按 `DESIGN.md` 通过视觉与 copy gate。
 - P0 Stitch 设计原型、P1 可运行公共产品切片、`P1-EDITORIAL-001` 编辑 CMS 基础与 `P2-PREVIEW-001` 均已完成并归档。
-- Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：现有 Vercel Pro project + 独立 Neon Launch + 独立 Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，异地备份使用 Cloudflare R2。Production 数据库与 Blob 仍为空；R2 私有桶、保留规则和首次恢复演练已完成，migration 与部署尚未执行。
+- Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：现有 Vercel Pro project + 独立 Neon Launch + 独立 Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，异地备份使用 Cloudflare R2。Production migration 已执行一次，形成 23 张 `public` 表和 1 条 migration 记录，业务数据与 Blob 仍为空；迁移后备份已写入并通过 SHA 读回，但首次远程恢复遇到 PostgreSQL 初始化竞态，修复与复跑尚未完成。
 - 人工域名邮箱已复用现有飞书组织完成配置：`chinainfact.com` 邮箱域名、MX、SPF、DKIM 与监测态 DMARC 均已启用，公共邮箱 `hello@chinainfact.com` 已创建并授权给产品负责人；2026-07-27 从该地址向 `gexu@lonelyreader.com` 的真实测试邮件已发送并确认收达。Resend 使用已验证的 `mail.chinainfact.com / us-east-1` 承担程序邮件，真实事务邮件已由飞书主邮箱回读收达。
 - `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。公共站仍保留 typed fixture 读路径；本地可切换到 CMS 公开读路径。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
 - P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的当前 Preview 为 [`china-in-fact-m079nig02`](https://china-in-fact-m079nig02-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停；Production 只有在独立数据库、Blob 与邮件变量齐全时放行，并由独立索引开关保持 `noindex`。
@@ -44,15 +44,15 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已独立复审 PASS；独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建，Neon 为 7 天恢复窗口，R2 为全部对象 30 天防删、数据库备份 90 天生命周期。首次空库逻辑备份与隔离恢复、零媒体对象清单写入与读回均通过；GitHub 每日 workflow 的首个人工触发 run `30286886253` 也已全步骤成功。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、migration、真实数据、正式内容公开、部署和索引仍未执行。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已独立复审 PASS；独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建，Neon 为 7 天恢复窗口，R2 为全部对象 30 天防删、数据库备份 90 天生命周期。空库恢复和远程 workflow 基线已通过，Production migration 也已执行；当前只阻塞在迁移后恢复 workflow 复跑。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、真实数据、正式内容公开、部署和索引仍未执行。
 
 ## 当前运行边界
 
 - 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
 - Preview deployment `dpl_9cTeUwsM9JBNCdfps3HEzF3mBhA7` 为 `READY`，匿名请求进入 Vercel SSO，授权健康检查返回 200。隔离恢复库已完成 23 张表和全部虚构 fixture 回读并删除；数据库不可用的 fixtures 灾备 deployment 也已验证后保留为短期证据。没有正式域名或可用的 production URL。
 - 首次 CLI 部署误取 production target，但环境守卫在构建期拒绝并留下一个 `ERROR` 记录；没有启动 production runtime、写入 production 数据或生成可用地址。后续部署均显式使用 Preview。
-- Production Neon 数据库已创建但仍为空，没有真实作者数据；Production Blob 已创建且为 0B。Cloudflare R2 私有备份桶已在北美东部建立，公开访问关闭；首个数据库恢复点和零对象媒体清单已写入、读回并验证，R2 当前用量仍低于免费额度。
+- Production Neon 已执行 `20260727_054408_p1_editorial_foundation`：23 张 `public` 表、1 条 migration，users/people/articles/media/workflow_events 均为 0；Production Blob 为 0B。Cloudflare R2 私有备份桶已在北美东部建立，公开访问关闭；迁移后 dump、SHA 和零对象媒体清单已写入并读回，隔离恢复复跑尚未通过。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容。
-- Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project。独立 Production Neon Launch、Blob、R2 与运行变量已就绪，环境校验为 `cms + blob + noindex`；下一门禁是 migration 前恢复点确认与 Production migration，因此仍不部署。Payload Resend adapter、Newsletter Contacts/Topic opt-in、最低隐私页、真实 Discord invite 和占位外链清理已实现；公开订阅端点有 Production-only IP 限流，重复提交不会改写已有联系人的退订状态，Local 与 Preview 不写真实订阅者。
+- Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project。独立 Production Neon Launch、Blob、R2 与运行变量已就绪，环境校验为 `cms + blob + noindex`；migration 已执行，但迁移后恢复验收尚未 PASS，因此仍不部署。Payload Resend adapter、Newsletter Contacts/Topic opt-in、最低隐私页、真实 Discord invite 和占位外链清理已实现；公开订阅端点有 Production-only IP 限流，重复提交不会改写已有联系人的退订状态，Local 与 Preview 不写真实订阅者。
 
 当上述事实发生变化时更新本页；计划和愿望不得写成当前能力。
