@@ -50,8 +50,8 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 - `apps/web/src/config/environment.ts` 仍主动拒绝 Production runtime，Production Blob 也未启用。
 - 当前 Vercel project `live: false`，只有受保护 Preview 和生成的 `.vercel.app` 域名；已购正式域名尚未绑定项目。
-- Production 数据库、Blob store、环境变量、备份、邮件 adapter 和真实数据均不存在。
-- Newsletter 只做浏览器格式校验，未保存邮箱却显示成功；People 页 Discord 指向通用首页。
+- Production 数据库、Blob store、环境变量、备份、Resend adapter 和真实数据均不存在；人工域名邮箱已独立就绪。
+- Newsletter 只做浏览器格式校验，未保存邮箱却显示成功；真实 website Discord invite 已存在，但 People 页仍指向通用首页。
 - fixture 中仍有 `example.com` 外链；发件地址、隐私文本和首批真实内容尚未决定。
 
 ## Accepted Baseline
@@ -70,13 +70,14 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 1. `Vercel Pro + Neon Launch + Production Blob`，区域继续 `iad1 / us-east-1`。
 2. 已购 `chinainfact.com` 在 staged production PASS 后再绑定项目并改 DNS；购买不提前触发公开。
 3. Newsletter 与 Payload 事务邮件统一使用 Resend；不接受时，首发必须移除全部 Newsletter 入口并另选事务邮件。
-4. Production 发布前提供真实 Discord invite；没有入口时隐藏 Discord CTA。
+4. website Discord invite 使用 `https://discord.gg/CCUbfaRVd2`；上线代码只接正式 source invite，不使用 Discord 通用首页。
 5. 数据库 7 天 restore window；媒体建立单独异地备份，并在公开前各完成一次恢复演练。
 
 ## Account And Resource Preparation
 
 - 已就绪：现有 Vercel Pro account、已链接的 `china-in-fact` project、Preview Neon integration、Preview Blob 和已购 `chinainfact.com`；不需要新建 Vercel account 或第二个 App。
-- 产品负责人准备：一个能实际收信的域名邮箱，推荐 `hello@chinainfact.com`；一个真实 Discord server 的永久 invite，或确认首发隐藏 Discord。
+- 人工邮箱已就绪：复用现有飞书组织启用 `chinainfact.com`，创建公共邮箱 `hello@chinainfact.com` 并授权给产品负责人；没有新增邮箱供应商或账号。
+- Discord 已就绪：`China, in Fact` server 的 website invite 已实时验证为永久有效并进入 `start-here`；无需新建 server 或 invite。
 - 后续单独批准后由 Codex 创建：Production Neon Launch resource、Production Blob store、Resend Marketplace integration、Production secrets 与环境变量。
 - 异地媒体备份供应商尚未决定；现在不要先开 AWS、Cloudflare 或其他 storage account，先完成候选核验再过资源门禁。
 - Neon Launch 或其他付费资源出现结算/条款确认时由产品负责人完成；Codex 不代替接受付费条款。
@@ -86,6 +87,8 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 产品负责人在 P2 PASS 后指示继续推进，授权建立 Production launch 准备线（2026-07-27）。
 - [x] 只读核验当前 Vercel project、代码阻断和官方 Production 能力；见 [`readiness research`](../../reference/implementation/production-launch-readiness-research-2026-07-27.md)。
 - [x] 产品负责人购买 `chinainfact.com`；CLI 回读确认域名位于当前 Vercel 账户、使用 Vercel nameserver、到期日为 2027-07-27，尚未绑定项目（2026-07-27）。
+- [x] 从 `/Volumes/External/codex-ops` 找到 website source invite，并经 Discord 公共 API 验证 `https://discord.gg/CCUbfaRVd2` 指向 `China, in Fact / start-here`、无到期时间（2026-07-27）。
+- [x] 复用现有飞书组织启用 `chinainfact.com` 邮箱域名；Vercel DNS 已配置并回读 MX、SPF、域名验证、DKIM 和监测态 DMARC，飞书 CLI 已确认 `hello@chinainfact.com` 为产品负责人可访问的公共邮箱，并已向 `gexu@lonelyreader.com` 实发且确认收达（2026-07-27）。
 - [x] 产品负责人接受完整推荐基线（2026-07-27）。
 - [x] 获得 checklist commit 批准，提交本清单并固定 HEAD 授权基线（2026-07-27）。
 - [x] 用 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md) 固定 Production 基础设施、邮件、域名、备份、成本和退出路径。
@@ -131,4 +134,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-产品负责人已接受 Production 基线并批准 checklist commit；域名购买也已完成并经只读回读确认。Product code、依赖安装、账号激活、其他付费、域名绑定、隐私文本、密钥、Production 数据库、对象存储、备份、邮件、Newsletter、Discord、migration、真实数据、内容公开、Production deploy、DNS 和公开索引仍分别待批。
+产品负责人已接受 Production 基线并批准 checklist commit；域名购买、飞书人工邮箱、邮件 DNS 与 Discord source invite 已完成并回读。Product code、依赖安装、其他付费、网站域名绑定、隐私文本、密钥、Production 数据库、对象存储、备份、Resend/Newsletter、Discord 代码接入、migration、真实数据、内容公开、Production deploy、网站 DNS 和公开索引仍分别待批。
