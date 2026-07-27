@@ -29,8 +29,8 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
   const cmsGuide = await getPublishedCMSGuide(locale, slug);
   if (cmsReadEnabled()) {
     if (!cmsGuide) notFound();
-    const author = getPerson(cmsGuide.author.slug);
-    if (!author) notFound();
+    const fixtureAuthor = getPerson(cmsGuide.author.slug);
+    const authorImage = fixtureAuthor?.image ?? "/images/fixtures/portrait-a-00.webp";
     const copy = ui[locale];
     const reviewed = cmsGuide.freshnessDate?.slice(0, 10) ?? "2026-07-27";
 
@@ -42,7 +42,7 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
             <h1>{cmsGuide.title}</h1>
             <p className="dek">{cmsGuide.summary}</p>
             <div className="guide-byline">
-              <Image src={author.image} alt={`${locale === "en" ? "Portrait of" : "Retrato de"} ${cmsGuide.author.name}`} width={72} height={72} />
+              <Image src={authorImage} alt={`${locale === "en" ? "Portrait of" : "Retrato de"} ${cmsGuide.author.name}`} width={72} height={72} />
               <div>
                 <span className="meta">{copy.writtenBy}</span>
                 <Link href={`/${locale}/people/${cmsGuide.author.slug}`}>{cmsGuide.author.name}</Link>
@@ -73,7 +73,7 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
             </div>
           </div>
           <section className="author-passage">
-            <Image src={author.image} alt={`${locale === "en" ? "Portrait of" : "Retrato de"} ${cmsGuide.author.name}`} width={180} height={180} />
+            <Image src={authorImage} alt={`${locale === "en" ? "Portrait of" : "Retrato de"} ${cmsGuide.author.name}`} width={180} height={180} />
             <div>
               <p className="meta">{copy.aboutAuthor}</p>
               <h2>{cmsGuide.author.name}</h2>
