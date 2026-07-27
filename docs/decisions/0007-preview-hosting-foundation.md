@@ -44,7 +44,7 @@ P2 需要把现有 Next.js 16 + Payload 3 + PostgreSQL 应用部署为受保护�
 
 ## Recovery And Exit
 
-- 代码可退回上一通过提交，公共读取可切回现有 fixtures。
+- 代码可退回上一通过提交；Preview 正常态读取 CMS，数据库故障时可通过显式 `CMS_READ_MODE=fixtures` 部署恢复公共读取。
 - Preview migration 执行前必须保留可回读的备份或恢复点；具体步骤在执行批准前写入 migration plan。
 - PostgreSQL 退出使用逻辑导出迁移到其他兼容 PostgreSQL；业务读取不调用 Neon 专用 API。
 - 媒体退出通过 Payload storage adapter 更换后端并搬迁对象；内容数据只保存对象引用，不把 Blob API 变成领域模型。

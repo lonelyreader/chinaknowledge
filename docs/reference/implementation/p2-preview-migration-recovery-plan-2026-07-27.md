@@ -13,7 +13,7 @@ change_id: P2-PREVIEW-001
 
 ## Status
 
-本文件固定执行顺序并记录结果。`Ran: Yes`；migration、虚构数据装载、Blob 持久化和受保护 Preview 部署均已完成，实现者验收 PASS，独立复审尚未执行。
+本文件固定执行顺序并记录结果。`Ran: Yes`；migration、虚构数据装载、Blob 持久化、隔离 restore smoke、fixtures 灾备和受保护 Preview 部署均已完成。首轮独立复审 BLOCK 已修复，等待重审。
 
 当前 migration artifact 为 `apps/web/src/migrations/20260727_054408_p1_editorial_foundation.ts`。本轮 Blob adapter 没有增加 Payload 字段或数据库 schema，生成类型与 P1 schema 保持一致。
 
@@ -63,9 +63,11 @@ npm run cms:migration:status
 - `20260727_054408_p1_editorial_foundation` 执行一次，状态回读为 `Ran: Yes`；未使用 development push。
 - 最终数据回读：`migrations=1`、`users=3`、`people=1`、`articles=2`、`media=1`、`workflow_events=11`。数据均为虚构 fixture。
 - 最终 Blob 回读只有 `shanghai-morning.webp` 与 `shanghai-morning-800x600.webp`；验收产生的 1 条无引用媒体记录和 3 个孤儿对象已按精确名称删除。
-- 最终 Preview 为 `dpl_DGYVZBMM3qUphXfg87dJgCU71A7x`，commit `3c8435c`，区域 `iad1`，状态 `READY`，匿名访问进入 Vercel SSO。
+- 当前 CMS Preview 为 `dpl_9cTeUwsM9JBNCdfps3HEzF3mBhA7`，commit `eb55721`，区域 `iad1`，状态 `READY`，匿名访问进入 Vercel SSO。
 - 首次 CLI 调用误取 production target；production 环境守卫在构建期失败关闭，deployment `dpl_9Db17Q8SNbVxtYQX426c9KfsRU5X` 为 `ERROR`，没有可用 production runtime、数据或地址。
 - 最终健康检查曾因在仓库根目录调用未链接的 CLI 而误建空 `chinaknowledge` project；确认其没有 deployment、domain 或数据后已按精确 project 删除，`apps/web` 的原项目绑定未改变。
+- 首轮独立复审后，用当前纯虚构 Preview 创建 108802-byte custom dump，SHA-256 为 `f8d0f1574c378f7cce19c8a2ac1149d69537fc58e9d080c1665d76e789cfd3e8`；恢复到隔离数据库后回读 23 张表、1 条 migration、3/1/2/1/11 数据计数及英语 `public` / 西班牙语 `draft`，随后删除隔离库、dump 和临时凭据。
+- Fixtures 灾备 deployment `dpl_5PoVCMHLF76Q4jbvwPQ4g1r29QPz` 将数据库指向不可用本地端口；`driving-in-shanghai` 仍为 200，CMS-only slug 为 404，health 为 503，`robots.txt` 保持 `Disallow: /` 和 `X-Robots-Tag`。
 
 ## Readback
 
@@ -90,4 +92,4 @@ Preview 结束后依次取消分享、保存脱敏证据、删除 Blob 测试对
 
 ## Evidence Record
 
-实现者证据已覆盖 commit、区域、资源 ID、保护状态、migration 前后状态、备份哈希、health、媒体跨部署、权限负例、语言隔离、秘密扫描和精确删除路径。当前结论为 `IMPLEMENTER PASS / INDEPENDENT REVIEW PENDING`。
+实现者证据已覆盖 commit、区域、资源 ID、保护状态、migration 前后状态、真实 backup/restore/readback、fixtures 灾备、health、媒体跨部署、权限负例、语言隔离、秘密扫描、视觉证据和精确删除路径。当前结论为 `IMPLEMENTER PASS / INDEPENDENT RE-REVIEW PENDING`。

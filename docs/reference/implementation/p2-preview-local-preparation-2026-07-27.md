@@ -13,14 +13,15 @@ change_id: P2-PREVIEW-001
 
 ## Result
 
-本地实现与 Preview 执行 **PASS**。应用具备 preview-only Blob adapter、严格环境边界、健康检查、安全响应头、双重 `noindex`、fixture fallback 和最小 CI；migration、虚构数据和受保护部署已完成。
+本地实现与 Preview 执行 **PASS**。应用具备 preview-only Blob adapter、严格环境边界、健康检查、安全响应头、双重 `noindex`、可执行 fixture fallback 和最小 CI；migration、虚构数据和受保护部署已完成。
 
-这不是 Preview Release Candidate 的最终关闭：实现者验收已通过，非主持实现者独立复审仍待执行。
+首轮独立复审给出 BLOCK 后，恢复与视觉证据缺口均已修复；等待同一复审者重新判定。
 
 ## Implemented Boundary
 
 - `APP_ENV` 固定为 `local / preview / production`；Vercel 环境冲突时失败。
-- Preview 强制要求 `CMS_READ_MODE=cms`、PostgreSQL URL、至少 32 字符的 Payload secret 和合法格式 Blob token。
+- Preview 正常态使用 `CMS_READ_MODE=cms`，灾备部署可显式使用 `fixtures`；两者都要求 PostgreSQL URL、至少 32 字符的 Payload secret 和合法格式 Blob token。
+- PostgreSQL adapter 在入口将旧的 `prefer / require / verify-ca` 统一规范为 `sslmode=verify-full`；当前 deployment 运行日志不再出现 SSL 未来语义警告。
 - Production runtime 在 P2 内显式失败，不能因 Vercel 默认 production 环境被意外启用。
 - 本地 Media 继续写入 `media/`；preview 才启用 `@payloadcms/storage-vercel-blob@3.86.0`，关闭实例本地媒体并使用 client upload。
 - Blob 配置没有增加 Payload 字段或数据库 schema；`payload-types.ts` 与 P1 schema 一致。
@@ -50,6 +51,8 @@ change_id: P2-PREVIEW-001
 | 权限与语言隔离 | PASS；Author 不能直接公开或改已公开文章，Editor 可完成审批；英语 200，西班牙语 404 |
 | 媒体跨部署 | PASS；主图 259746 bytes、card 91598 bytes，重新部署后均为 200 |
 | 浏览器与运行日志 | PASS；桌面和 390px 移动端无溢出；最终 deployment 近 30 分钟无 5xx |
+| 隔离 restore smoke | PASS；108802-byte custom dump 恢复出 23 张表、1 条 migration 与完整虚构数据，目标库随后删除 |
+| Fixtures 灾备部署 | PASS；DB 指向不可用端口时 fixture Guide 200、CMS-only Guide 404、health 503、robots `Disallow: /` |
 
 完整 npm audit 另报告 9 个 high dev-tool findings，集中于 ESLint/minimatch 链且有升级路径；它们不进入 production dependency tree。本轮没有获得现有依赖升级授权，因此未运行 `npm audit fix`。Payload PostgreSQL/drizzle-kit/esbuild 链的 5 个 moderate findings 当前无可用修复。
 
@@ -61,12 +64,16 @@ change_id: P2-PREVIEW-001
 - CMS read path `GET /en/guides/driving-in-shanghai` → 200；未公开西班牙语 `GET /es/guides/conducir-en-shanghai` → 404。
 - `/en`、`/admin` 与 `/api/health` 均有 `X-Robots-Tag: noindex, nofollow, noarchive` 及四项安全响应头。
 - `poweredByHeader` 已关闭；`127.0.0.1` 被列为本地开发允许来源，浏览器 HMR 不再触发跨源阻止警告。
+- 当前 CMS Preview：`dpl_9cTeUwsM9JBNCdfps3HEzF3mBhA7`；英语虚构 Guide 200、西班牙语 draft 404、health 200、匿名请求 302 到 Vercel SSO。
+- 灾备 Preview：`dpl_5PoVCMHLF76Q4jbvwPQ4g1r29QPz`；数据库不可用时 fixture Guide 仍为 200，health 明确返回 503 `unavailable`。
+- 桌面与移动端浏览器均无 framework overlay；1440px 与 390px 的 `scrollWidth` 等于 `clientWidth`。证据：[Guide desktop](assets/p2-preview-guide-desktop-full.png)、[Guide 390px](assets/p2-preview-guide-mobile-390-full.png)、[Admin desktop](assets/p2-preview-admin-desktop-full.png)、[Admin 390px](assets/p2-preview-admin-mobile-390-full.png)、[Spanish draft 404](assets/p2-preview-spanish-draft-404-mobile-390-full.png)。
+- 临时 share link 在截图完成后撤销，保护配置回读为 `remaining=0`；隔离浏览器已关闭。
 
 ## External Boundary
 
 - `Migration Ran: Yes`；artifact `20260727_054408_p1_editorial_foundation` 仅执行一次，没有 development push。
 - `Vercel Project: lonelyreader/china-in-fact`；`apps/web/.vercel/project.json` 已绑定 project `prj_MlM7hL16TkyUeDisgb48UucNw6RZ`，该目录被 Git 忽略。
-- `Preview Deploy: READY`；`dpl_DGYVZBMM3qUphXfg87dJgCU71A7x`，commit `3c8435c`，受 Vercel SSO 保护，授权 `/api/health` 为 200。
+- `Preview Deploy: READY`；`dpl_9cTeUwsM9JBNCdfps3HEzF3mBhA7`，commit `eb55721`，受 Vercel SSO 保护，授权 `/api/health` 为 200。
 - `Neon: china-in-fact-preview-db`；resource `store_ddLh0IcbWMpKZBZE`，Free、Available、Preview-only，创建参数为 `iad1 / auth=false`，外部项目 `damp-lake-01785339`。
 - `Blob: china-in-fact-preview-media`；store `store_CZgZHdC2j44o2LAy`，`iad1 / public`，仅保留验收主图与 card 两个对象。
 - `Preview Env: 5/5 required`；`APP_ENV`、`CMS_READ_MODE`、`PAYLOAD_SECRET`、`DATABASE_URL`、`BLOB_READ_WRITE_TOKEN` 均存在且只作用于 Preview。

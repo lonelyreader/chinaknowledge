@@ -70,9 +70,11 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 获得当前 P2 baseline commit、Preview migration、虚构验收数据、受保护 Preview deploy 与部署后验证批准；Production、正式域名、真实数据和内容公开不在本次授权内（2026-07-27）。
 - [x] 实现环境校验、preview-only 持久化媒体配置、部署前检查、健康检查、安全头、CI 和 preview `noindex`；本地与静态配置验证通过。见 [`local preparation evidence`](../../reference/implementation/p2-preview-local-preparation-2026-07-27.md)。
 - [x] 建立 migration plan、备份、恢复与删除资源步骤，并完成执行前资源回读。见 [`migration and recovery plan`](../../reference/implementation/p2-preview-migration-recovery-plan-2026-07-27.md)。
-- [x] 执行 migration、装载虚构验收数据并部署受保护 Preview；最终 deployment 为 `dpl_DGYVZBMM3qUphXfg87dJgCU71A7x`（2026-07-27）。
+- [x] 执行 migration、装载虚构验收数据并部署受保护 Preview；当前 CMS deployment 为 `dpl_9cTeUwsM9JBNCdfps3HEzF3mBhA7`（2026-07-27）。
 - [x] 复跑 Acceptance Fixture、权限负例、响应式、copy gate、秘密扫描和发布后回读；实现者验收 PASS（2026-07-27）。
-- [ ] 由独立复审者给出 PASS 或 BLOCK；PASS 后再决定是否建立 production launch checklist。
+- [x] 首轮独立复审给出 BLOCK：fixtures 灾备配置不可执行、没有真实 restore smoke、P2 截图未持久化、evidence router 过期（2026-07-27）。
+- [x] 修复首轮阻断：Preview 允许显式 fixtures 灾备读；隔离数据库 restore/migration/fixture 回读后删除；补齐桌面与 390px 截图；更新 router（2026-07-27）。
+- [ ] 由同一独立复审者对修复给出 PASS；PASS 后再决定是否建立 production launch checklist。
 - [x] 获得后续 P2 commit 与 Preview deploy 批准，提交实现并回写执行证据。
 - [ ] 独立复审 PASS 后完成归档收口。
 

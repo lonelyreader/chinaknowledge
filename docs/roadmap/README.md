@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | Checklist | 当前边界 |
 |---|---|---|
-| P2 Preview release candidate | [`P2-PREVIEW-001`](checklists/p2-preview-release-candidate.md) | 实现与 Preview 验收已通过；等待非主持实现者独立复审 |
+| P2 Preview release candidate | [`P2-PREVIEW-001`](checklists/p2-preview-release-candidate.md) | 首轮独立复审 BLOCK 已修复；等待同一复审者重新判定 |
 
 ## Deferred
 
