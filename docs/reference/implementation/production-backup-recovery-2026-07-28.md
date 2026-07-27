@@ -44,9 +44,15 @@ GitHub Actions secrets 为 `PRODUCTION_DATABASE_BACKUP_URL`、`PRODUCTION_BLOB_R
 - Media：Production Blob 返回 0 个对象；带时间戳的 zero-object manifest 写入 R2 后读回，`count = 0`。
 - R2 操作回读：首次验证产生 21 次 Class A 与 8 次 Class B 操作，账单仍为 US$0.00。
 
+## Hosted Workflow Readback
+
+- Commit：`f6cbd4d`，GitHub Actions run [`30286886253`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30286886253)。
+- Result：`success`，`backup-and-verify` 用时 49 秒；checkout、setup、无脚本依赖安装、配置检查、导出、上传、数据库恢复与媒体读回全部成功。
+- Database：远程 run 上传带时间戳的 dump 与 SHA-256 文件，读回后 `production.dump: OK`，隔离恢复为 0 张 `public` 表。
+- Media：远程 run 上传并读回 zero-object manifest，日志确认 Production Blob 当前为 0 个对象。
+
 ## Remaining Gate
 
-- 自动 workflow 必须在代码进入 GitHub 后人工触发一次并回读 run result。
 - Production migration 前确认最新数据库恢复点存在；migration 后再次运行 workflow，要求恢复库出现预期 schema。
 - 第一批真实媒体写入后再次运行 workflow，要求至少一个媒体对象从 R2 读回且校验一致。
 - 这些验收通过前不部署、不绑定网站域名、不公开内容或索引。

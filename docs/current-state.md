@@ -44,7 +44,7 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已独立复审 PASS；独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建，Neon 为 7 天恢复窗口，R2 为全部对象 30 天防删、数据库备份 90 天生命周期。首次空库逻辑备份与隔离恢复、零媒体对象清单写入与读回均通过。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、migration、真实数据、正式内容公开、部署和索引仍未执行。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已独立复审 PASS；独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建，Neon 为 7 天恢复窗口，R2 为全部对象 30 天防删、数据库备份 90 天生命周期。首次空库逻辑备份与隔离恢复、零媒体对象清单写入与读回均通过；GitHub 每日 workflow 的首个人工触发 run `30286886253` 也已全步骤成功。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、migration、真实数据、正式内容公开、部署和索引仍未执行。
 
 ## 当前运行边界
 

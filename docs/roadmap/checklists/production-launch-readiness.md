@@ -102,7 +102,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 配置并发布 Vercel Firewall 规则 `Newsletter signup rate limit`：仅匹配 Production `POST /api/newsletter`，每 IP 每 600 秒 5 次，超限返回 rate-limit；路由同时拒绝缺失或跨域 Origin，已有联系人只更新 locale、不覆盖退订偏好（2026-07-27）。
 - [x] 邮件与 Newsletter slice 经同一非主持实现者两轮独立复审；首轮 3 个 P1 与 2 个 P2 全部修复，第二轮 PASS，剩余 P0/P1/P2 为零（2026-07-27）。
 - [x] 产品负责人批准进入 Production 资源阶段；创建并回读独立 Neon Launch `china-in-fact-production-db` 与 Blob `china-in-fact-production-media`，均仅连接 Production，环境校验为 `cms + blob + noindex`，空库与空 Blob 未执行 migration 或真实数据写入；Neon `History retention` 已回读为 7 days（2026-07-27）。
-- [x] 创建并回读 Production Neon、Blob 与 R2 备份目标及其 secrets；首次空库 dump 与零对象媒体清单已完成写入、读回和隔离恢复（2026-07-28）。
+- [x] 创建并回读 Production Neon、Blob 与 R2 备份目标及其 secrets；首次空库 dump 与零对象媒体清单已完成写入、读回和隔离恢复，GitHub Actions run `30286886253` 全步骤成功（2026-07-28）。
 - [ ] 在 migration 前生成并验证数据库与媒体恢复点，再执行 Production migration 和状态回读。
 - [ ] 分别批准真实作者账户、人物、文章、媒体、外链与公开状态；完成编辑审核。
 - [ ] 生成 `--prod --skip-domain` staged deployment，运行完整 release 验收与独立复审。
