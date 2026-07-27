@@ -44,7 +44,7 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已独立复审 PASS；独立 Production Neon Launch 与 Blob 也已创建。下一步是 Neon 恢复窗口、异地备份与恢复演练。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、migration、真实数据、正式内容公开、部署和索引仍未执行。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已独立复审 PASS；独立 Production Neon Launch 与 Blob 已创建，Neon 恢复窗口已设为 7 天。异地备份推荐 Cloudflare R2，下一步是账号连接、私有桶与恢复演练。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、migration、真实数据、正式内容公开、部署和索引仍未执行。
 
 ## 当前运行边界
 

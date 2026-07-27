@@ -27,7 +27,7 @@ Production 当前仍不能部署：独立 Neon Launch、Blob 和完整运行变�
 - People 页已接正式 Discord invite；fixture 中的 `example.com` 与假 Newsletter 外链已移除。
 - `/Volumes/External/codex-ops` registry 已保存 website、newsletter、X、YouTube 和 partners 五个 source invite；2026-07-27 实时验证 website invite `https://discord.gg/CCUbfaRVd2` 指向 guild `China, in Fact` 的 `start-here`，且无到期时间。
 - Production 已补齐 Resend、发件、环境、数据库、Blob 与公开索引配置变量；异地备份、migration、真实账户和真实内容仍不存在。
-- 2026-07-27 创建 `china-in-fact-production-db`：Neon Launch、`iad1 / us-east-1`、仅 Production，PostgreSQL 17.10，public schema 为 0 张表；Neon Console 仍等待 `gexu@lonelyreader.io` 激活后设置 7 天恢复窗口。
+- 2026-07-27 创建 `china-in-fact-production-db`：Neon Launch、`iad1 / us-east-1`、仅 Production，PostgreSQL 17.10，public schema 为 0 张表；Neon Console 完成账号激活后已将 `History retention` 从 1 day 调整并回读为 7 days。
 - 2026-07-27 创建 `china-in-fact-production-media`：公开 Blob、`iad1`、仅 Production，回读为 0B / 0 文件。Production 环境补齐独立数据库、Blob、`APP_ENV=production`、`CMS_READ_MODE=cms`、Payload secret 与邮件变量后，校验通过且索引保持关闭。
 
 ## Accepted Foundation
@@ -48,6 +48,14 @@ Production 当前仍不能部署：独立 Neon Launch、Blob 和完整运行变�
 - Migration 前至少保留 Neon snapshot 或逻辑导出，且必须在隔离目标完成一次 restore smoke。
 - Production Blob 使用独立 store；Vercel 官方备份示例是通过 Cron 把 Blob 流式复制到 S3，说明媒体恢复需要单独设计，不能只依赖 deployment rollback。
 - 初始建议数据库 `RPO <= 24h / RTO <= 4h`，媒体 `RPO <= 7d / RTO <= 8h`；公开前以恢复演练验证，而不是只记录步骤。
+
+### Backup Target Recommendation
+
+- 推荐 Cloudflare R2 Standard 私有桶，location hint 选择 Eastern North America；Vercel Blob 底层使用 AWS S3，R2 能形成独立供应商故障域，且保留 S3-compatible 工具链。
+- R2 Standard 当前每月含 10GB storage、100 万 Class A、1000 万 Class B 和免费 egress；首发规模预计在免费额度内，超出后按量计费。
+- R2 支持 lifecycle 和 bucket lock。首发建议 30 天不可删除/覆盖锁；数据库每日逻辑导出，保留 90 天；媒体按唯一对象增量复制，不跟随源端删除。
+- AWS S3/AWS Backup 能力更完整，但会增加独立 AWS account、IAM、备份 vault 和计费运维；Backblaze B2 同样 S3-compatible，但当前没有优于 R2 免费额度、egress 和单人运维的决定性优势。
+- Cloudflare 账号登录、R2 subscription/条款和凭据尚未完成；当前结论是推荐方案，不把未创建资源写成现状。
 
 ### Email And Newsletter
 
@@ -103,7 +111,7 @@ Production 当前仍不能部署：独立 Neon Launch、Blob 和完整运行变�
 
 ## Decision Boundary
 
-研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私、环境代码、独立 Production Neon 与 Blob 已随后执行；下一资源门禁是 Neon 7 天恢复窗口、异地备份目标与恢复演练。
+研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私、环境代码、独立 Production Neon、Blob 与 7 天恢复窗口已随后执行；下一资源门禁是异地备份目标与恢复演练。
 
 ## Official Sources
 
@@ -113,6 +121,9 @@ Production 当前仍不能部署：独立 Neon Launch、Blob 和完整运行变�
 - [Vercel deployments](https://vercel.com/docs/deployments/overview)
 - [Vercel rollback CLI](https://vercel.com/docs/cli/rollback)
 - [Vercel Blob backup example](https://vercel.com/docs/vercel-blob/examples)
+- [Cloudflare R2 pricing](https://developers.cloudflare.com/r2/pricing/)
+- [Cloudflare R2 data location](https://developers.cloudflare.com/r2/reference/data-location/)
+- [Cloudflare R2 bucket locks](https://developers.cloudflare.com/r2/buckets/bucket-locks/)
 - [Neon pricing](https://neon.com/pricing)
 - [Neon point-in-time restore](https://neon.com/blog/announcing-point-in-time-restore)
 - [Neon scheduled snapshots update](https://neon.com/docs/changelog/2025-10-31)
