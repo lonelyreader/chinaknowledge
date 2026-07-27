@@ -21,6 +21,7 @@ max_lines: 100
 | `ADR-0005` | accepted | [`公共 Web 基础栈`](0005-public-web-foundation.md) |
 | `ADR-0006` | accepted | [`编辑 CMS 基础`](0006-editorial-cms-foundation.md) |
 | `ADR-0007` | accepted | [`P2 Preview 托管基础`](0007-preview-hosting-foundation.md) |
+| `ADR-0008` | accepted | [`Production Launch 基础`](0008-production-launch-foundation.md) |
 
 ## 登记规则
 

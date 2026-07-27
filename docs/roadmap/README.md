@@ -14,13 +14,14 @@ max_lines: 100
 
 ## Active
 
-当前没有 active 工作。P2 Preview 已通过独立复审并归档；进入 Production 前必须建立新的 upgraded checklist。
+| 工作项 | 状态 | 当前门禁 |
+|---|---|---|
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 基线已接受、域名已购但未绑定；product code、依赖安装和外部资源尚未授权 |
 
 ## Deferred
 
 | 工作项 | 进入条件 |
 |---|---|
-| Production launch | 产品负责人明确启动，另行决定域名、真实数据、内容公开、备份、预算和生产部署 |
 | P3 平台深化 | 有真实访问、订阅和作者运营数据 |
 
 P0 Stitch 设计原型、P1 可运行公共产品切片、P1 编辑 CMS 基础与 P2 Preview release candidate 已经完成，历史与交接见 [`archive`](../archive/README.md)。

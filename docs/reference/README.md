@@ -16,7 +16,7 @@ max_lines: 80
 |---|---|---|
 | 技术栈建议 | Web 基础栈已由 ADR-0005 决定，其余候选 deferred | [`technical-stack-proposal.md`](technical-stack-proposal.md) |
 | 设计与信息架构证据 | 按子目录标注 | [`design/README.md`](design/README.md) |
-| P1/P2 实现与浏览器证据 | P1 已接受；P2 实现者验收与独立复审均通过 | [`implementation/README.md`](implementation/README.md) |
+| P1/P2 实现与 Production 准备证据 | P1 已接受；P2 已通过；Production readiness 待产品决定 | [`implementation/README.md`](implementation/README.md) |
 
 规则：
 
