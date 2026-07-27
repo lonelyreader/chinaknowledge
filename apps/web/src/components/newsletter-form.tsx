@@ -1,20 +1,45 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import type { Locale } from "@/content";
 import { ui } from "@/content";
 
-type Status = "idle" | "success" | "error";
+type Status = "idle" | "submitting" | "success" | "invalid" | "consent" | "error";
 
 export function NewsletterForm({ locale }: { locale: Locale }) {
   const [status, setStatus] = useState<Status>("idle");
   const copy = ui[locale];
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const email = String(data.get("email") ?? "").trim();
-    setStatus(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? "success" : "error");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setStatus("invalid");
+      return;
+    }
+    if (data.get("consent") !== "on") {
+      setStatus("consent");
+      return;
+    }
+
+    setStatus("submitting");
+    try {
+      const response = await fetch("/api/newsletter", {
+        body: JSON.stringify({
+          consent: true,
+          email,
+          locale,
+          website: String(data.get("website") ?? ""),
+        }),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      });
+      setStatus(response.ok ? "success" : "error");
+    } catch {
+      setStatus("error");
+    }
   }
 
   if (status === "success") {
@@ -27,7 +52,7 @@ export function NewsletterForm({ locale }: { locale: Locale }) {
   }
 
   return (
-    <form className="newsletter-form" onSubmit={submit} noValidate>
+    <form className="newsletter-form" onSubmit={submit} noValidate aria-busy={status === "submitting"}>
       <label htmlFor={`email-${locale}`}>{copy.email}</label>
       <div className="newsletter-form__row">
         <input
@@ -35,12 +60,27 @@ export function NewsletterForm({ locale }: { locale: Locale }) {
           name="email"
           type="email"
           autoComplete="email"
-          aria-invalid={status === "error"}
-          aria-describedby={status === "error" ? `email-error-${locale}` : undefined}
+          aria-invalid={status === "invalid"}
+          aria-describedby={status === "invalid" ? `email-error-${locale}` : undefined}
         />
-        <button className="button" type="submit">{copy.join}</button>
+        <button className="button" type="submit" disabled={status === "submitting"}>
+          {status === "submitting" ? copy.joining : copy.join}
+        </button>
       </div>
-      {status === "error" ? <p className="form-error" id={`email-error-${locale}`}>{copy.invalidEmail}</p> : null}
+      <input className="newsletter-honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <label className="newsletter-consent">
+        <input
+          name="consent"
+          type="checkbox"
+          aria-invalid={status === "consent"}
+          aria-describedby={status === "consent" ? `consent-error-${locale}` : undefined}
+        />
+        <span>{copy.consent}</span>
+      </label>
+      <p className="newsletter-privacy">{copy.unsubscribe} <Link href={`/${locale}/privacy`}>{copy.privacy}</Link></p>
+      {status === "invalid" ? <p className="form-error" id={`email-error-${locale}`} role="alert">{copy.invalidEmail}</p> : null}
+      {status === "consent" ? <p className="form-error" id={`consent-error-${locale}`} role="alert">{copy.consentRequired}</p> : null}
+      {status === "error" ? <p className="form-error" role="alert">{copy.newsletterError}</p> : null}
     </form>
   );
 }

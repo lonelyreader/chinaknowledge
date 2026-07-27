@@ -160,6 +160,11 @@ p {
   transform: translateY(1px);
 }
 
+.button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .button--compact {
   min-height: 44px;
   padding-inline: 1rem;
@@ -602,6 +607,35 @@ p {
   display: grid;
   gap: 0.75rem;
   grid-template-columns: 1fr auto;
+}
+
+.newsletter-form .newsletter-consent {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.55rem;
+  margin-bottom: 0;
+  margin-top: 0.8rem;
+}
+
+.newsletter-form .newsletter-consent input {
+  accent-color: var(--cinnabar);
+  flex: 0 0 1rem;
+  height: 1rem;
+  margin-top: 0.18rem;
+  min-height: 1rem;
+  min-width: 1rem;
+  padding: 0;
+  width: 1rem;
+}
+
+.newsletter-privacy {
+  font-size: 0.78rem;
+  margin: 0.4rem 0 0;
+}
+
+.newsletter-honeypot {
+  left: -10000px;
+  position: absolute;
 }
 
 .newsletter-form input,

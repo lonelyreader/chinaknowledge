@@ -10,6 +10,7 @@ npm run cms:db:up
 npm run dev
 npm run test:editorial
 npm run test:environment
+npm run test:newsletter
 npm run test:preview-config
 npm run lint
 npm run typecheck
@@ -32,14 +33,18 @@ npm run test:editorial
 
 ## Preview Boundary
 
-Preview 使用 `APP_ENV=preview`，在 Vercel 中还必须与 `VERCEL_ENV=preview` 一致。Vercel Functions 固定在 `iad1`，Neon 与 Blob 创建时分别使用 AWS `us-east-1` 和 `iad1`。它要求 `CMS_READ_MODE=cms`、独立 PostgreSQL、至少 32 字符的 Payload secret 和 Blob token；缺少或冲突时启动前失败。变量清单见 `.env.preview.example`，所有值只进入服务端环境管理。
+Preview 使用 `APP_ENV=preview`，在 Vercel 中还必须与 `VERCEL_ENV=preview` 一致。Vercel Functions 固定在 `iad1`，Neon 与 Blob 创建时分别使用 AWS `us-east-1` 和 `iad1`。它要求明确设置 `CMS_READ_MODE=cms` 或 `fixtures`、独立 PostgreSQL、至少 32 字符的 Payload secret 和 Blob token；缺少或冲突时启动前失败。`fixtures` 只用于已接受的灾备与验收回退，不改变公开数据真相。变量清单见 `.env.preview.example`，所有值只进入服务端环境管理。
 
-本地始终使用 `media/`；preview 才启用 Payload 官方 Vercel Blob adapter，并使用 client upload。全站安全响应头、`robots.txt`、页面 robots metadata 和 `/api/health` 已可本地验证。Preview 资源、密钥、migration 与 deploy 尚未创建或执行。
+本地始终使用 `media/`；Preview 和 Production 启用 Payload 官方 Vercel Blob adapter，并使用 client upload。全站安全响应头、`robots.txt`、页面 robots metadata 和 `/api/health` 已可本地验证。
+
+## Production Boundary
+
+Production 使用 `.env.production.example` 所列独立数据库、Blob 与邮件变量。环境检查只有在全部资源存在时才放行；`PUBLIC_INDEXING_ENABLED` 默认不放开索引。Payload 事务邮件使用域名受限的 Resend key，Newsletter 使用单独 Contacts key 和明确 opt-in Topic。公开订阅端点还受 Vercel Firewall 的 Production-only IP 限流保护；Local 与 Preview 不写真实订阅者。
 
 ## Boundaries
 
-- CMS、认证和 PostgreSQL 当前仅供本机虚构数据验证；没有 preview/production 数据库、邮件发送、分析或已激活部署资源。
-- Newsletter 只改变浏览器内组件状态。
+- CMS、认证和 PostgreSQL 当前只有 Local 与 Preview 虚构数据；Production 数据库、Blob 和部署尚未创建。
+- Newsletter 已连接真实 Resend Contacts 写路径，但只在 Production 环境启用；Local 与 Preview 返回不可用状态。
 - CMS 测试账户、人物、文章和图像均为虚构数据，不得作为真实作者或待公开内容。
 - 生成图像的源文件保留在 Codex 本地生成目录；应用使用 `public/images/fixtures/` 中的项目副本。
 - Satoshi 字体文件来自 Fontshare CDN；Instrument Serif 与 Geist Mono 由 Next.js 字体管线打包。

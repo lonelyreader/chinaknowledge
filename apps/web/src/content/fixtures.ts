@@ -32,10 +32,7 @@ const peopleSeed: Omit<Person, "image" | "links">[] = [
 export const people: Person[] = peopleSeed.map((person, index) => ({
   ...person,
   image: `/images/fixtures/portrait-${index < 12 ? "a" : "b"}-${String(index % 12).padStart(2, "0")}.webp`,
-  links: [
-    { label: "Website", href: "https://example.com" },
-    { label: "Newsletter", href: "https://example.com/newsletter" },
-  ],
+  links: [],
 }));
 
 export const stories: Story[] = [

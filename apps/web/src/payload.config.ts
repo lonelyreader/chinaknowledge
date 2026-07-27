@@ -1,6 +1,7 @@
 import "dotenv/config";
 
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import { resendAdapter } from "@payloadcms/email-resend";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import path from "node:path";
@@ -39,6 +40,15 @@ export default buildConfig({
       process.env.NODE_ENV === "development",
   }),
   editor: lexicalEditor(),
+  ...(serverEnvironment.transactionalEmailEnabled
+    ? {
+        email: resendAdapter({
+          apiKey: process.env.RESEND_TRANSACTIONAL_API_KEY!,
+          defaultFromAddress: process.env.PAYLOAD_EMAIL_FROM!,
+          defaultFromName: process.env.PAYLOAD_EMAIL_FROM_NAME!,
+        }),
+      }
+    : {}),
   plugins: [
     vercelBlobStorage({
       addRandomSuffix: false,

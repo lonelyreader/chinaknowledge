@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 基线已接受、域名已购但未绑定；product code、依赖安装和外部资源尚未授权 |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 邮件与 Newsletter slice 独立复审 PASS；下一门禁为 Production Neon、Blob 和备份资源 |
 
 ## Deferred
 

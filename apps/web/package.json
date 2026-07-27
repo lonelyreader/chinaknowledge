@@ -25,10 +25,12 @@
     "cms:migration:status": "payload migrate:status",
     "test:editorial": "tsx tests/editorial-workflow.ts",
     "test:environment": "tsx tests/environment.ts",
+    "test:newsletter": "tsx tests/newsletter.ts && tsx tests/newsletter-route.ts",
     "test:preview-config": "tsx tests/preview-config.ts"
   },
   "dependencies": {
     "@payloadcms/db-postgres": "3.86.0",
+    "@payloadcms/email-resend": "3.86.0",
     "@payloadcms/next": "3.86.0",
     "@payloadcms/richtext-lexical": "3.86.0",
     "@payloadcms/storage-vercel-blob": "3.86.0",
@@ -39,6 +41,7 @@
     "payload": "3.86.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "resend": "6.18.0",
     "sharp": "0.35.3"
   },
   "devDependencies": {

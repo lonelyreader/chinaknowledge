@@ -8,6 +8,8 @@ export type ServerEnvironment = {
   cmsReadMode: "cms" | "fixtures";
   environment: AppEnvironment;
   indexable: boolean;
+  newsletterEnabled: boolean;
+  transactionalEmailEnabled: boolean;
 };
 
 function isAppEnvironment(value: string): value is AppEnvironment {
@@ -67,6 +69,18 @@ function hasVercelBlobToken(value: string | undefined) {
   return Boolean(value?.match(/^vercel_blob_rw_[a-z\d]+_[a-z\d]+$/i));
 }
 
+function hasResendKey(value: string | undefined) {
+  return Boolean(value?.match(/^re_[A-Za-z\d_-]{16,}$/));
+}
+
+function hasUuid(value: string | undefined) {
+  return Boolean(value?.match(/^[a-f\d]{8}-[a-f\d]{4}-[1-5][a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$/i));
+}
+
+function isEmailAddress(value: string | undefined) {
+  return Boolean(value?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/));
+}
+
 export function validateServerEnvironment(
   env: EnvironmentSource = process.env,
 ): ServerEnvironment {
@@ -97,7 +111,39 @@ export function validateServerEnvironment(
   }
 
   if (environment === "production") {
-    errors.push("Production runtime is not approved by P2-PREVIEW-001.");
+    if (cmsReadMode !== "cms") {
+      errors.push("Production requires CMS_READ_MODE=cms.");
+    }
+    if (!hasVercelBlobToken(env.BLOB_READ_WRITE_TOKEN)) {
+      errors.push("Production requires a valid BLOB_READ_WRITE_TOKEN.");
+    }
+    if ((env.PAYLOAD_SECRET?.trim().length ?? 0) < 32) {
+      errors.push("Production PAYLOAD_SECRET must be at least 32 characters.");
+    }
+    if (!hasResendKey(env.RESEND_TRANSACTIONAL_API_KEY)) {
+      errors.push("Production requires RESEND_TRANSACTIONAL_API_KEY.");
+    }
+    if (!hasResendKey(env.RESEND_CONTACTS_API_KEY)) {
+      errors.push("Production requires RESEND_CONTACTS_API_KEY.");
+    }
+    if (!hasUuid(env.RESEND_NEWSLETTER_TOPIC_ID)) {
+      errors.push("Production requires RESEND_NEWSLETTER_TOPIC_ID.");
+    }
+    if (!isEmailAddress(env.PAYLOAD_EMAIL_FROM)) {
+      errors.push("Production requires PAYLOAD_EMAIL_FROM.");
+    }
+    if (!hasValue(env.PAYLOAD_EMAIL_FROM_NAME)) {
+      errors.push("Production requires PAYLOAD_EMAIL_FROM_NAME.");
+    }
+    if (!isEmailAddress(env.NEWSLETTER_EMAIL_FROM)) {
+      errors.push("Production requires NEWSLETTER_EMAIL_FROM.");
+    }
+    if (!isEmailAddress(env.EMAIL_REPLY_TO)) {
+      errors.push("Production requires EMAIL_REPLY_TO.");
+    }
+    if (env.PUBLIC_INDEXING_ENABLED && !["true", "false"].includes(env.PUBLIC_INDEXING_ENABLED)) {
+      errors.push("PUBLIC_INDEXING_ENABLED must be true or false.");
+    }
   }
 
   if (errors.length > 0) {
@@ -105,9 +151,11 @@ export function validateServerEnvironment(
   }
 
   return {
-    blobStorageEnabled: environment === "preview",
+    blobStorageEnabled: environment !== "local",
     cmsReadMode: cmsReadMode === "cms" ? "cms" : "fixtures",
     environment,
-    indexable: environment === "production",
+    indexable: environment === "production" && env.PUBLIC_INDEXING_ENABLED === "true",
+    newsletterEnabled: environment === "production",
+    transactionalEmailEnabled: environment === "production",
   };
 }

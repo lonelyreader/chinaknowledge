@@ -18,6 +18,8 @@ assert.deepEqual(validateServerEnvironment(base), {
   cmsReadMode: "fixtures",
   environment: "local",
   indexable: false,
+  newsletterEnabled: false,
+  transactionalEmailEnabled: false,
 });
 
 const preview = {
@@ -33,6 +35,8 @@ assert.deepEqual(validateServerEnvironment(preview), {
   cmsReadMode: "cms",
   environment: "preview",
   indexable: false,
+  newsletterEnabled: false,
+  transactionalEmailEnabled: false,
 });
 
 assert.deepEqual(validateServerEnvironment({ ...preview, CMS_READ_MODE: "fixtures" }), {
@@ -40,6 +44,8 @@ assert.deepEqual(validateServerEnvironment({ ...preview, CMS_READ_MODE: "fixture
   cmsReadMode: "fixtures",
   environment: "preview",
   indexable: false,
+  newsletterEnabled: false,
+  transactionalEmailEnabled: false,
 });
 
 assert.throws(
@@ -54,9 +60,38 @@ assert.throws(
   () => validateServerEnvironment({ ...preview, VERCEL_ENV: "production" }),
   /conflicts with VERCEL_ENV/,
 );
+const production = {
+  ...preview,
+  APP_ENV: "production",
+  EMAIL_REPLY_TO: "hello@chinainfact.com",
+  NEWSLETTER_EMAIL_FROM: "newsletter@mail.chinainfact.com",
+  PAYLOAD_EMAIL_FROM: "account@mail.chinainfact.com",
+  PAYLOAD_EMAIL_FROM_NAME: "China, in Fact",
+  PUBLIC_INDEXING_ENABLED: "false",
+  RESEND_CONTACTS_API_KEY: "re_fixture_contacts_key_123456",
+  RESEND_NEWSLETTER_TOPIC_ID: "c6b0f6a2-f1fa-42cf-86ab-0dba63aa7a26",
+  RESEND_TRANSACTIONAL_API_KEY: "re_fixture_transactional_key_123456",
+  VERCEL_ENV: "production",
+};
+assert.deepEqual(validateServerEnvironment(production), {
+  blobStorageEnabled: true,
+  cmsReadMode: "cms",
+  environment: "production",
+  indexable: false,
+  newsletterEnabled: true,
+  transactionalEmailEnabled: true,
+});
+assert.equal(
+  validateServerEnvironment({ ...production, PUBLIC_INDEXING_ENABLED: "true" }).indexable,
+  true,
+);
 assert.throws(
-  () => validateServerEnvironment({ ...base, APP_ENV: "production" }),
-  /Production runtime is not approved/,
+  () => validateServerEnvironment({ ...production, RESEND_CONTACTS_API_KEY: "" }),
+  /RESEND_CONTACTS_API_KEY/,
+);
+assert.throws(
+  () => validateServerEnvironment({ ...production, BLOB_READ_WRITE_TOKEN: "" }),
+  /BLOB_READ_WRITE_TOKEN/,
 );
 assert.throws(
   () => resolveAppEnvironment({ APP_ENV: "staging" }),

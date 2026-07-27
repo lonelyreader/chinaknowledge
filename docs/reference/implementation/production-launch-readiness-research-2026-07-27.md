@@ -15,18 +15,18 @@ change_id: PROD-LAUNCH-001
 
 首个 Production 应延续 P2 已验证的应用结构和美国东部区域，但必须使用独立 Production 数据库、Blob、环境变量与恢复点。产品负责人已于 2026-07-27 接受现有 Vercel Pro project + Neon Launch + Vercel Blob + Resend 基线；接受决定不授权购买、创建资源、迁移、部署、DNS 或公开内容。
 
-Production 当前不能部署：代码仍主动拒绝 production runtime，Vercel project 状态为 `live: false`，正式域名尚未绑定网站 project；Newsletter 会在没有保存邮箱时显示成功，代码中的 Discord 与 fixture 外链仍是占位入口。真实 Discord website invite 与人工域名邮箱已经就绪，后续分别接入产品代码和运营流程。
+Production 当前仍不能部署，因为独立数据库、Blob、备份和完整运行变量尚未创建，Vercel project 状态仍为 `live: false`，正式域名也未绑定网站 project。此前的环境固定拒绝、Newsletter 假成功、Discord 通用入口和 fixture 占位外链已在本轮代码中修复。
 
 ## Current Evidence
 
 - Vercel project `china-in-fact` 位于现有 `lonelyreader` account；2026-07-27 只读回读为 `live: false`，没有绑定自定义域名。
 - `chinainfact.com` 已由产品负责人在 Vercel 购买；CLI 回读显示 registrar 与 nameserver 均为 Vercel，到期日为 2027-07-27，但尚未进入该 project 的 domain 列表。2026-07-27 已单独写入飞书邮箱所需 MX、SPF、验证与 DKIM 记录；邮件 DNS 不构成网站绑定或公开。
-- `apps/web/src/config/environment.ts` 对 `production` 固定报错，并只在 Preview 启用 Blob。
-- Payload config 没有 email adapter；官方说明没有 adapter 时认证邮件会告警而不发送。
-- Newsletter 表单只在客户端检查邮箱格式，没有 API、数据库或邮件平台写入。
-- People 页 Discord 仍指向 `https://discord.com`，fixtures 仍有 `example.com` 与 `/newsletter` 占位链接。
+- `apps/web/src/config/environment.ts` 已改为要求 Production 独立数据库、Blob、邮件变量和 `CMS_READ_MODE=cms`；索引由单独开关控制，默认关闭。
+- Payload config 已接入与 Payload 3.86.0 对齐的官方 Resend adapter；事务邮件使用域名受限 key。
+- Newsletter 表单已改为真实 `/api/newsletter` 写路径，要求明确同意，处理新增与重复订阅，并在 Local/Preview 失败关闭；缺失或跨域 Origin 被拒绝，Production 另有按 IP 限流。
+- People 页已接正式 Discord invite；fixture 中的 `example.com` 与假 Newsletter 外链已移除。
 - `/Volumes/External/codex-ops` registry 已保存 website、newsletter、X、YouTube 和 partners 五个 source invite；2026-07-27 实时验证 website invite `https://discord.gg/CCUbfaRVd2` 指向 guild `China, in Fact` 的 `start-here`，且无到期时间。
-- Production 数据库、对象存储、环境变量、备份、真实账户和真实内容均不存在。
+- Production 已存在八项 Resend、发件与公开索引配置变量；数据库、对象存储、备份、真实账户和真实内容仍不存在。
 
 ## Accepted Foundation
 
@@ -54,6 +54,12 @@ Production 当前不能部署：代码仍主动拒绝 production runtime，Verce
 - 当前 Free 额度为每月 3,000 封事务邮件、每日 100 封，以及 1,000 个营销联系人，足够首期验证；超过后分别升级。
 - 正式域名、发件地址、DNS 验证、订阅同意、重复提交、滥用保护、失败状态和退订必须一起验收。
 - 如果产品负责人不接受 Resend，首发必须隐藏所有 Newsletter 入口，另选事务邮件；现有假成功绝不能带入 Production。
+- 2026-07-27 已创建并验证 `mail.chinainfact.com`，区域为 North Virginia `us-east-1`；退信 SPF/MX 与 DKIM 均位于子域，不改变飞书根域收信。
+- Production 使用一把仅限该域的 Sending access key 和一把 Contacts Full access key；两者只存在于 Vercel Production 环境。Newsletter Topic 为 public + default opt-out，表单显式写入 `opt_in`，联系人 `locale` 字段区分英语和西班牙语。
+- Resend 实发事务邮件已由 `gexu@lonelyreader.com` 回读收达；临时 Newsletter 联系人已验证 Topic 与 locale 后删除，临时验收 key 也已删除，Contacts 回读为零。
+- 退订页已采用主站米白、墨黑和朱红色并隐藏供应商品牌；打开率与点击率追踪未配置。
+- Vercel Firewall 已发布 `Newsletter signup rate limit`：仅匹配 Production `POST /api/newsletter`，每 IP 每 600 秒最多 5 次，超限由边缘层 rate-limit；公开表单对已有联系人只更新 locale，不改变全局或 Topic 退订偏好。
+- 邮件与 Newsletter slice 经两轮独立复审：首轮指出滥用保护、退订边界、路由测试与可访问性问题，修复后第二轮 PASS，剩余 P0/P1/P2 为零。
 
 ### Human Mailbox
 
@@ -95,11 +101,12 @@ Production 当前不能部署：代码仍主动拒绝 production runtime，Verce
 
 ## Decision Boundary
 
-研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。下一门禁是 product code、依赖安装、账号激活与外部资源；它们仍分别批准，不由本报告自动执行。
+研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私和环境代码已随后获得执行批准；下一资源门禁是独立 Production Neon、Blob 与备份目标。
 
 ## Official Sources
 
 - [Vercel deployment protection](https://vercel.com/docs/deployment-protection)
+- [Vercel WAF rate limiting](https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting)
 - [Vercel custom domains](https://vercel.com/kb/guide/how-do-i-add-a-custom-domain-to-my-vercel-project)
 - [Vercel deployments](https://vercel.com/docs/deployments/overview)
 - [Vercel rollback CLI](https://vercel.com/docs/cli/rollback)

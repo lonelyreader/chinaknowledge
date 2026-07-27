@@ -21,10 +21,10 @@ max_lines: 160
 - 产品进一步明确为由真实中国作者共同构成、经编辑组织和把关的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。
 - Stitch 公共站、People 机制、作者与编辑工作流及 Newsletter 状态已经形成 P1 结构基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；后台区分作者提交与修订、编辑审核与分类、独立公开确认和移动端轻量审核。产品负责人已接受功能边界；Stitch 旧缓存中的模板文案、fixture、页脚和错误字体没有进入接受资产，P1 实现已按 `DESIGN.md` 通过视觉与 copy gate。
 - P0 Stitch 设计原型、P1 可运行公共产品切片、`P1-EDITORIAL-001` 编辑 CMS 基础与 `P2-PREVIEW-001` 均已完成并归档。
-- Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：现有 Vercel Pro project + 独立 Neon Launch + 独立 Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，媒体另做异地副本。资源创建、付费升级、密钥和 product code 尚未执行。
-- 人工域名邮箱已复用现有飞书组织完成配置：`chinainfact.com` 邮箱域名、MX、SPF、DKIM 与监测态 DMARC 均已启用，公共邮箱 `hello@chinainfact.com` 已创建并授权给产品负责人；2026-07-27 从该地址向 `gexu@lonelyreader.com` 的真实测试邮件已发送并确认收达。Resend 仍只承担后续事务邮件与 Newsletter。
+- Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：现有 Vercel Pro project + 独立 Neon Launch + 独立 Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，媒体另做异地副本。Resend 与邮件代码已执行；Production 数据库、Blob、备份和部署尚未执行。
+- 人工域名邮箱已复用现有飞书组织完成配置：`chinainfact.com` 邮箱域名、MX、SPF、DKIM 与监测态 DMARC 均已启用，公共邮箱 `hello@chinainfact.com` 已创建并授权给产品负责人；2026-07-27 从该地址向 `gexu@lonelyreader.com` 的真实测试邮件已发送并确认收达。Resend 使用已验证的 `mail.chinainfact.com / us-east-1` 承担程序邮件，真实事务邮件已由飞书主邮箱回读收达。
 - `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。公共站仍保留 typed fixture 读路径；本地可切换到 CMS 公开读路径。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
-- P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的当前 Preview 为 [`china-in-fact-m079nig02`](https://china-in-fact-m079nig02-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停，production runtime 被显式阻止；正常态读取 CMS，灾备时可显式切换 fixtures。
+- P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的当前 Preview 为 [`china-in-fact-m079nig02`](https://china-in-fact-m079nig02-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停；Production 只有在独立数据库、Blob 与邮件变量齐全时放行，并由独立索引开关保持 `noindex`。
 - CMS 已实现 People、Article、分类、来源说明、编辑评论、版本与工作流审计；Author、Editor、Super Admin 权限和 `draft / submitted / in_review / changes_requested / approved / public / archived` 转换均由服务端约束。英语和西班牙语使用独立文档、URL 与公开状态。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
@@ -44,7 +44,7 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的基线决定与 checklist commit 已获批，下一步停在 product code、依赖安装和外部账号/资源门禁。`P2-PREVIEW-001` 的首轮 BLOCK 已修复，同一非主持实现者第二轮复审 PASS，P0/P1/P2 finding 均为零；完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。Production 资源、付费、代码、DNS、真实数据、正式内容公开和索引仍未获批。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已实现并经两轮独立复审收敛为 PASS，P0/P1/P2 为零；下一步是独立 Production 数据库、Blob 与备份资源。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、migration、真实数据、正式内容公开、部署和索引仍未执行。
 
 ## 当前运行边界
 
@@ -53,6 +53,6 @@ Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为�
 - 首次 CLI 部署误取 production target，但环境守卫在构建期拒绝并留下一个 `ERROR` 记录；没有启动 production runtime、写入 production 数据或生成可用地址。后续部署均显式使用 Preview。
 - 没有生产数据库和真实作者数据。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容。
-- Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project；Production runtime 仍被代码守卫拒绝。邮件域名与 `hello@chinainfact.com` 已就绪，但 Payload/Newsletter 的 Resend adapter 尚未实现。产品代码中的 Discord 和 fixture 外链仍是占位入口；Ops registry 中的 website invite `https://discord.gg/CCUbfaRVd2` 已实时验证指向 `China, in Fact / start-here` 且永久有效。
+- Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project。Production runtime 不再被阶段名固定拒绝，但独立数据库、Blob、备份和完整变量尚不存在，因此仍无法部署。Payload Resend adapter、Newsletter Contacts/Topic opt-in、最低隐私页、真实 Discord invite 和占位外链清理已实现；公开订阅端点有 Production-only IP 限流，重复提交不会改写已有联系人的退订状态，Local 与 Preview 不写真实订阅者。
 
 当上述事实发生变化时更新本页；计划和愿望不得写成当前能力。

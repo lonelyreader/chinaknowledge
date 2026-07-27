@@ -53,7 +53,7 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
       <section className="discord-passage">
         <p className="meta">Discord</p>
         <h2>{copy.connect}</h2>
-        <a className="button" href="https://discord.com" target="_blank" rel="noreferrer">Discord ↗</a>
+        <a className="button" href="https://discord.gg/CCUbfaRVd2" target="_blank" rel="noreferrer">Discord ↗</a>
       </section>
     </main>
   );
