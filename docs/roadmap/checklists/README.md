@@ -12,6 +12,8 @@ max_lines: 80
 
 本目录只存 active 执行清单。一个 checklist 对应一个交付目标，完成或被替代后移入 `docs/archive/`。
 
-当前没有 active checklist。
+| ID | 风险 | 验证层级 | Checklist |
+|---|---|---|---|
+| `P2-PREVIEW-001` | upgraded | phase_release | [`p2-preview-release-candidate.md`](p2-preview-release-candidate.md) |
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

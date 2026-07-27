@@ -12,7 +12,7 @@ max_lines: 160
 
 ## 当前阶段
 
-项目已完成并归档 **P1：可运行公共产品切片** 与 **P1：编辑 CMS 基础**。当前没有 active checklist；P2 尚未获得实现授权。
+项目已完成并归档 **P1：可运行公共产品切片** 与 **P1：编辑 CMS 基础**。产品负责人已批准进入 **P2：上线准备**；当前 active 工作是建立受保护、纯虚构数据的 preview release candidate。
 
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
@@ -41,7 +41,7 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前没有 active checklist；已完成的 [`P1-EDITORIAL-001`](archive/p1-editorial-cms-foundation.md) 只用于追溯，不继续授权执行。Migration 执行、账号开通、真实数据、部署和内容公开继续保持未授权。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前唯一 active 工作是 [`P2-PREVIEW-001`](roadmap/checklists/p2-preview-release-candidate.md)：阶段进入已批准，当前只建立 checklist，等待 checklist commit 批准后开始只读技术核验。Migration 执行、账号开通、付费、密钥、preview deploy、真实数据、DNS、production deploy 和内容公开继续保持未授权。
 
 ## 当前运行边界
 
