@@ -22,12 +22,12 @@ max_lines: 160
 - Stitch 公共站、People 机制、作者与编辑工作流及 Newsletter 状态已经形成 P1 结构基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；后台区分作者提交与修订、编辑审核与分类、独立公开确认和移动端轻量审核。产品负责人已接受功能边界；Stitch 旧缓存中的模板文案、fixture、页脚和错误字体没有进入接受资产，P1 实现已按 `DESIGN.md` 通过视觉与 copy gate。
 - P0 Stitch 设计原型、P1 可运行公共产品切片与 `P1-EDITORIAL-001` 编辑 CMS 基础均已完成并归档。
 - `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。公共站仍保留 typed fixture 读路径；本地可切换到 CMS 公开读路径。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
-- P2 Preview 已接受 Vercel Pro + Neon Free + Vercel Blob、`US$20/月` 基础预算上限，以及 Vercel Functions/Blob `iad1` + Neon AWS `us-east-1`。`lonelyreader/china-in-fact` Vercel project 已绑定 `apps/web`；Preview-only Neon Free 数据库与 public Blob store 已在 `iad1` 创建并注入五个必需环境键。该团队原本已是 Pro，本次没有新增购买或部署。本地代码已建立 `local / preview / production` 失败即停的环境边界、preview-only Blob adapter、client upload、健康检查、安全响应头、双重 `noindex` 和最小 CI；production runtime 仍被显式阻止。
+- P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的 Preview 已部署并通过验收：[`china-in-fact-7fdnau5p1`](https://china-in-fact-7fdnau5p1-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停，production runtime 被显式阻止。
 - CMS 已实现 People、Article、分类、来源说明、编辑评论、版本与工作流审计；Author、Editor、Super Admin 权限和 `draft / submitted / in_review / changes_requested / approved / public / archived` 转换均由服务端约束。英语和西班牙语使用独立文档、URL 与公开状态。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。
-- 生成的 CMS migration 尚未执行；Preview Neon 数据库仍为空应用 schema，Blob store 为 `0 objects / 0B`，Vercel project 仍为零 deployment，也没有真实账户和真实数据。Production 数据库、对象存储和环境变量均不存在。
+- CMS migration `20260727_054408_p1_editorial_foundation` 已在 Preview 执行一次。当前只有 3 个虚构账户、1 个人物、2 篇分语言文章、1 个媒体记录及其 2 个 Blob 对象；英语 Guide 已公开，西班牙语版本保持未公开。Production 数据库、对象存储、环境变量和真实数据均不存在。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
 ## 当前真相源
@@ -42,13 +42,14 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前唯一 active 工作是 [`P2-PREVIEW-001`](roadmap/checklists/p2-preview-release-candidate.md)：供应商、预算、区域、product code、dependency install、Vercel account activation、Preview 数据库、对象存储与密钥已批准并完成；当前 P2 baseline commit、Preview migration、虚构验收数据与受保护 Preview deploy 已获批准，尚未执行。新增付费、真实数据、DNS、production deploy 和内容公开继续保持未授权。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前唯一 active 工作是 [`P2-PREVIEW-001`](roadmap/checklists/p2-preview-release-candidate.md)：实现、migration、虚构数据、受保护部署和实现者验收均已完成；尚待非主持实现者独立复审。正式收口前不建立 production launch checklist。
 
 ## 当前运行边界
 
 - 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
-- 已有零 deployment 的 Vercel project、Preview Neon 数据库和 Blob store；没有可访问的 preview 或 production URL。
+- Preview deployment `dpl_DGYVZBMM3qUphXfg87dJgCU71A7x` 为 `READY`，匿名请求进入 Vercel SSO，授权健康检查返回 200。没有正式域名或可用的 production URL。
+- 首次 CLI 部署误取 production target，但环境守卫在构建期拒绝并留下一个 `ERROR` 记录；没有启动 production runtime、写入 production 数据或生成可用地址。后续部署均显式使用 Preview。
 - 没有生产数据库和真实作者数据。
-- 当前 CMS 账户、内容、人物、来源说明和图像均为本地虚构验收数据，不是可公开的真实内容。
+- 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容。
 
 当上述事实发生变化时更新本页；计划和愿望不得写成当前能力。

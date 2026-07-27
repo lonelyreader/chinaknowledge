@@ -13,7 +13,7 @@ change_id: P2-PREVIEW-001
 
 ## Status
 
-本文件固定执行顺序和证据要求。`Ran: No`；Vercel project、Preview Neon、Blob 与五个必需环境键已经就绪，没有执行 migration、备份、恢复、数据装载或部署。
+本文件固定执行顺序并记录结果。`Ran: Yes`；migration、虚构数据装载、Blob 持久化和受保护 Preview 部署均已完成，实现者验收 PASS，独立复审尚未执行。
 
 当前 migration artifact 为 `apps/web/src/migrations/20260727_054408_p1_editorial_foundation.ts`。本轮 Blob adapter 没有增加 Payload 字段或数据库 schema，生成类型与 P1 schema 保持一致。
 
@@ -57,6 +57,16 @@ npm run cms:migration:status
 
 执行日志必须证明目标环境、开始与结束时间、exit code、执行前后状态和 artifact 名称，不复制连接串。不得使用 Payload development push 代替 preview migration。
 
+## Execution Record
+
+- 执行前自定义格式备份为 885 bytes，SHA-256 为 `6fa44a4d939f72757e78ff02ef5c045e2b1c5e5aa67d4723c10edc828c58ee76`；migration 与验收完成后，含凭据的临时目录和该空库备份已删除。
+- `20260727_054408_p1_editorial_foundation` 执行一次，状态回读为 `Ran: Yes`；未使用 development push。
+- 最终数据回读：`migrations=1`、`users=3`、`people=1`、`articles=2`、`media=1`、`workflow_events=11`。数据均为虚构 fixture。
+- 最终 Blob 回读只有 `shanghai-morning.webp` 与 `shanghai-morning-800x600.webp`；验收产生的 1 条无引用媒体记录和 3 个孤儿对象已按精确名称删除。
+- 最终 Preview 为 `dpl_DGYVZBMM3qUphXfg87dJgCU71A7x`，commit `3c8435c`，区域 `iad1`，状态 `READY`，匿名访问进入 Vercel SSO。
+- 首次 CLI 调用误取 production target；production 环境守卫在构建期失败关闭，deployment `dpl_9Db17Q8SNbVxtYQX426c9KfsRU5X` 为 `ERROR`，没有可用 production runtime、数据或地址。
+- 最终健康检查曾因在仓库根目录调用未链接的 CLI 而误建空 `chinaknowledge` project；确认其没有 deployment、domain 或数据后已按精确 project 删除，`apps/web` 的原项目绑定未改变。
+
 ## Readback
 
 - `/api/health` 返回 200 和 `{"status":"ok"}`。
@@ -80,4 +90,4 @@ Preview 结束后依次取消分享、保存脱敏证据、删除 Blob 测试对
 
 ## Evidence Record
 
-执行后在 implementation reference 写入：commit、区域、资源 ID、保护状态、migration 前后状态、备份与恢复点、health、媒体跨部署、权限负例、语言隔离、秘密扫描、删除路径和最终 PASS/BLOCK。资源 ID 与区域已经记录；migration 之后的字段保持 `not run`。
+实现者证据已覆盖 commit、区域、资源 ID、保护状态、migration 前后状态、备份哈希、health、媒体跨部署、权限负例、语言隔离、秘密扫描和精确删除路径。当前结论为 `IMPLEMENTER PASS / INDEPENDENT REVIEW PENDING`。

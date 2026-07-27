@@ -13,9 +13,9 @@ change_id: P2-PREVIEW-001
 
 ## Result
 
-本地实现、静态配置与 Preview 资源准备 **PASS**。应用已经具备 preview-only Blob adapter、严格环境边界、健康检查、安全响应头、双重 `noindex`、fixture fallback 和最小 CI。Vercel project、Preview Neon 与 Blob 已创建并连接，但尚无 deployment、migration 或数据。
+本地实现与 Preview 执行 **PASS**。应用具备 preview-only Blob adapter、严格环境边界、健康检查、安全响应头、双重 `noindex`、fixture fallback 和最小 CI；migration、虚构数据和受保护部署已完成。
 
-这不是 Preview Release Candidate 的最终 PASS。新增付费、migration、deploy、跨部署媒体和独立复审仍未执行。
+这不是 Preview Release Candidate 的最终关闭：实现者验收已通过，非主持实现者独立复审仍待执行。
 
 ## Implemented Boundary
 
@@ -29,7 +29,7 @@ change_id: P2-PREVIEW-001
 - 全站加入 MIME sniffing、frame、referrer、camera/microphone/geolocation 限制；非本地环境加入 HSTS。
 - GitHub workflow 使用 fixture read path 运行治理、环境测试、lint、typecheck、production dependency audit 和 build，不运行 migration 或连接 preview 数据库。
 - Guides 列表与详情强制 request-time rendering，避免 preview 在 build 时固化 CMS 内容；编辑公开或撤回后无需重新构建才生效。
-- `apps/web/vercel.json` 将 Vercel Functions 固定为已批准的美国东部 `iad1`；该配置尚未用于部署。
+- `apps/web/vercel.json` 将 Vercel Functions 固定为已批准的美国东部 `iad1`；最终 Preview 区域回读为 `iad1`。
 
 ## Validation
 
@@ -46,6 +46,10 @@ change_id: P2-PREVIEW-001
 | `git diff --check` | PASS |
 | Preview env scope readback | PASS；5/5 必需键位于 Preview，Production 0，Development 0 |
 | Preview Neon read-only preflight | PASS；连接成功，`publicTables=0`，`migrationTables=0`，临时 env 已删除 |
+| Preview migration/readback | PASS；目标 migration 执行一次，最终 1 条 migration 记录 |
+| 权限与语言隔离 | PASS；Author 不能直接公开或改已公开文章，Editor 可完成审批；英语 200，西班牙语 404 |
+| 媒体跨部署 | PASS；主图 259746 bytes、card 91598 bytes，重新部署后均为 200 |
+| 浏览器与运行日志 | PASS；桌面和 390px 移动端无溢出；最终 deployment 近 30 分钟无 5xx |
 
 完整 npm audit 另报告 9 个 high dev-tool findings，集中于 ESLint/minimatch 链且有升级路径；它们不进入 production dependency tree。本轮没有获得现有依赖升级授权，因此未运行 `npm audit fix`。Payload PostgreSQL/drizzle-kit/esbuild 链的 5 个 moderate findings 当前无可用修复。
 
@@ -60,12 +64,12 @@ change_id: P2-PREVIEW-001
 
 ## External Boundary
 
-- `Migration Ran: No`；没有 development push 到 preview，也没有新 migration artifact。
+- `Migration Ran: Yes`；artifact `20260727_054408_p1_editorial_foundation` 仅执行一次，没有 development push。
 - `Vercel Project: lonelyreader/china-in-fact`；`apps/web/.vercel/project.json` 已绑定 project `prj_MlM7hL16TkyUeDisgb48UucNw6RZ`，该目录被 Git 忽略。
-- `Deployments: 0`；Vercel API 回读为空，没有 preview URL。
+- `Preview Deploy: READY`；`dpl_DGYVZBMM3qUphXfg87dJgCU71A7x`，commit `3c8435c`，受 Vercel SSO 保护，授权 `/api/health` 为 200。
 - `Neon: china-in-fact-preview-db`；resource `store_ddLh0IcbWMpKZBZE`，Free、Available、Preview-only，创建参数为 `iad1 / auth=false`，外部项目 `damp-lake-01785339`。
-- `Blob: china-in-fact-preview-media`；store `store_CZgZHdC2j44o2LAy`，`iad1 / public / 0 objects / 0B`，Preview-only。
+- `Blob: china-in-fact-preview-media`；store `store_CZgZHdC2j44o2LAy`，`iad1 / public`，仅保留验收主图与 card 两个对象。
 - `Preview Env: 5/5 required`；`APP_ENV`、`CMS_READ_MODE`、`PAYLOAD_SECRET`、`DATABASE_URL`、`BLOB_READ_WRITE_TOKEN` 均存在且只作用于 Preview。
 - `Paid Actions: None`；`lonelyreader` 原本已是 Pro，本次没有购买或升级。
-- `Secrets: Vercel Preview only`；密钥值未输出、未写入仓库；CLI 自动下载的本地 `.env.local` 只含短期 OIDC token，核对键名后已删除。
-- `Preview Deploy: No`；没有 DNS、真实数据、内容公开、Newsletter 或 Discord 写入。
+- `Secrets: Vercel Preview only`；密钥值未输出、未写入仓库；执行用临时环境文件已删除。
+- 没有 DNS、真实数据、正式内容公开、Newsletter 或 Discord 写入；production 仍由运行时守卫拒绝。

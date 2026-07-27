@@ -69,11 +69,12 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 获得密钥、preview 数据库与对象存储批准；创建 Preview-only Neon Free 数据库与 public `iad1` Blob store，配置五个应用必需键且没有把值写入仓库或留在本机（2026-07-27）。
 - [x] 获得当前 P2 baseline commit、Preview migration、虚构验收数据、受保护 Preview deploy 与部署后验证批准；Production、正式域名、真实数据和内容公开不在本次授权内（2026-07-27）。
 - [x] 实现环境校验、preview-only 持久化媒体配置、部署前检查、健康检查、安全头、CI 和 preview `noindex`；本地与静态配置验证通过。见 [`local preparation evidence`](../../reference/implementation/p2-preview-local-preparation-2026-07-27.md)。
-- [x] 建立 migration plan、备份、恢复与删除资源步骤；资源基线已回读，尚未执行 migration、数据装载或部署。见 [`migration and recovery plan`](../../reference/implementation/p2-preview-migration-recovery-plan-2026-07-27.md)。
-- [ ] 在批准后执行 migration、装载虚构验收数据并部署。
-- [ ] 复跑 Acceptance Fixture、权限负例、响应式、copy gate、秘密扫描和发布后回读。
+- [x] 建立 migration plan、备份、恢复与删除资源步骤，并完成执行前资源回读。见 [`migration and recovery plan`](../../reference/implementation/p2-preview-migration-recovery-plan-2026-07-27.md)。
+- [x] 执行 migration、装载虚构验收数据并部署受保护 Preview；最终 deployment 为 `dpl_DGYVZBMM3qUphXfg87dJgCU71A7x`（2026-07-27）。
+- [x] 复跑 Acceptance Fixture、权限负例、响应式、copy gate、秘密扫描和发布后回读；实现者验收 PASS（2026-07-27）。
 - [ ] 由独立复审者给出 PASS 或 BLOCK；PASS 后再决定是否建立 production launch checklist。
-- [ ] 获得 commit 批准，提交实现与证据后完成归档收口。
+- [x] 获得后续 P2 commit 与 Preview deploy 批准，提交实现并回写执行证据。
+- [ ] 独立复审 PASS 后完成归档收口。
 
 ## Acceptance
 
@@ -108,4 +109,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-2026-07-27 已获得“进入 P2”、两次 checklist 文档提交、供应商选择、`US$20/月` preview 预算、美国东部区域、product code、dependency install、Vercel account activation、Preview 数据库、对象存储、密钥、当前 baseline commit、Preview migration、虚构验收数据、受保护 Preview deploy 与部署后验证批准。新增付费、真实数据、DNS、production deploy 和内容公开仍未授权。
+2026-07-27 已获得“进入 P2”、checklist、供应商选择、`US$20/月` preview 预算、美国东部区域、product code、dependency install、Vercel account activation、Preview 数据库、对象存储、密钥、后续 P2 commit、Preview migration、虚构验收数据、受保护 Preview deploy 与部署后验证批准。上述动作已执行。新增付费、真实数据、DNS、production deploy 和内容公开仍未授权。
