@@ -36,7 +36,7 @@ export default buildConfig({
   editor: lexicalEditor(),
   plugins: [
     vercelBlobStorage({
-      addRandomSuffix: true,
+      addRandomSuffix: false,
       clientUploads: true,
       collections: { media: true },
       enabled: serverEnvironment.blobStorageEnabled,

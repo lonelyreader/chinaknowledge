@@ -27,6 +27,20 @@ assert.equal(
   "Blob storage must not create preview-only database fields.",
 );
 
+const blobProvider = config.admin?.components?.providers?.find(
+  (provider) =>
+    typeof provider === "object" &&
+    provider !== null &&
+    "path" in provider &&
+    provider.path === "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler",
+);
+assert.ok(blobProvider && typeof blobProvider === "object" && "clientProps" in blobProvider);
+assert.equal(
+  (blobProvider.clientProps as { extra?: { addRandomSuffix?: boolean } }).extra?.addRandomSuffix,
+  false,
+  "Payload must own filename uniqueness so resized Blob keys remain addressable.",
+);
+
 const shared = new SharedArrayBuffer(4);
 const sharedBuffer = Buffer.from(shared);
 sharedBuffer.set([1, 2, 3, 4]);
