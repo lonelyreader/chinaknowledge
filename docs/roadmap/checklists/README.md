@@ -14,6 +14,6 @@ max_lines: 80
 
 | ID | 风险 | 验证层级 | Checklist |
 |---|---|---|---|
-| — | — | — | 当前没有 active checklist |
+| `P1-EDITORIAL-001` | upgraded | work_item | [`p1-editorial-cms-foundation.md`](p1-editorial-cms-foundation.md) |
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

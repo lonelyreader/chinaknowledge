@@ -16,13 +16,12 @@ max_lines: 100
 
 | 工作项 | Checklist | 当前边界 |
 |---|---|---|
-| — | — | 当前没有 active 工作 |
+| P1 编辑 CMS 基础 | [`P1-EDITORIAL-001`](checklists/p1-editorial-cms-foundation.md) | 技术与权限合同验证；尚未授权依赖、数据库、schema 或实现 |
 
 ## Deferred
 
 | 工作项 | 进入条件 |
 |---|---|
-| P1 编辑工作流与 CMS 接入 | 公共产品切片完成，技术栈确定，并为权限、数据和公开路径建立 upgraded checklist |
 | P2 上线准备 | P1 投稿—审核—公开流程和权限复审通过 |
 | P3 平台深化 | 有真实访问、订阅和作者运营数据 |
 

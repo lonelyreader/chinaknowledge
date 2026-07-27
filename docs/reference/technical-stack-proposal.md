@@ -4,7 +4,7 @@ doc_type: reference
 authority: evidence
 status: deferred
 scope: technical-stack-proposal
-last_verified: 2026-07-26
+last_verified: 2026-07-27
 max_lines: 180
 ---
 
@@ -14,6 +14,15 @@ max_lines: 180
 进入产品实现前，应通过单独的 active checklist 核验并形成 ADR。
 
 2026-07-27，公共 Web 基础栈已由 [`ADR-0005`](../decisions/0005-public-web-foundation.md) 接受并进入 `apps/web`。本文对 CMS、数据库、图片、邮件、分析和部署的建议继续保持 deferred，不因此获得授权。
+
+## CMS 候选刷新（2026-07-27）
+
+- npm registry 当前的 `payload`、`@payloadcms/next` 与 `@payloadcms/db-postgres` 均为 `3.86.0`；`@payloadcms/next` 的 peer range 接受 Next.js `16.2.6` 以上、17 以下，当前公共应用的 `16.2.12` 不构成版本阻塞。
+- Payload 官方支持加入现有 Next.js 应用，也支持认证集合、按操作和文档查询约束的 access control、版本、draft、定时公开和 PostgreSQL adapter。
+- Payload draft 的内建 `_status` 主要表达 `draft / published`。本项目的 `Submitted / In review / Changes requested / Approved` 仍需独立业务状态和服务端转换规则。
+- Payload 的 locale-specific draft status 目前标为 beta。P1 必须比较 localized fields 与“每种语言独立文档、translation group 关联”两种模型，不能因候选功能存在就直接接受。
+
+官方依据：[Installation](https://payloadcms.com/docs/getting-started/installation)、[Access Control](https://payloadcms.com/docs/access-control/overview)、[Drafts](https://payloadcms.com/docs/versions/drafts)、[Localization](https://payloadcms.com/docs/configuration/localization)、[Postgres](https://payloadcms.com/docs/database/postgres)。
 
 ## 建议组合
 
