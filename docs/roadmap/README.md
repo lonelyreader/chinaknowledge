@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production migration 已执行；迁移后 dump 已读回，下一门禁为修复并通过隔离恢复 workflow |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production migration 与迁移后恢复已通过；下一门禁为首批真实账户、内容、媒体与外链审核 |
 
 ## Deferred
 

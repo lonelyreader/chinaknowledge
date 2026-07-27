@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Result
 
-2026-07-28 完成 Production 跨供应商恢复基线：Neon 与 Vercel Blob 的恢复点写入 Cloudflare R2 Standard 私有桶，数据库文件和媒体清单均从 R2 读回；数据库 dump 在隔离 PostgreSQL 17 实例中恢复成功。当前 Production 数据库与 Blob 均为空，本轮证明链路和边界可用，migration 后必须再次用真实 schema 与媒体执行恢复验收。
+2026-07-28 完成 Production 跨供应商恢复基线与 migration 后复验：Neon 与 Vercel Blob 的恢复点写入 Cloudflare R2 Standard 私有桶，数据库文件和媒体清单均从 R2 读回；数据库 dump 在隔离 PostgreSQL 17 实例中恢复成功。当前 Production 有 23 张表和 1 条 migration，业务数据与 Blob 为 0；run `30287841720` 已用真实 schema 完成 23/1/1/6 断言。
 
 ## Resource Boundary
 
@@ -57,9 +57,9 @@ GitHub Actions secrets 为 `PRODUCTION_DATABASE_BACKUP_URL`、`PRODUCTION_BLOB_R
 - Live schema：23 张 `public` 表、1 条 migration；users/people/articles/media/workflow_events 均为 0。重新生成 Payload types 无差异，typecheck 通过。
 - First post-migration run：[`30287433284`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30287433284) 已完成只读 dump、R2 上传、读回和 `production.dump: OK`；官方 PostgreSQL 镜像临时初始化 server 随后 shutdown，`createdb` 命中竞态，数据库恢复失败，媒体读回被跳过。
 - Fix：恢复容器先等待 `PostgreSQL init process complete; ready for start up.`，再等待最终 server 的 `pg_isready`。恢复后新增硬断言：23 张 `public` 表、1 条且名称正确的 migration、6 张关键业务表；只打印表数不再视为 PASS。
+- Passing retry：[`30287841720`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30287841720) 在 commit `1ca8036` 上用时 42 秒，全步骤成功；`production.dump: OK`，schema assertion 为 `23,1,1,6`，恢复出的 users/people/articles/media/workflow_events 均为 0，零对象媒体清单读回成功。
 
 ## Remaining Gate
 
-- 修复后的 hosted workflow 必须全绿，并回读 23/1/1/6 schema assertion 后，迁移后恢复门禁才可关闭。
 - 第一批真实媒体写入后再次运行 workflow，要求至少一个媒体对象从 R2 读回且校验一致。
 - 这些验收通过前不部署、不绑定网站域名、不公开内容或索引。

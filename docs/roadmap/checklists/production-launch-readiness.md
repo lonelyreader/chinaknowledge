@@ -51,7 +51,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - 独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建；Neon 7 天恢复窗口、R2 30 天防删、数据库 90 天保留和首次恢复演练均已回读。
 - 当前 Vercel project `live: false`，只有受保护 Preview 和生成的 `.vercel.app` 域名；已购正式域名尚未绑定项目。
 - Production migration 已执行一次：23 张 `public` 表、1 条 migration，业务数据与 Blob 仍为空；Resend 域名、密钥与发件配置已经就绪。
-- 迁移后 R2 dump、SHA 和零对象媒体清单已写入并读回；run `30287433284` 因 PostgreSQL 官方镜像临时初始化 server 的 shutdown 竞态在 `createdb` 失败，恢复复跑未 PASS。
+- 迁移后 R2 dump、SHA 和零对象媒体清单已写入并读回；首次 run `30287433284` 暴露 PostgreSQL 初始化竞态，修复后的 run `30287841720` 已完成恢复与 23/1/1/6 schema 断言。
 - Newsletter 已使用 Resend Contacts/Topic 真实写路径并保持 Preview 失败关闭；Production 端点有按 IP 限流且不会由公开重复提交逆转退订状态；People 页已接正式 website Discord invite。
 - fixture 占位外链已经移除，最低隐私与订阅同意已实现；首批真实内容及其作者外链仍未审核。
 
@@ -81,7 +81,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - Discord 已就绪：`China, in Fact` server 的 website invite 已实时验证为永久有效并进入 `start-here`；无需新建 server 或 invite。
 - Resend 已就绪：`mail.chinainfact.com / us-east-1` 已验证，Topic、locale 属性、两把职责隔离的 Production key 与八项 Vercel 变量均已回读。
 - 已创建：`china-in-fact-production-db` 为 Neon Launch、`iad1 / us-east-1`、仅连接 Production；`china-in-fact-production-media` 为公开 Blob、`iad1`、仅连接 Production。
-- Production 已具备独立数据库、Blob、Payload、CMS、邮件和 `noindex` 变量；环境校验通过，数据库 public schema 为 0 张表，Blob 为 0B。
+- Production 已具备独立数据库、Blob、Payload、CMS、邮件和 `noindex` 变量；环境校验通过，migration 后数据库为 23 张 `public` 表和 1 条 migration，业务数据为 0，Blob 为 0B。
 - Neon Console 已完成账号激活并将 `History retention` 从 1 day 调整为 7 days；异地备份目标、只读 backup role 与首次恢复演练已完成。
 - Cloudflare R2 Standard 已激活；私有桶使用 North America East、全部对象 30 天防删、`database/` 90 天生命周期。Account API token 只允许指定桶对象读写，GitHub Actions secrets/variables 已配置，每月 US$10 预算提醒已建立。
 - Neon Launch 或其他付费资源出现结算/条款确认时由产品负责人完成；Codex 不代替接受付费条款。
@@ -103,7 +103,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 邮件与 Newsletter slice 经同一非主持实现者两轮独立复审；首轮 3 个 P1 与 2 个 P2 全部修复，第二轮 PASS，剩余 P0/P1/P2 为零（2026-07-27）。
 - [x] 产品负责人批准进入 Production 资源阶段；创建并回读独立 Neon Launch `china-in-fact-production-db` 与 Blob `china-in-fact-production-media`，均仅连接 Production，环境校验为 `cms + blob + noindex`，空库与空 Blob 未执行 migration 或真实数据写入；Neon `History retention` 已回读为 7 days（2026-07-27）。
 - [x] 创建并回读 Production Neon、Blob 与 R2 备份目标及其 secrets；首次空库 dump 与零对象媒体清单已完成写入、读回和隔离恢复，GitHub Actions run `30286886253` 全步骤成功（2026-07-28）。
-- [ ] migration 前恢复点已验证，Production migration 已执行并回读 23 张表、1 条 migration、0 业务数据；修复并通过迁移后隔离恢复后完成本项。
+- [x] migration 前恢复点已验证，Production migration 已执行并回读 23 张表、1 条 migration、0 业务数据；迁移后 run `30287841720` 完成 R2 读回、SHA、隔离恢复、schema 断言和零媒体清单验证（2026-07-28）。
 - [ ] 分别批准真实作者账户、人物、文章、媒体、外链与公开状态；完成编辑审核。
 - [ ] 生成 `--prod --skip-domain` staged deployment，运行完整 release 验收与独立复审。
 - [ ] PASS 后分别批准域名绑定、DNS、内容公开和搜索引擎索引。
@@ -142,4 +142,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-产品负责人已接受 Production 基线并统一批准后续执行；域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 代码、独立 Neon、独立 Blob、R2 备份目标、空库恢复演练和 Production migration 已完成并回读。迁移后恢复仍 BLOCK；真实数据、内容公开、Production deploy、网站域名绑定和公开索引仍未执行。
+产品负责人已接受 Production 基线并统一批准后续执行；域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 代码、独立 Neon、独立 Blob、R2 备份目标、Production migration 与迁移后恢复已完成并回读。真实数据、内容公开、Production deploy、网站域名绑定和公开索引仍未执行。

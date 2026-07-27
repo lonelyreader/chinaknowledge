@@ -15,7 +15,7 @@ change_id: PROD-LAUNCH-001
 
 首个 Production 应延续 P2 已验证的应用结构和美国东部区域，但必须使用独立 Production 数据库、Blob、环境变量与恢复点。产品负责人已于 2026-07-27 接受现有 Vercel Pro project + Neon Launch + Vercel Blob + Resend 基线；接受决定不授权购买、创建资源、迁移、部署、DNS 或公开内容。
 
-Production 当前仍不能部署：独立 Neon Launch、Blob、完整运行变量、Cloudflare R2 与 migration 已完成，但迁移后恢复 workflow 尚未 PASS，真实内容也不存在；Vercel project 状态仍为 `live: false`，正式域名没有绑定网站 project。
+Production 当前仍不能部署：独立 Neon Launch、Blob、完整运行变量、Cloudflare R2、migration 与迁移后恢复已完成，但真实内容仍不存在；Vercel project 状态仍为 `live: false`，正式域名没有绑定网站 project。
 
 ## Current Evidence
 
@@ -27,7 +27,7 @@ Production 当前仍不能部署：独立 Neon Launch、Blob、完整运行变�
 - People 页已接正式 Discord invite；fixture 中的 `example.com` 与假 Newsletter 外链已移除。
 - `/Volumes/External/codex-ops` registry 已保存 website、newsletter、X、YouTube 和 partners 五个 source invite；2026-07-27 实时验证 website invite `https://discord.gg/CCUbfaRVd2` 指向 guild `China, in Fact` 的 `start-here`，且无到期时间。
 - Production 已补齐 Resend、发件、环境、数据库、Blob 与公开索引配置变量；R2 凭据和独立只读 Neon backup role 只进入 GitHub Actions secrets。Migration 已执行，真实账户和真实内容仍不存在。
-- 2026-07-27 创建 `china-in-fact-production-db`：Neon Launch、`iad1 / us-east-1`、仅 Production，PostgreSQL 17.10，public schema 为 0 张表；Neon Console 完成账号激活后已将 `History retention` 从 1 day 调整并回读为 7 days。
+- 2026-07-27 创建 `china-in-fact-production-db` 时 public schema 为 0 张表；2026-07-28 migration 后为 23 张表、1 条 migration、0 业务数据。资源为 Neon Launch、`iad1 / us-east-1`、仅 Production、PostgreSQL 17.10，`History retention` 已回读为 7 days。
 - 2026-07-27 创建 `china-in-fact-production-media`：公开 Blob、`iad1`、仅 Production，回读为 0B / 0 文件。Production 环境补齐独立数据库、Blob、`APP_ENV=production`、`CMS_READ_MODE=cms`、Payload secret 与邮件变量后，校验通过且索引保持关闭。
 
 ## Accepted Foundation
@@ -112,7 +112,7 @@ Production 当前仍不能部署：独立 Neon Launch、Blob、完整运行变�
 
 ## Decision Boundary
 
-研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私、Production 资源、恢复链路与 migration 已执行；下一门禁是迁移后恢复 workflow PASS。
+研究结论已由产品负责人接受并写入 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md)。邮件、Newsletter、Discord、隐私、Production 资源、恢复链路、migration 与迁移后恢复均已执行；下一门禁是首批真实账户、内容、媒体和外链审核。
 
 ## Official Sources
 
