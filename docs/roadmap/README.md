@@ -14,17 +14,16 @@ max_lines: 100
 
 ## Active
 
-| 工作项 | Checklist | 当前边界 |
-|---|---|---|
-| P2 Preview release candidate | [`P2-PREVIEW-001`](checklists/p2-preview-release-candidate.md) | 首轮独立复审 BLOCK 已修复；等待同一复审者重新判定 |
+当前没有 active 工作。P2 Preview 已通过独立复审并归档；进入 Production 前必须建立新的 upgraded checklist。
 
 ## Deferred
 
 | 工作项 | 进入条件 |
 |---|---|
+| Production launch | 产品负责人明确启动，另行决定域名、真实数据、内容公开、备份、预算和生产部署 |
 | P3 平台深化 | 有真实访问、订阅和作者运营数据 |
 
-P0 Stitch 设计原型、P1 可运行公共产品切片与 P1 编辑 CMS 基础已经完成，历史与交接分别见 [`P0-STITCH-001`](../archive/p0-stitch-design-prototype.md)、[`P1-WEB-001`](../archive/p1-public-runnable-slice.md) 和 [`P1-EDITORIAL-001`](../archive/p1-editorial-cms-foundation.md)。
+P0 Stitch 设计原型、P1 可运行公共产品切片、P1 编辑 CMS 基础与 P2 Preview release candidate 已经完成，历史与交接见 [`archive`](../archive/README.md)。
 
 ## 状态规则
 

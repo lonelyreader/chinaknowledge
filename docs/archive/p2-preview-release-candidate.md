@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: p2-preview-release-candidate
 last_verified: 2026-07-27
 max_lines: 220
@@ -60,23 +60,29 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 - [x] 产品负责人批准进入 P2，并同意先建立 preview release candidate 清单（2026-07-27）。
 - [x] 获得 checklist commit 批准并提交本清单，建立后续改动的 HEAD 授权基线（`142052f`；router 写回 `6f2f2ca`）。
-- [x] 只读核验当前官方托管、PostgreSQL、对象存储、Payload migration 与成本边界，形成候选比较；见 [`provider research`](../../reference/implementation/p2-preview-provider-research-2026-07-27.md)。
-- [x] 用 ADR 固定 preview 架构、环境边界、供应商退出方式和 production 仍未授权的事实；见 [`ADR-0007`](../../decisions/0007-preview-hosting-foundation.md)。
+- [x] 只读核验当前官方托管、PostgreSQL、对象存储、Payload migration 与成本边界，形成候选比较；见 [`provider research`](../reference/implementation/p2-preview-provider-research-2026-07-27.md)。
+- [x] 用 ADR 固定 preview 架构、环境边界、供应商退出方式和 production 仍未授权的事实；见 [`ADR-0007`](../decisions/0007-preview-hosting-foundation.md)。
 - [x] 产品负责人接受 Vercel Pro + Neon Free + Vercel Blob 与 `US$20/月` preview 预算上限（2026-07-27）。
 - [x] 产品负责人接受 Vercel Functions/Blob `iad1` 与 Neon AWS `us-east-1`，撤回未获批准的新加坡建议（2026-07-27）。
 - [x] 获得 product code 与 dependency install 批准，完成应用修改并安装 Payload 官方 Vercel Blob adapter（2026-07-27）。
 - [x] 获得 Vercel account activation 批准，在现有 `lonelyreader` Pro 团队创建并绑定零 deployment 的 `china-in-fact` project；没有新增购买，CLI 自动下载的临时 OIDC 环境文件已删除（2026-07-27）。
 - [x] 获得密钥、preview 数据库与对象存储批准；创建 Preview-only Neon Free 数据库与 public `iad1` Blob store，配置五个应用必需键且没有把值写入仓库或留在本机（2026-07-27）。
 - [x] 获得当前 P2 baseline commit、Preview migration、虚构验收数据、受保护 Preview deploy 与部署后验证批准；Production、正式域名、真实数据和内容公开不在本次授权内（2026-07-27）。
-- [x] 实现环境校验、preview-only 持久化媒体配置、部署前检查、健康检查、安全头、CI 和 preview `noindex`；本地与静态配置验证通过。见 [`local preparation evidence`](../../reference/implementation/p2-preview-local-preparation-2026-07-27.md)。
-- [x] 建立 migration plan、备份、恢复与删除资源步骤，并完成执行前资源回读。见 [`migration and recovery plan`](../../reference/implementation/p2-preview-migration-recovery-plan-2026-07-27.md)。
+- [x] 实现环境校验、preview-only 持久化媒体配置、部署前检查、健康检查、安全头、CI 和 preview `noindex`；本地与静态配置验证通过。见 [`local preparation evidence`](../reference/implementation/p2-preview-local-preparation-2026-07-27.md)。
+- [x] 建立 migration plan、备份、恢复与删除资源步骤，并完成执行前资源回读。见 [`migration and recovery plan`](../reference/implementation/p2-preview-migration-recovery-plan-2026-07-27.md)。
 - [x] 执行 migration、装载虚构验收数据并部署受保护 Preview；当前 CMS deployment 为 `dpl_9cTeUwsM9JBNCdfps3HEzF3mBhA7`（2026-07-27）。
 - [x] 复跑 Acceptance Fixture、权限负例、响应式、copy gate、秘密扫描和发布后回读；实现者验收 PASS（2026-07-27）。
 - [x] 首轮独立复审给出 BLOCK：fixtures 灾备配置不可执行、没有真实 restore smoke、P2 截图未持久化、evidence router 过期（2026-07-27）。
 - [x] 修复首轮阻断：Preview 允许显式 fixtures 灾备读；隔离数据库 restore/migration/fixture 回读后删除；补齐桌面与 390px 截图；更新 router（2026-07-27）。
-- [ ] 由同一独立复审者对修复给出 PASS；PASS 后再决定是否建立 production launch checklist。
+- [x] 同一独立复审者完成第二轮只读复核并给出 PASS；P0、P1、P2 finding 均为零（2026-07-27）。
 - [x] 获得后续 P2 commit 与 Preview deploy 批准，提交实现并回写执行证据。
-- [ ] 独立复审 PASS 后完成归档收口。
+- [x] 独立复审 PASS 后完成归档收口（2026-07-27）。
+
+## Completion
+
+- Result：实现者验收与非主持实现者第二轮独立复审均为 PASS。
+- Evidence：[`local preparation`](../reference/implementation/p2-preview-local-preparation-2026-07-27.md) 与 [`migration and recovery`](../reference/implementation/p2-preview-migration-recovery-plan-2026-07-27.md)。
+- Boundary：只有受保护 Preview 和纯虚构数据；production、DNS、真实数据、正式内容公开、Newsletter 与 Discord 外部写入均未发生。
 
 ## Acceptance
 

@@ -15,7 +15,13 @@ change_id: P2-PREVIEW-001
 
 本地实现与 Preview 执行 **PASS**。应用具备 preview-only Blob adapter、严格环境边界、健康检查、安全响应头、双重 `noindex`、可执行 fixture fallback 和最小 CI；migration、虚构数据和受保护部署已完成。
 
-首轮独立复审给出 BLOCK 后，恢复与视觉证据缺口均已修复；等待同一复审者重新判定。
+首轮独立复审给出 BLOCK 后，恢复与视觉证据缺口均已修复；同一非主持实现者第二轮只读复审 PASS，P0/P1/P2 finding 均为零。
+
+## Independent Review
+
+- Round 1：BLOCK；fixtures 灾备不可执行、缺少真实 restore smoke、P2 截图未持久化、evidence router 过期。
+- Round 2：PASS；逐项确认上述 finding 关闭，并复核 SSL、部署保护、`noindex`、权限、语言、秘密与 production no-go 未回归。
+- 复审只读限制：没有重放角色写操作，也不能查询已按合同删除的隔离恢复库；相应实现与先前证据未被本轮修复修改，不影响 closure。
 
 ## Implemented Boundary
 

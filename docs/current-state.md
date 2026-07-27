@@ -12,7 +12,7 @@ max_lines: 160
 
 ## 当前阶段
 
-项目已完成并归档 **P1：可运行公共产品切片** 与 **P1：编辑 CMS 基础**。产品负责人已批准进入 **P2：上线准备**；当前 active 工作是建立受保护、纯虚构数据的 preview release candidate。
+项目已完成并归档 **P1：可运行公共产品切片**、**P1：编辑 CMS 基础** 与 **P2：Preview release candidate**。当前没有 active checklist；Production launch 仍需另行建立 upgraded checklist。
 
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
@@ -20,7 +20,7 @@ max_lines: 160
 - 信息架构采用稳定内容对象、目的入口与横向语义分层：`Stories / Guides / Places / People` 为主导航，`Understand / Visit / Live / Study / Work / Business` 为目的入口，`Topics / Geography / Situation` 为横向发现。
 - 产品进一步明确为由真实中国作者共同构成、经编辑组织和把关的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。
 - Stitch 公共站、People 机制、作者与编辑工作流及 Newsletter 状态已经形成 P1 结构基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；后台区分作者提交与修订、编辑审核与分类、独立公开确认和移动端轻量审核。产品负责人已接受功能边界；Stitch 旧缓存中的模板文案、fixture、页脚和错误字体没有进入接受资产，P1 实现已按 `DESIGN.md` 通过视觉与 copy gate。
-- P0 Stitch 设计原型、P1 可运行公共产品切片与 `P1-EDITORIAL-001` 编辑 CMS 基础均已完成并归档。
+- P0 Stitch 设计原型、P1 可运行公共产品切片、`P1-EDITORIAL-001` 编辑 CMS 基础与 `P2-PREVIEW-001` 均已完成并归档。
 - `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。公共站仍保留 typed fixture 读路径；本地可切换到 CMS 公开读路径。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
 - P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的当前 Preview 为 [`china-in-fact-m079nig02`](https://china-in-fact-m079nig02-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停，production runtime 被显式阻止；正常态读取 CMS，灾备时可显式切换 fixtures。
 - CMS 已实现 People、Article、分类、来源说明、编辑评论、版本与工作流审计；Author、Editor、Super Admin 权限和 `draft / submitted / in_review / changes_requested / approved / public / archived` 转换均由服务端约束。英语和西班牙语使用独立文档、URL 与公开状态。
@@ -42,7 +42,7 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前唯一 active 工作是 [`P2-PREVIEW-001`](roadmap/checklists/p2-preview-release-candidate.md)：实现、migration、虚构数据、受保护部署和实现者验收均已完成。首轮独立复审发现恢复与视觉证据缺口；隔离 restore smoke、fixtures 灾备部署和持久化截图现已补齐，等待同一复审者重新判定。正式收口前不建立 production launch checklist。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。当前没有 active 工作。`P2-PREVIEW-001` 的首轮 BLOCK 已修复，同一非主持实现者第二轮复审 PASS，P0/P1/P2 finding 均为零；完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。Production、DNS、真实数据和正式内容公开没有因此自动获批。
 
 ## 当前运行边界
 
