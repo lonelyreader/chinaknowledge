@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production 29/5、迁移后恢复与 staged deployment 独立复审 PASS；当前门禁为首批真实贡献者与内容 |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 首位 Person 与首篇英西 Article 已公开并完成恢复；当前门禁为正式域名、匿名公开面复验与索引 |
 
 ## Deferred
 

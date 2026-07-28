@@ -25,6 +25,7 @@ export function CMSPersonRow({
           src={person.image.url}
           alt={person.image.alt}
           fill
+          unoptimized
           sizes={featured ? "(max-width: 767px) 100vw, 55vw" : "96px"}
           loading={featured ? "eager" : "lazy"}
           fetchPriority={featured ? "high" : "auto"}

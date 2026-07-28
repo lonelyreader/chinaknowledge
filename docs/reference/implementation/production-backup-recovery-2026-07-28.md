@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Result
 
-2026-07-28 完成 Production 跨供应商恢复基线、migration 后复验，以及首位管理员、首张真实媒体和首个真实 Person 草稿后的再次备份：Neon 与 Vercel Blob 的恢复点写入 Cloudflare R2 Standard 私有桶，数据库文件和媒体清单均从 R2 读回；数据库 dump 在隔离 PostgreSQL 17 实例中恢复成功。当前 Production 有 29 张表和 5 条 migration、1 名 Super Admin、1 条 Media、1 个 Person 草稿，Article/Place 为 0；run `30351414680` 已完成 29/5/5/8 断言、1/1/0/1/0 数据回读与真实媒体抽样 SHA 核对。
+2026-07-28 完成 Production 跨供应商恢复基线、migration 后复验，以及首位管理员、真实媒体、公开 Person 和首篇英西双语 Article 后的再次备份：Neon 与 Vercel Blob 的恢复点写入 Cloudflare R2 Standard 私有桶，数据库文件和媒体清单均从 R2 读回；数据库 dump 在隔离 PostgreSQL 17 实例中恢复成功。当前 Production 有 29 张表和 5 条 migration、1 名 Super Admin、1 个公开 Person、2 条 Media、2 篇公开 Article、8 条 workflow event 和 0 Place；run `30354709841` 已完成 29/5/5/8 断言、1/1/2/2/8 数据回读与真实媒体抽样 SHA 核对。
 
 ## Resource Boundary
 
@@ -68,8 +68,9 @@ GitHub Actions secrets 为 `PRODUCTION_DATABASE_BACKUP_URL`、`PRODUCTION_BLOB_R
 - First-admin recovery：首位 Super Admin 建立后立即运行 [`30343054714`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30343054714)，全流程成功；`production.dump: OK`、隔离恢复 schema assertion `29,5,5,8`、零对象媒体清单读回成功。备份和文档不记录管理员邮箱、密码或重置 token。
 - First-media recovery：首张本人授权头像写入后运行 [`30345197248`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30345197248)，全流程用时 1m3s；`production.dump: OK`，隔离恢复为 29/5/5/8、users/people/articles/media/workflow_events 为 1/0/0/1/0。Blob 枚举得到原图与 card 版本 2 个对象，全部上传为不可变哈希键；随后下载 manifest 和其中一个对象，SHA-256 与来源一致。
 - First-person recovery：首个真实 Person 草稿写入后运行 [`30351414680`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30351414680)，全流程用时 42 秒；`production.dump: OK`，隔离恢复为 29/5/5/8、users/people/articles/media/workflow_events 为 1/1/0/1/0。媒体 manifest 再次读回，并下载一个对象核对 SHA-256 一致。
+- First-public-content recovery：首篇英西双语 Article、原创封面和公开 Person 写入后运行 [`30354709841`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30354709841)，全流程用时 43 秒；`production.dump: OK`，隔离恢复为 29/5/5/8、users/people/articles/media/workflow_events 为 1/1/2/2/8。Blob 枚举头像与封面的原图及 card 版本共 4 个对象，媒体 manifest 从 R2 读回，并下载一个对象核对 SHA-256 一致。
 
 ## Remaining Gate
 
-- 首张真实媒体和首个真实 Person 草稿均已进入恢复链路并完成读回；后续每日 workflow 继续覆盖新增数据与媒体。
-- staged Production 已部署；首篇真实 Article、Person 公开、正式域名和索引仍须在内容审核与 release 门禁后执行。
+- 首位管理员、真实 Person、头像、文章封面和首篇英西 Article 均已进入恢复链路并完成读回；后续每日 workflow 继续覆盖新增数据与媒体。
+- staged Production 与首篇内容已发布；正式域名绑定、匿名公开面复验和索引仍按 release 门禁执行。

@@ -37,7 +37,7 @@ export default async function StoryPage({ params }: { params: Promise<{ locale: 
           <h1>{article.title}</h1>
           <p className="dek">{article.summary}</p>
           <div className="guide-byline">
-            <Image src={article.author.image.url} alt={article.author.image.alt} width={72} height={72} />
+            <Image src={article.author.image.url} alt={article.author.image.alt} width={72} height={72} unoptimized />
             <div>
               <span className="meta">{copy.writtenBy}</span>
               <Link href={`/${locale}/people/${article.author.slug}`}>{article.author.name}</Link>
@@ -47,7 +47,7 @@ export default async function StoryPage({ params }: { params: Promise<{ locale: 
           </div>
         </header>
         <figure className="guide-image">
-          <Image src={article.coverImage.url} alt={article.coverImage.alt} fill priority sizes="(max-width: 767px) 100vw, 1200px" />
+          <Image src={article.coverImage.url} alt={article.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 1200px" />
         </figure>
         <div className="guide-body">
           <aside className="guide-aside"><p className="meta">{article.publishedAt.slice(0, 10)}</p></aside>
@@ -66,7 +66,7 @@ export default async function StoryPage({ params }: { params: Promise<{ locale: 
           </div>
         </div>
         <section className="author-passage">
-          <Image src={article.author.image.url} alt={article.author.image.alt} width={180} height={180} />
+          <Image src={article.author.image.url} alt={article.author.image.alt} width={180} height={180} unoptimized />
           <div>
             <p className="meta">{copy.aboutAuthor}</p>
             <h2>{article.author.name}</h2>

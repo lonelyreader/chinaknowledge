@@ -37,7 +37,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <h1><Link href={articlePath(locale, lead)}>{lead.title}</Link></h1>
               <p className="dek">{lead.summary}</p>
               <div className="hero-byline">
-                <Image src={lead.author.image.url} alt={lead.author.image.alt} width={64} height={64} />
+                <Image src={lead.author.image.url} alt={lead.author.image.alt} width={64} height={64} unoptimized />
                 <div>
                   <Link href={`/${locale}/people/${lead.author.slug}`}>{lead.author.name}</Link>
                   <span>{lead.author.identity}, {lead.author.city}</span>
@@ -45,7 +45,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </div>
             </div>
             <Link className="home-hero__image" href={articlePath(locale, lead)}>
-              <Image src={lead.coverImage.url} alt={lead.coverImage.alt} fill priority sizes="(max-width: 767px) 100vw, 50vw" />
+              <Image src={lead.coverImage.url} alt={lead.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 50vw" />
             </Link>
           </section>
         ) : null}
@@ -91,7 +91,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {cmsPlaces.slice(0, 3).map((place) => (
                 <article className="place-card" key={place.slug}>
                   <Link className="place-card__image" href={placePath(locale, place)}>
-                    <Image src={place.coverImage.url} alt={place.coverImage.alt} fill sizes="(max-width: 767px) 100vw, 33vw" />
+                    <Image src={place.coverImage.url} alt={place.coverImage.alt} fill unoptimized sizes="(max-width: 767px) 100vw, 33vw" />
                   </Link>
                   <p className="meta">{place.geography.name}</p>
                   <h3><Link href={placePath(locale, place)}>{place.name}</Link></h3>

@@ -35,7 +35,7 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
     return (
       <main className="page-shell author-page">
         <header className="author-hero">
-          <div className="author-portrait"><Image src={person.image.url} alt={person.image.alt} fill priority sizes="(max-width: 767px) 100vw, 40vw" /></div>
+          <div className="author-portrait"><Image src={person.image.url} alt={person.image.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 40vw" /></div>
           <div className="author-identity">
             <p className="meta">{person.city}</p>
             <h1>{person.name}</h1>

@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Verdict
 
-受保护 Preview 与不绑定正式域名的 staged Production 均为 `PASS`，最终独立复审 P0/P1/P2 均为零；Production 公共发布仍因没有真实文章而 `BLOCK`。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2，Preview 又补齐人物规模与跨周/跨年轮换。产品负责人统一批准查看 Production 所需动作后，Production 从 23/1 升至 29/5、完成异地恢复、建立首位 Super Admin、修复真实密码重置邮件，写入首张本人授权头像，并建立首个真实 Person 草稿；Article、Place、正式域名与索引仍未执行。
+受保护 Preview 与不绑定正式域名的 staged Production 均为 `PASS`，最终独立复审 P0/P1/P2 均为零。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2，Preview 又补齐人物规模与跨周/跨年轮换。产品负责人批准首篇内容后，Production 已公开首位 Person 和首篇英西双语 Analysis；文章页、Stories 列表、人物贡献页、原创封面和双向 canonical 跳转均已回读。正式域名、匿名公开面复验、Place 与索引仍未执行。
 
 ## Findings At Audit Start
 
@@ -88,6 +88,7 @@ change_id: PROD-LAUNCH-001
 - 首位管理员创建后的真实密码重置请求虽然成功发信，但邮件使用 `admin/reset/...` 相对地址，浏览器将 `admin` 当作主机名并报 `ERR_NAME_NOT_RESOLVED`。根因是 Payload 未配置 `serverURL`，请求 origin 又未进入其可信来源回退。提交 `bd35454` 增加 `PAYLOAD_PUBLIC_SERVER_URL` 的 Production HTTPS origin 校验并传入 Payload；最新 deployment `dpl_4QkjZptx6L5LGspiS61nDMWNLFHL` 为 READY，环境检查 `production / cms / blob / noindex`、授权健康检查 200、重发接口返回成功。Resend 控制台回读最新邮件为 delivered，预览中的 reset URL 使用稳定 Production alias；近 10 分钟运行日志无 warning、error 或 5xx。旧 token 已由重发失效，证据不记录 token。
 - 首张真实头像上传暴露通用 Payload Media 表单把随机存储名、日期和审计关系当作主操作字段。提交 `09e63e1 / 22b4853` 保持底层时间戳与批准人审计不变，但在操作面隐藏随机文件名、上传者与批准人，把 `Alt text` 改成 `Image description`，把日期控件改成一个公开使用勾选。最新 deployment `dpl_3MGyKkPpepboeuhoXc8V1nJVS55b` 登录态回读只呈现图片说明和已勾选批准状态；typecheck、lint、editorial integration、production build 均通过。首次真实媒体 backup run `30345197248` 恢复 users/media 为 1/1，并从两个 Blob 对象中抽样读回 SHA。
 - 产品负责人随后提供首位人物的真实资料；Production 建立 Person `gexu`，关联本人账户与已批准头像，记录杭州与墨西哥 Mérida、Educator and entrepreneur、A coherentist、英语与西班牙语及作者授权日期。因为 Person 公开门禁要求至少一篇公开 Article，该记录保持 Draft；run `30351414680` 恢复 users/people/articles/media/workflow_events 为 1/1/0/1/0，媒体抽样 SHA 读回通过。
+- 首篇真实内容从中文访谈记录改写，公开前只核对专有名词官方写法，随后生成英语和拉美西语终稿及无文字、无公司标识的原创封面。两篇 Analysis 分别完成 Draft → In review → Approved → Public；数据库翻译组统一后，`/es/stories/a-decade-of-ai-talent-migration-in-china` 与反向英语路径均跳到目标 canonical URL。英语、西语 Stories 列表各出现一条，公开 Person `gexu` 显示英语贡献；页面无 console error。run [`30354709841`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30354709841) 隔离恢复 users/people/articles/media/workflow_events 为 1/1/2/2/8，4 个媒体对象进入备份并完成样本 SHA 读回。
 
 ## Account Startup Contract
 
@@ -98,9 +99,9 @@ change_id: PROD-LAUNCH-001
 
 ## Required Recovery Sequence
 
-1. 由产品负责人提供真实贡献者与首发内容；不得从 Preview 虚构夹具推导或复制。
-2. 首位管理员完成密码设置后，按真实名单开户、发送重置邮件并完成内容/媒体/外链审核。
-3. staged Production 独立复审通过后，再绑定正式域名；内容公开和索引仍以真实内容审核结果为准。
+1. 首位真实贡献者、头像、原创封面和英西首发内容已经建立并公开；未从 Preview 虚构夹具推导或复制。
+2. 其他账户继续只按产品负责人提供的真实名单开户；当前作者没有个人外链，不构造占位项。
+3. 绑定正式域名后复验匿名公开面，再单独决定搜索引擎索引。
 
 ## Evidence Pointers
 

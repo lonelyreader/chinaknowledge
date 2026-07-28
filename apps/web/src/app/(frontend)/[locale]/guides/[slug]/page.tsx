@@ -43,7 +43,7 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
             <h1>{cmsGuide.title}</h1>
             <p className="dek">{cmsGuide.summary}</p>
             <div className="guide-byline">
-              <Image src={cmsGuide.author.image.url} alt={cmsGuide.author.image.alt} width={72} height={72} />
+              <Image src={cmsGuide.author.image.url} alt={cmsGuide.author.image.alt} width={72} height={72} unoptimized />
               <div>
                 <span className="meta">{copy.writtenBy}</span>
                 <Link href={`/${locale}/people/${cmsGuide.author.slug}`}>{cmsGuide.author.name}</Link>
@@ -53,7 +53,7 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
             </div>
           </header>
           <figure className="guide-image">
-            <Image src={cmsGuide.coverImage.url} alt={cmsGuide.coverImage.alt} fill priority sizes="(max-width: 767px) 100vw, 1200px" />
+            <Image src={cmsGuide.coverImage.url} alt={cmsGuide.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 1200px" />
           </figure>
           <div className="guide-body">
             <aside className="guide-aside">
@@ -74,7 +74,7 @@ export default async function GuidePage({ params }: { params: Promise<{ locale: 
             </div>
           </div>
           <section className="author-passage">
-            <Image src={cmsGuide.author.image.url} alt={cmsGuide.author.image.alt} width={180} height={180} />
+            <Image src={cmsGuide.author.image.url} alt={cmsGuide.author.image.alt} width={180} height={180} unoptimized />
             <div>
               <p className="meta">{copy.aboutAuthor}</p>
               <h2>{cmsGuide.author.name}</h2>
