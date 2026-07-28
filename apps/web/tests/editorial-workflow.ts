@@ -102,11 +102,8 @@ async function clean(payload: Payload) {
   }
 }
 
-let activePayload: Payload | undefined;
-
 async function main() {
   const payload = await getPayload({ config });
-  activePayload = payload;
   const lifecycleEmail = `pub-curation-lifecycle-${randomUUID()}@test.invalid`;
   const lifecycleUser = await payload.create({
     collection: "users",
@@ -575,6 +572,8 @@ async function main() {
 
 try {
   await main();
-} finally {
-  await activePayload?.destroy();
+  process.exit(0);
+} catch (error) {
+  console.error(error);
+  process.exit(1);
 }
