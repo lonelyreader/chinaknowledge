@@ -12,7 +12,7 @@ max_lines: 160
 
 ## 当前阶段
 
-项目已完成并归档 **P1：可运行公共产品切片**、**P1：编辑 CMS 基础** 与 **P2：Preview release candidate**。当前唯一 active checklist 为 [`PROD-LAUNCH-001`](roadmap/checklists/production-launch-readiness.md)；Production 资源、migration 与恢复已完成，真实数据、部署、网站域名、DNS 和公开仍分别过门禁。
+项目已完成并归档 **P1：可运行公共产品切片**、**P1：编辑 CMS 基础** 与 **P2：Preview release candidate**。当前唯一 active checklist 为 [`PROD-LAUNCH-001`](roadmap/checklists/production-launch-readiness.md)；受保护 Preview 已关闭人物规模与轮换 finding，正在等待最后一次 clean deployment 身份回读。真实数据、Production migration/deploy、网站域名、DNS 和公开仍分别过门禁。
 
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
@@ -24,12 +24,12 @@ max_lines: 160
 - Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：现有 Vercel Pro project + 独立 Neon Launch + 独立 Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，异地备份使用 Cloudflare R2。Production migration 已执行一次，形成 23 张 `public` 表和 1 条 migration 记录，业务数据与 Blob 仍为空；迁移后备份、读回、SHA、隔离恢复和 schema 断言均已通过。
 - 人工域名邮箱已复用现有飞书组织完成配置：`chinainfact.com` 邮箱域名、MX、SPF、DKIM 与监测态 DMARC 均已启用，公共邮箱 `hello@chinainfact.com` 已创建并授权给产品负责人；2026-07-27 从该地址向 `gexu@lonelyreader.com` 的真实测试邮件已发送并确认收达。Resend 使用已验证的 `mail.chinainfact.com / us-east-1` 承担程序邮件，真实事务邮件已由飞书主邮箱回读收达。
 - `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。提交 `4125230` 已接通 CMS 首页、Stories/Guides、Places、People/人物页、Purpose、Topic 与 About，并在 CMS 模式停止公共 fixture 回退。Place 是独立编辑节点，对应一个 Geography；页面自动聚合同语言公开内容与人物。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
-- P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的当前 Preview 为 [`china-in-fact-m079nig02`](https://china-in-fact-m079nig02-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停；Production 只有在独立数据库、Blob 与邮件变量齐全时放行，并由独立索引开关保持 `noindex`。
+- P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的当前 Preview 为 [`china-in-fact-4dnpshm26`](https://china-in-fact-4dnpshm26-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停；Production 只有在独立数据库、Blob 与邮件变量齐全时放行，并由独立索引开关保持 `noindex`。
 - CMS 已实现 People、Profile revision、Article、Place、Media、分类、来源说明、编辑评论、版本与工作流审计；人物修订不会提前覆盖公开 Person，Editor 只能要求修改或整体应用作者提案，并发更新由数据库唯一键和行锁保护。经 Payload/API 与 Payload 文件路由读取时，未批准 Media 只对服务端记录的上传者和编辑角色可见，只有批准记录进入匿名读取和内容公开；底层 Blob 是 public store，因此该 collection 不承载敏感原件。Author、Editor、Super Admin 权限和文章状态转换均由服务端约束。英语和西班牙语使用独立文档、URL 与公开状态。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。
-- CMS migration `20260727_054408_p1_editorial_foundation` 已分别在 Preview 与 Production 执行一次。当前 Preview 只有 3 个虚构账户、1 个人物、2 篇分语言文章、1 个媒体记录及其 2 个 Blob 对象；英语 Guide 已公开，西班牙语版本保持未公开。Production 已有 23 张表和 1 条 migration，但业务数据与 Blob 仍为空。
+- Preview 已执行全部 5 条 CMS migration，形成 29 张表；纯虚构验收数据为 31 个账户、27 个人物、30 篇文章、4 个媒体记录、3 个地点、1 条人物修订和 130 条 workflow event，其中 24 组固定 `.test` 人物与贡献只用于规模、分页、筛选和轮换验收。Production 仍只有首条 migration、23 张表，业务数据与 Blob 为空；不得把 Preview 夹具复制为 Production 内容。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
 ## 当前真相源
@@ -44,16 +44,16 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的邮件、Newsletter、Discord、最低隐私和 Production 环境代码已独立复审 PASS；独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建，Neon 为 7 天恢复窗口，R2 为全部对象 30 天防删、数据库备份 90 天生命周期。Production migration 与迁移后恢复 workflow 均已通过。`P2-PREVIEW-001` 的完成记录见 [`archive`](archive/p2-preview-release-candidate.md)。网站域名绑定、真实数据、正式内容公开、部署和索引仍未执行。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的 Preview schema、虚构编辑流、人物规模、分页/筛选、保护与运行日志已经通过，最后门禁是 clean deployment 的独立身份回读；邮件、Newsletter、Discord、最低隐私和 Production 环境代码也已通过。Production 现有 23/1 基线及恢复 workflow 已通过，但候选需要的四条新增 migration 尚未批准应用，29/5 恢复断言也尚未更新。
 
 ## 当前运行边界
 
 - 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
-- Preview deployment `dpl_9cTeUwsM9JBNCdfps3HEzF3mBhA7` 为 `READY`，匿名请求进入 Vercel SSO，授权健康检查返回 200。隔离恢复库已完成 23 张表和全部虚构 fixture 回读并删除；数据库不可用的 fixtures 灾备 deployment 也已验证后保留为短期证据。没有正式域名或可用的 production URL。
+- Preview deployment `dpl_3SLFrGmuSEDXM1GyNnnJ7L7xdWk1` 为 `READY / target: null`，绑定提交 `31a7988`；匿名请求进入 Vercel SSO，授权健康检查返回 200。Preview 为 29/5，并以 25 个合格虚构人物完成桌面 24/页、移动 12/页、翻页、筛选与 Spotlight 验收；连续周与跨年轮换修复已提交，等待 clean redeploy。没有正式域名或可用的 Production URL。
 - 首次 CLI 部署误取 production target，但环境守卫在构建期拒绝并留下一个 `ERROR` 记录；没有启动 production runtime、写入 production 数据或生成可用地址。后续部署均显式使用 Preview。
 - Production Neon 已执行 `20260727_054408_p1_editorial_foundation`：23 张 `public` 表、1 条 migration，users/people/articles/media/workflow_events 均为 0；Production Blob 为 0B。Cloudflare R2 私有备份桶已在北美东部建立，公开访问关闭；迁移后 run `30287841720` 的 dump、SHA、隔离恢复、23/1/1/6 schema 断言与零对象媒体清单均通过。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容。
 - Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project。独立 Production Neon Launch、Blob、R2、运行变量、migration 与恢复验收已就绪，环境校验为 `cms + blob + noindex`；真实内容尚未审核和写入，因此仍不部署。Payload Resend adapter、Newsletter Contacts/Topic opt-in、最低隐私页、真实 Discord invite 和占位外链清理已实现；公开订阅端点有 Production-only IP 限流，重复提交不会改写已有联系人的退订状态，Local 与 Preview 不写真实订阅者。
-- 2026-07-28 公共产品彻查后的修复已提交为 `4125230`，覆盖 CMS 公共读取、Places、真实 portrait/cover、发布完整性、署名归属、匿名字段隔离、双语跳转、People 搜索筛选、首页策展、Profile revision、媒体公开使用批准，以及首位管理员和批量开户工具。五条 migration 在临时库形成 29 张表；权限负例、并发竞争、账号失败关闭/写入回读、runtime、完整 reverse rollback/reapply，以及 1440px/390px 浏览器 smoke 均已验证，第二轮本地 slice 复审 PASS。Preview 发布前回读仍为 23 张表/1 条 migration，四条新 migration 尚未获单独批准，因此 deployment 未创建；Production 同样保持 23/1，真实数据、邮件邀请与部署继续停止。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
+- 2026-07-28 公共产品彻查后的修复已提交为 `4125230`；人物规模复审进一步形成 `31a7988 / 5964da7 / 3be99c6`，补齐 25 人分页、筛选、相邻周互斥轮换和跨年连续周边界。Preview 为 29/5，Production 保持 23/1；完成 clean redeploy 独立回读后，下一步才是单独批准 Production 四条新增 migration 与 29/5 恢复断言。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
 
 当上述事实发生变化时更新本页；计划和愿望不得写成当前能力。

@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 候选已提交；Preview 仍为 23/1，当前门禁为四条 Preview migration 的单独批准 |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 人物规模与跨年轮换 finding 已修；当前门禁为 clean protected Preview deployment 的独立身份回读 |
 
 ## Deferred
 
