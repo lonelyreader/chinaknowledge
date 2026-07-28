@@ -19,6 +19,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     ]);
     const { articles, lead, selected } = homepage;
     const featuredPeople = stableWeeklyPeople(cmsPeople, 4);
+    const hasEditorialContent = Boolean(
+      lead || selected.length || articles.length || cmsPlaces.length || featuredPeople.length,
+    );
     const purposeSlugs = ["understand", "visit", "live", "study", "work", "business"];
 
     return (
@@ -114,7 +117,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
         <section className="newsletter-band">
           <div className="page-shell newsletter-band__inner">
-            <h2>{copy.newsletter}</h2>
+            {hasEditorialContent ? <h2>{copy.newsletter}</h2> : <h1>{copy.newsletter}</h1>}
             <NewsletterForm locale={locale} />
           </div>
         </section>
