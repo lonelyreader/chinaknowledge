@@ -6,6 +6,15 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@/content";
 import { ui } from "@/content";
 
+const sharedLanguageRoutes = new Set(["about", "guides", "newsletter", "people", "places", "privacy", "stories"]);
+
+function sharedLanguageHref(pathname: string, targetLocale: Locale) {
+  const parts = pathname.split("/").filter(Boolean);
+  if ((parts[0] !== "en" && parts[0] !== "es") || parts.length > 2) return null;
+  if (parts.length === 2 && !sharedLanguageRoutes.has(parts[1])) return null;
+  return `/${targetLocale}${parts.length === 2 ? `/${parts[1]}` : ""}`;
+}
+
 export function SiteHeader({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -17,7 +26,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     const readAlternates = () => {
       const entries = (["en", "es"] as const).flatMap((targetLocale) => {
         const alternate = document.querySelector<HTMLLinkElement>(`link[rel="alternate"][hreflang="${targetLocale}"]`);
-        const href = alternate?.getAttribute("href") || (targetLocale === locale ? pathname : null);
+        const href = alternate?.getAttribute("href")
+          || sharedLanguageHref(pathname, targetLocale)
+          || (targetLocale === locale ? pathname : null);
         return href ? [[targetLocale, href] as const] : [];
       });
       setLanguageHrefs(Object.fromEntries(entries) as Partial<Record<Locale, string>>);

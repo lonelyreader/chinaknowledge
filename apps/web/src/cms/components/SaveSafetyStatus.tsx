@@ -15,7 +15,7 @@ function editorName(value: ReturnType<typeof useDocumentInfo>["currentEditor"]) 
 export function SaveSafetyStatus() {
   const pendingChanges = usePendingFormChanges();
   const processing = useFormProcessing();
-  const { submit } = useForm();
+  const { setBackgroundProcessing, submit } = useForm();
   const [saveFailed, setSaveFailed] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [online, setOnline] = useState(() => typeof navigator === "undefined" || navigator.onLine);
@@ -79,25 +79,30 @@ export function SaveSafetyStatus() {
 
   async function retry() {
     setRetrying(true);
-    if (collectionSlug === "articles" && id) {
-      const result = await submit({
-        acceptValues: { overrideLocalChanges: false },
-        action: `/api/articles/${id}?autosave=true&depth=0&draft=true&fallback-locale=null`,
-        context: {
-          getDocPermissions: false,
-          incrementVersionCount: !mostRecentVersionIsAutosaved,
-        },
-        disableFormWhileProcessing: false,
-        disableSuccessStatus: true,
-        method: "PATCH",
-        overrides: { _status: "draft" },
-        skipValidation: true,
-      });
+    setBackgroundProcessing(true);
+    try {
+      if (collectionSlug === "articles" && id) {
+        const result = await submit({
+          acceptValues: { overrideLocalChanges: false },
+          action: `/api/articles/${id}?autosave=true&depth=0&draft=true&fallback-locale=null`,
+          context: {
+            getDocPermissions: false,
+            incrementVersionCount: !mostRecentVersionIsAutosaved,
+          },
+          disableFormWhileProcessing: false,
+          disableSuccessStatus: true,
+          method: "PATCH",
+          overrides: { _status: "draft" },
+          skipValidation: true,
+        });
+        if (!result?.res?.ok) setRetrying(false);
+        return;
+      }
+      const result = await submit();
       if (!result?.res?.ok) setRetrying(false);
-      return;
+    } finally {
+      setBackgroundProcessing(false);
     }
-    const result = await submit();
-    if (!result?.res?.ok) setRetrying(false);
   }
 
   const state = lockedBySomeoneElse
