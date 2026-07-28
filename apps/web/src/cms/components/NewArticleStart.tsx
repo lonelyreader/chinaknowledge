@@ -16,7 +16,31 @@ export function NewArticleStart() {
     setPending(true);
     try {
       const response = await fetch("/api/articles?draft=true", {
-        body: JSON.stringify({ locale, title }),
+        body: JSON.stringify({
+          body: {
+            root: {
+              children: [
+                {
+                  children: [],
+                  direction: null,
+                  format: "",
+                  indent: 0,
+                  textFormat: 0,
+                  textStyle: "",
+                  type: "paragraph",
+                  version: 1,
+                },
+              ],
+              direction: null,
+              format: "",
+              indent: 0,
+              type: "root",
+              version: 1,
+            },
+          },
+          locale,
+          title,
+        }),
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
