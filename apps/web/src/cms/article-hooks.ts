@@ -6,7 +6,10 @@ import type {
 } from "payload";
 import { APIError } from "payload";
 
+import type { Article } from "@/payload-types";
+
 import { hasEditorialRole, isCMSUser, isSuperAdmin } from "./roles";
+import { createEditorialNotificationEvent, notificationKindForCuration } from "./editorial-notifications";
 import {
   assertMediaApprovedForPublicUse,
   markMediaForMemberPublication,
@@ -347,20 +350,32 @@ export const recordWorkflowEvent: CollectionAfterChangeHook<ArticleShape> = asyn
   ].filter(({ from, to }) => operation === "create" || from !== to);
 
   for (const change of changes) {
-    await req.payload.create({
-      collection: "workflow-events",
-      context: { skipWorkflowEvent: true },
-      data: {
-        article: Number(doc.id),
-        actor: isCMSUser(req.user) ? Number(req.user.id) : undefined,
+    const kind = change.axis === "curation" ? notificationKindForCuration(change.to) : null;
+    if (kind) {
+      await createEditorialNotificationEvent({
+        article: doc as unknown as Article,
         axis: change.axis,
         fromStatus: change.from,
+        kind,
+        req,
         toStatus: change.to,
-        occurredAt: new Date().toISOString(),
-      },
-      overrideAccess: true,
-      req,
-    });
+      });
+    } else {
+      await req.payload.create({
+        collection: "workflow-events",
+        context: { skipWorkflowEvent: true },
+        data: {
+          article: Number(doc.id),
+          actor: isCMSUser(req.user) ? Number(req.user.id) : undefined,
+          axis: change.axis,
+          fromStatus: change.from,
+          toStatus: change.to,
+          occurredAt: new Date().toISOString(),
+        },
+        overrideAccess: true,
+        req,
+      });
+    }
   }
   return doc;
 };

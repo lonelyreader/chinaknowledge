@@ -487,7 +487,9 @@ async function main() {
   const events = await payload.find({ collection: "workflow-events", limit: 100, overrideAccess: true, where: { article: { equals: draft.id } } });
   assert.ok(events.docs.some((event) => event.axis === "publication" && event.toStatus === "published"));
   assert.ok(events.docs.some((event) => event.axis === "curation" && event.toStatus === "curated"));
-  assert.ok(events.docs.some((event) => event.axis === "curation" && event.toStatus === "needs_recheck"));
+  assert.ok(events.docs.some((event) => event.axis === "curation" && event.toStatus === "needs_recheck" && event.notificationKind === "needs_recheck"));
+  assert.ok(events.docs.some((event) => event.axis === "curation" && event.toStatus === "selected" && event.notificationKind === "selected"));
+  assert.ok(events.docs.filter((event) => event.notificationKind).every((event) => event.notificationStatus === "not_required"));
 
   console.log(JSON.stringify({
     articleID: draft.id,

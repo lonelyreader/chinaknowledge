@@ -3,6 +3,7 @@ import { APIError, type Endpoint, type Payload, type PayloadRequest } from "payl
 import type { Article } from "@/payload-types";
 import { hasEditorialRole, isCMSUser, isSuperAdmin } from "./roles";
 import { isCurationStatus, isPublicationStatus } from "./workflow";
+import { createEditorialNotificationEvent } from "./editorial-notifications";
 
 type TransitionBody = {
   axis?: "publication" | "curation";
@@ -169,5 +170,35 @@ export const transitionArticleEndpoint: Endpoint = {
       publicationStatus: article.publicationStatus,
       curationStatus: article.curationStatus,
     });
+  },
+};
+
+export const notifyArticleAuthorEndpoint: Endpoint = {
+  path: "/:id/notify-author",
+  method: "post",
+  handler: async (req) => {
+    if (!isCMSUser(req.user)) throw new APIError("Authentication is required.", 401);
+    if (!hasEditorialRole(req.user)) throw new APIError("Editor access is required.", 403);
+    const id = req.routeParams?.id;
+    if (typeof id !== "string" && typeof id !== "number") {
+      throw new APIError("Article ID is required.", 400);
+    }
+    const article = await req.payload.findByID({
+      collection: "articles",
+      id,
+      depth: 0,
+      draft: true,
+      overrideAccess: true,
+      req,
+    });
+    const status = article.curationStatus ?? "not_selected";
+    const event = await createEditorialNotificationEvent({
+      article,
+      fromStatus: status,
+      kind: "major_edit",
+      req,
+      toStatus: status,
+    });
+    return Response.json({ notificationStatus: event?.notificationStatus ?? "not_required" });
   },
 };

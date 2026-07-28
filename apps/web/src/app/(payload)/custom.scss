@@ -16,6 +16,31 @@
   width: 100%;
 }
 
+.invite-member {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: auto minmax(10rem, 1fr) minmax(14rem, 1.4fr) 9rem auto auto;
+  margin-block: 1rem 2rem;
+}
+
+.invite-member input,
+.invite-member select {
+  background: var(--theme-input-bg);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+  color: var(--theme-text);
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+@media (max-width: 760px) {
+  .invite-member {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+}
+
 .member-workspace__header,
 .member-workspace__actions,
 .member-workspace__queues {

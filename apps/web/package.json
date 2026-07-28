@@ -25,6 +25,7 @@
     "cms:migration:status": "payload migrate:status",
     "cms:bootstrap-super-admin": "tsx scripts/bootstrap-super-admin.ts",
     "cms:provision-accounts": "tsx scripts/provision-cms-accounts.ts",
+    "cms:retry-notifications": "tsx scripts/retry-editorial-notifications.ts",
     "test:editorial": "tsx tests/editorial-workflow.ts",
     "test:environment": "tsx tests/environment.ts",
     "test:migration-recovery": "node scripts/test-migration-recovery.mjs",

@@ -14,7 +14,7 @@ import {
   prepareArticle,
   recordWorkflowEvent,
 } from "@/cms/article-hooks";
-import { transitionArticleEndpoint } from "@/cms/article-endpoints";
+import { notifyArticleAuthorEndpoint, transitionArticleEndpoint } from "@/cms/article-endpoints";
 import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 
 const editorialCondition = (_data: unknown, _siblingData: unknown, { user }: { user: unknown }) =>
@@ -53,7 +53,7 @@ export const Articles: CollectionConfig = {
       },
     },
   },
-  endpoints: [transitionArticleEndpoint],
+  endpoints: [transitionArticleEndpoint, notifyArticleAuthorEndpoint],
   access: {
     create: authenticated,
     delete: editorial,

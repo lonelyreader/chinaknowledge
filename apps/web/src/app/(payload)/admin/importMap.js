@@ -1,3 +1,4 @@
+import { InviteMember as InviteMember_35b0175858e203b26be928c9b71a3f28 } from '../../../cms/components/InviteMember'
 import { ProfileActions as ProfileActions_fb26de006462dd6fc68c4cd3109e5592 } from '../../../cms/components/ProfileActions'
 import { PublicUseApprovalField as PublicUseApprovalField_7cd11cb6a7c06a35008b33e3b40bbae3 } from '../../../cms/components/PublicUseApprovalField'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -31,6 +32,7 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/cms/components/InviteMember#InviteMember": InviteMember_35b0175858e203b26be928c9b71a3f28,
   "/cms/components/ProfileActions#ProfileActions": ProfileActions_fb26de006462dd6fc68c4cd3109e5592,
   "/cms/components/PublicUseApprovalField#PublicUseApprovalField": PublicUseApprovalField_7cd11cb6a7c06a35008b33e3b40bbae3,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,

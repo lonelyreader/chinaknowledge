@@ -20,7 +20,7 @@ export const WorkflowEvents: CollectionConfig = {
   slug: "workflow-events",
   labels: { singular: "Workflow event", plural: "Workflow events" },
   admin: {
-    defaultColumns: ["article", "fromStatus", "toStatus", "actor", "occurredAt"],
+    defaultColumns: ["article", "fromStatus", "toStatus", "actor", "notificationStatus", "occurredAt"],
     group: "Editorial",
     hideAPIURL: true,
   },
@@ -44,5 +44,31 @@ export const WorkflowEvents: CollectionConfig = {
     { name: "fromStatus", type: "select", options: statusOptions },
     { name: "toStatus", type: "select", required: true, options: statusOptions },
     { name: "occurredAt", type: "date", required: true },
+    {
+      name: "notificationKind",
+      type: "select",
+      options: [
+        { label: "Selected", value: "selected" },
+        { label: "Major edit", value: "major_edit" },
+        { label: "Needs recheck", value: "needs_recheck" },
+        { label: "Removed", value: "removed" },
+      ],
+    },
+    {
+      name: "notificationStatus",
+      type: "select",
+      defaultValue: "not_required",
+      options: [
+        { label: "Not required", value: "not_required" },
+        { label: "Pending", value: "pending" },
+        { label: "Sent", value: "sent" },
+        { label: "Failed", value: "failed" },
+      ],
+    },
+    { name: "notificationKey", type: "text", unique: true, index: true },
+    { name: "notificationRecipient", type: "email" },
+    { name: "notificationAttempts", type: "number", defaultValue: 0, min: 0 },
+    { name: "notificationLastError", type: "textarea" },
+    { name: "notificationSentAt", type: "date" },
   ],
 };

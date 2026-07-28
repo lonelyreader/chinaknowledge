@@ -390,6 +390,13 @@ export interface WorkflowEvent {
     | 'public'
     | 'archived';
   occurredAt: string;
+  notificationKind?: ('selected' | 'major_edit' | 'needs_recheck' | 'removed') | null;
+  notificationStatus?: ('not_required' | 'pending' | 'sent' | 'failed') | null;
+  notificationKey?: string | null;
+  notificationRecipient?: string | null;
+  notificationAttempts?: number | null;
+  notificationLastError?: string | null;
+  notificationSentAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -699,6 +706,13 @@ export interface WorkflowEventsSelect<T extends boolean = true> {
   fromStatus?: T;
   toStatus?: T;
   occurredAt?: T;
+  notificationKind?: T;
+  notificationStatus?: T;
+  notificationKey?: T;
+  notificationRecipient?: T;
+  notificationAttempts?: T;
+  notificationLastError?: T;
+  notificationSentAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

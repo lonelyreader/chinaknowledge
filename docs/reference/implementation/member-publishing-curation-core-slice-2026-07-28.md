@@ -25,6 +25,8 @@ change_id: PUB-CURATION-001
 - My work 显示个人公开、站方选择、最后保存时间和下一动作；My profile 支持本人直接显隐、登录态预览和本人版本历史，撤回文章、移除策展与隐藏资料均有确认。
 - 新建 Article 由服务端绑定当前账户的 Person 与 owner，自动生成稳定 slug，并使用草稿自动保存；成员和 Editor 可在登录态预览最新草稿，预览页禁止索引且匿名访问返回 404。
 - 新账户自动得到 Person 草稿；Super Admin 可暂停账户，暂停后登录和既有 API session 均被服务端拒绝。
+- Super Admin 可在 Users 后台邀请 Member/Editor 或重发邀请；批量脚本保留 dry-run、幂等冲突检查、Production 双确认和失败重试。
+- Selected、Needs recheck、Removed 与人工确认的重大编辑会写入同一工作流审计；Production 通过 Resend 发送带稳定幂等键的事务邮件，失败不回滚内容并可由独立重试命令恢复。
 - Member 可直接维护 Person 与外链；草稿资料允许不完整，公开时强制头像、身份、介绍、地点和语言。
 - Member 自有媒体可在个人公开内容中使用；进入站方策展时仍要求 Editor 的公共使用确认、封面、来源、分类及 Guide freshness。
 - Production indexable 环境生成 sitemap；非索引环境保持空 sitemap 和 robots disallow。
@@ -33,8 +35,8 @@ change_id: PUB-CURATION-001
 
 ## 自动化证据
 
-- 临时 PostgreSQL：从空库执行全部 8 条 migration PASS；新增 Person 版本历史 schema。
-- Recovery：无新模型写入的全新数据库完成 8 条 migration 上行与整批 rollback；清空同一临时目标后重新执行全部 migration PASS。最新 migration 在整批 down 的第一步同时检查 Article 两轴/versions、Person versions、Member media、workflow axis 与 paused accounts；任一新模型写入都会在任何 schema 被拆除前拒绝回退并要求恢复 migration 前备份，账户状态 migration 另有独立防线。
+- 临时 PostgreSQL：从空库执行全部 9 条 migration PASS；新增 Person 版本历史和事务通知投递状态 schema。
+- Recovery：无新模型写入的全新数据库完成 9 条 migration 上行与整批 rollback；清空同一临时目标后重新执行全部 migration PASS。最新受保护 migration 在整批 down 的第一步同时检查 Article 两轴/versions、Person versions、Member media、workflow axis 与 paused accounts；任一新模型写入都会在任何 schema 被拆除前拒绝回退并要求恢复 migration 前备份，账户状态 migration 另有独立防线。
 - `npm run test:migration-recovery` 可重复创建独立临时数据库，验证 clean apply/整批 rollback/清空重建，以及 populated down 在第一条 migration fail-closed 后 Person versions、account status、Article 两轴字段和 migration ledger 全部仍在；脚本结束会删除其随机临时数据库。
 - `npm run test:editorial` PASS：Article count 保持 1、原 byline 不变、15 条双轴事件、最终 Published + Curated；同时覆盖普通 API publication/profile/`_status` 绕过、未公开 Person 的 Article publication、canonical 篡改、站方字段伪造、Curated 后直接改文进入 Needs recheck、个人未策展文章、本人版本隔离、Editor/Super Admin 组合权限、账户自动建 Person、暂停登录和暂停前 JWT 不再获得授权。
 - `npm run typecheck` PASS。
@@ -62,7 +64,6 @@ change_id: PUB-CURATION-001
 
 ## 尚未完成
 
-- 事务通知与通知重试。
 - 英西成对 fixture、metadata/sitemap 全矩阵、无障碍和正式 390px/桌面验证。
 - 旧 Production 数据形状恢复夹具、Preview migration 与 Preview 环境复验。
 - Production 备份、migration、真实 Ge Xu 内容原地映射、public routing 与部署。

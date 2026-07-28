@@ -125,6 +125,21 @@ export function WorkflowActions() {
     }
   }
 
+  async function notifyAuthor() {
+    if (!id) return;
+    setPending({ axis: "curation", label: "Notify author", status: curation });
+    try {
+      const response = await fetch(`/api/articles/${id}/notify-author`, { method: "POST" });
+      const data = await response.json() as { errors?: { message?: string }[]; notificationStatus?: string };
+      if (!response.ok) throw new Error(data.errors?.[0]?.message ?? "Notification failed.");
+      toast.success(data.notificationStatus === "sent" ? "Author notified" : "Notification recorded");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Notification failed.");
+    } finally {
+      setPending(null);
+    }
+  }
+
   function selectAction(action: Transition) {
     if (action.status === "curated") {
       void openCurationCheck(action);
@@ -171,6 +186,12 @@ export function WorkflowActions() {
                 size="small"
               >{action.label}</Button>
             ))}
+            <Button
+              buttonStyle="secondary"
+              disabled={modified || pending !== null}
+              onClick={() => void notifyAuthor()}
+              size="small"
+            >Notify author</Button>
           </div>
         </div>
       ) : null}

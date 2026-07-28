@@ -7,6 +7,7 @@ import {
   updateOwnUserOrSuperAdmin,
 } from "@/cms/access";
 import { ensureMemberProfile, protectMemberAccount, requireActiveAccount } from "@/cms/user-hooks";
+import { inviteUserEndpoint, resendUserInviteEndpoint } from "@/cms/user-endpoints";
 
 export const Users: CollectionConfig = {
   slug: "users",
@@ -17,7 +18,11 @@ export const Users: CollectionConfig = {
     group: "People",
     hidden: ({ user }) => user?.role === "author",
     hideAPIURL: true,
+    components: {
+      beforeList: ["/cms/components/InviteMember#InviteMember"],
+    },
   },
+  endpoints: [inviteUserEndpoint, resendUserInviteEndpoint],
   auth: {
     maxLoginAttempts: 5,
     lockTime: 10 * 60 * 1000,
