@@ -77,12 +77,14 @@ export function WorkflowActions() {
   const modified = useFormModified();
   const publicationValue = useFormFields<unknown>(([fields]) => fields.publicationStatus?.value);
   const curationValue = useFormFields<unknown>(([fields]) => fields.curationStatus?.value);
+  const [remotePublication, setRemotePublication] = useState<PublicationStatus | null>(null);
+  const [remoteCuration, setRemoteCuration] = useState<CurationStatus | null>(null);
   const publication = typeof publicationValue === "string" && publicationValue in publicationLabels
     ? publicationValue as PublicationStatus
-    : "draft";
+    : remotePublication ?? "draft";
   const curation = typeof curationValue === "string" && curationValue in curationLabels
     ? curationValue as CurationStatus
-    : "not_selected";
+    : remoteCuration ?? "not_selected";
   const editorial = user?.role === "editor" || user?.role === "super_admin";
   const [owner, setOwner] = useState(false);
   const [pending, setPending] = useState<Transition | null>(null);
@@ -95,7 +97,10 @@ export function WorkflowActions() {
     void fetch(`/api/articles/${id}?depth=0&draft=true`)
       .then(async (response) => response.ok ? response.json() as Promise<Article> : null)
       .then((article) => {
-        if (current) setOwner(String(relationID(article?.owner)) === String(user.id));
+        if (!current || !article) return;
+        setOwner(String(relationID(article.owner)) === String(user.id));
+        if (article.publicationStatus) setRemotePublication(article.publicationStatus);
+        if (article.curationStatus) setRemoteCuration(article.curationStatus);
       });
     return () => { current = false; };
   }, [id, user?.id]);
