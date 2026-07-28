@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: active-checklists
-last_verified: 2026-07-27
+last_verified: 2026-07-28
 max_lines: 80
 ---
 
@@ -12,6 +12,6 @@ max_lines: 80
 
 本目录只存 active 执行清单。一个 checklist 对应一个交付目标，完成或被替代后移入 `docs/archive/`。
 
-当前唯一 active checklist 是 [`PROD-LAUNCH-001`](production-launch-readiness.md)：Production launch readiness。P2 Preview 已完成并移入 [`archive`](../../archive/p2-preview-release-candidate.md)。
+当前没有 active checklist。Production launch 与此前阶段均已移入 [`archive`](../../archive/README.md)。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

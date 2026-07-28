@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Verdict
 
-受保护 Preview 与不绑定正式域名的 staged Production 均为 `PASS`，最终独立复审 P0/P1/P2 均为零。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2，Preview 又补齐人物规模与跨周/跨年轮换。产品负责人批准首篇内容后，Production 已公开首位 Person 和首篇英西双语 Analysis；文章页、Stories 列表、人物贡献页、原创封面和双向 canonical 跳转均已回读。正式域名、匿名公开面复验、Place 与索引仍未执行。
+受保护 Preview、staged Production 与正式 Production 均为 `PASS`，最终独立复审 P0/P1/P2 均为零。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2，Preview 又补齐人物规模与跨周/跨年轮换。Production 已公开首位 Person 和首篇英西双语 Analysis；`chinainfact.com` 已匿名公开并允许索引，`www` 永久跳转主域名，文章页、Stories 列表、人物贡献页、原创封面和双向语言跳转均已回读。Production Place 仍为空，但不阻断首发。
 
 ## Findings At Audit Start
 
@@ -90,6 +90,8 @@ change_id: PROD-LAUNCH-001
 - 产品负责人随后提供首位人物的真实资料；Production 建立 Person `gexu`，关联本人账户与已批准头像，记录杭州与墨西哥 Mérida、Educator and entrepreneur、A coherentist、英语与西班牙语及作者授权日期。因为 Person 公开门禁要求至少一篇公开 Article，该记录保持 Draft；run `30351414680` 恢复 users/people/articles/media/workflow_events 为 1/1/0/1/0，媒体抽样 SHA 读回通过。
 - 首篇真实内容从中文访谈记录改写，公开前只核对专有名词官方写法，随后生成英语和拉美西语终稿及无文字、无公司标识的原创封面。两篇 Analysis 分别完成 Draft → In review → Approved → Public；数据库翻译组统一后，`/es/stories/a-decade-of-ai-talent-migration-in-china` 与反向英语路径均跳到目标 canonical URL。英语、西语 Stories 列表各出现一条，公开 Person `gexu` 显示英语贡献；页面无 console error。run [`30354709841`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30354709841) 隔离恢复 users/people/articles/media/workflow_events 为 1/1/2/2/8，4 个媒体对象进入备份并完成样本 SHA 读回。
 - 内容公开后的真实图片复验发现：受 Vercel SSO 保护的 Production 中，Next 图片优化器不能替浏览器取得同源 `/api/media/file/*`，导致 CMS 图片破损。提交 `614265b` 仅给 CMS 驱动的 `next/image` 增加 `unoptimized`，保留宽高、响应式 `sizes`、alt 与优先级，让已登录浏览器直接请求同源文件；typecheck、lint（零 error）、editorial integration 和 production build 均通过。deployment `dpl_Di8rJZg5ByBr9V7tE3pgBU4TYBf2` 为 `READY / target: production` 并回绑稳定 alias；浏览器回读英文和西语文章的头像为 2626×2625、封面为 1536×1024，损坏图片为零、无横向溢出，错误语言 slug 仍跳向正确 canonical URL。
+- 正式发布 deployment `dpl_A8zShG9S4fag8nzUnmYyfUTVyHgT` 以 `production / cms / blob / indexable=true` 构建并在 `iad1` READY；`chinainfact.com` 匿名返回 200，`www` 以 308 跳转主域名，`robots.txt` 为 `Allow: /`，页面不含 `noindex`。英文与西语 Home、Stories、文章、People、人物、Places、About、Privacy 和 Newsletter 完成匿名回读；独立浏览器在 1920×992 与 390×844 确认有效 `h1/lang`、零破图、零横向溢出和 44px 主交互目标，浏览器日志只有扩展自身噪声。`/api/health` 返回 200，合法 Origin 下非法订阅数据返回 400，Vercel 最近 20 分钟 error/warning 日志为空。
+- 回滚演练把正式流量切到上一条已验证 deployment `dpl_Di8rJZg5ByBr9V7tE3pgBU4TYBf2`，主域名健康检查仍为 200，旧版 `robots.txt` 恢复 `Disallow: /`；随后重新 promote `dpl_A8zShG9S4fag8nzUnmYyfUTVyHgT`，健康检查再次 200，索引状态恢复 `Allow: /`。回滚与恢复均由 Vercel CLI 返回 Success。
 
 ## Account Startup Contract
 
@@ -102,7 +104,7 @@ change_id: PROD-LAUNCH-001
 
 1. 首位真实贡献者、头像、原创封面和英西首发内容已经建立并公开；未从 Preview 虚构夹具推导或复制。
 2. 其他账户继续只按产品负责人提供的真实名单开户；当前作者没有个人外链，不构造占位项。
-3. 绑定正式域名后复验匿名公开面，再单独决定搜索引擎索引。
+3. 正式域名、匿名公开面与搜索引擎索引已经完成；后续内容继续按 CMS 审核流发布，不需要重新部署。
 
 ## Evidence Pointers
 
@@ -111,4 +113,4 @@ change_id: PROD-LAUNCH-001
 - Schema and permissions：`apps/web/src/collections/**`、`apps/web/src/cms/**`
 - CI boundary：`.github/workflows/preview-checks.yml`
 - Product contract：`docs/product-brief.md`、`DESIGN.md`、ADR-0003/0004
-- Execution contract：`docs/roadmap/checklists/production-launch-readiness.md`
+- Completed execution contract：`docs/archive/production-launch-readiness.md`

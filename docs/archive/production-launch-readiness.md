@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: production-launch-readiness
 last_verified: 2026-07-28
 max_lines: 220
@@ -46,10 +46,10 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - `recovery`：代码、数据库和媒体分别有恢复点、演练证据和明确 RPO/RTO；DNS 变更可回退。
 - `independent_review`：非主持实现者在 DNS 前复核完整 release candidate，并给出 PASS 或 BLOCK。
 
-## Current Blockers
+## Completion State
 
 - 独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建；Neon 7 天恢复窗口、R2 30 天防删、数据库 90 天保留和首次恢复演练均已回读。
-- 最新 staged Production `dpl_Di8rJZg5ByBr9V7tE3pgBU4TYBf2` 已 `READY / target: production`，生成 `.vercel.app` 地址受 SSO 保护且 `noindex`；已购正式域名尚未绑定项目。
+- 正式 Production `dpl_A8zShG9S4fag8nzUnmYyfUTVyHgT` 已 `READY / target: production`；`chinainfact.com` 匿名公开并允许索引，`www.chinainfact.com` 以 308 永久跳转到主域名，生成 `.vercel.app` 地址继续受 SSO 保护。
 - Production 已执行全部 5 条 migration：29 张 `public` 表；首位 Super Admin、公开 Person、2 张已批准真实 Media 和 2 篇同组英西公开 Article 已建立，Place 仍为空；Resend 域名、密钥与发件配置已经就绪。
 - 首篇真实双语内容后的 run `30354709841` 已完成数据库与媒体异地备份：恢复库为 29/5/5/8，users/people/articles/media/workflow_events 为 1/1/2/2/8，头像与文章封面的 4 个 Blob 对象由不可变备份覆盖，并抽样下载核对 SHA。
 - Newsletter 已使用 Resend Contacts/Topic 真实写路径并保持 Preview 失败关闭；Production 端点有按 IP 限流且不会由公开重复提交逆转退订状态；People 页已接正式 website Discord invite。
@@ -64,7 +64,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - Vercel Standard Protection 继续保护 Preview/生成 URL，正式自定义域名公开；不购买 Advanced Protection add-on。
 - 使用 Resend 同时提供 Payload 事务邮件和 Newsletter Contacts/Broadcasts；首期在 Free 限额内验证。
 - Neon 设 7 天 restore window 并在 migration 前创建快照/逻辑导出；Blob 另做定期异地副本，不把代码回滚当数据恢复。
-- 正式域名采用 `chinainfact.com`；产品负责人已于 2026-07-27 在当前 Vercel 账户购买，绑定与 DNS 仍留在发布末端门禁。
+- 正式域名采用 `chinainfact.com`；产品负责人于 2026-07-27 在当前 Vercel 账户购买，2026-07-28 已绑定当前 Production project 并完成 DNS、TLS、主域名与 `www` 跳转回读。
 
 ## Accepted Decision Package
 
@@ -83,7 +83,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - Discord 已就绪：`China, in Fact` server 的 website invite 已实时验证为永久有效并进入 `start-here`；无需新建 server 或 invite。
 - Resend 已就绪：`mail.chinainfact.com / us-east-1` 已验证，Topic、locale 属性、两把职责隔离的 Production key 与八项 Vercel 变量均已回读。
 - 已创建：`china-in-fact-production-db` 为 Neon Launch、`iad1 / us-east-1`、仅连接 Production；`china-in-fact-production-media` 为公开 Blob、`iad1`、仅连接 Production。
-- Production 已具备独立数据库、Blob、Payload、CMS、邮件、稳定 HTTPS origin 和 `noindex` 变量；环境校验通过，migration 后数据库为 29 张 `public` 表和 5 条 migration，当前为 1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇公开 Article、8 条 workflow event 和 0 Place，Blob 有头像与封面的原图及 card 版本。
+- Production 已具备独立数据库、Blob、Payload、CMS、邮件和正式 HTTPS origin；环境校验以 `indexable=true` 通过，migration 后数据库为 29 张 `public` 表和 5 条 migration，当前为 1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇公开 Article、8 条 workflow event 和 0 Place，Blob 有头像与封面的原图及 card 版本。
 - Neon Console 已完成账号激活并将 `History retention` 从 1 day 调整为 7 days；异地备份目标、只读 backup role 与首次恢复演练已完成。
 - Cloudflare R2 Standard 已激活；私有桶使用 North America East、全部对象 30 天防删、`database/` 90 天生命周期。Account API token 只允许指定桶对象读写，GitHub Actions secrets/variables 已配置，每月 US$10 预算提醒已建立。
 - Neon Launch 或其他付费资源出现结算/条款确认时由产品负责人完成；Codex 不代替接受付费条款。
@@ -91,13 +91,13 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 ## Work
 
 - [x] 产品负责人在 P2 PASS 后指示继续推进，授权建立 Production launch 准备线（2026-07-27）。
-- [x] 只读核验当前 Vercel project、代码阻断和官方 Production 能力；见 [`readiness research`](../../reference/implementation/production-launch-readiness-research-2026-07-27.md)。
+- [x] 只读核验当前 Vercel project、代码阻断和官方 Production 能力；见 [`readiness research`](../reference/implementation/production-launch-readiness-research-2026-07-27.md)。
 - [x] 产品负责人购买 `chinainfact.com`；CLI 回读确认域名位于当前 Vercel 账户、使用 Vercel nameserver、到期日为 2027-07-27，尚未绑定项目（2026-07-27）。
 - [x] 从 `/Volumes/External/codex-ops` 找到 website source invite，并经 Discord 公共 API 验证 `https://discord.gg/CCUbfaRVd2` 指向 `China, in Fact / start-here`、无到期时间（2026-07-27）。
 - [x] 复用现有飞书组织启用 `chinainfact.com` 邮箱域名；Vercel DNS 已配置并回读 MX、SPF、域名验证、DKIM 和监测态 DMARC，飞书 CLI 已确认 `hello@chinainfact.com` 为产品负责人可访问的公共邮箱，并已向 `gexu@lonelyreader.com` 实发且确认收达（2026-07-27）。
 - [x] 产品负责人接受完整推荐基线（2026-07-27）。
 - [x] 获得 checklist commit 批准，提交本清单并固定 HEAD 授权基线（2026-07-27）。
-- [x] 用 [`ADR-0008`](../../decisions/0008-production-launch-foundation.md) 固定 Production 基础设施、邮件、域名、备份、成本和退出路径。
+- [x] 用 [`ADR-0008`](../decisions/0008-production-launch-foundation.md) 固定 Production 基础设施、邮件、域名、备份、成本和退出路径。
 - [x] 获得 product code 与 dependency install 批准，修复环境守卫、邮件、Newsletter、Discord、robots 和占位外链（2026-07-27）。
 - [x] 实现最低限度隐私、显式订阅同意、Resend Topic 退订偏好和 Preview 失败关闭；真实作者资料仍在内容公开门禁逐人审核（2026-07-27）。
 - [x] 创建并验证 `mail.chinainfact.com / us-east-1`、Topic、locale 属性、职责隔离的 Production keys 与 Vercel 变量；事务邮件实发收达，临时联系人/key 清理后 Contacts 为零（2026-07-27）。
@@ -123,8 +123,9 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 首篇文章上线复验发现受保护 Production 下 Next 图片优化器不能读取同源 CMS 文件；提交 `614265b` 仅对 CMS 媒体保持尺寸约束并改为浏览器直取。Production deployment `dpl_Di8rJZg5ByBr9V7tE3pgBU4TYBf2` 为 READY，英文与西语文章的头像和封面均回读到有效自然尺寸，页面无横向溢出，双语 canonical 跳转继续通过（2026-07-28）。
 - [x] 生成 `--prod --skip-domain` staged deployment `dpl_DvSJVxiPcpAGfrhWk3GcSW92tcCp`；首轮发现并修复空首页无 `h1` 和 4.39:1 对比度，最终实现者复验唯一 `h1`、零 contrast failure、逻辑 tab order、3px focus-visible、桌面/移动无溢出/破图/浏览器错误、健康检查 200、无邮件适配器告警或 5xx（2026-07-28）。
 - [x] 非主持实现者完成 staged Production 独立复审：部署/HEAD/SSO/noindex、29/5 空库、迁移前后恢复、桌面/移动、可访问性和运行日志均回读，结论 `PASS`，P0/P1/P2 为 0；该结论不授权真实数据、正式域名或索引（2026-07-28）。
-- [ ] PASS 后分别批准域名绑定、DNS、内容公开和搜索引擎索引。
-- [ ] 发布后回读、监控、回滚演练和归档。
+- [x] 产品负责人一次性批准剩余上线动作；`chinainfact.com` 与 `www.chinainfact.com` 加入当前 project，主域名匿名返回 200，`www` 以 308 永久跳转，Production origin 更新为正式域名，构建以 `indexable=true` 通过，`robots.txt` 为 `Allow: /`（2026-07-28）。
+- [x] 正式 deployment `dpl_A8zShG9S4fag8nzUnmYyfUTVyHgT` 在 `iad1` READY；英文与西语 Home、Stories、文章、People、人物、Places、About、Privacy 与 Newsletter 匿名回读通过。390×844 移动端无溢出或破图，应用来源 console error/warning 为零，健康检查 200，非法订阅请求返回 400，近 20 分钟 Production error/warning 日志为空（2026-07-28）。
+- [x] 回滚演练将正式流量切到 `dpl_Di8rJZg5ByBr9V7tE3pgBU4TYBf2`，主域名健康检查保持 200、旧版恢复 `Disallow: /`；随后重新 promote `dpl_A8zShG9S4fag8nzUnmYyfUTVyHgT`，健康检查再次 200、`robots.txt` 恢复 `Allow: /`（2026-07-28）。
 
 ## Acceptance
 
@@ -159,4 +160,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-产品负责人已接受 Production 基线，并于 2026-07-28 明确批准首篇内容的专有名词核对、英译、拉美西语翻译和公开。域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 环境代码、独立 Neon、独立 Blob、R2、全部 migration、29/5 恢复断言、staged Production deploy、首位 Super Admin、真实头像、原创文章封面、公开 Person 和首篇英西 Article 已完成并回读。Production 仍无 Place；没有可供推导的其他真实贡献者名单或内容。正式域名绑定、匿名公开面复验和索引仍未执行。
+产品负责人已接受 Production 基线，并于 2026-07-28 明确批准首篇内容的专有名词核对、英译、拉美西语翻译和公开，随后一次性批准全部剩余上线动作。域名、飞书人工邮箱、Resend、Newsletter/隐私、Discord、Production 环境、独立 Neon、独立 Blob、R2、migration、恢复、正式部署、首位 Super Admin、真实头像、原创文章封面、公开 Person、首篇英西 Article、匿名公开面、索引与回滚演练均已完成并回读。Production 仍无 Place；没有可供推导的其他真实贡献者名单或内容。

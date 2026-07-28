@@ -14,9 +14,7 @@ max_lines: 100
 
 ## Active
 
-| 工作项 | 状态 | 当前门禁 |
-|---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 首位 Person 与首篇英西 Article 已公开并完成恢复；当前门禁为正式域名、匿名公开面复验与索引 |
+当前没有 active checklist。Production launch 已完成并移入 [`archive`](../archive/production-launch-readiness.md)。
 
 ## Deferred
 
@@ -24,7 +22,7 @@ max_lines: 100
 |---|---|
 | P3 平台深化 | 有真实访问、订阅和作者运营数据 |
 
-P0 Stitch 设计原型、P1 可运行公共产品切片、P1 编辑 CMS 基础与 P2 Preview release candidate 已经完成，历史与交接见 [`archive`](../archive/README.md)。
+P0 Stitch 设计原型、P1 可运行公共产品切片、P1 编辑 CMS 基础、P2 Preview release candidate 与 Production launch 已经完成，历史与交接见 [`archive`](../archive/README.md)。
 
 ## 状态规则
 
