@@ -11,7 +11,7 @@ change_id: PUB-CURATION-001
 
 # Member Publishing And Curation Core Slice
 
-本页记录 `PUB-CURATION-001` 的本地实现证据。它不授权 Production migration、真实账户变更、事务邮件、public routing 切换或部署。
+本页记录 `PUB-CURATION-001` 从本地实现到 Production 收口的证据。
 
 ## 已实现
 
@@ -42,6 +42,7 @@ change_id: PUB-CURATION-001
 - `npm run typecheck` PASS。
 - `npm run lint` PASS，只有已有及生成 migration 的未使用参数 warning。
 - `npm run build` PASS，包含动态 `/posts`、永久 legacy route 与静态 `sitemap.xml`。
+- GitHub Preview checks run [`30388465174`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30388465174) 在全新 PostgreSQL 上完成 10 条 migration、治理、权限与编辑流程、Newsletter、lint、typecheck、production dependency audit、build 和公开路由 smoke，全部 PASS。
 
 ## 浏览器证据
 
@@ -54,18 +55,18 @@ change_id: PUB-CURATION-001
 - Published Article 修改时，autosave 先保持公开旧版；点击 Update public article 后最新草稿原地替换公开版本、进入 Needs recheck、退出 Home，Person 页继续显示同一 Article ID 的最新公开标题。
 - 登录态 Preview 显示未公开草稿，robots 为 `noindex, nofollow`；登出后同一 preview URL 返回 404，普通公开 URL 继续显示旧公开版本且不泄漏草稿。
 - Member 侧栏只保留 People、Images 与 Articles；Users、Categories、Places 和策展队列不再干扰成员任务。
-- 极窄内置浏览器视口下后台操作仍可访问；正式 390px 与桌面复验仍待 Preview RC。
+- Preview RC `dpl_9fpnVzGPaWN6gPJg5wFddUcHzJiQ` 完成 Member、Editor、anonymous 的桌面与 390px 复验；移动端无横向溢出，Member 工作台只保留本人发文与资料任务，Editor 保留本人发文和六个策展队列。
+- Production `dpl_2gJFdjQEQ9kfyzYqRdUmnDKFJh5y` 在不接管域名的候选态完成真实 Home、英西 Article、Person、语言跳转、登录页、robots、sitemap、桌面与 390px 检查后才 promote；`chinainfact.com` 复验均为 200，运行日志 100 条中 error 与 5xx 均为 0。
 
 ## 独立复审
 
 - 2026-07-29 两位非主持 reviewer 首轮均为 `BLOCK`，共同指出普通 API 可绕过状态动作、未策展文章可从 Home/People 进入站方内容、profile 缺版本/预览、危险动作缺确认和两轴 migration 回退会损坏语义。
 - 后续每次修复都在新提交上重新复审，继续发现并关闭 `_status` 绕过、假公开 Article、同 batch 部分回退、Person/Article 语言和完整性漂移、User 删除使 owner 失联等到达路径。
-- 最终代码基线 `8956ee7` 由产品/UX reviewer 与技术/权限/migration reviewer 分别给出 `PASS`，两边均为 `P0/P1/P2 = 0/0/0`；旧 BLOCK 结论未被复用。
+- Preview 最终基线由产品/UX reviewer 与技术/权限/migration reviewer 分别给出 `PASS`，两边均为 `P0/P1/P2 = 0/0/0`；旧 BLOCK 结论未被复用。
 
-## 尚未完成
+## Production 数据与恢复
 
-- 英西成对 fixture、metadata/sitemap 全矩阵、无障碍和正式 390px/桌面验证。
-- 旧 Production 数据形状恢复夹具、Preview migration 与 Preview 环境复验。
-- Production 备份、migration、真实 Ge Xu 内容原地映射、public routing 与部署。
-
-Production 当前仍运行旧单轴工作流；本页所有新能力只存在于本地实现与临时数据库。
+- migration 前恢复点 run [`30384139368`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30384139368) 完成 dump、R2 不可变上传、SHA 读回、隔离恢复和旧 29/5 schema/count 断言。
+- Production 依次执行新增 5 条 migration，最终为 33 张表、10 条 migration；users/people/articles/media/workflow events 保持 `1/1/2/2/8`。
+- Ge Xu 的英西 Article 保持原 ID、slug、translation group、owner 与 author，原地映射为 `Published + Curated`；重复 locale、混合 owner、混合 author、owner/byline mismatch 和 owner/author 缺失均为 0。
+- migration 后恢复点首次运行因 Docker Hub 拉取镜像时网络重置而在导出前失败；重跑 run [`30389201732`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30389201732) 完成导出、R2 不可变上传、隔离恢复、33/10/10/8 断言与媒体读回，全部 PASS。

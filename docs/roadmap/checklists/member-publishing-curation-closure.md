@@ -60,11 +60,29 @@ approval_gates: checklist-commit, product-code, dependency-install, database-sch
 - [x] 修复独立复审 BLOCK：普通 API publication/profile/`_status` 状态绕过、未公开 Person 的假公开 Article、站方字段伪造、未策展内容从 Home/People 泄入站方入口、Person 版本/预览缺失、危险动作无确认和两轴回退语义损坏。
 - [x] 在代码基线 `8956ee7` 完成本地 core 双重独立复审：产品/UX与技术/权限/migration 均 `PASS`，两边 `P0/P1/P2 = 0/0/0`。
 - [x] 更新邀请、组合权限、通知、审计与后台直达关系；Editor/Super Admin 关联 Person 后也能作为 Member 发文。
-- [ ] 用虚构数据完成状态矩阵、同 Article 断言、署名断言、双语隔离、桌面/移动和无障碍验证。
-- [ ] 在临时 PostgreSQL 完成 migration apply、rollback/reapply、旧 Production 形状恢复和旧 URL 兼容测试。
-- [ ] 完成 Preview release candidate 和非主持独立复审，修复至 PASS。
-- [ ] 分别取得 Production migration、真实数据变更、public-routing 与 Production deploy 批准；备份后迁移现有 Ge Xu 英西 Article 为 Published + Curated，部署后回读。
+- [x] 用虚构数据完成状态矩阵、同 Article 断言、署名断言、双语隔离、桌面/移动和无障碍验证。
+- [x] 在临时 PostgreSQL 完成 migration apply、rollback/reapply、旧 Production 形状恢复和旧 URL 兼容测试。
+- [x] 完成 Preview release candidate 和非主持独立复审，修复至 PASS。
+- [x] 取得用户对后续操作的整体明确批准；建立 migration 前恢复点后把现有 Ge Xu 英西 Article 原地迁移为 Published + Curated，以候选态验证后 promote Production 并回读。
+- [ ] 验收 Editor/Super Admin 作为作者的完整登录、个人页、新建、预览、公开、更新与撤回旅程。
+- [ ] 固定双语 Person 产品决定并实现 English/Spanish 资料编辑与公共页面选择/fallback。
+- [ ] 把 Editor 默认入口收敛为 Needs attention 任务收件箱，保留语言、负责人、最后动作与下一动作信息；全量 Articles 降为次级入口。
+- [ ] 把头像、封面和外链变成页面内高频任务：上传/替换/删除、类型、URL 校验、排序与预览均可理解。
+- [ ] 固定自动保存状态、失败恢复、离页保护、并发锁定与版本恢复合同并验收。
+- [ ] 在真实 Person 上建立至少一个明确属于作者本人的外部渠道，完成官方入口到作者外链的 Production 点击闭环。
+- [ ] 把 My profile 设为持久导航入口，并让语言切换直接输出目标语言 canonical URL。
+- [ ] 修复最终 UX 独立复审的 `P1=6 / P2=2` 至 `P0/P1/P2 = 0/0/0`。
+- [ ] 完成最后一轮 Production schema/data/deploy/readback 与恢复点验证。
 - [ ] 写回 current、decision 和 implementation evidence，归档本 checklist。
+
+## Closure
+
+- GitHub Preview checks run `30388465174` 在全新 PostgreSQL 上完整 PASS。
+- Production migration 后为 33 张表、10 条 migration；真实实体计数保持 users/people/articles/media/workflow events `1/1/2/2/8`，身份与翻译不变量异常均为 0。
+- Production deployment `dpl_2gJFdjQEQ9kfyzYqRdUmnDKFJh5y` 先以候选态完成真实内容、桌面、390px、英西、后台和日志复验，再 promote 到 `chinainfact.com`。
+- migration 前 backup run `30384139368` 与 migration 后 run `30389201732` 均完成不可变上传、SHA 读回、隔离恢复和 schema/count/media 断言。
+- 技术/权限/migration 最终 Production 独立复审 `PASS`，`P0/P1/P2 = 0/0/0`；上一 Production deployment 在 10-migration 数据库上保持兼容，数据恢复点也已验证。
+- 产品/UX 最终复审暂为 `BLOCK`，`P0/P1/P2 = 0/6/2`；上述八项已回填为 active closure，不沿用 Preview 的旧 PASS。
 
 ## Acceptance
 

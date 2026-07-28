@@ -4,7 +4,7 @@ doc_type: product
 authority: canonical
 status: active
 scope: member-publishing-and-editorial-curation
-last_verified: 2026-07-28
+last_verified: 2026-07-29
 max_lines: 260
 ---
 
@@ -48,11 +48,15 @@ max_lines: 260
 - 新文章的作者、owner 和 Person 关系由服务端写入，客户端不能冒充其他作者。
 - 个人发布的最低门槛只保护可读性与安全：语言、标题、正文、作者关系和稳定 URL；封面、摘要、来源、分类与 SEO 可逐步补齐。
 - Member 可以直接维护并公开自己的姓名、头像、身份、地点、介绍、语言和外部链接；保留版本历史与 Super Admin 暂停/恢复能力，不逐次等待 Editor 应用 revision。
+- `My work` 与 `My profile` 是所有关联 Person 账户的持久导航入口，不因账户同时拥有 Editor 或 Super Admin 能力而消失。
+- Editor/Super Admin 作为作者时使用与 Member 相同的完整旅程：完成资料、新建、自动保存、预览、公开、更新与撤回；不得只在 API 测试中证明可写。
 - 日常发文和配置个人页不得要求 CLI、数据库操作、代码修改或重新部署。
 
 ## R3. Editorial Curation Experience
 
 - Editor 有一个候选内容入口，默认查看成员已经公开、尚未策展或需要复核的 Article。
+- 默认入口命名为 `Needs attention`，把 `Not selected` 与 `Needs recheck` 合并为一条任务收件箱；六个状态可作为筛选或统计，不作为六个同权主入口。
+- 每条任务显示语言、作者、负责人、最后动作、最近更新时间和下一动作；至少支持语言与负责人筛选，并按需要处理的时间倒序。全量 Articles 是次级资料入口。
 - Editor 可以在同一 Article 上选择、编辑、核对来源、指定 `Story / Guide` 及 Purpose、Topics、Geography、Situation、Freshness，并安排官方分发。
 - `Selected` 只表示站方开始处理，不改变个人公开状态；只有 `Curated` 才进入官方入口。
 - 站方编辑后的公开正文仍属于同一 Article、同一稳定 URL 和同一作者页归档；禁止复制为“官方版”。
@@ -75,7 +79,9 @@ max_lines: 260
 - 英语和西班牙语仍是独立 Article 记录，以 translation group 关联；每种语言独立保存、个人公开和站方策展。
 - “一个文档”指同一语言中不产生成员版与站方版两个 Article，不要求把不同语言硬塞进同一记录。
 - 创建另一语言版本时复用作者、translation group 和可复用关系，目标语言正文、状态、时间和 URL 独立。
-- 语言切换、alternate metadata 与 sitemap 不泄漏 Draft 或 Withdrawn 版本。
+- Person 的姓名、头像、支持语言、外链目标和顺序跨语言共享；身份、地点、介绍与外链标签提供 English 和 Español 两组公开文案。English 为必填基础，Español 可选；缺少西语文案时回退 English，不隐藏人物。
+- My profile 把共享身份、English profile 与 Perfil en español 分成清楚的短区块；公共 Person 和 Article 作者信息按当前语言选择对应文案。
+- 语言切换直接输出目标 Article 的 canonical slug；alternate metadata 与 sitemap 不泄漏 Draft 或 Withdrawn 版本，也不依靠错误 slug 再重定向。
 
 ## R6. Membership And Account Lifecycle
 
@@ -87,10 +93,20 @@ max_lines: 260
 ## R7. Media, Sources, SEO And Notifications
 
 - Member 可以上传并使用自己的头像与文章媒体，需确认使用权；未公开草稿和未采用媒体不得被其他 Member 或匿名读取。
+- My profile 内可直接上传、预览、替换、裁切和移除头像；Article 内可直接上传、预览、替换和移除封面，不要求先离开当前页面去 Images 新建记录。
+- 外链使用明确类型、标签和地址；支持排序、删除和打开预览。普通链接只接受 `https/http`，Email 类型只接受 `mailto`，错误地址在保存前显示必要错误。
 - 进入官方策展时由 Editor 完成媒体公开使用、来源、Freshness 与分享信息确认。
 - Article 支持 SEO title、description、share image 与安全 fallback；稳定 canonical 不随策展分类变化。
 - 通知服务用于邀请、站方选中、重大编辑、Needs recheck 和撤出策展。邮件失败不回滚内容状态，且可安全重试。
 - Newsletter、Discord、DNS、备份和 migration 继续使用各自运营面，不复制到 CMS。
+
+## R8. Save Safety And Concurrent Editing
+
+- Article 与 Person 编辑页持续显示 `Saving / Saved / Save failed` 的真实状态；失败时保留本地改动并提供重试，不用成功提示打断写作。
+- 离开仍有未保存改动的页面时必须阻止误离开；网络恢复后可继续保存。
+- 同一 Article 同时被两人打开时显示当前编辑者与锁定状态，不能静默覆盖；锁释放或超时后才允许接手。
+- 自动保存与公开动作分离：autosave 只保存草稿版本，不自动公开、撤回或重新策展。
+- Article 与 Person 的版本历史可从后台打开并恢复；恢复后仍遵守 publication/curation 动作和原作者不变量。
 
 ## Acceptance Journeys
 
@@ -104,6 +120,9 @@ max_lines: 260
 8. Editor/Super Admin 同时关联 Person 时，可以发布自己的文章；公开 Person 不暴露后台权限。
 9. 英西版本共享 translation group 与作者，但分别决定个人公开与官方策展；同一语言不产生“成员版/官方版”两条内容。
 10. 现有 Ge Xu 英西 Article 迁移后保持作者、内容、翻译关系、外链和旧 URL 可访问，并成为 `Published + Curated`。
+11. Editor 登录后默认进入 Needs attention，也能从持久 My work / My profile 完成一篇本人文章的预览、公开、更新与撤回。
+12. Member 在 My profile 页面内完成头像替换和外链新增、校验、排序与预览；英西 Person 页面显示对应文案。
+13. 两个账户同时打开同一 Article 时，后进入者看见锁定者；网络保存失败、离页和版本恢复均不会静默丢稿或改变公开状态。
 
 ## Success Boundary
 

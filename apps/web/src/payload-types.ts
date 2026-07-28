@@ -164,20 +164,26 @@ export interface User {
 export interface Person {
   id: number;
   name: string;
-  slug?: string | null;
-  identity?: string | null;
-  introduction?: string | null;
-  city?: string | null;
   portrait?: (number | null) | Media;
   languages?: ('en' | 'es')[] | null;
   topics?: (number | Taxonomy)[] | null;
+  identity?: string | null;
+  city?: string | null;
+  introduction?: string | null;
+  identityEs?: string | null;
+  cityEs?: string | null;
+  introductionEs?: string | null;
   links?:
     | {
+        type:
+          'personal_site' | 'newsletter' | 'youtube' | 'linkedin' | 'x' | 'instagram' | 'github' | 'email' | 'other';
         label: string;
+        labelEs?: string | null;
         url: string;
         id?: string | null;
       }[]
     | null;
+  slug?: string | null;
   user?: (number | null) | User;
   profileStatus: 'draft' | 'public' | 'paused';
   authorApprovalRecordedAt?: string | null;
@@ -529,20 +535,25 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface PeopleSelect<T extends boolean = true> {
   name?: T;
-  slug?: T;
-  identity?: T;
-  introduction?: T;
-  city?: T;
   portrait?: T;
   languages?: T;
   topics?: T;
+  identity?: T;
+  city?: T;
+  introduction?: T;
+  identityEs?: T;
+  cityEs?: T;
+  introductionEs?: T;
   links?:
     | T
     | {
+        type?: T;
         label?: T;
+        labelEs?: T;
         url?: T;
         id?: T;
       };
+  slug?: T;
   user?: T;
   profileStatus?: T;
   authorApprovalRecordedAt?: T;

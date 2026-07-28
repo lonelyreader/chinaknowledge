@@ -8,11 +8,14 @@ type PersonShape = {
   authorApprovalRecordedAt?: string | null;
   id: number | string;
   city?: string | null;
+  cityEs?: string | null;
   identity?: string | null;
+  identityEs?: string | null;
   introduction?: string | null;
+  introductionEs?: string | null;
   languages?: ("en" | "es")[] | null;
   name?: string | null;
-  links?: { url?: string | null }[] | null;
+  links?: { label?: string | null; labelEs?: string | null; type?: string | null; url?: string | null }[] | null;
   portrait?: number | string | { id: number | string } | null;
   profilePublishedAt?: string | null;
   profileStatus?: "draft" | "public" | "paused";
@@ -125,9 +128,13 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
   for (const link of links) {
     try {
       const url = new URL(link.url ?? "");
-      if (url.protocol !== "https:" && url.protocol !== "http:") throw new Error("Unsafe protocol");
+      if (link.type === "email") {
+        if (url.protocol !== "mailto:") throw new Error("Unsafe protocol");
+      } else if (url.protocol !== "https:" && url.protocol !== "http:") {
+        throw new Error("Unsafe protocol");
+      }
     } catch {
-      throw new APIError("Profile links must use a valid http or https URL.", 400);
+      throw new APIError(link.type === "email" ? "Email links must use a valid mailto address." : "Profile links must use a valid http or https URL.", 400);
     }
   }
 

@@ -199,6 +199,24 @@ async function main() {
   }), "An article language must already be public on its author profile.");
   await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: unsupportedLanguageDraft.id } } });
   await payload.delete({ collection: "articles", id: unsupportedLanguageDraft.id, overrideAccess: true });
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id,
+    data: { links: [{ label: "Unsafe", type: "personal_site", url: "javascript:alert(1)" }] },
+    overrideAccess: false, user: member,
+  }), "A public profile rejects unsafe personal links.");
+  const localizedProfile = await payload.update({
+    collection: "people", id: memberPerson.id,
+    data: {
+      cityEs: "Ciudad de prueba",
+      identityEs: "Miembro ficticio",
+      introductionEs: "Perfil local de aceptación.",
+      languages: ["en", "es"],
+      links: [{ label: "Email", labelEs: "Correo", type: "email", url: "mailto:member@test.invalid" }],
+    },
+    overrideAccess: false, user: member,
+  });
+  assert.equal(localizedProfile.identityEs, "Miembro ficticio");
+  assert.equal(localizedProfile.links?.[0]?.labelEs, "Correo");
 
   const draft = await payload.create({
     collection: "articles",
@@ -550,6 +568,25 @@ async function main() {
   });
   assert.equal(editorPublished.publicationStatus, "published");
   assert.equal(relationID(editorPublished.author), editorPerson.id);
+  const editorUpdated = await payload.update({
+    collection: "articles", id: editorDraft.id,
+    context: { memberPublicationConfirmed: true },
+    data: { title: "Editor as member updated" }, draft: false, overrideAccess: false, user: editor,
+  });
+  assert.equal(editorUpdated.title, "Editor as member updated");
+  const editorWithdrawn = await payload.update({
+    collection: "articles", id: editorDraft.id,
+    context: { publicationTransitionConfirmed: true },
+    data: { publicationStatus: "withdrawn" }, draft: false, overrideAccess: false, user: editor,
+  });
+  assert.equal(editorWithdrawn.publicationStatus, "withdrawn");
+  const editorRepublished = await payload.update({
+    collection: "articles", id: editorDraft.id,
+    context: { memberPublicationConfirmed: true, publicationTransitionConfirmed: true },
+    data: { publicationStatus: "published" }, draft: false, overrideAccess: false, user: editor,
+  });
+  assert.equal(editorRepublished.publicationStatus, "published");
+  assert.equal(relationID(editorRepublished.author), editorPerson.id);
 
   const events = await payload.find({ collection: "workflow-events", limit: 100, overrideAccess: true, where: { article: { equals: draft.id } } });
   assert.ok(events.docs.some((event) => event.axis === "publication" && event.toStatus === "published"));

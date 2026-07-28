@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Locale } from "@/content";
 import { ui } from "@/content";
 
@@ -14,9 +14,24 @@ function localePath(pathname: string, locale: Locale) {
 
 export function SiteHeader({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
+  const [languageHrefs, setLanguageHrefs] = useState<Record<Locale, string> | null>(null);
   const pathname = usePathname();
   const copy = ui[locale];
   const navHrefs = ["stories", "guides", "places", "people"];
+
+  useEffect(() => {
+    const readAlternates = () => {
+      const entries = (["en", "es"] as const).map((targetLocale) => {
+        const alternate = document.querySelector<HTMLLinkElement>(`link[rel="alternate"][hreflang="${targetLocale}"]`);
+        return [targetLocale, alternate?.getAttribute("href") || localePath(pathname, targetLocale)] as const;
+      });
+      setLanguageHrefs(Object.fromEntries(entries) as Record<Locale, string>);
+    };
+    readAlternates();
+    const observer = new MutationObserver(readAlternates);
+    observer.observe(document.head, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [pathname]);
 
   return (
     <header className="site-header">
@@ -33,9 +48,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </nav>
         <div className="header-actions">
           <div className="language-switch" aria-label={locale === "en" ? "Language" : "Idioma"}>
-            <Link className={locale === "en" ? "is-active" : ""} href={localePath(pathname, "en")}>EN</Link>
+            <Link className={locale === "en" ? "is-active" : ""} href={languageHrefs?.en ?? localePath(pathname, "en")}>EN</Link>
             <span aria-hidden="true">/</span>
-            <Link className={locale === "es" ? "is-active" : ""} href={localePath(pathname, "es")}>ES</Link>
+            <Link className={locale === "es" ? "is-active" : ""} href={languageHrefs?.es ?? localePath(pathname, "es")}>ES</Link>
           </div>
           <Link className="button button--compact desktop-subscribe" href={`/${locale}/newsletter`}>
             {copy.subscribe}

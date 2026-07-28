@@ -41,6 +41,8 @@ try {
 
   sql(`INSERT INTO users (role, display_name, account_status, email)
     VALUES ('author', 'Recovery fixture', 'paused', 'recovery-${randomUUID()}@test.invalid')`);
+  sql(`INSERT INTO people (name, slug, identity_es)
+    VALUES ('Recovery profile', 'recovery-${randomUUID()}', 'Perfil de recuperación')`);
   const blocked = run("npx", ["payload", "migrate:down"], {
     allowFailure: true,
     env: { ...process.env, DATABASE_URL: databaseURL },
@@ -55,8 +57,9 @@ try {
     EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'articles' AND column_name = 'publication_status'),
     EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workflow_events' AND column_name = 'notification_status'),
     to_regclass('public."translationGroup_locale_idx"') IS NOT NULL,
-    (SELECT count(*) >= 10 FROM payload_migrations)`);
-  if (assertions !== "t|t|t|t|t|t") {
+    EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'people' AND column_name = 'identity_es'),
+    (SELECT count(*) >= 11 FROM payload_migrations)`);
+  if (assertions !== "t|t|t|t|t|t|t") {
     throw new Error(`Rollback guard left the schema or migration ledger incomplete: ${assertions}`);
   }
 

@@ -4,7 +4,7 @@ doc_type: decision
 authority: canonical
 status: accepted
 scope: decision-member-publishing-and-editorial-curation
-last_verified: 2026-07-28
+last_verified: 2026-07-29
 max_lines: 180
 change_id: PUB-CURATION-001
 ---
@@ -44,6 +44,8 @@ change_id: PUB-CURATION-001
 - 在路由变化前建立旧 URL 清单；上线后永久兼容并验证 canonical、locale alternate、分享链接与 sitemap。
 - migration 必须支持临时 PostgreSQL 的 apply、rollback/reapply 和 Production-shape 恢复；Production 前建立备份。
 - 任何自动迁移不得创建副本、改变署名或向未确认内容赋予新的官方策展范围。
+
+2026-07-29 已按本决定完成 Production migration 与部署：现有英西 Article 原地保留 ID、作者、owner、translation group、正文与媒体，并映射为 `Published + Curated`；migration 前后恢复点均完成异地读回和隔离恢复。
 
 ## Supersession
 

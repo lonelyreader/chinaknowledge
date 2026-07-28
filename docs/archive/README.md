@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: archive-index
-last_verified: 2026-07-28
+last_verified: 2026-07-29
 max_lines: 80
 ---
 

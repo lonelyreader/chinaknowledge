@@ -23,7 +23,7 @@ export type PublishedCMSPerson = {
   image: PublishedCMSImage;
   introduction: string;
   languages: ("en" | "es")[];
-  links: { label: string; url: string }[];
+  links: { label: string; type: string; url: string }[];
   name: string;
   slug: string;
   spotlightExcluded: boolean;
@@ -104,27 +104,30 @@ function publicImage(value: number | Media | null | undefined): PublishedCMSImag
   };
 }
 
-function safeExternalURL(value: string) {
+function safeExternalURL(value: string, type?: string | null) {
   try {
     const url = new URL(value);
+    if (type === "email") return url.protocol === "mailto:" ? url.toString() : null;
     return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
   } catch {
     return null;
   }
 }
 
-function personBase(person: Person): Omit<PublishedCMSPerson, "contribution"> | null {
+function personBase(person: Person, locale: Locale): Omit<PublishedCMSPerson, "contribution"> | null {
   const image = publicImage(person.portrait);
   if (!image || !person.city || !person.identity || !person.introduction || !person.languages?.length || !person.slug) return null;
   return {
-    city: person.city,
-    identity: person.identity,
+    city: locale === "es" ? person.cityEs || person.city : person.city,
+    identity: locale === "es" ? person.identityEs || person.identity : person.identity,
     image,
-    introduction: person.introduction,
+    introduction: locale === "es" ? person.introductionEs || person.introduction : person.introduction,
     languages: person.languages,
     links: (person.links ?? []).flatMap((link) => {
-      const url = safeExternalURL(link.url);
-      return url ? [{ label: link.label, url }] : [];
+      const type = link.type || "personal_site";
+      const url = safeExternalURL(link.url, type);
+      const label = locale === "es" ? link.labelEs || link.label : link.label;
+      return url ? [{ label, type, url }] : [];
     }),
     name: person.name,
     slug: person.slug,
@@ -165,7 +168,7 @@ function articleSummary(article: Article): PublishedCMSArticleSummary | null {
 function toPublishedArticle(article: Article): PublishedCMSArticle | null {
   if (!article.body || !article.author || typeof article.author !== "object") return null;
   const summary = articleSummary(article);
-  const author = personBase(article.author);
+  const author = personBase(article.author, article.locale);
   if (!summary || !author) return null;
   return {
     ...summary,
@@ -389,7 +392,7 @@ export async function getPublishedCMSPeople(locale: Locale) {
   ]);
 
   return peopleResult.docs.flatMap((person) => {
-    const base = personBase(person);
+    const base = personBase(person, locale);
     const contribution = articles.find((article) => article.authorSlug === person.slug);
     return base ? [{ ...base, ...(contribution ? { contribution } : {}) }] : [];
   });
@@ -419,7 +422,7 @@ export async function getPreviewCMSPerson(
   const ownerID = person.user && typeof person.user === "object" ? person.user.id : person.user;
   if (ownerID !== user.id && !hasEditorialRole(user)) return null;
   if (!person.languages?.includes(locale)) return null;
-  const base = personBase(person);
+  const base = personBase(person, locale);
   if (!base) return null;
   const contribution = (await findCuratedArticles(locale))
     .find((article) => article.authorSlug === person.slug);

@@ -35,6 +35,7 @@ export const Articles: CollectionConfig = {
   slug: "articles",
   indexes: [{ fields: ["translationGroup", "locale"], unique: true }],
   labels: { singular: "Article", plural: "Articles" },
+  lockDocuments: { duration: 300 },
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "author", "locale", "publishedAt", "curationStatus", "updatedAt"],
@@ -288,6 +289,14 @@ export const Articles: CollectionConfig = {
         components: {
           Field: "/cms/components/TranslationActions#TranslationActions",
         },
+      },
+    },
+    {
+      name: "saveSafety",
+      type: "ui",
+      admin: {
+        position: "sidebar",
+        components: { Field: "/cms/components/SaveSafetyStatus#SaveSafetyStatus" },
       },
     },
   ],
