@@ -116,6 +116,17 @@ async function main() {
   });
   assert.equal(lifecycleProfiles.docs.length, 1);
   assert.equal(lifecycleProfiles.docs[0]?.profileStatus, "draft");
+  const profileGateDraft = await payload.create({
+    collection: "articles",
+    data: { body, locale: "en", slug: `profile-gate-${randomUUID()}`, title: "Profile gate", translationGroup: randomUUID() },
+    draft: true, overrideAccess: false, user: lifecycleUser,
+  });
+  await expectRejected(() => payload.update({
+    collection: "articles", id: profileGateDraft.id, context: { memberPublicationConfirmed: true },
+    data: { publicationStatus: "published" }, draft: false, overrideAccess: false, user: lifecycleUser,
+  }), "An article cannot become public before its author profile is public.");
+  await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: profileGateDraft.id } } });
+  await payload.delete({ collection: "articles", id: profileGateDraft.id, overrideAccess: true });
   const lifecycleLogin = await payload.login({
     collection: "users", data: { email: lifecycleEmail, password: password! },
   });
@@ -195,6 +206,18 @@ async function main() {
   assert.equal(memberPublished.publicationStatus, "published");
   assert.equal(memberPublished.curationStatus, "not_selected");
   assert.equal(memberPublished._status, "published");
+  const memberStatusBypass = await payload.update({
+    collection: "articles", id: draft.id, data: { _status: "draft" },
+    draft: false, overrideAccess: false, user: member,
+  });
+  assert.equal(memberStatusBypass.publicationStatus, "published");
+  assert.equal(memberStatusBypass._status, "published");
+  const editorStatusBypass = await payload.update({
+    collection: "articles", id: draft.id, data: { _status: "draft" },
+    draft: false, overrideAccess: false, user: editor,
+  });
+  assert.equal(editorStatusBypass.publicationStatus, "published");
+  assert.equal(editorStatusBypass._status, "published");
   await expectRejected(() => payload.update({
     collection: "articles", id: draft.id, data: { publicationStatus: "withdrawn" },
     overrideAccess: false, user: member,

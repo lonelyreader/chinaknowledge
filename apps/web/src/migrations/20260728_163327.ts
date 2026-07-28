@@ -79,8 +79,31 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   await db.execute(sql`
    DO $$
   BEGIN
-    IF EXISTS (SELECT 1 FROM "_people_v") THEN
-      RAISE EXCEPTION 'Cannot safely remove member profile history after versions have been recorded. Restore the pre-migration backup instead.';
+    IF EXISTS (SELECT 1 FROM "_people_v")
+    OR EXISTS (
+      SELECT 1 FROM "articles"
+      WHERE ("publication_status"::text, "curation_status"::text) NOT IN (
+        ('draft', 'not_selected'),
+        ('published', 'curated'),
+        ('withdrawn', 'removed')
+      )
+    ) OR EXISTS (
+      SELECT 1 FROM "_articles_v"
+      WHERE ("version_publication_status"::text, "version_curation_status"::text) NOT IN (
+        ('draft', 'not_selected'),
+        ('published', 'curated'),
+        ('withdrawn', 'removed')
+      ) OR "autosave" IS TRUE
+    ) OR EXISTS (
+      SELECT 1 FROM "media"
+      WHERE "member_use_published_at" IS NOT NULL
+        AND "public_use_approved_at" IS NULL
+    ) OR EXISTS (
+      SELECT 1 FROM "workflow_events" WHERE "axis" IS NOT NULL
+    ) OR EXISTS (
+      SELECT 1 FROM "users" WHERE "account_status" = 'paused'
+    ) THEN
+      RAISE EXCEPTION 'Cannot safely roll back member publishing, profile history, or account state after new-model writes. Restore the pre-migration backup instead.';
     END IF;
   END $$;
 

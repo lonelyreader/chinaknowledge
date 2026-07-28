@@ -29,12 +29,13 @@ change_id: PUB-CURATION-001
 - Member 自有媒体可在个人公开内容中使用；进入站方策展时仍要求 Editor 的公共使用确认、封面、来源、分类及 Guide freshness。
 - Production indexable 环境生成 sitemap；非索引环境保持空 sitemap 和 robots disallow。
 - 已公开 Article 的 locale、slug 与 translation group 不再允许改动；Member 不能通过普通 API 绕过发布动作，也不能写入分类、format、来源、freshness 或首页排期等站方字段。
+- Article 的 Payload `_status` 始终由 Member publication 归一化，Member 或 Editor 不能单独改 `_status` 让个人文章消失；Person 未公开时 Article publication 会被服务端拒绝。People Spotlight 只从带 Curated contribution 的人物中选取，完整 People 目录仍保留全部公开人物。
 
 ## 自动化证据
 
 - 临时 PostgreSQL：从空库执行全部 8 条 migration PASS；新增 Person 版本历史 schema。
-- Recovery：无新模型写入的全新数据库完成 8 条 migration 上行与整批 rollback；清空同一临时目标后重新执行全部 migration PASS。已有新模型写入时，migration 明确拒绝破坏性回退并要求恢复 migration 前备份。
-- `npm run test:editorial` PASS：Article count 保持 1、原 byline 不变、15 条双轴事件、最终 Published + Curated；同时覆盖普通 API 状态绕过、canonical 篡改、站方字段伪造、Curated 后直接改文进入 Needs recheck、个人未策展文章、本人版本隔离、Editor/Super Admin 组合权限、账户自动建 Person、暂停登录和暂停前 JWT 不再获得授权。
+- Recovery：无新模型写入的全新数据库完成 8 条 migration 上行与整批 rollback；清空同一临时目标后重新执行全部 migration PASS。最新 migration 在整批 down 的第一步同时检查 Article 两轴/versions、Person versions、Member media、workflow axis 与 paused accounts；任一新模型写入都会在任何 schema 被拆除前拒绝回退并要求恢复 migration 前备份，账户状态 migration 另有独立防线。
+- `npm run test:editorial` PASS：Article count 保持 1、原 byline 不变、15 条双轴事件、最终 Published + Curated；同时覆盖普通 API publication/profile/`_status` 绕过、未公开 Person 的 Article publication、canonical 篡改、站方字段伪造、Curated 后直接改文进入 Needs recheck、个人未策展文章、本人版本隔离、Editor/Super Admin 组合权限、账户自动建 Person、暂停登录和暂停前 JWT 不再获得授权。
 - `npm run typecheck` PASS。
 - `npm run lint` PASS，只有已有及生成 migration 的未使用参数 warning。
 - `npm run build` PASS，包含动态 `/posts`、永久 legacy route 与静态 `sitemap.xml`。

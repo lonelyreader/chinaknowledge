@@ -81,7 +81,7 @@ async function assertBylineOwnership(
   article: Partial<ArticleShape>,
   req: Parameters<CollectionBeforeChangeHook>[0]["req"],
 ) {
-  if (!isCMSUser(req.user)) return;
+  if (!isCMSUser(req.user)) throw new APIError("Authentication is required.", 401);
   const authorID = relationID(article.author);
   if (!authorID) throw new APIError("An author profile is required.", 400);
   const person = await req.payload.findByID({
@@ -91,10 +91,12 @@ async function assertBylineOwnership(
     overrideAccess: true,
     req,
   });
+  if (!person) throw new APIError("An author profile is required.", 400);
   const ownerID = relationID(article.owner);
   if (relationID(person.user) !== ownerID) {
     throw new APIError("The article owner must match the original author profile.", 403);
   }
+  return person;
 }
 
 async function assertMemberPublicationComplete(
@@ -107,7 +109,10 @@ async function assertMemberPublicationComplete(
   if (!article.locale || !article.slug?.trim()) {
     throw new APIError("Language and public URL are required before publication.", 400);
   }
-  await assertBylineOwnership(article, req);
+  const person = await assertBylineOwnership(article, req);
+  if (person.profileStatus !== "public" || !person.profilePublishedAt) {
+    throw new APIError("Publish your profile before publishing an article.", 400);
+  }
   if (article.coverImage) {
     await markMediaForMemberPublication(article.coverImage, req, "Cover image");
   }
@@ -313,6 +318,7 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
     await assertCurationComplete({ ...originalDoc, ...data, curationStatus: nextCuration }, req);
     data._status = "published";
   }
+  data._status = nextPublication === "published" ? "published" : "draft";
   return data;
 };
 

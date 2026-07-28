@@ -3,15 +3,18 @@ import { CMSPersonRow } from "@/components/cms-person-row";
 import { PeopleDirectory } from "@/components/people-directory";
 import { PersonRow } from "@/components/person-row";
 import { people, requireLocale } from "@/content";
-import { cmsReadEnabled, getPublishedCMSPeople, stableWeeklyPeople } from "@/content/cms";
+import { cmsReadEnabled, getPublishedCMSHomepagePeople, getPublishedCMSPeople, stableWeeklyPeople } from "@/content/cms";
 
 export const dynamic = "force-dynamic";
 
 export default async function PeoplePage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = requireLocale((await params).locale);
   if (cmsReadEnabled()) {
-    const cmsPeople = await getPublishedCMSPeople(locale);
-    const spotlight = stableWeeklyPeople(cmsPeople, 3);
+    const [cmsPeople, spotlightPeople] = await Promise.all([
+      getPublishedCMSPeople(locale),
+      getPublishedCMSHomepagePeople(locale),
+    ]);
+    const spotlight = stableWeeklyPeople(spotlightPeople, 3);
     return (
       <main className="page-shell people-page">
         <header className="people-header">
