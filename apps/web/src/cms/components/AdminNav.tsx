@@ -28,7 +28,7 @@ export function AdminNav() {
       <Link className="admin-nav__brand" href="/admin">China, in Fact</Link>
       <Link href="/admin">My work</Link>
       {links.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}
-      <a className="admin-nav__logout" href="/admin/logout">Log out</a>
+      <Link className="admin-nav__logout" href="/admin/logout">Log out</Link>
     </nav>
   );
 }

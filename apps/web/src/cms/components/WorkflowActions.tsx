@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, toast, useAuth, useDocumentInfo, useFormFields, useFormModified } from "@payloadcms/ui";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { Article, User } from "@/payload-types";
 import { buildPublicationSummary, type PublicationSummary } from "../publication-summary";
@@ -77,7 +77,6 @@ export function WorkflowActions() {
   const modified = useFormModified();
   const publicationValue = useFormFields<unknown>(([fields]) => fields.publicationStatus?.value);
   const curationValue = useFormFields<unknown>(([fields]) => fields.curationStatus?.value);
-  const ownerValue = useFormFields<unknown>(([fields]) => fields.owner?.value);
   const publication = typeof publicationValue === "string" && publicationValue in publicationLabels
     ? publicationValue as PublicationStatus
     : "draft";
@@ -85,10 +84,21 @@ export function WorkflowActions() {
     ? curationValue as CurationStatus
     : "not_selected";
   const editorial = user?.role === "editor" || user?.role === "super_admin";
-  const owner = relationID(ownerValue) === user?.id;
+  const [owner, setOwner] = useState(false);
   const [pending, setPending] = useState<Transition | null>(null);
   const [summary, setSummary] = useState<PublicationSummary | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id || !user?.id) return;
+    let current = true;
+    void fetch(`/api/articles/${id}?depth=0&draft=true`)
+      .then(async (response) => response.ok ? response.json() as Promise<Article> : null)
+      .then((article) => {
+        if (current) setOwner(String(relationID(article?.owner)) === String(user.id));
+      });
+    return () => { current = false; };
+  }, [id, user?.id]);
 
   async function transition(action: Transition) {
     if (!id) return;
