@@ -130,14 +130,14 @@ export const People: CollectionConfig = {
       type: "checkbox",
       label: "Exclude from spotlight",
       defaultValue: false,
-      access: { create: editorialField, update: editorialField },
+      access: { create: editorialField, read: editorialField, update: editorialField },
       admin: { condition: editorialCondition, position: "sidebar" },
     },
     {
       name: "spotlightPinnedUntil",
       type: "date",
       label: "Spotlight pinned until",
-      access: { create: editorialField, update: editorialField },
+      access: { create: editorialField, read: editorialField, update: editorialField },
       admin: { condition: editorialCondition, position: "sidebar" },
     },
     {

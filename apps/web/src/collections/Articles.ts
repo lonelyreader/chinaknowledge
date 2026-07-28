@@ -248,7 +248,7 @@ export const Articles: CollectionConfig = {
       type: "select",
       label: "Homepage",
       defaultValue: "none",
-      access: { create: editorialField, update: editorialField },
+      access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
       options: [
         { label: "None", value: "none" },
         { label: "Lead", value: "lead" },
@@ -260,14 +260,14 @@ export const Articles: CollectionConfig = {
       name: "homepageStartsAt",
       type: "date",
       label: "Homepage starts",
-      access: { create: editorialField, update: editorialField },
+      access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
       admin: { condition: editorialCondition, position: "sidebar" },
     },
     {
       name: "homepageEndsAt",
       type: "date",
       label: "Homepage ends",
-      access: { create: editorialField, update: editorialField },
+      access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
       admin: { condition: editorialCondition, position: "sidebar" },
     },
     {

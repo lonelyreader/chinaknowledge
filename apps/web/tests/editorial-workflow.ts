@@ -333,6 +333,9 @@ async function main() {
   assert.equal(otherMemberArticleRead.docs[0]?.workflowStatus, undefined);
   assert.equal(otherMemberArticleRead.docs[0]?.assignedEditor, undefined);
   assert.deepEqual(otherMemberArticleRead.docs[0]?.editorComments, []);
+  assert.equal(otherMemberArticleRead.docs[0]?.homepagePlacement, undefined);
+  assert.equal(otherMemberArticleRead.docs[0]?.homepageStartsAt, undefined);
+  assert.equal(otherMemberArticleRead.docs[0]?.homepageEndsAt, undefined);
   const otherMemberPersonRead = await payload.find({
     collection: "people", depth: 0, limit: 1, overrideAccess: false, user: other,
     where: { id: { equals: memberPerson.id } },
@@ -342,6 +345,8 @@ async function main() {
   assert.equal(otherMemberPersonRead.docs[0]?.profileStatus, undefined);
   assert.equal(otherMemberPersonRead.docs[0]?.authorApprovalRecordedAt, undefined);
   assert.equal(otherMemberPersonRead.docs[0]?.profilePublishedAt, undefined);
+  assert.equal(otherMemberPersonRead.docs[0]?.spotlightExcluded, undefined);
+  assert.equal(otherMemberPersonRead.docs[0]?.spotlightPinnedUntil, undefined);
 
   const selected = await payload.update({
     collection: "articles", id: draft.id, data: { curationStatus: "selected" },

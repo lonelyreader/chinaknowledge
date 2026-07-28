@@ -241,17 +241,20 @@ const findCuratedArticles = cache(async (locale: Locale) => {
   const payload = await getPayload({ config });
   const result = await payload.find({
     collection: "articles",
-    depth: 2,
-    limit: 200,
-    overrideAccess: false,
-    pagination: false,
-    sort: "-publishedAt",
-    where: {
-      and: [
-        { locale: { equals: locale } },
-        { curationStatus: { equals: "curated" } },
-      ],
-    },
+      depth: 2,
+      limit: 200,
+      overrideAccess: true,
+      pagination: false,
+      sort: "-publishedAt",
+      where: {
+        and: [
+          { locale: { equals: locale } },
+          { publicationStatus: { equals: "published" } },
+          { curationStatus: { equals: "curated" } },
+          { _status: { equals: "published" } },
+          { publishedAt: { exists: true } },
+        ],
+      },
   });
   return result.docs.flatMap((article) => {
     const published = toPublishedArticle(article);
@@ -370,10 +373,17 @@ export async function getPublishedCMSPeople(locale: Locale) {
       collection: "people",
       depth: 2,
       limit: 200,
-      overrideAccess: false,
+      overrideAccess: true,
       pagination: false,
       sort: "name",
-      where: { languages: { contains: locale } },
+      where: {
+        and: [
+          { languages: { contains: locale } },
+          { portrait: { exists: true } },
+          { profilePublishedAt: { exists: true } },
+          { profileStatus: { equals: "public" } },
+        ],
+      },
     }),
     findCuratedArticles(locale),
   ]);

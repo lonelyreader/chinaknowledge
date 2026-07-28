@@ -21,9 +21,12 @@ function curationURL(status: Article["curationStatus"]) {
 
 function curationLabel(status: Article["curationStatus"]) {
   if (status === "curated") return "Site selected";
+  if (status === "editing") return "Editing";
   if (status === "needs_recheck") return "Needs recheck";
   if (status === "not_selected") return "Not selected";
-  return status ? status.replaceAll("_", " ") : "Not selected";
+  if (status === "removed") return "Removed";
+  if (status === "selected") return "Selected";
+  return "Not selected";
 }
 
 function nextAction(article: Article) {
