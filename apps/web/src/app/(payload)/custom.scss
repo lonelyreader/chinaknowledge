@@ -254,7 +254,9 @@
 // The generated storage name is not an editorial decision. Keep it in the
 // record, but remove the rename control from the image upload task.
 .file-field__filename,
-.file-meta__url {
+.file-meta__url,
+.upload-relationship-details__filename,
+.upload-relationship-details__meta {
   display: none;
 }
 
