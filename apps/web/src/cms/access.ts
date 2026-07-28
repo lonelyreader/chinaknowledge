@@ -12,6 +12,27 @@ export const superAdmin: Access = ({ req }) =>
 
 export const authenticatedField: FieldAccess = ({ req }) => isCMSUser(req.user);
 
+function relationID(value: unknown) {
+  if (typeof value === "number" || typeof value === "string") return value;
+  if (value && typeof value === "object" && "id" in value) {
+    const id = (value as { id?: unknown }).id;
+    return typeof id === "number" || typeof id === "string" ? id : null;
+  }
+  return null;
+}
+
+export const ownArticleFieldOrEditorial: FieldAccess = ({ doc, req }) => {
+  if (!isCMSUser(req.user)) return false;
+  if (hasEditorialRole(req.user)) return true;
+  return relationID(doc?.owner) === req.user.id;
+};
+
+export const ownPersonFieldOrEditorial: FieldAccess = ({ doc, req }) => {
+  if (!isCMSUser(req.user)) return false;
+  if (hasEditorialRole(req.user)) return true;
+  return relationID(doc?.user) === req.user.id;
+};
+
 export const editorialField: FieldAccess = ({ req }) =>
   isCMSUser(req.user) && hasEditorialRole(req.user);
 
@@ -23,7 +44,7 @@ export const superAdminField: FieldAccess = ({ req }) =>
 
 export const readUsers: Access = ({ req }) => {
   if (!isCMSUser(req.user)) return false;
-  if (hasEditorialRole(req.user)) return true;
+  if (isSuperAdmin(req.user)) return true;
   return { id: { equals: req.user.id } };
 };
 

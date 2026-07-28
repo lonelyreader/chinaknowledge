@@ -4,6 +4,7 @@ import {
   authenticatedField,
   editorial,
   editorialField,
+  ownPersonFieldOrEditorial,
   readOwnPersonVersionsOrEditorial,
   readPublicPeopleOrOwn,
   updateOwnPersonOrEditorial,
@@ -23,6 +24,7 @@ export const People: CollectionConfig = {
     defaultColumns: ["name", "city", "profileStatus", "updatedAt"],
     group: "People",
     hideAPIURL: true,
+    hidden: ({ user }) => user?.role !== "super_admin",
     preview: (doc) => {
       const locale = Array.isArray(doc.languages) && doc.languages[0] === "es" ? "es" : "en";
       return doc.id && doc.slug
@@ -45,7 +47,15 @@ export const People: CollectionConfig = {
   versions: { maxPerDoc: 50 },
   fields: [
     { name: "name", type: "text", required: true },
-    { name: "slug", type: "text", required: true, unique: true, index: true },
+    {
+      name: "slug",
+      type: "text",
+      required: true,
+      unique: true,
+      index: true,
+      access: { update: editorialField },
+      admin: { condition: editorialCondition },
+    },
     { name: "identity", type: "text", label: "Identity" },
     { name: "introduction", type: "textarea", label: "Introduction" },
     { name: "city", type: "text" },
@@ -86,7 +96,7 @@ export const People: CollectionConfig = {
       relationTo: "users",
       required: true,
       unique: true,
-      access: { create: editorialField, read: authenticatedField, update: editorialField },
+      access: { create: editorialField, read: ownPersonFieldOrEditorial, update: editorialField },
       admin: { condition: editorialCondition, position: "sidebar" },
     },
     {
@@ -94,7 +104,7 @@ export const People: CollectionConfig = {
       type: "select",
       required: true,
       defaultValue: "draft",
-      access: { create: editorialField, read: authenticatedField, update: authenticatedField },
+      access: { create: editorialField, read: ownPersonFieldOrEditorial, update: authenticatedField },
       options: [
         { label: "Draft", value: "draft" },
         { label: "Public", value: "public" },
@@ -106,14 +116,14 @@ export const People: CollectionConfig = {
       name: "authorApprovalRecordedAt",
       type: "date",
       label: "Author approval recorded",
-      access: { create: editorialField, read: authenticatedField, update: editorialField },
+      access: { create: editorialField, read: ownPersonFieldOrEditorial, update: editorialField },
       admin: { condition: editorialCondition, position: "sidebar" },
     },
     {
       name: "profilePublishedAt",
       type: "date",
       label: "Profile published",
-      access: { create: editorialField, read: authenticatedField, update: authenticatedField },
+      access: { create: editorialField, read: ownPersonFieldOrEditorial, update: authenticatedField },
       admin: { condition: editorialCondition, position: "sidebar", readOnly: true },
     },
     {

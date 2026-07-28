@@ -15,7 +15,12 @@ import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 export const Media: CollectionConfig = {
   slug: "media",
   labels: { singular: "Image", plural: "Images" },
-  admin: { useAsTitle: "alt", group: "Editorial", hideAPIURL: true },
+  admin: {
+    useAsTitle: "alt",
+    group: "Editorial",
+    hidden: ({ user }) => user?.role !== "super_admin",
+    hideAPIURL: true,
+  },
   access: {
     create: authenticated,
     delete: editorial,

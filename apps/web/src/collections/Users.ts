@@ -16,7 +16,7 @@ export const Users: CollectionConfig = {
     useAsTitle: "email",
     defaultColumns: ["email", "role", "accountStatus", "updatedAt"],
     group: "People",
-    hidden: ({ user }) => user?.role === "author",
+    hidden: ({ user }) => user?.role !== "super_admin",
     hideAPIURL: true,
     components: {
       beforeList: ["/cms/components/InviteMember#InviteMember"],

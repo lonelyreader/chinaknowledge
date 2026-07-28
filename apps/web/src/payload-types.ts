@@ -164,7 +164,7 @@ export interface User {
 export interface Person {
   id: number;
   name: string;
-  slug: string;
+  slug?: string | null;
   identity?: string | null;
   introduction?: string | null;
   city?: string | null;
@@ -291,7 +291,7 @@ export interface Article {
   locale: 'en' | 'es';
   slug: string;
   translationGroup: string;
-  author: number | Person;
+  author?: (number | null) | Person;
   owner: number | User;
   purposes?: (number | Taxonomy)[] | null;
   topics?: (number | Taxonomy)[] | null;

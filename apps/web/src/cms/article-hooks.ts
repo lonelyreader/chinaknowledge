@@ -189,6 +189,22 @@ export const prepareArticle: CollectionBeforeValidateHook<ArticleShape> = async 
       const person = await findOwnPerson(req.user.id, req);
       data.owner = req.user.id;
       data.author = person.id;
+
+      const groupedArticles = await req.payload.find({
+        collection: "articles",
+        depth: 0,
+        limit: 2,
+        overrideAccess: true,
+        pagination: false,
+        req,
+        where: { translationGroup: { equals: data.translationGroup } },
+      });
+      const foreignArticle = groupedArticles.docs.find((article) =>
+        relationID(article.owner) !== req.user!.id || relationID(article.author) !== person.id,
+      );
+      if (foreignArticle) {
+        throw new APIError("A translation group can only contain articles from the same member.", 403);
+      }
     }
   }
 

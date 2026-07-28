@@ -32,7 +32,13 @@ export default buildConfig({
     importMap: { baseDir: dirname },
     meta: { titleSuffix: " — China, in Fact" },
     components: {
-      beforeDashboard: ["/cms/components/MemberWorkspace#MemberWorkspace"],
+      graphics: {
+        Icon: "/cms/components/Brand#AdminIcon",
+        Logo: "/cms/components/Brand#AdminLogo",
+      },
+      views: {
+        dashboard: { Component: "/cms/components/MemberWorkspace#MemberWorkspace" },
+      },
     },
   },
   collections: [

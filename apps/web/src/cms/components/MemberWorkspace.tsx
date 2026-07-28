@@ -59,7 +59,7 @@ export async function MemberWorkspace({ payload, user: untypedUser }: ServerProp
   const person = people.docs[0] as Person | undefined;
   const editorial = user.role === "editor" || user.role === "super_admin";
   const curationCounts = editorial
-    ? await Promise.all(["not_selected", "needs_recheck", "selected", "editing"].map(async (status) => ({
+    ? await Promise.all(["not_selected", "needs_recheck", "selected", "editing", "curated", "removed"].map(async (status) => ({
         count: await payload.count({
           collection: "articles",
           overrideAccess: true,
@@ -109,7 +109,7 @@ export async function MemberWorkspace({ payload, user: untypedUser }: ServerProp
             {curationCounts.map(({ count, status }) => (
               <Link href={curationURL(status)} key={status}>
                 <strong>{count.totalDocs}</strong>
-                <span>{status === "not_selected" ? "New" : status === "needs_recheck" ? "Needs recheck" : status === "selected" ? "Selected" : "Editing"}</span>
+                <span>{curationLabel(status)}</span>
               </Link>
             ))}
           </div>

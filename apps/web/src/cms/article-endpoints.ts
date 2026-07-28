@@ -173,6 +173,77 @@ export const transitionArticleEndpoint: Endpoint = {
   },
 };
 
+export const createArticleTranslationEndpoint: Endpoint = {
+  path: "/:id/translation",
+  method: "post",
+  handler: async (req) => {
+    if (!isCMSUser(req.user)) throw new APIError("Authentication is required.", 401);
+    const id = req.routeParams?.id;
+    if (typeof id !== "string" && typeof id !== "number") {
+      throw new APIError("Article ID is required.", 400);
+    }
+    const source = await req.payload.findByID({
+      collection: "articles",
+      id,
+      depth: 0,
+      draft: true,
+      overrideAccess: true,
+      req,
+    });
+    if (relationID(source.owner) !== req.user.id) {
+      throw new APIError("Only the member can add a translation of this article.", 403);
+    }
+    const targetLocale = source.locale === "es" ? "en" : "es";
+    const existing = await req.payload.find({
+      collection: "articles",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      pagination: false,
+      req,
+      where: {
+        and: [
+          { translationGroup: { equals: source.translationGroup } },
+          { locale: { equals: targetLocale } },
+        ],
+      },
+    });
+    if (existing.docs[0]) {
+      return Response.json({
+        id: existing.docs[0].id,
+        url: `/admin/collections/articles/${existing.docs[0].id}`,
+      });
+    }
+    const slugMatches = await req.payload.count({
+      collection: "articles",
+      overrideAccess: true,
+      req,
+      where: {
+        and: [
+          { locale: { equals: targetLocale } },
+          { slug: { equals: source.slug } },
+        ],
+      },
+    });
+    const article = await req.payload.create({
+      collection: "articles",
+      data: {
+        body: source.body,
+        coverImage: relationID(source.coverImage),
+        locale: targetLocale,
+        slug: slugMatches.totalDocs === 0 ? source.slug : `${source.slug}-${targetLocale}`,
+        summary: source.summary,
+        title: source.title,
+        translationGroup: source.translationGroup,
+      },
+      draft: true,
+      overrideAccess: false,
+      req,
+    });
+    return Response.json({ id: article.id, url: `/admin/collections/articles/${article.id}` }, { status: 201 });
+  },
+};
+
 export const notifyArticleAuthorEndpoint: Endpoint = {
   path: "/:id/notify-author",
   method: "post",

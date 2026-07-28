@@ -25,9 +25,12 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { WorkflowActions as WorkflowActions_ea3d5400a97dd7cd909f85f38b9a5a7a } from '../../../cms/components/WorkflowActions'
+import { TranslationActions as TranslationActions_6c2c63c3c83feba5cd3ba61c3cf4bf74 } from '../../../cms/components/TranslationActions'
 import { NoPublishButton as NoPublishButton_50c7962da54e4303ee7d2a1305f15bba } from '../../../cms/components/NoPublishButton'
-import { MemberWorkspace as MemberWorkspace_96d7a43db13042d2f2e6cbc4a6351f65 } from '../../../cms/components/MemberWorkspace'
+import { AdminIcon as AdminIcon_bc64442ee066953691f85c8dc29a6959 } from '../../../cms/components/Brand'
+import { AdminLogo as AdminLogo_bc64442ee066953691f85c8dc29a6959 } from '../../../cms/components/Brand'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
+import { MemberWorkspace as MemberWorkspace_96d7a43db13042d2f2e6cbc4a6351f65 } from '../../../cms/components/MemberWorkspace'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -59,8 +62,11 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/cms/components/WorkflowActions#WorkflowActions": WorkflowActions_ea3d5400a97dd7cd909f85f38b9a5a7a,
+  "/cms/components/TranslationActions#TranslationActions": TranslationActions_6c2c63c3c83feba5cd3ba61c3cf4bf74,
   "/cms/components/NoPublishButton#NoPublishButton": NoPublishButton_50c7962da54e4303ee7d2a1305f15bba,
-  "/cms/components/MemberWorkspace#MemberWorkspace": MemberWorkspace_96d7a43db13042d2f2e6cbc4a6351f65,
+  "/cms/components/Brand#AdminIcon": AdminIcon_bc64442ee066953691f85c8dc29a6959,
+  "/cms/components/Brand#AdminLogo": AdminLogo_bc64442ee066953691f85c8dc29a6959,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
+  "/cms/components/MemberWorkspace#MemberWorkspace": MemberWorkspace_96d7a43db13042d2f2e6cbc4a6351f65,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

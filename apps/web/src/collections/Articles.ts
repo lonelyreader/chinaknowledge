@@ -2,9 +2,9 @@ import type { CollectionConfig } from "payload";
 
 import {
   authenticated,
-  authenticatedField,
   editorial,
   editorialField,
+  ownArticleFieldOrEditorial,
   readOwnedArticleVersionsOrEditorial,
   readPublicArticlesOrOwned,
   updateOwnedArticlesOrEditorial,
@@ -14,7 +14,7 @@ import {
   prepareArticle,
   recordWorkflowEvent,
 } from "@/cms/article-hooks";
-import { notifyArticleAuthorEndpoint, transitionArticleEndpoint } from "@/cms/article-endpoints";
+import { createArticleTranslationEndpoint, notifyArticleAuthorEndpoint, transitionArticleEndpoint } from "@/cms/article-endpoints";
 import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 
 const editorialCondition = (_data: unknown, _siblingData: unknown, { user }: { user: unknown }) =>
@@ -39,6 +39,7 @@ export const Articles: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "author", "locale", "publishedAt", "curationStatus", "updatedAt"],
     group: "Editorial",
+    hidden: ({ user }) => user?.role === "author",
     hideAPIURL: true,
     preview: (doc) => {
       const locale = doc.locale === "es" ? "es" : "en";
@@ -54,7 +55,7 @@ export const Articles: CollectionConfig = {
       },
     },
   },
-  endpoints: [transitionArticleEndpoint, notifyArticleAuthorEndpoint],
+  endpoints: [transitionArticleEndpoint, createArticleTranslationEndpoint, notifyArticleAuthorEndpoint],
   access: {
     create: authenticated,
     delete: editorial,
@@ -123,14 +124,14 @@ export const Articles: CollectionConfig = {
       relationTo: "people",
       required: true,
       access: { create: editorialField, update: () => false },
-      admin: { readOnly: true },
+      admin: { condition: editorialCondition, readOnly: true },
     },
     {
       name: "owner",
       type: "relationship",
       relationTo: "users",
       required: true,
-      access: { read: authenticatedField, update: editorialField },
+      access: { read: ownArticleFieldOrEditorial, update: editorialField },
       admin: { hidden: true },
     },
     categoryField("purposes", "Purposes", "purpose"),
@@ -150,7 +151,7 @@ export const Articles: CollectionConfig = {
           name: "check",
           type: "textarea",
           label: "Check",
-          access: { read: authenticatedField },
+          access: { read: ownArticleFieldOrEditorial },
         },
       ],
     },
@@ -160,7 +161,7 @@ export const Articles: CollectionConfig = {
       label: "Comments",
       access: {
         create: editorialField,
-        read: authenticatedField,
+        read: ownArticleFieldOrEditorial,
         update: editorialField,
       },
       admin: { condition: editorialCondition },
@@ -176,7 +177,7 @@ export const Articles: CollectionConfig = {
       type: "select",
       required: true,
       defaultValue: "draft",
-      access: { read: authenticatedField },
+      access: { read: ownArticleFieldOrEditorial },
       options: [
         { label: "Draft", value: "draft" },
         { label: "Public", value: "published" },
@@ -205,7 +206,7 @@ export const Articles: CollectionConfig = {
       type: "select",
       required: true,
       defaultValue: "draft",
-      access: { read: authenticatedField },
+      access: { read: ownArticleFieldOrEditorial },
       options: [
         { label: "Draft", value: "draft" },
         { label: "Submitted", value: "submitted" },
@@ -223,7 +224,7 @@ export const Articles: CollectionConfig = {
       relationTo: "users",
       access: {
         create: editorialField,
-        read: authenticatedField,
+        read: ownArticleFieldOrEditorial,
         update: editorialField,
       },
       filterOptions: { role: { in: ["editor", "super_admin"] } },
@@ -241,7 +242,7 @@ export const Articles: CollectionConfig = {
       type: "date",
       label: "Published",
       access: { create: editorialField, update: editorialField },
-      admin: { position: "sidebar", readOnly: true },
+      admin: { condition: editorialCondition, position: "sidebar", readOnly: true },
     },
     {
       name: "homepagePlacement",
@@ -277,6 +278,16 @@ export const Articles: CollectionConfig = {
         position: "sidebar",
         components: {
           Field: "/cms/components/WorkflowActions#WorkflowActions",
+        },
+      },
+    },
+    {
+      name: "translationActions",
+      type: "ui",
+      admin: {
+        position: "sidebar",
+        components: {
+          Field: "/cms/components/TranslationActions#TranslationActions",
         },
       },
     },

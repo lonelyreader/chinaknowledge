@@ -22,6 +22,7 @@ export const WorkflowEvents: CollectionConfig = {
   admin: {
     defaultColumns: ["article", "fromStatus", "toStatus", "actor", "notificationStatus", "occurredAt"],
     group: "Editorial",
+    hidden: ({ user }) => user?.role !== "super_admin",
     hideAPIURL: true,
   },
   access: {

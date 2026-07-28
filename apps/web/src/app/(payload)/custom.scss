@@ -5,6 +5,25 @@
   --theme-elevation-1000: #171411;
 }
 
+.admin-brand {
+  color: var(--theme-text);
+  font-family: Georgia, serif;
+  font-size: 1.6rem;
+  letter-spacing: -0.03em;
+}
+
+.admin-brand__icon {
+  align-items: center;
+  background: var(--theme-text);
+  border-radius: 50%;
+  color: var(--theme-elevation-0);
+  display: inline-flex;
+  font-family: Georgia, serif;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
 .member-workspace {
   border-bottom: 1px solid var(--theme-elevation-150);
   display: grid;
@@ -48,6 +67,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.member-workspace__actions .btn,
+.member-workspace__queues a {
+  min-height: 44px;
 }
 
 .member-workspace__header {
@@ -103,6 +127,16 @@
   display: grid;
   gap: 0.6rem;
   padding-top: 1.25rem;
+}
+
+.translation-actions {
+  border-top: 1px solid var(--theme-elevation-150);
+  padding-top: 1rem;
+}
+
+.translation-actions .btn {
+  min-height: 44px;
+  width: 100%;
 }
 
 .workflow-actions__group {
@@ -188,8 +222,8 @@
 
 // The generated storage name is not an editorial decision. Keep it in the
 // record, but remove the rename control from the image upload task.
-.collection-edit--media .file-field__filename,
-.collection-edit--media .file-meta__url {
+.file-field__filename,
+.file-meta__url {
   display: none;
 }
 
@@ -198,6 +232,32 @@
 }
 
 @media (max-width: 768px) {
+  .member-workspace {
+    min-width: 0 !important;
+  }
+
+  .member-workspace__actions {
+    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .member-workspace__item {
+    align-items: start;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .member-workspace__queues {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .member-workspace__queues a {
+    min-width: 0;
+  }
+
   .workflow-actions__buttons .btn {
     min-height: 44px;
   }

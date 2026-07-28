@@ -115,7 +115,7 @@ function safeExternalURL(value: string) {
 
 function personBase(person: Person): Omit<PublishedCMSPerson, "contribution"> | null {
   const image = publicImage(person.portrait);
-  if (!image || !person.city || !person.identity || !person.introduction || !person.languages?.length) return null;
+  if (!image || !person.city || !person.identity || !person.introduction || !person.languages?.length || !person.slug) return null;
   return {
     city: person.city,
     identity: person.identity,
@@ -137,7 +137,7 @@ function personBase(person: Person): Omit<PublishedCMSPerson, "contribution"> | 
 function articleSummary(article: Article): PublishedCMSArticleSummary | null {
   const coverImage = publicImage(article.coverImage);
   const author = typeof article.author === "object" ? article.author : null;
-  if (!author || !article.publishedAt) return null;
+  if (!author || !author.slug || !article.publishedAt || !article.slug || !article.translationGroup || !article.title) return null;
   return {
     authorSlug: author.slug,
     coverImage,
@@ -163,7 +163,7 @@ function articleSummary(article: Article): PublishedCMSArticleSummary | null {
 }
 
 function toPublishedArticle(article: Article): PublishedCMSArticle | null {
-  if (!article.body || typeof article.author !== "object") return null;
+  if (!article.body || !article.author || typeof article.author !== "object") return null;
   const summary = articleSummary(article);
   const author = personBase(article.author);
   if (!summary || !author) return null;

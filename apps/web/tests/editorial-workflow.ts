@@ -154,6 +154,9 @@ async function main() {
   const editor = await user(payload, { displayName: "Acceptance Editor", email: "pub-curation-editor@test.invalid", role: "editor" });
   const member = await user(payload, { displayName: "Acceptance Member", email: "pub-curation-member@test.invalid", role: "author" });
   const other = await user(payload, { displayName: "Other Member", email: "pub-curation-other@test.invalid", role: "author" });
+  const editorVisibleUsers = await payload.find({ collection: "users", limit: 10, overrideAccess: false, user: editor });
+  assert.equal(editorVisibleUsers.totalDocs, 1);
+  assert.equal(editorVisibleUsers.docs[0]?.id, editor.id);
   const invitedEmail = `invited-member-${randomUUID()}@test.invalid`;
   const invited = await payload.create({
     collection: "users",
@@ -224,11 +227,25 @@ async function main() {
   assert.equal(relationID(forgedCreate.author), memberPerson.id);
   await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: forgedCreate.id } } });
   await payload.delete({ collection: "articles", id: forgedCreate.id, overrideAccess: true });
+  const ownTranslation = await payload.create({
+    collection: "articles",
+    data: { body, locale: "es", slug: "member-direct-post-es", title: "Member direct post ES", translationGroup: "acceptance-member-curation" },
+    draft: true, overrideAccess: false, user: member,
+  });
+  assert.equal(relationID(ownTranslation.owner), member.id);
+  assert.equal(relationID(ownTranslation.author), memberPerson.id);
+  await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: ownTranslation.id } } });
+  await payload.delete({ collection: "articles", id: ownTranslation.id, overrideAccess: true });
   await expectRejected(() => payload.create({
     collection: "articles",
     data: { body, locale: "en", slug: "duplicate-translation-identity", title: "Duplicate translation identity", translationGroup: "acceptance-member-curation" },
     draft: true, overrideAccess: false, user: member,
   }), "A translation group can contain only one Article per language.");
+  await expectRejected(() => payload.create({
+    collection: "articles",
+    data: { body, locale: "es", slug: "foreign-translation-group", title: "Foreign translation group", translationGroup: "acceptance-member-curation" },
+    draft: true, overrideAccess: false, user: other,
+  }), "Another member cannot join an existing translation group.");
 
   const memberPublished = await payload.update({
     collection: "articles", id: draft.id, context: { memberPublicationConfirmed: true },
@@ -257,10 +274,11 @@ async function main() {
     collection: "people", id: memberPerson.id,
     data: { profilePublishedAt: null }, overrideAccess: false, user: editor,
   }), "Profile publication time cannot be cleared through the normal API.");
-  await expectRejected(() => payload.update({
+  const memberSlugAttempt = await payload.update({
     collection: "people", id: memberPerson.id,
     data: { slug: "changed-public-profile-url" }, overrideAccess: false, user: member,
-  }), "A published profile URL is canonical and cannot be changed.");
+  });
+  assert.equal(memberSlugAttempt.slug, memberPerson.slug);
   await expectRejected(() => payload.delete({
     collection: "people", id: memberPerson.id, overrideAccess: false, user: admin,
   }), "A profile with public articles cannot be deleted.");
@@ -305,6 +323,26 @@ async function main() {
   assert.equal(anonymousBeforeCuration.docs[0]?.publicationStatus, undefined);
   assert.equal(anonymousBeforeCuration.docs[0]?.curationStatus, "not_selected");
 
+  const otherMemberArticleRead = await payload.find({
+    collection: "articles", depth: 0, limit: 1, overrideAccess: false, user: other,
+    where: { id: { equals: draft.id } },
+  });
+  assert.equal(otherMemberArticleRead.totalDocs, 1);
+  assert.equal(otherMemberArticleRead.docs[0]?.owner, undefined);
+  assert.equal(otherMemberArticleRead.docs[0]?.publicationStatus, undefined);
+  assert.equal(otherMemberArticleRead.docs[0]?.workflowStatus, undefined);
+  assert.equal(otherMemberArticleRead.docs[0]?.assignedEditor, undefined);
+  assert.deepEqual(otherMemberArticleRead.docs[0]?.editorComments, []);
+  const otherMemberPersonRead = await payload.find({
+    collection: "people", depth: 0, limit: 1, overrideAccess: false, user: other,
+    where: { id: { equals: memberPerson.id } },
+  });
+  assert.equal(otherMemberPersonRead.totalDocs, 1);
+  assert.equal(otherMemberPersonRead.docs[0]?.user, undefined);
+  assert.equal(otherMemberPersonRead.docs[0]?.profileStatus, undefined);
+  assert.equal(otherMemberPersonRead.docs[0]?.authorApprovalRecordedAt, undefined);
+  assert.equal(otherMemberPersonRead.docs[0]?.profilePublishedAt, undefined);
+
   const selected = await payload.update({
     collection: "articles", id: draft.id, data: { curationStatus: "selected" },
     draft: false, overrideAccess: false, user: editor,
@@ -343,6 +381,11 @@ async function main() {
   assert.equal(relationID(curated.author), memberPerson.id);
   assert.equal(buildPublicationSummary(await payload.findByID({ collection: "articles", id: draft.id, depth: 2, draft: true, overrideAccess: true })).url, "/en/posts/member-direct-post");
   assert.equal(prepared.id, curated.id);
+  const otherMemberCuratedRead = await payload.findByID({
+    collection: "articles", id: draft.id, depth: 0, overrideAccess: false, user: other,
+  });
+  assert.equal(otherMemberCuratedRead.sourceNotes?.[0]?.label, "Acceptance source");
+  assert.equal(otherMemberCuratedRead.sourceNotes?.[0]?.check, undefined);
 
   const memberAttemptedEditorialChange = await payload.update({
     collection: "articles", id: draft.id,
