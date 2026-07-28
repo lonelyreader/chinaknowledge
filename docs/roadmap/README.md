@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 受保护 Preview release PASS；当前门禁为四条 Production migration 与 29/5 恢复断言的单独批准 |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | Production 29/5、迁移后恢复与 staged deployment 独立复审 PASS；当前门禁为首批真实贡献者与内容 |
 
 ## Deferred
 

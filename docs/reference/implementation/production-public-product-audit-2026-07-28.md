@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Verdict
 
-受保护 Preview release candidate 为 `PASS`，P0/P1 为零；Production release 继续 `BLOCK`。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选已在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2。产品负责人单独批准 Preview migration 后，数据库从 23 张表/1 条 migration 升至 29/5；release 复审又发现并修复人物规模与跨周/跨年轮换缺口，最终 clean deployment 完成独立回读。Production 仍为 23/1；真实数据、Production migration/deploy、域名绑定与内容公开均未授权。
+受保护 Preview 与不绑定正式域名的 staged Production 均为 `PASS`，最终独立复审 P0/P1/P2 均为零；Production 公共发布仍因没有真实内容而 `BLOCK`。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2，Preview 又补齐人物规模与跨周/跨年轮换。产品负责人统一批准查看 Production 所需动作后，Production 从 23/1 升至 29/5、完成迁移前后异地恢复并部署 clean HEAD `d95e2b1`；真实数据、正式域名与索引仍未执行。
 
 ## Findings At Audit Start
 
@@ -61,7 +61,7 @@ change_id: PROD-LAUNCH-001
 - 已关闭：Media 增加 Editor 公开使用批准；上传归属由服务端无条件写入，不能由 Author 伪造。Payload/API 和 Payload 文件路由内，未批准记录只对真实上传者与编辑角色可见；Article、Person 与 Place 公开时校验实际媒体记录。底层 public Blob URL 不受这层权限保护，敏感文件继续禁止进入该 collection。
 - 已关闭：首位 Super Admin CLI 在锁定事务内执行零用户检查与创建；批量开户默认 dry-run，只允许 Author/Editor，账户写入为单事务，邮件阶段逐项汇总并支持失败后重发。所有 apply 明确声明应用环境和数据库目标，Production 另有专属确认且强制密码重置邮件。
 - 已关闭：受保护 Preview 的完整公共路由、人物规模、桌面/移动分页与筛选、基础可访问性、运行日志与 release-level 独立复审。
-- Production backup workflow 仍按已部署的 1 条 migration 断言；四条待应用 migration 获批应用时，必须与 5 条 migration、29 张表的恢复断言原子更新，不能提前改坏现有每日备份。
+- Production backup workflow 已在 commit `8cef12e` 从 23/1 收紧为 29/5，并以迁移前 run `30339027394` 与迁移后 run `30339406235` 跨越升级；没有留下接受两种 schema 的长期宽松断言。
 
 ## Media Storage Boundary
 
@@ -81,6 +81,10 @@ change_id: PROD-LAUNCH-001
 - 四条新增 migration 依次成功，读回为 29 张表、5 条 migration；`places`、`person_revisions`、开放修订唯一索引和媒体公开批准字段均存在，原有记录数量在迁移后未变。纯虚构 editorial workflow 随后 `PASS`，当前形成 31 个账户、27 个人物、30 篇文章、4 个媒体记录、3 个地点、1 条已应用人物修订和 130 条 workflow event。额外 24 个固定 `.test` 账户、人物与公开贡献专门用于规模验收；没有写入真实个人或正式内容。
 - 最终受保护 Preview `dpl_AZaJ5DPimMSjq2NakcciToVAvVrL` 为 `READY / target: null`，绑定 clean HEAD `2ec2aeb`。英语/西班牙语 Home、People、Person、Guide、Story、Place、Purpose、Topic 与 About 在 1440×900 和 390×844 均有有效 `main / h1 / lang`，无横向溢出、破图、缺失控件名称或 console error。People 读回 25 个合格人物：桌面 24/页、移动 12/页，翻页、姓名、Topic、Place 与 Language 筛选均通过；同周稳定、跨周与跨年边界轮换断言通过。授权健康检查为 200，`robots.txt` 为 `Disallow: /`，页面响应带 `x-robots-tag: noindex, nofollow, noarchive`，匿名访问进入保护层。唯一运行 WARN 是 Preview 故意不配置邮件适配器时 Payload 的 console-email 提示；Preview 不发真实邮件，因此不阻断。
 - release-level 第二轮独立复审 `PASS`，P0=0、P1=0、P2=2。两个 P2 留给 staged Production：确认 Production 邮件适配器下不再出现上述 WARN；补键盘顺序、焦点可见性与自动化 accessibility/contrast 检查。
+- Production pre-migration custom dump SHA-256 为 `8f15405f26c05d585aa1a28059fc58785a0fc508b7a2b30f23ac8d11a3d0f455`，本地隔离恢复与 live 均为 `23,1,0,0,0,0,0`；run `30339027394` 同时完成 R2 迁移前恢复。其余 4 条 migration 全部成功，最终 live 为 29 张表、5 条 migration、8 张关键表、五类业务数据均为 0；run `30339406235` 的 `production.dump: OK`、29/5/5/8 隔离恢复与零媒体清单均通过。
+- staged Production `dpl_DvSJVxiPcpAGfrhWk3GcSW92tcCp` 为 `READY / target: production / iad1`，绑定 clean HEAD `d95e2b1`，使用 `--skip-domain`，正式域名未绑定；匿名请求进入 SSO，授权 `/api/health` 与 `/en` 为 200，响应和 robots 均为 `noindex`。
+- 首轮 Production accessibility 发现空内容首页没有 `h1`、`--stone` 可见文字对比度为 4.39:1；提交 `d95e2b1` 将空首页 Newsletter 标题提升为唯一 `h1`，并以最小幅度将 `--stone` 调整为 `#6b6c66`。最终桌面 1440×900 自动检查为零 contrast failure、零可见无标签控件、逻辑 tab order 和全局 3px `:focus-visible`；移动 390×844 无横向溢出、破图、overlay 或 console error。Production runtime 没有 `No email adapter` 告警或 5xx，两个 P2 均关闭。
+- 最终非主持独立复审重新回读部署/HEAD/区域、SSO/noindex、授权健康检查、29/5 空库、两次恢复、桌面/移动和可访问性；浏览器只有扩展自身的 listener/message-channel 噪声，没有应用来源错误。结论 `PASS`，P0=0、P1=0、P2=0；复审未编辑文件、写 Production、绑定域名或执行公开动作。
 
 ## Account Startup Contract
 
@@ -91,9 +95,9 @@ change_id: PROD-LAUNCH-001
 
 ## Required Recovery Sequence
 
-1. 单独批准并执行 Production 的四条新增 migration；同步把备份恢复断言从 23/1 更新为 29/5。
-2. 由产品负责人提供并逐项批准真实贡献者与首发内容；不得从 Preview 虚构夹具推导或复制。
-3. 分别批准首位管理员、真实账户、真实数据、`--prod --skip-domain` staged deploy、正式域名与公开索引。
+1. 由产品负责人提供真实贡献者与首发内容；不得从 Preview 虚构夹具推导或复制。
+2. 建立首位管理员后，按真实名单开户、发送重置邮件并完成内容/媒体/外链审核。
+3. staged Production 独立复审通过后，再绑定正式域名；内容公开和索引仍以真实内容审核结果为准。
 
 ## Evidence Pointers
 

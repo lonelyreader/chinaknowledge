@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Result
 
-2026-07-28 完成 Production 跨供应商恢复基线与 migration 后复验：Neon 与 Vercel Blob 的恢复点写入 Cloudflare R2 Standard 私有桶，数据库文件和媒体清单均从 R2 读回；数据库 dump 在隔离 PostgreSQL 17 实例中恢复成功。当前 Production 有 23 张表和 1 条 migration，业务数据与 Blob 为 0；run `30287841720` 已用真实 schema 完成 23/1/1/6 断言。
+2026-07-28 完成 Production 跨供应商恢复基线及两轮 migration 后复验：Neon 与 Vercel Blob 的恢复点写入 Cloudflare R2 Standard 私有桶，数据库文件和媒体清单均从 R2 读回；数据库 dump 在隔离 PostgreSQL 17 实例中恢复成功。当前 Production 有 29 张表和 5 条 migration，业务数据与 Blob 为 0；run `30339406235` 已用真实 schema 完成 29/5/5/8 断言。
 
 ## Resource Boundary
 
@@ -59,7 +59,14 @@ GitHub Actions secrets 为 `PRODUCTION_DATABASE_BACKUP_URL`、`PRODUCTION_BLOB_R
 - Fix：恢复容器先等待 `PostgreSQL init process complete; ready for start up.`，再等待最终 server 的 `pg_isready`。恢复后新增硬断言：23 张 `public` 表、1 条且名称正确的 migration、6 张关键业务表；只打印表数不再视为 PASS。
 - Passing retry：[`30287841720`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30287841720) 在 commit `1ca8036` 上用时 42 秒，全步骤成功；`production.dump: OK`，schema assertion 为 `23,1,1,6`，恢复出的 users/people/articles/media/workflow_events 均为 0，零对象媒体清单读回成功。
 
+## Public Product Schema Upgrade
+
+- Pre-migration recovery：run [`30339027394`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30339027394) 在 23/1 基线上全步骤成功；本地 custom dump SHA-256 为 `8f15405f26c05d585aa1a28059fc58785a0fc508b7a2b30f23ac8d11a3d0f455`，隔离恢复与 live 均为 `23,1,0,0,0,0,0`。
+- Migration：2026-07-28 15:40 Asia/Shanghai 依次执行其余 4 条 migration，全部成功并回读为 Batch 2 / `Ran: Yes`；最终为 29 张 `public` 表、5 条且名称全部匹配的 migration、8 张关键业务表，users/people/articles/media/workflow_events 均为 0。
+- Workflow update：commit `8cef12e` 将隔离恢复硬断言同步收紧到 `29,5,5,8`，包含全部 migration 名称与 `places / person_revisions`；旧 23/1 基线先完成最后一次恢复，再执行 migration 与 workflow 更新。
+- Post-migration recovery：run [`30339406235`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30339406235) 在 commit `8cef12e` 上用时 41 秒，全步骤成功；`production.dump: OK`、schema assertion `29,5,5,8`、五类业务数据为 0，零对象媒体清单读回成功。
+
 ## Remaining Gate
 
 - 第一批真实媒体写入后再次运行 workflow，要求至少一个媒体对象从 R2 读回且校验一致。
-- 这些验收通过前不部署、不绑定网站域名、不公开内容或索引。
+- staged Production 已部署；正式域名、真实内容和索引仍须在内容审核与 release 门禁后执行。
