@@ -13,7 +13,7 @@ export type PublicationSummary = {
   url: string;
 };
 
-const formatLabels: Record<Article["format"], string> = {
+const formatLabels: Record<NonNullable<Article["format"]>, string> = {
   analysis: "Analysis",
   first_person: "First person",
   guide: "Guide",
@@ -42,7 +42,6 @@ export function buildPublicationSummary(article: Article): PublicationSummary {
     ...relationshipNames(article.geographies),
     ...relationshipNames(article.situations),
   ];
-  const section = article.format === "guide" ? "guides" : "stories";
   const sources = (article.sourceNotes ?? []).map((source) => source.label).filter(Boolean);
   const person = typeof article.author === "object" ? (article.author as Person) : null;
   const missing = [
@@ -50,7 +49,7 @@ export function buildPublicationSummary(article: Article): PublicationSummary {
     ...(!sources.length ? ["Sources"] : []),
     ...(article.format === "guide" && !article.freshnessDate ? ["Freshness"] : []),
     ...(!person?.portrait ? ["Author portrait"] : []),
-    ...(!person?.authorApprovalRecordedAt ? ["Author approval"] : []),
+    ...(!article.format ? ["Section"] : []),
   ];
 
   return {
@@ -60,9 +59,9 @@ export function buildPublicationSummary(article: Article): PublicationSummary {
     freshness: article.freshnessDate?.slice(0, 10) || "Not set",
     language: article.locale === "es" ? "Spanish" : "English",
     missing,
-    object: formatLabels[article.format],
+    object: article.format ? formatLabels[article.format] : "Not set",
     sources: sources.join(", ") || "Not set",
     title: article.title,
-    url: `/${article.locale}/${section}/${article.slug}`,
+    url: `/${article.locale}/posts/${article.slug}`,
   };
 }

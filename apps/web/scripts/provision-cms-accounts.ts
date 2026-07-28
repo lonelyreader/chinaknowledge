@@ -131,7 +131,7 @@ try {
         const password = `${randomBytes(32).toString("base64url")}Aa1!`;
         const user = await payload.create({
           collection: "users",
-          data: { ...account, password },
+          data: { ...account, accountStatus: "active", password },
           overrideAccess: true,
           req,
         });

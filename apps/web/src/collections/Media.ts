@@ -7,6 +7,7 @@ import {
   editorial,
   editorialField,
   readApprovedMediaOrOwn,
+  updateOwnMediaOrEditorial,
 } from "@/cms/access";
 import { normalizeUploadBuffers } from "@/cms/media-hooks";
 import { hasEditorialRole, isCMSUser } from "@/cms/roles";
@@ -19,7 +20,7 @@ export const Media: CollectionConfig = {
     create: authenticated,
     delete: editorial,
     read: readApprovedMediaOrOwn,
-    update: editorial,
+    update: updateOwnMediaOrEditorial,
   },
   upload: {
     staticDir: path.resolve(process.cwd(), "media"),
@@ -51,6 +52,12 @@ export const Media: CollectionConfig = {
       name: "uploadedBy",
       type: "relationship",
       relationTo: "users",
+      access: { create: () => false, read: authenticatedField, update: () => false },
+      admin: { hidden: true },
+    },
+    {
+      name: "memberUsePublishedAt",
+      type: "date",
       access: { create: () => false, read: authenticatedField, update: () => false },
       admin: { hidden: true },
     },

@@ -89,7 +89,8 @@ export const enforcePlacePublication: CollectionBeforeChangeHook<PlaceShape> = a
       and: [
         { locale: { equals: locale } },
         { geographies: { contains: geography } },
-        { workflowStatus: { equals: "public" } },
+        { publicationStatus: { equals: "published" } },
+        { curationStatus: { equals: "curated" } },
         { _status: { equals: "published" } },
       ],
     },

@@ -1,58 +1,159 @@
-import { APIError, type Endpoint } from "payload";
+import { APIError, type Endpoint, type Payload, type PayloadRequest } from "payload";
 
-import { isCMSUser } from "./roles";
-import { isWorkflowStatus } from "./workflow";
+import type { Article } from "@/payload-types";
+import { hasEditorialRole, isCMSUser, isSuperAdmin } from "./roles";
+import { isCurationStatus, isPublicationStatus } from "./workflow";
 
 type TransitionBody = {
+  axis?: "publication" | "curation";
   confirmed?: boolean;
   status?: unknown;
 };
+
+function relationID(value: unknown): number | null | undefined {
+  if (value && typeof value === "object" && "id" in value) {
+    const id = (value as { id?: unknown }).id;
+    if (typeof id === "number") return id;
+    if (typeof id === "string" && /^\d+$/.test(id)) return Number(id);
+    return undefined;
+  }
+  if (typeof value === "number" || value === null) return value;
+  if (typeof value === "string" && /^\d+$/.test(value)) return Number(value);
+  return undefined;
+}
+
+function relationIDs(values: unknown[] | null | undefined) {
+  return values?.flatMap((value) => {
+    const id = relationID(value);
+    return typeof id === "number" ? [id] : [];
+  });
+}
+
+function promotableArticleData(article: Article) {
+  return {
+    assignedEditor: relationID(article.assignedEditor),
+    body: article.body,
+    coverImage: relationID(article.coverImage),
+    editorComments: article.editorComments,
+    format: article.format,
+    freshnessDate: article.freshnessDate,
+    geographies: relationIDs(article.geographies),
+    homepageEndsAt: article.homepageEndsAt,
+    homepagePlacement: article.homepagePlacement,
+    homepageStartsAt: article.homepageStartsAt,
+    locale: article.locale,
+    purposes: relationIDs(article.purposes),
+    situations: relationIDs(article.situations),
+    slug: article.slug,
+    sourceNotes: article.sourceNotes,
+    summary: article.summary,
+    title: article.title,
+    topics: relationIDs(article.topics),
+  };
+}
+
+export async function getLatestDraftData(
+  payload: Payload,
+  id: number | string,
+  fallback: Article,
+  req?: PayloadRequest,
+) {
+  const versions = await payload.findVersions({
+    collection: "articles",
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    req,
+    sort: "-updatedAt",
+    where: {
+      and: [
+        { parent: { equals: id } },
+        { latest: { equals: true } },
+        { autosave: { equals: true } },
+      ],
+    },
+  });
+  return promotableArticleData(versions.docs[0]?.version ?? fallback);
+}
 
 export const transitionArticleEndpoint: Endpoint = {
   path: "/:id/transition",
   method: "post",
   handler: async (req) => {
-    if (!isCMSUser(req.user)) {
-      throw new APIError("Authentication is required.", 401);
-    }
-
+    if (!isCMSUser(req.user)) throw new APIError("Authentication is required.", 401);
     const id = req.routeParams?.id;
     if (typeof id !== "string" && typeof id !== "number") {
       throw new APIError("Article ID is required.", 400);
     }
-
     const body = (await req.json?.()) as TransitionBody | undefined;
-    if (!isWorkflowStatus(body?.status)) {
-      throw new APIError("Unknown editorial status.", 400);
+    if (body?.axis !== "publication" && body?.axis !== "curation") {
+      throw new APIError("A transition axis is required.", 400);
     }
+    if (body.confirmed !== true) throw new APIError("Confirmation is required.", 403);
 
-    if (body.status === "public" && body.confirmed !== true) {
-      throw new APIError("Publication requires editorial confirmation.", 403);
-    }
-
-    const publishedArticle = await req.payload.findByID({
+    const current = await req.payload.findByID({
       collection: "articles",
       id,
       depth: 0,
+      draft: true,
+      overrideAccess: true,
+      req,
+    });
+    const ownerAction = relationID(current.owner) === req.user.id;
+
+    if (body.axis === "publication") {
+      if (!isPublicationStatus(body.status)) throw new APIError("Unknown publication status.", 400);
+      if (!ownerAction && !isSuperAdmin(req.user)) {
+        throw new APIError("Only the member or a Super Admin can change personal publication.", 403);
+      }
+      const unpublishing = current.publicationStatus === "published" && body.status !== "published";
+      const promotedData =
+        body.status === "published"
+          ? await getLatestDraftData(req.payload, id, current, req)
+          : undefined;
+      const article = await req.payload.update({
+        collection: "articles",
+        id,
+        context: { memberPublicationConfirmed: body.status === "published" },
+        data: {
+          ...promotedData,
+          publicationStatus: body.status,
+          ...(unpublishing ? { _status: "draft" as const } : {}),
+        },
+        ...(unpublishing ? {} : { draft: body.status !== "published" }),
+        overrideAccess: false,
+        req,
+      });
+      return Response.json({
+        id: article.id,
+        publicationStatus: article.publicationStatus,
+        curationStatus: article.curationStatus,
+      });
+    }
+
+    if (!hasEditorialRole(req.user)) throw new APIError("Editor access is required.", 403);
+    if (!isCurationStatus(body.status)) throw new APIError("Unknown curation status.", 400);
+    const promotedData =
+      body.status === "curated"
+        ? await getLatestDraftData(req.payload, id, current, req)
+        : undefined;
+    const article = await req.payload.update({
+      collection: "articles",
+      id,
+      context: { curationConfirmed: body.status === "curated" },
+      data: {
+        ...promotedData,
+        curationStatus: body.status,
+      },
       draft: false,
       overrideAccess: false,
       req,
     });
-    const unpublishing = publishedArticle._status === "published" && body.status !== "public";
-
-    const article = await req.payload.update({
-      collection: "articles",
-      id,
-      context: { publicationConfirmed: body.status === "public" && body.confirmed === true },
-      data: {
-        workflowStatus: body.status,
-        ...(unpublishing ? { _status: "draft" as const } : {}),
-      },
-      ...(unpublishing ? {} : { draft: body.status !== "public" }),
-      overrideAccess: false,
-      req,
+    return Response.json({
+      id: article.id,
+      publicationStatus: article.publicationStatus,
+      curationStatus: article.curationStatus,
     });
-
-    return Response.json({ id: article.id, workflowStatus: article.workflowStatus });
   },
 };

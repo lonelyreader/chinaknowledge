@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { localize, people, requireLocale, stories } from "@/content";
-import { cmsReadEnabled, getPublishedCMSStories } from "@/content/cms";
+import { articlePath, cmsReadEnabled, getPublishedCMSStories } from "@/content/cms";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export default async function StoriesPage({ params }: { params: Promise<{ locale
           {cmsStories.map((story) => (
             <article className="story-line" key={story.slug}>
               <p className="meta">{story.publishedAt.slice(0, 10)}</p>
-              <h2><Link href={`/${locale}/stories/${story.slug}`}>{story.title}</Link></h2>
+              <h2><Link href={articlePath(locale, story)}>{story.title}</Link></h2>
               <Link href={`/${locale}/people/${story.author.slug}`}>{story.author.name}</Link>
             </article>
           ))}

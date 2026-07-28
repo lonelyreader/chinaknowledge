@@ -38,9 +38,8 @@ export const readPublicArticlesOrOwned: Access = ({ req }) => {
 
   const publicQuery: Where = {
     and: [
-      { workflowStatus: { equals: "public" } },
+      { publicationStatus: { equals: "published" } },
       { _status: { equals: "published" } },
-      { coverImage: { exists: true } },
       { publishedAt: { exists: true } },
     ],
   };
@@ -67,10 +66,7 @@ export const updateOwnedArticlesOrEditorial: Access = async ({ id, req }) => {
   });
   const owner = article.owner;
   const ownerID = owner && typeof owner === "object" ? owner.id : owner;
-  return (
-    ownerID === req.user.id &&
-    (article.workflowStatus === "draft" || article.workflowStatus === "changes_requested")
-  );
+  return ownerID === req.user.id;
 };
 
 export const readOwnedArticleVersionsOrEditorial: Access = async ({ id, req }) => {
@@ -97,7 +93,6 @@ export const readPublicPeopleOrOwn: Access = ({ req }) => {
     and: [
       { profileStatus: { equals: "public" } },
       { portrait: { exists: true } },
-      { authorApprovalRecordedAt: { exists: true } },
       { profilePublishedAt: { exists: true } },
     ],
   };
@@ -139,7 +134,12 @@ export const updateOwnOpenPersonRevisionsOrEditorial: Access = ({ req }) => {
 };
 
 export const readApprovedMediaOrOwn: Access = ({ req }) => {
-  const approved: Where = { publicUseApprovedAt: { exists: true } };
+  const approved: Where = {
+    or: [
+      { publicUseApprovedAt: { exists: true } },
+      { memberUsePublishedAt: { exists: true } },
+    ],
+  };
   if (!isCMSUser(req.user)) return approved;
   if (hasEditorialRole(req.user)) return true;
   return {
@@ -148,6 +148,12 @@ export const readApprovedMediaOrOwn: Access = ({ req }) => {
       approved,
     ],
   };
+};
+
+export const updateOwnMediaOrEditorial: Access = ({ req }) => {
+  if (!isCMSUser(req.user)) return false;
+  if (hasEditorialRole(req.user)) return true;
+  return { uploadedBy: { equals: req.user.id } };
 };
 
 export const readPublicPlacesOrEditorial: Access = ({ req }) => {

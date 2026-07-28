@@ -5,8 +5,7 @@ import type { Locale } from "@/content";
 import type { PublishedCMSPerson } from "@/content/cms";
 
 function contributionPath(locale: Locale, person: PublishedCMSPerson) {
-  const section = person.contribution.format === "guide" ? "guides" : "stories";
-  return `/${locale}/${section}/${person.contribution.slug}`;
+  return `/${locale}/posts/${person.contribution.slug}`;
 }
 
 export function CMSPersonRow({

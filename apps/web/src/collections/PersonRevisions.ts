@@ -3,10 +3,8 @@ import type { CollectionConfig } from "payload";
 import {
   authenticatedField,
   authorField,
-  createOwnPersonRevision,
   editorialField,
   readOwnPersonRevisionsOrEditorial,
-  updateOwnOpenPersonRevisionsOrEditorial,
 } from "@/cms/access";
 import {
   enforcePersonRevisionWorkflow,
@@ -22,12 +20,13 @@ export const PersonRevisions: CollectionConfig = {
     group: "People",
     hideAPIURL: true,
     useAsTitle: "person",
+    hidden: true,
   },
   access: {
-    create: createOwnPersonRevision,
+    create: () => false,
     delete: () => false,
     read: readOwnPersonRevisionsOrEditorial,
-    update: updateOwnOpenPersonRevisionsOrEditorial,
+    update: () => false,
   },
   hooks: {
     beforeChange: [enforcePersonRevisionWorkflow],

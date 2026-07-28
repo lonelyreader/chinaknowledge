@@ -14,7 +14,7 @@ max_lines: 100
 
 ## Active
 
-[`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](checklists/member-publishing-curation-closure.md)：把当前投稿审核架构改为成员直接公开与站方策展两条独立状态，在同一 Article 上保留原作者署名，并打通官方入口到 Person 与外链的流量路径。当前已建立产品合同与架构审计；产品代码、schema、migration、public routing、真实账户和 Production 分别过门禁。
+[`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](checklists/member-publishing-curation-closure.md)：本地核心 slice 已完成两轴状态、同 Article 策展、原作者署名、个人/官方 read model、稳定路由、草稿预览、Member/Editor 工作台和账户生命周期；事务通知、完整双语/无障碍验证、Preview、独立复审和 Production 仍按各自门禁推进。
 
 ## Deferred
 

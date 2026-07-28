@@ -9,6 +9,7 @@ export const Taxonomies: CollectionConfig = {
     useAsTitle: "name",
     defaultColumns: ["name", "dimension", "slug"],
     group: "Editorial",
+    hidden: ({ user }) => user?.role === "author",
     hideAPIURL: true,
   },
   access: {

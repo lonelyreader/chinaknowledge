@@ -31,6 +31,9 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: dirname },
     meta: { titleSuffix: " — China, in Fact" },
+    components: {
+      beforeDashboard: ["/cms/components/MemberWorkspace#MemberWorkspace"],
+    },
   },
   collections: [
     Users,

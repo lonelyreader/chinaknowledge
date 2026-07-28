@@ -5,6 +5,7 @@ import { cache } from "react";
 
 import config from "@payload-config";
 import type { Article, Media, Person, Place, Taxonomy } from "@/payload-types";
+import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 import type { Locale } from "./types";
 export { stableWeeklyPeople } from "./stable-weekly-people";
 
@@ -32,8 +33,9 @@ export type PublishedCMSPerson = {
 
 export type PublishedCMSArticleSummary = {
   authorSlug: string;
-  coverImage: PublishedCMSImage;
-  format: Article["format"];
+  coverImage: PublishedCMSImage | null;
+  curationStatus: Article["curationStatus"];
+  format: Article["format"] | null;
   freshnessDate: string | null;
   geographies: string[];
   geographySlugs: string[];
@@ -59,6 +61,10 @@ export type PublishedCMSArticle = PublishedCMSArticleSummary & {
 };
 
 export type PublishedCMSGuide = PublishedCMSArticle;
+export type CuratedCMSArticle = PublishedCMSArticle & {
+  coverImage: PublishedCMSImage;
+  format: NonNullable<Article["format"]>;
+};
 
 export type PublishedCMSPlace = {
   articles: PublishedCMSArticle[];
@@ -109,7 +115,7 @@ function safeExternalURL(value: string) {
 
 function personBase(person: Person): Omit<PublishedCMSPerson, "contribution"> | null {
   const image = publicImage(person.portrait);
-  if (!image) return null;
+  if (!image || !person.city || !person.identity || !person.introduction || !person.languages?.length) return null;
   return {
     city: person.city,
     identity: person.identity,
@@ -131,11 +137,12 @@ function personBase(person: Person): Omit<PublishedCMSPerson, "contribution"> | 
 function articleSummary(article: Article): PublishedCMSArticleSummary | null {
   const coverImage = publicImage(article.coverImage);
   const author = typeof article.author === "object" ? article.author : null;
-  if (!coverImage || !author || !article.publishedAt) return null;
+  if (!author || !article.publishedAt) return null;
   return {
     authorSlug: author.slug,
     coverImage,
-    format: article.format,
+    curationStatus: article.curationStatus,
+    format: article.format ?? null,
     freshnessDate: article.freshnessDate ?? null,
     geographies: taxonomyNames(article.geographies),
     geographySlugs: taxonomySlugs(article.geographies),
@@ -147,7 +154,7 @@ function articleSummary(article: Article): PublishedCMSArticleSummary | null {
     purposeSlugs: taxonomySlugs(article.purposes),
     situations: taxonomyNames(article.situations),
     slug: article.slug,
-    summary: article.summary,
+    summary: article.summary ?? "",
     title: article.title,
     topics: taxonomyNames(article.topics),
     topicSlugs: taxonomySlugs(article.topics),
@@ -171,7 +178,47 @@ function toPublishedArticle(article: Article): PublishedCMSArticle | null {
   };
 }
 
-const findPublishedArticles = cache(async (locale: Locale) => {
+export async function getDraftPreviewCMSArticle(
+  locale: Locale,
+  id: number | string,
+  requestHeaders: Headers,
+) {
+  if (!cmsReadEnabled()) return null;
+  const payload = await getPayload({ config });
+  const { user } = await payload.auth({ headers: requestHeaders });
+  if (!isCMSUser(user)) return null;
+  const current = await payload.findByID({
+    collection: "articles",
+    depth: 2,
+    id,
+    overrideAccess: true,
+  });
+  const ownerID = typeof current.owner === "object" ? current.owner.id : current.owner;
+  if (ownerID !== user.id && !hasEditorialRole(user)) return null;
+  const versions = await payload.findVersions({
+    collection: "articles",
+    depth: 2,
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    sort: "-updatedAt",
+    where: {
+      and: [
+        { parent: { equals: id } },
+        { latest: { equals: true } },
+        { autosave: { equals: true } },
+      ],
+    },
+  });
+  const draft = versions.docs[0]?.version ?? current;
+  if (draft.locale !== locale) return null;
+  return toPublishedArticle({
+    ...draft,
+    publishedAt: draft.publishedAt ?? draft.updatedAt,
+  });
+}
+
+const findMemberPublishedArticles = cache(async (locale: Locale) => {
   if (!cmsReadEnabled()) return [];
   const payload = await getPayload({ config });
   const result = await payload.find({
@@ -189,8 +236,33 @@ const findPublishedArticles = cache(async (locale: Locale) => {
   });
 });
 
+const findCuratedArticles = cache(async (locale: Locale) => {
+  if (!cmsReadEnabled()) return [];
+  const payload = await getPayload({ config });
+  const result = await payload.find({
+    collection: "articles",
+    depth: 2,
+    limit: 200,
+    overrideAccess: false,
+    pagination: false,
+    sort: "-publishedAt",
+    where: {
+      and: [
+        { locale: { equals: locale } },
+        { curationStatus: { equals: "curated" } },
+      ],
+    },
+  });
+  return result.docs.flatMap((article) => {
+    const published = toPublishedArticle(article);
+    return published?.format && published.coverImage
+      ? [published as CuratedCMSArticle]
+      : [];
+  });
+});
+
 export async function resolvePublishedCMSArticle(locale: Locale, slug: string) {
-  const articles = await findPublishedArticles(locale);
+  const articles = await findMemberPublishedArticles(locale);
   const direct = articles.find((article) => article.slug === slug);
   if (direct) return { article: direct, canonicalSlug: direct.slug };
   if (!cmsReadEnabled()) return null;
@@ -229,17 +301,31 @@ export async function getPublishedCMSArticle(locale: Locale, slug: string) {
   return (await resolvePublishedCMSArticle(locale, slug))?.article ?? null;
 }
 
+export async function getPublishedCMSArticleAlternates(article: Pick<PublishedCMSArticleSummary, "translationGroup">) {
+  const locales: Locale[] = ["en", "es"];
+  const entries = await Promise.all(locales.map(async (locale) => {
+    const alternate = (await findMemberPublishedArticles(locale))
+      .find((candidate) => candidate.translationGroup === article.translationGroup);
+    return alternate ? [locale, articlePath(locale, alternate)] as const : null;
+  }));
+  return Object.fromEntries(entries.filter((entry): entry is NonNullable<typeof entry> => Boolean(entry)));
+}
+
+export async function getPublishedCMSArticleIndex(locale: Locale) {
+  return findMemberPublishedArticles(locale);
+}
+
 export async function getPublishedCMSGuide(locale: Locale, slug: string) {
   const article = await getPublishedCMSArticle(locale, slug);
   return article?.format === "guide" ? article : null;
 }
 
 export async function getPublishedCMSGuides(locale: Locale) {
-  return (await findPublishedArticles(locale)).filter((article) => article.format === "guide");
+  return (await findCuratedArticles(locale)).filter((article) => article.format === "guide");
 }
 
 export async function getPublishedCMSStories(locale: Locale) {
-  return (await findPublishedArticles(locale)).filter((article) => article.format !== "guide");
+  return (await findCuratedArticles(locale)).filter((article) => article.format !== "guide");
 }
 
 function curationIsActive(article: PublishedCMSArticleSummary, now: number) {
@@ -261,7 +347,7 @@ function currentUTCWeek(now = new Date()) {
 }
 
 export async function getPublishedCMSHomepage(locale: Locale) {
-  const articles = await findPublishedArticles(locale);
+  const articles = await findCuratedArticles(locale);
   const now = Date.now();
   const active = articles.filter((article) => curationIsActive(article, now));
   const leads = active
@@ -289,7 +375,7 @@ export async function getPublishedCMSPeople(locale: Locale) {
       sort: "name",
       where: { languages: { contains: locale } },
     }),
-    findPublishedArticles(locale),
+    findMemberPublishedArticles(locale),
   ]);
 
   return peopleResult.docs.flatMap((person) => {
@@ -305,7 +391,7 @@ export async function getPublishedCMSPerson(locale: Locale, slug: string) {
 }
 
 export async function getPublishedCMSPersonArticles(locale: Locale, slug: string) {
-  return (await findPublishedArticles(locale)).filter((article) => article.authorSlug === slug);
+  return (await findMemberPublishedArticles(locale)).filter((article) => article.authorSlug === slug);
 }
 
 export async function getPublishedCMSArticlesByTaxonomy(
@@ -314,7 +400,7 @@ export async function getPublishedCMSArticlesByTaxonomy(
   slug: string,
 ) {
   const slugField = dimension === "purposes" ? "purposeSlugs" : "topicSlugs";
-  return (await findPublishedArticles(locale)).filter((article) =>
+  return (await findCuratedArticles(locale)).filter((article) =>
     article[slugField].includes(slug),
   );
 }
@@ -332,7 +418,7 @@ const findPublishedPlaces = cache(async (locale: Locale) => {
       sort: "name",
       where: { locale: { equals: locale } },
     }),
-    findPublishedArticles(locale),
+      findCuratedArticles(locale),
     getPublishedCMSPeople(locale),
   ]);
 
@@ -391,7 +477,7 @@ export async function getPublishedCMSPlace(locale: Locale, slug: string) {
 }
 
 export function articlePath(locale: Locale, article: PublishedCMSArticleSummary) {
-  return `/${locale}/${article.format === "guide" ? "guides" : "stories"}/${article.slug}`;
+  return `/${locale}/posts/${article.slug}`;
 }
 
 export function placePath(locale: Locale, place: Pick<PublishedCMSPlace, "slug">) {

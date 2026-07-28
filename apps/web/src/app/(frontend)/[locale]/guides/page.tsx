@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { drivingGuide, localize, requireLocale, ui } from "@/content";
-import { cmsReadEnabled, getPublishedCMSGuides } from "@/content/cms";
+import { articlePath, cmsReadEnabled, getPublishedCMSGuides } from "@/content/cms";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,7 @@ export default async function GuidesPage({ params }: { params: Promise<{ locale:
         {cmsGuides.map((guide) => (
           <article className="index-lead" key={guide.slug}>
             <p className="meta">{copy.reviewed} · {guide.freshnessDate?.slice(0, 10)}</p>
-            <h2><Link href={`/${locale}/guides/${guide.slug}`}>{guide.title}</Link></h2>
+            <h2><Link href={articlePath(locale, guide)}>{guide.title}</Link></h2>
             <p>{guide.summary}</p>
           </article>
         ))}

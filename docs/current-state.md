@@ -19,13 +19,13 @@ max_lines: 160
 - 正式品牌名为 **China, in Fact**，正式网站为 [`chinainfact.com`](https://chinainfact.com)；域名已绑定 `china-in-fact` project，`www.chinainfact.com` 以 308 永久跳转到主域名，TLS、匿名访问和公开索引均已启用。Registrar 与 nameserver 均为 Vercel，到期日为 2027-07-27；邮件专用 DNS 保持独立。商标和品牌资产尚未确定。
 - 信息架构采用稳定内容对象、目的入口与横向语义分层：`Stories / Guides / Places / People` 为主导航，`Understand / Visit / Live / Study / Work / Business` 为目的入口，`Topics / Geography / Situation` 为横向发现。
 - 产品进一步明确为由真实中国成员直接发布、经站方选择与策展的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。成员个人公开与站方官方分发是两个决定，站方在同一 Article 上编辑且不改变原作者署名。
-- Stitch 公共站、People 机制及 Newsletter 状态已经形成 P1 视觉基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；公共 Article、Home 与 Person 已具备明显作者链接。原“作者提交—编辑审核—编辑公开”工作流不再是接受的产品基线，当前实现需要按 `PUB-CURATION-001` 重构。
+- Stitch 公共站、People 机制及 Newsletter 状态已经形成 P1 视觉基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；公共 Article、Home 与 Person 已具备明显作者链接。本地实现树已按 `PUB-CURATION-001` 完成核心重构，Production 仍运行旧工作流，尚未迁移或部署。
 - P0 Stitch 设计原型、P1 可运行公共产品切片、`P1-EDITORIAL-001` 编辑 CMS 基础与 `P2-PREVIEW-001` 均已完成并归档。
 - Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：现有 Vercel Pro project + 独立 Neon Launch + 独立 Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，异地备份使用 Cloudflare R2。Production 已完整执行 5 条 migration，形成 29 张 `public` 表；首位管理员、公开 Person、头像、原创 Article 封面和两篇英西 Article 均已进入恢复链路，迁移前后备份、读回、SHA、隔离恢复和 schema 断言均已通过。
 - 人工域名邮箱已复用现有飞书组织完成配置：`chinainfact.com` 邮箱域名、MX、SPF、DKIM 与监测态 DMARC 均已启用，公共邮箱 `hello@chinainfact.com` 已创建并授权给产品负责人；2026-07-27 从该地址向 `gexu@lonelyreader.com` 的真实测试邮件已发送并确认收达。Resend 使用已验证的 `mail.chinainfact.com / us-east-1` 承担程序邮件，真实事务邮件已由飞书主邮箱回读收达。
 - `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。提交 `4125230` 已接通 CMS 首页、Stories/Guides、Places、People/人物页、Purpose、Topic 与 About，并在 CMS 模式停止公共 fixture 回退。Place 是独立编辑节点，对应一个 Geography；页面自动聚合同语言公开内容与人物。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
 - P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的最终 Preview 为 [`china-in-fact-9refblv25`](https://china-in-fact-9refblv25-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停；Preview 保持 `noindex`，只有资源齐全的正式 Production 允许把独立索引开关设为 `true`。
-- CMS 当前已经实现 People、Profile revision、Article、Place、Media、分类、来源说明、编辑评论、版本与工作流审计；英语和西班牙语使用独立文档、URL 与公开状态。它仍按旧模型运行：Author 不能直接公开，Person 修改需要 Editor 应用，单一 `workflowStatus=public` 同时驱动个人页和全部官方页面，`format` 决定 Stories/Guides URL。两轴状态、同文档策展、组合权限和个人/官方 read model 尚未实现。
+- 本地 CMS 核心 slice 已实现 Member publication 与 Editorial curation 两轴、同 Article 编辑、固定原作者、个人/官方 read model、稳定 `/posts` canonical、登录态草稿预览、My work/My profile、Editor 候选队列、账户自动建 Person 草稿和暂停。Production 仍是单一 `workflowStatus=public`、Person revision 必审和 format 派生详情 URL；不得把本地能力当成已上线能力。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。
@@ -44,11 +44,12 @@ max_lines: 160
 
 ## 当前执行线
 
-当前唯一 active 执行线是 [`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](roadmap/checklists/member-publishing-curation-closure.md)。本轮已完成产品纠偏、源码/Production 外显审计和执行合同，尚未开始产品代码、schema、migration 或 Production 变更。`PROD-LAUNCH-001` 已完成并归档；P3 仍等待真实访问、订阅和作者运营数据。
+当前唯一 active 执行线是 [`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](roadmap/checklists/member-publishing-curation-closure.md)。产品合同、核心代码、schema、可回滚 migration、公开 read model、稳定路由和 Member/Editor 基础工作台已在本地完成；事务通知、完整双语/无障碍验证、Preview RC、独立复审、Production migration 与部署仍未完成。`PROD-LAUNCH-001` 已完成并归档；P3 仍等待真实访问、订阅和作者运营数据。
 
 ## 当前运行边界
 
 - 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
+- `PUB-CURATION-001` 使用独立临时 PostgreSQL 完成 7 条 migration apply、整批 rollback/reapply 和虚构状态矩阵；Production 数据库、真实账户和公开内容未触碰。证据见 [`core slice`](reference/implementation/member-publishing-curation-core-slice-2026-07-28.md)。
 - Preview deployment `dpl_AZaJ5DPimMSjq2NakcciToVAvVrL` 为 `READY / target: null`，绑定 clean HEAD `2ec2aeb`；匿名请求进入 Vercel SSO，授权健康检查返回 200。Preview 为 29/5，并以 25 个合格虚构人物完成桌面 24/页、移动 12/页、翻页、筛选、Spotlight、连续周和跨年轮换验收。唯一 WARN 是 Preview 未配置邮件适配器的预期提示；没有正式域名或可用的 Production URL。
 - 首次 CLI 部署误取 production target，但环境守卫在构建期拒绝并留下一个 `ERROR` 记录；没有启动 production runtime、写入 production 数据或生成可用地址。后续部署均显式使用 Preview。
 - Production Neon 已执行全部 5 条 migration：29 张 `public` 表。Person `gexu` 已公开，关联本人账户与批准头像；地点为杭州和墨西哥 Mérida，身份为 Educator and entrepreneur，简介为 A coherentist，语言为英语和西班牙语。首篇 Analysis 为 `A Decade of AI Talent Migration in China / Una década de migración del talento de IA en China`，两个版本共享翻译组、原创批准封面和作者，英西切换均跳到目标 canonical URL。run [`30354709841`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30354709841) 完成 dump、R2 读回、隔离恢复和 29/5/5/8 断言，users/people/articles/media/workflow_events 为 1/1/2/2/8，4 个媒体对象进入不可变备份并抽样核对 SHA。

@@ -135,6 +135,7 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  accountStatus: 'active' | 'paused';
   role: 'author' | 'editor' | 'super_admin';
   displayName: string;
   updatedAt: string;
@@ -164,11 +165,11 @@ export interface Person {
   id: number;
   name: string;
   slug: string;
-  identity: string;
-  introduction: string;
-  city: string;
+  identity?: string | null;
+  introduction?: string | null;
+  city?: string | null;
   portrait?: (number | null) | Media;
-  languages: ('en' | 'es')[];
+  languages?: ('en' | 'es')[] | null;
   topics?: (number | Taxonomy)[] | null;
   links?:
     | {
@@ -194,6 +195,7 @@ export interface Media {
   id: number;
   alt: string;
   uploadedBy?: (number | null) | User;
+  memberUsePublishedAt?: string | null;
   publicUseApprovedAt?: string | null;
   publicUseApprovedBy?: (number | null) | User;
   updatedAt: string;
@@ -268,7 +270,7 @@ export interface PersonRevision {
 export interface Article {
   id: number;
   title: string;
-  summary: string;
+  summary?: string | null;
   body: {
     root: {
       type: string;
@@ -285,7 +287,7 @@ export interface Article {
     [k: string]: unknown;
   };
   coverImage?: (number | null) | Media;
-  format: 'guide' | 'reporting' | 'analysis' | 'first_person' | 'update';
+  format?: ('guide' | 'reporting' | 'analysis' | 'first_person' | 'update') | null;
   locale: 'en' | 'es';
   slug: string;
   translationGroup: string;
@@ -295,12 +297,14 @@ export interface Article {
   topics?: (number | Taxonomy)[] | null;
   geographies?: (number | Taxonomy)[] | null;
   situations?: (number | Taxonomy)[] | null;
-  sourceNotes: {
-    label: string;
-    url?: string | null;
-    check: string;
-    id?: string | null;
-  }[];
+  sourceNotes?:
+    | {
+        label: string;
+        url?: string | null;
+        check?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   editorComments?:
     | {
         anchor: string;
@@ -310,6 +314,8 @@ export interface Article {
         id?: string | null;
       }[]
     | null;
+  publicationStatus: 'draft' | 'published' | 'withdrawn';
+  curationStatus: 'not_selected' | 'selected' | 'editing' | 'curated' | 'needs_recheck' | 'removed';
   workflowStatus: 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'public' | 'archived';
   assignedEditor?: (number | null) | User;
   freshnessDate?: string | null;
@@ -347,8 +353,42 @@ export interface WorkflowEvent {
   id: number;
   article: number | Article;
   actor?: (number | null) | User;
-  fromStatus?: ('draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'public' | 'archived') | null;
-  toStatus: 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'public' | 'archived';
+  axis?: ('publication' | 'curation') | null;
+  fromStatus?:
+    | (
+        | 'draft'
+        | 'published'
+        | 'withdrawn'
+        | 'not_selected'
+        | 'selected'
+        | 'editing'
+        | 'curated'
+        | 'needs_recheck'
+        | 'removed'
+        | 'submitted'
+        | 'in_review'
+        | 'changes_requested'
+        | 'approved'
+        | 'public'
+        | 'archived'
+      )
+    | null;
+  toStatus:
+    | 'draft'
+    | 'published'
+    | 'withdrawn'
+    | 'not_selected'
+    | 'selected'
+    | 'editing'
+    | 'curated'
+    | 'needs_recheck'
+    | 'removed'
+    | 'submitted'
+    | 'in_review'
+    | 'changes_requested'
+    | 'approved'
+    | 'public'
+    | 'archived';
   occurredAt: string;
   updatedAt: string;
   createdAt: string;
@@ -456,6 +496,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  accountStatus?: T;
   role?: T;
   displayName?: T;
   updatedAt?: T;
@@ -552,6 +593,7 @@ export interface TaxonomiesSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   uploadedBy?: T;
+  memberUsePublishedAt?: T;
   publicUseApprovedAt?: T;
   publicUseApprovedBy?: T;
   updatedAt?: T;
@@ -616,6 +658,8 @@ export interface ArticlesSelect<T extends boolean = true> {
         createdBy?: T;
         id?: T;
       };
+  publicationStatus?: T;
+  curationStatus?: T;
   workflowStatus?: T;
   assignedEditor?: T;
   freshnessDate?: T;
@@ -651,6 +695,7 @@ export interface PlacesSelect<T extends boolean = true> {
 export interface WorkflowEventsSelect<T extends boolean = true> {
   article?: T;
   actor?: T;
+  axis?: T;
   fromStatus?: T;
   toStatus?: T;
   occurredAt?: T;

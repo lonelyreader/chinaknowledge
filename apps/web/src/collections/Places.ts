@@ -10,6 +10,7 @@ export const Places: CollectionConfig = {
     useAsTitle: "name",
     defaultColumns: ["name", "locale", "status", "updatedAt"],
     group: "Editorial",
+    hidden: ({ user }) => user?.role === "author",
     hideAPIURL: true,
   },
   access: {

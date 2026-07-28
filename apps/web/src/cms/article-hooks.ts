@@ -6,18 +6,26 @@ import type {
 } from "payload";
 import { APIError } from "payload";
 
-import { hasEditorialRole, isCMSUser, type Role } from "./roles";
-import { assertMediaApprovedForPublicUse } from "./media-policy";
+import { hasEditorialRole, isCMSUser, isSuperAdmin } from "./roles";
 import {
-  assertWorkflowTransition,
-  isWorkflowStatus,
-  type WorkflowStatus,
+  assertMediaApprovedForPublicUse,
+  markMediaForMemberPublication,
+} from "./media-policy";
+import {
+  assertCurationTransition,
+  assertPublicationTransition,
+  isCurationStatus,
+  isPublicationStatus,
+  type CurationStatus,
+  type PublicationStatus,
 } from "./workflow";
 
 type ArticleShape = {
   author?: number | string | { id: number | string };
+  body?: unknown;
   coverImage?: number | string | { id: number | string } | null;
-  format?: "guide" | "reporting" | "analysis" | "first_person" | "update";
+  curationStatus?: CurationStatus;
+  format?: "guide" | "reporting" | "analysis" | "first_person" | "update" | null;
   freshnessDate?: string | null;
   homepageEndsAt?: string | null;
   homepagePlacement?: "none" | "lead" | "selected";
@@ -25,21 +33,55 @@ type ArticleShape = {
   id: number | string;
   locale?: "en" | "es";
   owner?: number | string | { id: number | string };
+  publicationStatus?: PublicationStatus;
   publishedAt?: string | null;
   slug?: string;
   sourceNotes?: { label?: string | null; url?: string | null }[] | null;
+  summary?: string | null;
+  title?: string;
   translationGroup?: string;
-  workflowStatus?: WorkflowStatus;
+  workflowStatus?: "draft" | "submitted" | "in_review" | "changes_requested" | "approved" | "public" | "archived";
   _status?: "draft" | "published";
 };
 
-function relationID(value: ArticleShape["owner"]) {
+function relationID(value: number | string | { id: number | string } | null | undefined) {
   if (value && typeof value === "object") return value.id;
   return value;
 }
 
-async function assertAuthorOwnership(article: Partial<ArticleShape>, req: Parameters<CollectionBeforeChangeHook>[0]["req"]) {
-  if (!isCMSUser(req.user) || req.user.role !== "author") return;
+function slugifyTitle(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 72);
+}
+
+async function findOwnPerson(
+  userID: number | string,
+  req: Parameters<CollectionBeforeValidateHook>[0]["req"],
+) {
+  const people = await req.payload.find({
+    collection: "people",
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    req,
+    where: { user: { equals: userID } },
+  });
+  const person = people.docs[0];
+  if (!person) throw new APIError("A member profile is required before creating an article.", 400);
+  return person;
+}
+
+async function assertBylineOwnership(
+  article: Partial<ArticleShape>,
+  req: Parameters<CollectionBeforeChangeHook>[0]["req"],
+) {
+  if (!isCMSUser(req.user)) return;
   const authorID = relationID(article.author);
   if (!authorID) throw new APIError("An author profile is required.", 400);
   const person = await req.payload.findByID({
@@ -49,14 +91,41 @@ async function assertAuthorOwnership(article: Partial<ArticleShape>, req: Parame
     overrideAccess: true,
     req,
   });
-  if (relationID(person.user) !== req.user.id) {
-    throw new APIError("Authors can only publish under their own profile.", 403);
+  const ownerID = relationID(article.owner);
+  if (relationID(person.user) !== ownerID) {
+    throw new APIError("The article owner must match the original author profile.", 403);
   }
 }
 
-async function assertPublicationComplete(article: Partial<ArticleShape>, req: Parameters<CollectionBeforeChangeHook>[0]["req"]) {
+async function assertMemberPublicationComplete(
+  article: Partial<ArticleShape>,
+  req: Parameters<CollectionBeforeChangeHook>[0]["req"],
+) {
+  if (!article.title?.trim() || !article.body) {
+    throw new APIError("Title and body are required before publication.", 400);
+  }
+  if (!article.locale || !article.slug?.trim()) {
+    throw new APIError("Language and public URL are required before publication.", 400);
+  }
+  await assertBylineOwnership(article, req);
+  if (article.coverImage) {
+    await markMediaForMemberPublication(article.coverImage, req, "Cover image");
+  }
+}
+
+async function assertCurationComplete(
+  article: Partial<ArticleShape>,
+  req: Parameters<CollectionBeforeChangeHook>[0]["req"],
+) {
+  if (article.publicationStatus !== "published") {
+    throw new APIError("Only a member-public article can be selected for site distribution.", 400);
+  }
+  if (!article.summary?.trim()) throw new APIError("A summary is required for site distribution.", 400);
+  if (!article.format) throw new APIError("A site format is required for site distribution.", 400);
   await assertMediaApprovedForPublicUse(article.coverImage, req, "Cover image");
-  if (!article.sourceNotes?.length) throw new APIError("At least one source is required before publication.", 400);
+  if (!article.sourceNotes?.length) {
+    throw new APIError("At least one source is required for site distribution.", 400);
+  }
   for (const source of article.sourceNotes) {
     if (!source.url) continue;
     try {
@@ -67,10 +136,10 @@ async function assertPublicationComplete(article: Partial<ArticleShape>, req: Pa
     }
   }
   if (article.format === "guide" && !article.freshnessDate) {
-    throw new APIError("A freshness date is required before publishing a guide.", 400);
+    throw new APIError("A freshness date is required before distributing a guide.", 400);
   }
   const authorID = relationID(article.author);
-  if (!authorID) throw new APIError("An author profile is required before publication.", 400);
+  if (!authorID) throw new APIError("An author profile is required for site distribution.", 400);
   const person = await req.payload.findByID({
     collection: "people",
     id: authorID,
@@ -78,15 +147,11 @@ async function assertPublicationComplete(article: Partial<ArticleShape>, req: Pa
     overrideAccess: true,
     req,
   });
-  if (!person.portrait) throw new APIError("The author needs a portrait before publication.", 400);
   await assertMediaApprovedForPublicUse(person.portrait, req, "Author portrait");
-  if (!person.authorApprovalRecordedAt) {
-    throw new APIError("Author profile approval must be recorded before publication.", 400);
-  }
 }
 
 function assertCurationWindow(article: Partial<ArticleShape>) {
-  if (article.homepagePlacement === "none") return;
+  if (!article.homepagePlacement || article.homepagePlacement === "none") return;
   if (article.homepageStartsAt && article.homepageEndsAt) {
     const startsAt = new Date(article.homepageStartsAt).getTime();
     const endsAt = new Date(article.homepageEndsAt).getTime();
@@ -103,18 +168,29 @@ export const prepareArticle: CollectionBeforeValidateHook<ArticleShape> = async 
   req,
 }) => {
   if (!data) return data;
-
   if (operation === "create") {
     data.translationGroup ||= randomUUID();
+    data.publicationStatus ||= "draft";
+    data.curationStatus ||= "not_selected";
     data.workflowStatus ||= "draft";
     data._status = "draft";
-    if (isCMSUser(req.user) && req.user.role === "author") {
+    if (isCMSUser(req.user)) {
+      const person = await findOwnPerson(req.user.id, req);
       data.owner = req.user.id;
+      data.author = person.id;
     }
   }
 
+  const title = data.title ?? originalDoc?.title;
+  let slug = data.slug ?? originalDoc?.slug;
+  let generatedSlug = false;
+  if (!slug && title?.trim()) {
+    slug = slugifyTitle(title) || `post-${String(data.translationGroup ?? originalDoc?.translationGroup).slice(0, 8)}`;
+    data.slug = slug;
+    generatedSlug = true;
+  }
+
   const locale = data.locale ?? originalDoc?.locale;
-  const slug = data.slug ?? originalDoc?.slug;
   if (locale && slug) {
     const matches = await req.payload.find({
       collection: "articles",
@@ -130,12 +206,12 @@ export const prepareArticle: CollectionBeforeValidateHook<ArticleShape> = async 
         ],
       },
     });
-
-    if (matches.docs.length > 0) {
+    if (matches.docs.length > 0 && generatedSlug) {
+      data.slug = `${slug}-${String(data.translationGroup ?? originalDoc?.translationGroup).slice(0, 8)}`;
+    } else if (matches.docs.length > 0) {
       throw new APIError("This URL is already used in the selected language.", 400);
     }
   }
-
   return data;
 };
 
@@ -151,52 +227,70 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
     throw new APIError("Authentication is required.", 401);
   }
 
-  const role = (req.user.role ?? "author") as Role;
-
   if (operation === "create") {
-    if (!data.owner) data.owner = req.user.id;
-    if (role === "author" && relationID(data.owner) !== req.user.id) {
-      throw new APIError("Authors can only create their own content.", 403);
-    }
-    await assertAuthorOwnership(data, req);
-    assertCurationWindow(data);
+    data.owner = req.user.id;
+    data.author = (await findOwnPerson(req.user.id, req)).id;
+    await assertBylineOwnership(data, req);
+    data.publicationStatus = "draft";
+    data.curationStatus = "not_selected";
     data.workflowStatus = "draft";
     data._status = "draft";
     return data;
   }
-
   if (!originalDoc) return data;
-  const current = originalDoc.workflowStatus ?? "draft";
-  const next = data.workflowStatus ?? current;
+
+  const currentPublication = originalDoc.publicationStatus ?? "draft";
+  const nextPublication = data.publicationStatus ?? currentPublication;
+  const currentCuration = originalDoc.curationStatus ?? "not_selected";
+  let nextCuration = data.curationStatus ?? currentCuration;
+  if (!isPublicationStatus(currentPublication) || !isPublicationStatus(nextPublication)) {
+    throw new APIError("Unknown publication status.", 400);
+  }
+  if (!isCurationStatus(currentCuration) || !isCurationStatus(nextCuration)) {
+    throw new APIError("Unknown curation status.", 400);
+  }
+
+  const ownerID = relationID(originalDoc.owner);
+  const ownerAction = ownerID === req.user.id;
+  if (!hasEditorialRole(req.user) && !ownerAction) {
+    throw new APIError("Members can only update their own content.", 403);
+  }
+  await assertBylineOwnership({ ...originalDoc, ...data }, req);
   assertCurationWindow({ ...originalDoc, ...data });
 
-  if (!isWorkflowStatus(current) || !isWorkflowStatus(next)) {
-    throw new APIError("Unknown editorial status.", 400);
-  }
-
-  if (role === "author") {
-    if (relationID(originalDoc.owner) !== req.user.id) {
-      throw new APIError("Authors can only update their own content.", 403);
+  if (nextPublication !== currentPublication) {
+    if (!ownerAction && !isSuperAdmin(req.user)) {
+      throw new APIError("Only the member or a Super Admin can change personal publication.", 403);
     }
-    if (current !== "draft" && current !== "changes_requested") {
-      throw new APIError("This submission is currently read-only for its author.", 403);
-    }
-    await assertAuthorOwnership({ ...originalDoc, ...data }, req);
+    assertPublicationTransition(currentPublication, nextPublication);
   }
-
-  assertWorkflowTransition(role, current, next, context.publicationConfirmed === true);
-
-  if (next === "public") {
+  if (nextCuration !== currentCuration) {
     if (!hasEditorialRole(req.user)) {
-      throw new APIError("Authors cannot publish content.", 403);
+      throw new APIError("Only an Editor can change site curation.", 403);
     }
-    await assertPublicationComplete({ ...originalDoc, ...data }, req);
+    assertCurationTransition(currentCuration, nextCuration);
+  }
+
+  if (context.memberPublicationConfirmed === true && nextPublication === "published") {
+    await assertMemberPublicationComplete({ ...originalDoc, ...data }, req);
     data.publishedAt ||= originalDoc.publishedAt ?? new Date().toISOString();
     data._status = "published";
-  } else {
-    data._status = "draft";
+    if (ownerAction && currentCuration === "curated") {
+      data.curationStatus = "needs_recheck";
+      nextCuration = "needs_recheck";
+    }
   }
-
+  if (nextPublication === "withdrawn") {
+    data._status = "draft";
+    if (currentCuration !== "not_selected" && currentCuration !== "removed") {
+      data.curationStatus = "removed";
+      nextCuration = "removed";
+    }
+  }
+  if (nextCuration === "curated") {
+    await assertCurationComplete({ ...originalDoc, ...data, curationStatus: nextCuration }, req);
+    data._status = "published";
+  }
   return data;
 };
 
@@ -208,23 +302,34 @@ export const recordWorkflowEvent: CollectionAfterChangeHook<ArticleShape> = asyn
   req,
 }) => {
   if (context.skipWorkflowEvent === true) return doc;
-  const from = operation === "create" ? null : previousDoc.workflowStatus ?? null;
-  const to = doc.workflowStatus ?? "draft";
-  if (from === to && operation !== "create") return doc;
-
-  await req.payload.create({
-    collection: "workflow-events",
-    context: { skipWorkflowEvent: true },
-    data: {
-      article: Number(doc.id),
-      actor: isCMSUser(req.user) ? Number(req.user.id) : undefined,
-      fromStatus: from,
-      toStatus: to,
-      occurredAt: new Date().toISOString(),
+  const changes = [
+    {
+      axis: "publication" as const,
+      from: operation === "create" ? null : previousDoc.publicationStatus ?? "draft",
+      to: doc.publicationStatus ?? "draft",
     },
-    overrideAccess: true,
-    req,
-  });
+    {
+      axis: "curation" as const,
+      from: operation === "create" ? null : previousDoc.curationStatus ?? "not_selected",
+      to: doc.curationStatus ?? "not_selected",
+    },
+  ].filter(({ from, to }) => operation === "create" || from !== to);
 
+  for (const change of changes) {
+    await req.payload.create({
+      collection: "workflow-events",
+      context: { skipWorkflowEvent: true },
+      data: {
+        article: Number(doc.id),
+        actor: isCMSUser(req.user) ? Number(req.user.id) : undefined,
+        axis: change.axis,
+        fromStatus: change.from,
+        toStatus: change.to,
+        occurredAt: new Date().toISOString(),
+      },
+      overrideAccess: true,
+      req,
+    });
+  }
   return doc;
 };

@@ -58,7 +58,7 @@ try {
       }
       const created = await payload.create({
         collection: "users",
-        data: { displayName, email, password: password!, role: "super_admin" },
+        data: { accountStatus: "active", displayName, email, password: password!, role: "super_admin" },
         overrideAccess: true,
         req,
       });

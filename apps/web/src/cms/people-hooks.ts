@@ -2,11 +2,16 @@ import type { CollectionBeforeChangeHook } from "payload";
 import { APIError } from "payload";
 
 import { hasEditorialRole, isCMSUser } from "./roles";
-import { assertMediaApprovedForPublicUse } from "./media-policy";
+import { markMediaForMemberPublication } from "./media-policy";
 
 type PersonShape = {
   authorApprovalRecordedAt?: string | null;
   id: number | string;
+  city?: string | null;
+  identity?: string | null;
+  introduction?: string | null;
+  languages?: ("en" | "es")[] | null;
+  name?: string | null;
   links?: { url?: string | null }[] | null;
   portrait?: number | string | { id: number | string } | null;
   profilePublishedAt?: string | null;
@@ -18,7 +23,6 @@ type PersonShape = {
 
 export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> = async ({
   data,
-  operation,
   originalDoc,
   req,
 }) => {
@@ -49,20 +53,28 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
   const currentStatus = originalDoc?.profileStatus ?? "draft";
   const nextStatus = data.profileStatus ?? currentStatus;
 
-  if (!hasEditorialRole(req.user) && operation === "update" && currentStatus !== "draft") {
-    throw new APIError("Published profile changes require editorial review.", 403);
+  if (!hasEditorialRole(req.user)) {
+    data.profilePublishedAt = originalDoc?.profilePublishedAt ?? null;
+  }
+
+  if (!hasEditorialRole(req.user) && nextStatus === "paused") {
+    throw new APIError("Only a site administrator can pause a profile.", 403);
   }
 
   if (nextStatus !== "public") return data;
 
+  const name = data.name ?? originalDoc?.name;
+  const identity = data.identity ?? originalDoc?.identity;
+  const introduction = data.introduction ?? originalDoc?.introduction;
+  const city = data.city ?? originalDoc?.city;
+  const languages = data.languages ?? originalDoc?.languages ?? [];
   const portrait = data.portrait ?? originalDoc?.portrait;
-  const approval = data.authorApprovalRecordedAt ?? originalDoc?.authorApprovalRecordedAt;
   const links = data.links ?? originalDoc?.links ?? [];
-  if (!portrait) throw new APIError("A portrait is required before a profile can be public.", 400);
-  await assertMediaApprovedForPublicUse(portrait, req, "Portrait");
-  if (!approval) {
-    throw new APIError("Author approval must be recorded before a profile can be public.", 400);
+  if (!name?.trim() || !identity?.trim() || !introduction?.trim() || !city?.trim() || !languages.length) {
+    throw new APIError("Name, identity, introduction, location, and languages are required before a profile can be public.", 400);
   }
+  if (!portrait) throw new APIError("A portrait is required before a profile can be public.", 400);
+  await markMediaForMemberPublication(portrait, req, "Portrait");
   for (const link of links) {
     try {
       const url = new URL(link.url ?? "");
@@ -70,27 +82,6 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
     } catch {
       throw new APIError("Profile links must use a valid http or https URL.", 400);
     }
-  }
-
-  const personID = originalDoc?.id;
-  if (!personID) {
-    throw new APIError("Save the profile as a draft before making it public.", 400);
-  }
-  const articles = await req.payload.find({
-    collection: "articles",
-    depth: 0,
-    limit: 1,
-    overrideAccess: true,
-    where: {
-      and: [
-        { author: { equals: personID } },
-        { workflowStatus: { equals: "public" } },
-        { _status: { equals: "published" } },
-      ],
-    },
-  });
-  if (articles.docs.length === 0) {
-    throw new APIError("A profile needs a public contribution before it can be public.", 400);
   }
 
   if (currentStatus !== "public") data.profilePublishedAt ||= new Date().toISOString();

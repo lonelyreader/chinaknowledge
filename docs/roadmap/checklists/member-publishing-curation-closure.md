@@ -47,16 +47,16 @@ approval_gates: checklist-commit, product-code, dependency-install, database-sch
 
 ## Work
 
-- [ ] 产品负责人批准并提交本 checklist，替代旧 `OPS-CLOSURE-001` 文档草案，建立代码改动 HEAD 基线。
-- [ ] 固定两轴状态、组合权限、同文档编辑、署名、路由与版本规则；对公共稳定详情路由和旧 `/stories`、`/guides` 兼容方案形成 migration-ready decision。
-- [ ] 设计 schema 与 migration：Member publication、curation state、curated fields/timestamps、recheck、组合权限；保留 translation group 与现有审计。
-- [ ] 重写服务端权限与 hooks：Member 可直接公开/更新/撤回本人 Article，Editor 可策展同一 Article，author 不可被替换，Member 更新触发 Needs recheck。
-- [ ] 重做 `My work`、Article editor 与 `My profile`：聚焦本人内容、自动保存、预览、直接公开、撤回和外链配置；删除 Submit/Resubmit/等待审核流程。
-- [ ] 重做 Editor 候选与策展面：Not selected、Needs recheck、Selected/Editing、Curated、Removed；在同一 Article 上编辑、核对、分类和排期。
-- [ ] 拆分公开 loaders：Person archive 读取全部 Member Published，官方 Home/Stories/Guides/Topics/Places/Purpose 只读取 Curated。
-- [ ] 固定 Article canonical 与旧 URL 永久兼容；更新 metadata、sitemap、locale alternate 和错误语言行为。
-- [ ] 在 Person 与 Article 上完成 `官方入口 → Article → 原作者 → Person → 外链`，并给 Curated 内容提供克制的站方选择标记。
-- [ ] 拆分个人发布和官方策展的媒体、来源、封面、Freshness 与 SEO 门槛；Member 上传权限和匿名隔离保持服务端有效。
+- [x] 产品负责人批准并提交本 checklist，替代旧 `OPS-CLOSURE-001` 文档草案，建立代码改动 HEAD 基线。
+- [x] 固定两轴状态、组合权限、同文档编辑、署名、路由与版本规则；对公共稳定详情路由和旧 `/stories`、`/guides` 兼容方案形成 migration-ready decision。
+- [x] 设计 schema 与 migration：Member publication、curation state、curated fields/timestamps、recheck、组合权限；保留 translation group 与现有审计。
+- [x] 重写服务端权限与 hooks：Member 可直接公开/更新/撤回本人 Article，Editor 可策展同一 Article，author 不可被替换，Member 更新触发 Needs recheck。
+- [x] 重做 `My work`、Article editor 与 `My profile`：聚焦本人内容、自动保存、预览、直接公开、撤回和外链配置；删除 Submit/Resubmit/等待审核流程。
+- [x] 重做 Editor 候选与策展面：Not selected、Needs recheck、Selected/Editing、Curated、Removed；在同一 Article 上编辑、核对、分类和排期。
+- [x] 拆分公开 loaders：Person archive 读取全部 Member Published，官方 Home/Stories/Guides/Topics/Places/Purpose 只读取 Curated。
+- [x] 固定 Article canonical 与旧 URL 永久兼容；更新 metadata、sitemap、locale alternate 和错误语言行为。
+- [x] 在 Person 与 Article 上完成 `官方入口 → Article → 原作者 → Person → 外链`，并给 Curated 内容提供克制的站方选择标记。
+- [x] 拆分个人发布和官方策展的媒体、来源、封面、Freshness 与 SEO 门槛；Member 上传权限和匿名隔离保持服务端有效。
 - [ ] 更新邀请、组合权限、通知、审计与后台直达关系；Editor/Super Admin 关联 Person 后也能作为 Member 发文。
 - [ ] 用虚构数据完成状态矩阵、同 Article 断言、署名断言、双语隔离、桌面/移动和无障碍验证。
 - [ ] 在临时 PostgreSQL 完成 migration apply、rollback/reapply、旧 Production 形状恢复和旧 URL 兼容测试。

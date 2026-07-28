@@ -28,9 +28,9 @@ export const People: CollectionConfig = {
   fields: [
     { name: "name", type: "text", required: true },
     { name: "slug", type: "text", required: true, unique: true, index: true },
-    { name: "identity", type: "text", required: true, label: "Identity" },
-    { name: "introduction", type: "textarea", required: true, label: "Introduction" },
-    { name: "city", type: "text", required: true },
+    { name: "identity", type: "text", label: "Identity" },
+    { name: "introduction", type: "textarea", label: "Introduction" },
+    { name: "city", type: "text" },
     {
       name: "portrait",
       type: "upload",
@@ -41,7 +41,6 @@ export const People: CollectionConfig = {
       name: "languages",
       type: "select",
       hasMany: true,
-      required: true,
       options: [
         { label: "English", value: "en" },
         { label: "Spanish", value: "es" },
@@ -77,7 +76,7 @@ export const People: CollectionConfig = {
       type: "select",
       required: true,
       defaultValue: "draft",
-      access: { create: editorialField, read: authenticatedField, update: editorialField },
+      access: { create: editorialField, read: authenticatedField, update: authenticatedField },
       options: [
         { label: "Draft", value: "draft" },
         { label: "Public", value: "public" },
@@ -96,7 +95,7 @@ export const People: CollectionConfig = {
       name: "profilePublishedAt",
       type: "date",
       label: "Profile published",
-      access: { create: editorialField, read: authenticatedField, update: editorialField },
+      access: { create: editorialField, read: authenticatedField, update: authenticatedField },
       admin: { position: "sidebar", readOnly: true },
     },
     {

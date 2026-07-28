@@ -3,13 +3,14 @@ export const roles = ["author", "editor", "super_admin"] as const;
 export type Role = (typeof roles)[number];
 
 export type CMSUser = {
+  accountStatus?: "active" | "paused" | null;
   id: number | string;
   role?: Role | null;
 };
 
 export function isCMSUser(value: unknown): value is CMSUser {
   if (!value || typeof value !== "object") return false;
-  return "id" in value;
+  return "id" in value && (!("accountStatus" in value) || value.accountStatus !== "paused");
 }
 
 export function hasEditorialRole(user: CMSUser | null | undefined) {

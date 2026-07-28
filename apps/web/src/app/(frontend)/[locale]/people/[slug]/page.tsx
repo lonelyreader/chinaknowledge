@@ -32,6 +32,8 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
     ]);
     if (!person) notFound();
     const copy = ui[locale];
+    const selected = authored.filter((article) => article.curationStatus === "curated");
+    const otherPosts = authored.filter((article) => article.curationStatus !== "curated");
     return (
       <main className="page-shell author-page">
         <header className="author-hero">
@@ -47,20 +49,30 @@ export default async function PersonPage({ params }: { params: Promise<{ locale:
             </div>
           </div>
         </header>
-        <section className="author-work">
+        {selected.length ? <section className="author-work">
           <div className="section-heading"><h2>{copy.selectedWork}</h2></div>
-          {authored.length ? (
+          <div className="story-stream author-archive">
+            {selected.map((article) => (
+              <article className="story-line" key={article.slug}>
+                <p className="meta">{article.publishedAt.slice(0, 10)}</p>
+                <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
+                <span>{article.format === "guide" ? copy.guide : "Story"}</span>
+              </article>
+            ))}
+          </div>
+        </section> : null}
+        {otherPosts.length ? <section className="author-work">
+          <div className="section-heading"><h2>{locale === "en" ? "Posts" : "Publicaciones"}</h2></div>
             <div className="story-stream author-archive">
-              {authored.map((article) => (
+              {otherPosts.map((article) => (
                 <article className="story-line" key={article.slug}>
                   <p className="meta">{article.publishedAt.slice(0, 10)}</p>
                   <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
-                  <span>{article.format === "guide" ? copy.guide : "Story"}</span>
+                  <span>{locale === "en" ? "Post" : "Publicación"}</span>
                 </article>
               ))}
             </div>
-          ) : null}
-        </section>
+        </section> : null}
         <section className="discord-passage">
           <p className="meta">Discord</p>
           <h2>{copy.connect}</h2>
