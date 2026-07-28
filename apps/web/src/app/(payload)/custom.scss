@@ -90,7 +90,8 @@
 
 // The generated storage name is not an editorial decision. Keep it in the
 // record, but remove the rename control from the image upload task.
-.collection-edit--media .file-field__filename {
+.collection-edit--media .file-field__filename,
+.collection-edit--media .file-meta__url {
   display: none;
 }
 
