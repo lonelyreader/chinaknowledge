@@ -206,6 +206,21 @@ async function main() {
   assert.equal(memberPublished.publicationStatus, "published");
   assert.equal(memberPublished.curationStatus, "not_selected");
   assert.equal(memberPublished._status, "published");
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id, context: { profileTransitionConfirmed: true },
+    data: { profileStatus: "draft" }, overrideAccess: false, user: member,
+  }), "A profile with public articles cannot become private.");
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id,
+    data: { languages: ["es"] }, overrideAccess: false, user: member,
+  }), "A public profile must retain every language used by its public articles.");
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id,
+    data: { slug: "changed-public-profile-url" }, overrideAccess: false, user: member,
+  }), "A published profile URL is canonical and cannot be changed.");
+  await expectRejected(() => payload.delete({
+    collection: "people", id: memberPerson.id, overrideAccess: false, user: admin,
+  }), "A profile with public articles cannot be deleted.");
   const memberStatusBypass = await payload.update({
     collection: "articles", id: draft.id, data: { _status: "draft" },
     draft: false, overrideAccess: false, user: member,

@@ -1,4 +1,4 @@
-import type { CollectionBeforeChangeHook } from "payload";
+import type { CollectionBeforeChangeHook, CollectionBeforeDeleteHook } from "payload";
 import { APIError } from "payload";
 
 import { hasEditorialRole, isCMSUser } from "./roles";
@@ -16,10 +16,15 @@ type PersonShape = {
   portrait?: number | string | { id: number | string } | null;
   profilePublishedAt?: string | null;
   profileStatus?: "draft" | "public" | "paused";
+  slug?: string | null;
   spotlightExcluded?: boolean | null;
   spotlightPinnedUntil?: string | null;
   user?: number | string | { id: number | string };
 };
+
+function relationID(value: PersonShape["user"]) {
+  return value && typeof value === "object" ? value.id : value;
+}
 
 export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> = async ({
   context,
@@ -54,8 +59,31 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
   const currentStatus = originalDoc?.profileStatus ?? "draft";
   const nextStatus = data.profileStatus ?? currentStatus;
 
+  if (originalDoc && data.user !== undefined && relationID(data.user) !== relationID(originalDoc.user)) {
+    throw new APIError("A profile owner cannot be changed.", 403);
+  }
+  if (originalDoc?.profilePublishedAt && data.slug !== undefined && data.slug !== originalDoc.slug) {
+    throw new APIError("A published profile URL cannot be changed.", 403);
+  }
+
   if (originalDoc && nextStatus !== currentStatus && context.profileTransitionConfirmed !== true) {
     throw new APIError("Use the profile action to change profile visibility.", 403);
+  }
+  if (originalDoc && currentStatus === "public" && nextStatus !== "public") {
+    const published = await req.payload.count({
+      collection: "articles",
+      overrideAccess: true,
+      req,
+      where: {
+        and: [
+          { author: { equals: originalDoc.id } },
+          { publicationStatus: { equals: "published" } },
+        ],
+      },
+    });
+    if (published.totalDocs > 0) {
+      throw new APIError("Withdraw your public articles before making this profile private.", 400);
+    }
   }
 
   if (!hasEditorialRole(req.user)) {
@@ -89,6 +117,45 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
     }
   }
 
+  if (originalDoc?.id) {
+    const published = await req.payload.find({
+      collection: "articles",
+      depth: 0,
+      limit: 200,
+      overrideAccess: true,
+      pagination: false,
+      req,
+      select: { locale: true },
+      where: {
+        and: [
+          { author: { equals: originalDoc.id } },
+          { publicationStatus: { equals: "published" } },
+        ],
+      },
+    });
+    const missingLanguage = published.docs.find((article) => !languages.includes(article.locale));
+    if (missingLanguage) {
+      throw new APIError("Keep every language used by your public articles on this profile.", 400);
+    }
+  }
+
   if (currentStatus !== "public") data.profilePublishedAt ||= new Date().toISOString();
   return data;
+};
+
+export const protectPersonWithPublishedArticles: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  const published = await req.payload.count({
+    collection: "articles",
+    overrideAccess: true,
+    req,
+    where: {
+      and: [
+        { author: { equals: id } },
+        { publicationStatus: { equals: "published" } },
+      ],
+    },
+  });
+  if (published.totalDocs > 0) {
+    throw new APIError("Withdraw this person's public articles before deleting the profile.", 400);
+  }
 };

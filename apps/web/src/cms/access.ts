@@ -33,14 +33,39 @@ export const updateOwnUserOrSuperAdmin: Access = ({ req }) => {
   return { id: { equals: req.user.id } };
 };
 
-export const readPublicArticlesOrOwned: Access = ({ req }) => {
+export const readPublicArticlesOrOwned: Access = async ({ req }) => {
   if (isCMSUser(req.user) && hasEditorialRole(req.user)) return true;
+
+  const publicPeople = await req.payload.find({
+    collection: "people",
+    depth: 0,
+    limit: 200,
+    overrideAccess: true,
+    pagination: false,
+    req,
+    where: {
+      and: [
+        { profileStatus: { equals: "public" } },
+        { portrait: { exists: true } },
+        { profilePublishedAt: { exists: true } },
+      ],
+    },
+  });
+  const publicAuthorsByLocale: Where[] = (["en", "es"] as const).map((locale): Where => ({
+    and: [
+      { locale: { equals: locale } },
+      { author: { in: publicPeople.docs
+        .filter((person) => person.languages?.includes(locale))
+        .map((person) => person.id) } },
+    ],
+  }));
 
   const publicQuery: Where = {
     and: [
       { publicationStatus: { equals: "published" } },
       { _status: { equals: "published" } },
       { publishedAt: { exists: true } },
+      { or: publicAuthorsByLocale },
     ],
   };
 

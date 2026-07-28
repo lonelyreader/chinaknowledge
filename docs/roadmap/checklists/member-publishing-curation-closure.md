@@ -89,6 +89,7 @@ approval_gates: checklist-commit, product-code, dependency-install, database-sch
 - `npm run lint`
 - `npm run typecheck`
 - `npm run test:editorial`
+- `npm run test:migration-recovery`
 - `npm run build`
 - `npm run governance:check`
 - `git diff --check`

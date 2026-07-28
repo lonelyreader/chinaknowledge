@@ -27,6 +27,7 @@
     "cms:provision-accounts": "tsx scripts/provision-cms-accounts.ts",
     "test:editorial": "tsx tests/editorial-workflow.ts",
     "test:environment": "tsx tests/environment.ts",
+    "test:migration-recovery": "node scripts/test-migration-recovery.mjs",
     "test:newsletter": "tsx tests/newsletter.ts && tsx tests/newsletter-route.ts",
     "test:preview-config": "tsx tests/preview-config.ts"
   },
