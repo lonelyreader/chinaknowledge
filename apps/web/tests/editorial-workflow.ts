@@ -154,6 +154,20 @@ async function main() {
   const editor = await user(payload, { displayName: "Acceptance Editor", email: "pub-curation-editor@test.invalid", role: "editor" });
   const member = await user(payload, { displayName: "Acceptance Member", email: "pub-curation-member@test.invalid", role: "author" });
   const other = await user(payload, { displayName: "Other Member", email: "pub-curation-other@test.invalid", role: "author" });
+  const invitedEmail = `invited-member-${randomUUID()}@test.invalid`;
+  const invited = await payload.create({
+    collection: "users",
+    data: { accountStatus: "active", displayName: "Invited Member", email: invitedEmail, password, role: "author" },
+    overrideAccess: false,
+    user: admin,
+  });
+  const invitedProfiles = await payload.find({
+    collection: "people", limit: 2, overrideAccess: true,
+    where: { user: { equals: invited.id } },
+  });
+  assert.equal(invitedProfiles.docs.length, 1, "A Super Admin invitation creates exactly one linked Person.");
+  await payload.delete({ collection: "people", id: invitedProfiles.docs[0]!.id, overrideAccess: true });
+  await payload.delete({ collection: "users", id: invited.id, overrideAccess: true });
   await clean(payload);
 
   const memberPortrait = await image(payload, member, "Member publication portrait", false);

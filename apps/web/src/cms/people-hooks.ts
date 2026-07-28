@@ -26,9 +26,16 @@ function relationID(value: PersonShape["user"]) {
   return value && typeof value === "object" ? value.id : value;
 }
 
+function sameRelation(left: PersonShape["user"], right: PersonShape["user"]) {
+  const leftID = relationID(left);
+  const rightID = relationID(right);
+  return leftID !== undefined && rightID !== undefined && String(leftID) === String(rightID);
+}
+
 export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> = async ({
   context,
   data,
+  operation,
   originalDoc,
   req,
 }) => {
@@ -59,7 +66,7 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
   const currentStatus = originalDoc?.profileStatus ?? "draft";
   const nextStatus = data.profileStatus ?? currentStatus;
 
-  if (originalDoc && data.user !== undefined && relationID(data.user) !== relationID(originalDoc.user)) {
+  if (operation === "update" && originalDoc && data.user !== undefined && !sameRelation(data.user, originalDoc.user)) {
     throw new APIError("A profile owner cannot be changed.", 403);
   }
   if (originalDoc?.profilePublishedAt && data.slug !== undefined && data.slug !== originalDoc.slug) {
