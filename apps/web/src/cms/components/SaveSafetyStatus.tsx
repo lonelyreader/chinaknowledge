@@ -1,6 +1,8 @@
 "use client";
 
-import { useDocumentInfo, useFormModified, useFormProcessing } from "@payloadcms/ui";
+import { useAuth, useDocumentInfo, useFormProcessing } from "@payloadcms/ui";
+
+import { usePendingFormChanges } from "../use-pending-form-changes";
 
 function editorName(value: ReturnType<typeof useDocumentInfo>["currentEditor"]) {
   if (!value || typeof value !== "object") return null;
@@ -10,15 +12,24 @@ function editorName(value: ReturnType<typeof useDocumentInfo>["currentEditor"]) 
 }
 
 export function SaveSafetyStatus() {
-  const modified = useFormModified();
+  const pendingChanges = usePendingFormChanges();
   const processing = useFormProcessing();
+  const { user } = useAuth();
   const { currentEditor, documentIsLocked } = useDocumentInfo();
   const lockedBy = editorName(currentEditor);
-  const state = documentIsLocked
+  const currentEditorID = currentEditor && typeof currentEditor === "object" && "id" in currentEditor
+    ? String(currentEditor.id)
+    : typeof currentEditor === "number" || typeof currentEditor === "string"
+      ? String(currentEditor)
+      : null;
+  const lockedBySomeoneElse = Boolean(
+    documentIsLocked && currentEditorID && String(user?.id) !== currentEditorID,
+  );
+  const state = lockedBySomeoneElse
     ? lockedBy ? `Locked · ${lockedBy}` : "Locked"
     : processing
       ? "Saving"
-      : modified
+      : pendingChanges
         ? "Unsaved"
         : "Saved";
 

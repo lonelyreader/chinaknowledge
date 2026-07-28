@@ -1,10 +1,11 @@
 "use client";
 
-import { Button, toast, useAuth, useDocumentInfo, useFormFields, useFormModified } from "@payloadcms/ui";
+import { Button, toast, useAuth, useDocumentInfo, useFormFields } from "@payloadcms/ui";
 import { useEffect, useState } from "react";
 
 import type { Article, User } from "@/payload-types";
 import { buildPublicationSummary, type PublicationSummary } from "../publication-summary";
+import { usePendingFormChanges } from "../use-pending-form-changes";
 import type { CurationStatus, PublicationStatus } from "../workflow";
 
 type Transition = {
@@ -74,7 +75,7 @@ function requiresConfirmation(action: Transition) {
 export function WorkflowActions() {
   const { user } = useAuth<User>();
   const { id } = useDocumentInfo();
-  const modified = useFormModified();
+  const pendingChanges = usePendingFormChanges();
   const publicationValue = useFormFields<unknown>(([fields]) => fields.publicationStatus?.value);
   const curationValue = useFormFields<unknown>(([fields]) => fields.curationStatus?.value);
   const [remotePublication, setRemotePublication] = useState<PublicationStatus | null>(null);
@@ -177,7 +178,7 @@ export function WorkflowActions() {
             {publicationActions(publication).map((action) => (
               <Button
                 buttonStyle={action.style ?? "primary"}
-                disabled={modified || pending !== null}
+                disabled={pendingChanges || pending !== null}
                 key={`${action.axis}-${action.status}`}
                 onClick={() => selectAction(action)}
                 size="small"
@@ -195,7 +196,7 @@ export function WorkflowActions() {
             {curationActions(curation).map((action) => (
               <Button
                 buttonStyle={action.style ?? "primary"}
-                disabled={modified || pending !== null}
+                disabled={pendingChanges || pending !== null}
                 key={`${action.axis}-${action.status}`}
                 onClick={() => selectAction(action)}
                 size="small"
@@ -203,7 +204,7 @@ export function WorkflowActions() {
             ))}
             <Button
               buttonStyle="secondary"
-              disabled={modified || pending !== null}
+              disabled={pendingChanges || pending !== null}
               onClick={() => void notifyAuthor()}
               size="small"
             >Notify author</Button>
