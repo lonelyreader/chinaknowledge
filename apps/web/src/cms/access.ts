@@ -15,6 +15,9 @@ export const authenticatedField: FieldAccess = ({ req }) => isCMSUser(req.user);
 export const editorialField: FieldAccess = ({ req }) =>
   isCMSUser(req.user) && hasEditorialRole(req.user);
 
+export const authorField: FieldAccess = ({ req }) =>
+  isCMSUser(req.user) && req.user.role === "author";
+
 export const superAdminField: FieldAccess = ({ req }) =>
   isCMSUser(req.user) && isSuperAdmin(req.user);
 
@@ -37,6 +40,8 @@ export const readPublicArticlesOrOwned: Access = ({ req }) => {
     and: [
       { workflowStatus: { equals: "public" } },
       { _status: { equals: "published" } },
+      { coverImage: { exists: true } },
+      { publishedAt: { exists: true } },
     ],
   };
 
@@ -88,7 +93,14 @@ export const readOwnedArticleVersionsOrEditorial: Access = async ({ id, req }) =
 
 export const readPublicPeopleOrOwn: Access = ({ req }) => {
   if (isCMSUser(req.user) && hasEditorialRole(req.user)) return true;
-  const publicPeople: Where = { profileStatus: { equals: "public" } };
+  const publicPeople: Where = {
+    and: [
+      { profileStatus: { equals: "public" } },
+      { portrait: { exists: true } },
+      { authorApprovalRecordedAt: { exists: true } },
+      { profilePublishedAt: { exists: true } },
+    ],
+  };
   if (!isCMSUser(req.user)) return publicPeople;
   const visiblePeople: Where = {
     or: [
@@ -103,4 +115,50 @@ export const updateOwnPersonOrEditorial: Access = ({ req }) => {
   if (!isCMSUser(req.user)) return false;
   if (hasEditorialRole(req.user)) return true;
   return { user: { equals: req.user.id } };
+};
+
+export const createOwnPersonRevision: Access = ({ req }) =>
+  isCMSUser(req.user) && req.user.role === "author";
+
+export const readOwnPersonRevisionsOrEditorial: Access = ({ req }) => {
+  if (!isCMSUser(req.user)) return false;
+  if (hasEditorialRole(req.user)) return true;
+  return { proposer: { equals: req.user.id } };
+};
+
+export const updateOwnOpenPersonRevisionsOrEditorial: Access = ({ req }) => {
+  if (!isCMSUser(req.user)) return false;
+  if (hasEditorialRole(req.user)) return true;
+  const openRevisionQuery: Where = {
+    and: [
+      { proposer: { equals: req.user.id } },
+      { status: { in: ["draft", "changes_requested"] } },
+    ],
+  };
+  return openRevisionQuery;
+};
+
+export const readApprovedMediaOrOwn: Access = ({ req }) => {
+  const approved: Where = { publicUseApprovedAt: { exists: true } };
+  if (!isCMSUser(req.user)) return approved;
+  if (hasEditorialRole(req.user)) return true;
+  return {
+    or: [
+      { uploadedBy: { equals: req.user.id } },
+      approved,
+    ],
+  };
+};
+
+export const readPublicPlacesOrEditorial: Access = ({ req }) => {
+  if (isCMSUser(req.user) && hasEditorialRole(req.user)) return true;
+  const publicPlaces: Where = {
+    and: [
+      { status: { equals: "public" } },
+      { coverImage: { exists: true } },
+      { geography: { exists: true } },
+      { publishedAt: { exists: true } },
+    ],
+  };
+  return publicPlaces;
 };

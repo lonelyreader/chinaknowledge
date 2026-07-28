@@ -12,6 +12,8 @@ import sharp from "sharp";
 import { Articles } from "@/collections/Articles";
 import { Media } from "@/collections/Media";
 import { People } from "@/collections/People";
+import { PersonRevisions } from "@/collections/PersonRevisions";
+import { Places } from "@/collections/Places";
 import { Taxonomies } from "@/collections/Taxonomies";
 import { Users } from "@/collections/Users";
 import { WorkflowEvents } from "@/collections/WorkflowEvents";
@@ -29,7 +31,16 @@ export default buildConfig({
     importMap: { baseDir: dirname },
     meta: { titleSuffix: " — China, in Fact" },
   },
-  collections: [Users, People, Taxonomies, Media, Articles, WorkflowEvents],
+  collections: [
+    Users,
+    People,
+    PersonRevisions,
+    Taxonomies,
+    Media,
+    Articles,
+    Places,
+    WorkflowEvents,
+  ],
   db: postgresAdapter({
     migrationDir: path.resolve(dirname, "migrations"),
     pool: {

@@ -1,12 +1,126 @@
 import Image from "next/image";
 import Link from "next/link";
 import { NewsletterForm } from "@/components/newsletter-form";
+import { CMSPersonRow } from "@/components/cms-person-row";
 import { PersonRow } from "@/components/person-row";
 import { drivingGuide, kindLabels, localize, people, requireLocale, stories, ui } from "@/content";
+import { articlePath, cmsReadEnabled, getPublishedCMSHomepage, getPublishedCMSPeople, getPublishedCMSPlaces, placePath, stableWeeklyPeople } from "@/content/cms";
+
+export const dynamic = "force-dynamic";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = requireLocale((await params).locale);
   const copy = ui[locale];
+  if (cmsReadEnabled()) {
+    const [homepage, cmsPlaces, cmsPeople] = await Promise.all([
+      getPublishedCMSHomepage(locale),
+      getPublishedCMSPlaces(locale),
+      getPublishedCMSPeople(locale),
+    ]);
+    const { articles, lead, selected } = homepage;
+    const featuredPeople = stableWeeklyPeople(cmsPeople, 4);
+    const purposeSlugs = ["understand", "visit", "live", "study", "work", "business"];
+
+    return (
+      <main>
+        <nav className="purpose-nav" aria-label="Purpose">
+          {copy.purpose.map((purpose, index) => <Link key={purpose} href={`/${locale}/purposes/${purposeSlugs[index]}`}>{purpose}</Link>)}
+        </nav>
+
+        {lead ? (
+          <section className="home-hero page-shell">
+            <div className="home-hero__copy">
+              <p className="meta">{lead.purposes[0] ?? (lead.format === "guide" ? copy.guide : "Story")} · {lead.publishedAt.slice(0, 10)}</p>
+              <h1><Link href={articlePath(locale, lead)}>{lead.title}</Link></h1>
+              <p className="dek">{lead.summary}</p>
+              <div className="hero-byline">
+                <Image src={lead.author.image.url} alt={lead.author.image.alt} width={64} height={64} />
+                <div>
+                  <Link href={`/${locale}/people/${lead.author.slug}`}>{lead.author.name}</Link>
+                  <span>{lead.author.identity}, {lead.author.city}</span>
+                </div>
+              </div>
+            </div>
+            <Link className="home-hero__image" href={articlePath(locale, lead)}>
+              <Image src={lead.coverImage.url} alt={lead.coverImage.alt} fill priority sizes="(max-width: 767px) 100vw, 50vw" />
+            </Link>
+          </section>
+        ) : null}
+
+        {selected.length ? (
+          <section className="page-shell editorial-section">
+            <div className="section-heading"><h2>{copy.selected}</h2></div>
+            <div className="selected-grid">
+              {selected.map((article, index) => (
+                <article className={index === 0 ? "selected-story selected-story--lead" : "selected-story"} key={article.slug}>
+                  <p className="meta">{article.format === "guide" ? copy.guide : "Story"}{article.purposes[0] ? ` · ${article.purposes[0]}` : ""}</p>
+                  <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
+                  <p>{article.summary}</p>
+                  <Link className="text-link" href={`/${locale}/people/${article.author.slug}`}>{article.author.name}, {article.author.city}</Link>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {articles.length ? (
+          <section className="page-shell stream-section">
+            <div className="section-heading"><h2>{copy.latest}</h2></div>
+            <div className="story-stream">
+              {articles.slice(0, 12).map((article) => (
+                <article className="story-line" key={`${article.format}-${article.slug}`}>
+                  <p className="meta">{article.format === "guide" ? copy.guide : "Story"}<br />{article.publishedAt.slice(0, 10)}</p>
+                  <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
+                  <Link href={`/${locale}/people/${article.author.slug}`}>{article.author.name}</Link>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {cmsPlaces.length ? (
+          <section className="page-shell editorial-section">
+            <div className="section-heading section-heading--inline">
+              <h2>{locale === "en" ? "Places" : "Lugares"}</h2>
+              <Link className="text-link" href={`/${locale}/places`}>{locale === "en" ? "All places" : "Todos los lugares"} →</Link>
+            </div>
+            <div className="place-grid place-grid--compact">
+              {cmsPlaces.slice(0, 3).map((place) => (
+                <article className="place-card" key={place.slug}>
+                  <Link className="place-card__image" href={placePath(locale, place)}>
+                    <Image src={place.coverImage.url} alt={place.coverImage.alt} fill sizes="(max-width: 767px) 100vw, 33vw" />
+                  </Link>
+                  <p className="meta">{place.geography.name}</p>
+                  <h3><Link href={placePath(locale, place)}>{place.name}</Link></h3>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {featuredPeople.length ? (
+          <section className="people-passage">
+            <div className="page-shell">
+              <div className="section-heading section-heading--inline">
+                <h2>{copy.people}</h2>
+                <Link className="text-link" href={`/${locale}/people`}>{copy.allPeople} →</Link>
+              </div>
+              <div className="people-passage__grid">
+                {featuredPeople.map((person) => <CMSPersonRow key={person.slug} person={person} locale={locale} />)}
+              </div>
+            </div>
+          </section>
+        ) : null}
+
+        <section className="newsletter-band">
+          <div className="page-shell newsletter-band__inner">
+            <h2>{copy.newsletter}</h2>
+            <NewsletterForm locale={locale} />
+          </div>
+        </section>
+      </main>
+    );
+  }
   const lead = stories[0];
   const leadAuthor = people.find((person) => person.slug === lead.authorSlug)!;
 

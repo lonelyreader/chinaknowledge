@@ -121,6 +121,7 @@ export const Articles: CollectionConfig = {
       type: "array",
       label: "Sources",
       minRows: 1,
+      required: true,
       fields: [
         { name: "label", type: "text", required: true },
         { name: "url", type: "text" },
@@ -183,6 +184,40 @@ export const Articles: CollectionConfig = {
       type: "date",
       label: "Freshness date",
       admin: { position: "sidebar", date: { pickerAppearance: "dayOnly" } },
+    },
+    {
+      name: "publishedAt",
+      type: "date",
+      label: "Published",
+      access: { create: editorialField, update: editorialField },
+      admin: { position: "sidebar", readOnly: true },
+    },
+    {
+      name: "homepagePlacement",
+      type: "select",
+      label: "Homepage",
+      defaultValue: "none",
+      access: { create: editorialField, update: editorialField },
+      options: [
+        { label: "None", value: "none" },
+        { label: "Lead", value: "lead" },
+        { label: "Selected", value: "selected" },
+      ],
+      admin: { position: "sidebar" },
+    },
+    {
+      name: "homepageStartsAt",
+      type: "date",
+      label: "Homepage starts",
+      access: { create: editorialField, update: editorialField },
+      admin: { position: "sidebar" },
+    },
+    {
+      name: "homepageEndsAt",
+      type: "date",
+      label: "Homepage ends",
+      access: { create: editorialField, update: editorialField },
+      admin: { position: "sidebar" },
     },
     {
       name: "workflowActions",

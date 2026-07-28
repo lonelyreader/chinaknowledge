@@ -1,8 +1,28 @@
 import Link from "next/link";
 import { localize, people, requireLocale, stories } from "@/content";
+import { cmsReadEnabled, getPublishedCMSStories } from "@/content/cms";
+
+export const dynamic = "force-dynamic";
 
 export default async function StoriesPage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = requireLocale((await params).locale);
+  if (cmsReadEnabled()) {
+    const cmsStories = await getPublishedCMSStories(locale);
+    return (
+      <main className="page-shell index-page">
+        <header className="index-header"><p className="meta">{locale === "en" ? "Stories" : "Historias"}</p><h1>{locale === "en" ? "Reported, observed and lived" : "Relatos, observación y experiencia"}</h1></header>
+        <div className="story-stream">
+          {cmsStories.map((story) => (
+            <article className="story-line" key={story.slug}>
+              <p className="meta">{story.publishedAt.slice(0, 10)}</p>
+              <h2><Link href={`/${locale}/stories/${story.slug}`}>{story.title}</Link></h2>
+              <Link href={`/${locale}/people/${story.author.slug}`}>{story.author.name}</Link>
+            </article>
+          ))}
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="page-shell index-page">
       <header className="index-header"><p className="meta">{locale === "en" ? "Stories" : "Historias"}</p><h1>{locale === "en" ? "Reported, observed and lived" : "Relatos, observación y experiencia"}</h1></header>

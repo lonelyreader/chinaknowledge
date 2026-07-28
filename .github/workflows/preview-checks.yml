@@ -17,10 +17,25 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: china_in_fact
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d china_in_fact"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       APP_ENV: local
-      CMS_READ_MODE: fixtures
-      DATABASE_URL: postgresql://ci.invalid/china_in_fact
+      CMS_READ_MODE: cms
+      CMS_TEST_PASSWORD: fictional-ci-password-only
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/china_in_fact
       PAYLOAD_SECRET: fictional-ci-secret
     steps:
       - uses: actions/checkout@v4
@@ -37,12 +52,53 @@ jobs:
       - name: Verify environment boundaries
         run: npm run test:environment && npm run test:preview-config
         working-directory: apps/web
+      - name: Apply migrations and verify editorial boundaries
+        run: npm run cms:migration:run && npm run test:editorial
+        working-directory: apps/web
+      - name: Verify newsletter boundaries
+        run: npm run test:newsletter
+        working-directory: apps/web
       - name: Lint and typecheck
         run: npm run lint && npm run typecheck
         working-directory: apps/web
       - name: Audit production dependencies
         run: npm run audit:production
         working-directory: apps/web
-      - name: Build fixture read path
+      - name: Build CMS public read path
         run: npm run build
         working-directory: apps/web
+      - name: Smoke CMS public routes
+        working-directory: apps/web
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run start > "${RUNNER_TEMP}/china-in-fact-next.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "${server_pid}" >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/health >/dev/null; then
+              break
+            fi
+            if [[ "${attempt}" == 30 ]]; then
+              cat "${RUNNER_TEMP}/china-in-fact-next.log"
+              exit 1
+            fi
+            sleep 1
+          done
+          homepage="$(curl --fail --silent http://127.0.0.1:3000/en)"
+          grep -q "Driving in Shanghai" <<< "${homepage}"
+          if grep -q "Lin Mei" <<< "${homepage}"; then
+            echo "Fixture person leaked into the CMS homepage."
+            exit 1
+          fi
+          curl --fail --silent http://127.0.0.1:3000/en/guides/driving-in-shanghai | grep -q "Fictional acceptance portrait"
+          curl --fail --silent http://127.0.0.1:3000/en/stories | grep -q "Shanghai's morning routes"
+          curl --fail --silent http://127.0.0.1:3000/en/stories/shanghai-morning-routes | grep -q "Shanghai's morning routes"
+          curl --fail --silent http://127.0.0.1:3000/en/places | grep -q "fictional place node"
+          curl --fail --silent http://127.0.0.1:3000/en/places/shanghai | grep -q "From this place"
+          curl --fail --silent http://127.0.0.1:3000/en/people | grep -q "Chen Rui"
+          curl --fail --silent http://127.0.0.1:3000/en/people/chen-rui | grep -q "Chen Rui"
+          curl --fail --silent http://127.0.0.1:3000/en/topics/mobility | grep -q "Driving in Shanghai"
+          curl --fail --silent http://127.0.0.1:3000/en/about | grep -q "China, in Fact"
+          curl --fail --location --silent http://127.0.0.1:3000/es/guides/driving-in-shanghai | grep -q "Conducir en Shanghái"
+          curl --fail --location --silent http://127.0.0.1:3000/es/places/shanghai | grep -q "Shanghái"

@@ -4,7 +4,7 @@ doc_type: decision
 authority: canonical
 status: accepted
 scope: decision-editorial-cms-foundation
-last_verified: 2026-07-27
+last_verified: 2026-07-28
 max_lines: 150
 change_id: P1-EDITORIAL-001
 ---
@@ -26,6 +26,9 @@ Payload 的 draft 只原生表达 `draft / published`，locale-specific status �
 - Article 每个语言版本使用独立文档，以 `locale` 和 `translationGroup` 建立关系；不启用实验性的 localized status。公共读取必须同时匹配目标 locale、`workflowStatus=public` 和 Payload `_status=published`，且不使用语言 fallback。
 - `workflowStatus` 独立表达 `draft / submitted / in_review / changes_requested / approved / public / archived`；Payload `_status` 只承担草稿版本与公开版本存储。合法转换由服务端 hook 校验，不能只依靠隐藏按钮。
 - Author、Editor、Super Admin 使用同一认证集合。Author 的文档所有权、Editor 的全局审核和 Super Admin 的角色管理同时由 collection、field access 和状态转换规则约束。
+- 已公开人物不接受 Author 原地改写。Author 在独立 Profile revision 中维护完整资料快照并提交；公开 Person 保持不变，Editor 只能要求修改或把作者提交的版本整体应用，不能静默改写作者提案。每人至多一条开放修订由数据库唯一键保证；更新先锁定并核对当前 revision，已应用记录不通过常规 collection access 删除。
+- Media 是准备公开的图片库：上传归属由服务端写入；经 Payload/API 或 Payload 文件路由访问时，未获 Editor 公开使用批准的记录只能由上传者和编辑角色读取，不能被其他 Author 或匿名请求读取，也不能用于公开 Article、Person 或 Place。现有 Vercel Blob adapter 只支持 public store，底层 Blob URL 不具备同等权限，因此敏感原始文件不得上传到该 collection；若以后需要私密原件，使用独立 private store 和鉴权读取链路。
+- 首位 Super Admin 只允许在空 Users collection 中由一次性 CLI 建立，零用户检查与创建必须处于同一个锁定事务。后续批量开户默认 dry-run，只接受 Author/Editor；apply 必须明确应用环境与数据库目标、现有 Super Admin 身份和专属确认，账户批量写入原子提交，Production 强制发送密码重置邮件并汇总失败项供重发。
 - 公共页面通过现有 content loader 契约读取 CMS；在本工作项验收完成前保留 fixture 路径，确保公共站可恢复。
 - Local API 代表具体用户执行时必须传入用户并设置 `overrideAccess: false`；测试不得用默认绕过权限的行为证明角色合同。
 

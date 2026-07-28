@@ -1,11 +1,13 @@
 import "dotenv/config";
 
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { getPayload, type Payload } from "payload";
 
 import config from "@payload-config";
 import { buildPublicationSummary } from "@/cms/publication-summary";
-import type { Article, User } from "@/payload-types";
+import type { Article, Media, User } from "@/payload-types";
 
 const password = process.env.CMS_TEST_PASSWORD;
 if (!password) throw new Error("CMS_TEST_PASSWORD is required for local fixture tests.");
@@ -64,6 +66,7 @@ async function getOrCreatePerson(
   payload: Payload,
   editor: User,
   user: User,
+  portrait: Media,
   slug: string,
   name: string,
 ) {
@@ -73,7 +76,23 @@ async function getOrCreatePerson(
     overrideAccess: true,
     where: { slug: { equals: slug } },
   });
-  if (existing.docs[0]) return existing.docs[0];
+  if (existing.docs[0]) {
+    return payload.update({
+      collection: "people",
+      id: existing.docs[0].id,
+      data: {
+        authorApprovalRecordedAt: "2026-07-27T00:00:00.000Z",
+        city: "Shanghai",
+        identity: "Fictional local contributor",
+        introduction: "A fictional profile used only for local workflow verification.",
+        languages: ["en", "es"],
+        portrait: portrait.id,
+        profileStatus: "draft",
+      },
+      overrideAccess: false,
+      user: editor,
+    });
+  }
   return payload.create({
     collection: "people",
     data: {
@@ -82,12 +101,79 @@ async function getOrCreatePerson(
       introduction: "A fictional profile used only for local workflow verification.",
       languages: ["en", "es"],
       name,
-      profileStatus: "public",
+      authorApprovalRecordedAt: "2026-07-27T00:00:00.000Z",
+      portrait: portrait.id,
+      profileStatus: "draft",
       slug,
       user: user.id,
     },
     overrideAccess: false,
     user: editor,
+  });
+}
+
+async function getOrCreateMedia(payload: Payload, editor: User) {
+  const existing = await payload.find({
+    collection: "media",
+    limit: 1,
+    overrideAccess: true,
+    where: { alt: { equals: "Fictional acceptance portrait" } },
+  });
+  if (existing.docs[0]) {
+    return payload.update({
+      collection: "media",
+      id: existing.docs[0].id,
+      data: { publicUseApprovedAt: "2026-07-27T00:00:00.000Z" },
+      overrideAccess: false,
+      user: editor,
+    });
+  }
+  const data = await readFile(path.resolve(process.cwd(), "public/images/fixtures/portrait-a-00.webp"));
+  return payload.create({
+    collection: "media",
+    data: {
+      alt: "Fictional acceptance portrait",
+      publicUseApprovedAt: "2026-07-27T00:00:00.000Z",
+    },
+    file: {
+      data,
+      mimetype: "image/webp",
+      name: "fictional-acceptance-portrait.webp",
+      size: data.byteLength,
+    },
+    overrideAccess: false,
+    user: editor,
+  });
+}
+
+async function getOrCreateUnapprovedMedia(payload: Payload, author: User) {
+  const existing = await payload.find({
+    collection: "media",
+    limit: 1,
+    overrideAccess: true,
+    where: { alt: { equals: "Unapproved fictional portrait" } },
+  });
+  if (existing.docs[0]) return existing.docs[0];
+  const data = await readFile(path.resolve(process.cwd(), "public/images/fixtures/portrait-b-00.webp"));
+  return payload.create({
+    collection: "media",
+    data: { alt: "Unapproved fictional portrait" },
+    file: {
+      data,
+      mimetype: "image/webp",
+      name: "unapproved-fictional-portrait.webp",
+      size: data.byteLength,
+    },
+    overrideAccess: false,
+    user: author,
+  });
+}
+
+async function removePersonRevisions(payload: Payload, personID: number | string) {
+  await payload.delete({
+    collection: "person-revisions",
+    overrideAccess: true,
+    where: { person: { equals: personID } },
   });
 }
 
@@ -97,7 +183,11 @@ async function removeAcceptanceArticles(payload: Payload) {
     depth: 0,
     limit: 20,
     overrideAccess: true,
-    where: { translationGroup: { equals: "acceptance-driving-shanghai" } },
+    where: {
+      translationGroup: {
+        in: ["acceptance-driving-shanghai", "acceptance-shanghai-morning-routes"],
+      },
+    },
   });
   for (const article of articles.docs) {
     await payload.delete({
@@ -109,6 +199,19 @@ async function removeAcceptanceArticles(payload: Payload) {
   }
 }
 
+async function removeAcceptancePlaces(payload: Payload) {
+  const places = await payload.find({
+    collection: "places",
+    depth: 0,
+    limit: 20,
+    overrideAccess: true,
+    where: { translationGroup: { in: ["acceptance-shanghai", "acceptance-unlinked-place"] } },
+  });
+  for (const place of places.docs) {
+    await payload.delete({ collection: "places", id: place.id, overrideAccess: true });
+  }
+}
+
 async function expectRejected(action: () => Promise<unknown>, label: string) {
   let rejected = false;
   try {
@@ -117,6 +220,10 @@ async function expectRejected(action: () => Promise<unknown>, label: string) {
     rejected = true;
   }
   assert.equal(rejected, true, label);
+}
+
+function relationID(value: number | string | { id: number | string } | null | undefined) {
+  return value && typeof value === "object" ? value.id : value;
 }
 
 async function main() {
@@ -143,15 +250,61 @@ async function main() {
     role: "author",
   });
 
-  const person = await getOrCreatePerson(payload, editor, author, "chen-rui", "Chen Rui");
+  const portrait = await getOrCreateMedia(payload, editor);
+
+  const person = await getOrCreatePerson(payload, editor, author, portrait, "chen-rui", "Chen Rui");
   const otherPerson = await getOrCreatePerson(
     payload,
     editor,
     otherAuthor,
+    portrait,
     "other-author",
     "Other Author",
   );
   assert.ok(otherPerson.id);
+  await removePersonRevisions(payload, person.id);
+  await removePersonRevisions(payload, otherPerson.id);
+
+  const pinnedPerson = await payload.update({
+    collection: "people",
+    id: person.id,
+    data: { spotlightPinnedUntil: "2027-07-27T00:00:00.000Z" },
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.ok(pinnedPerson.spotlightPinnedUntil);
+  await expectRejected(
+    () => payload.update({
+      collection: "people",
+      id: otherPerson.id,
+      data: { spotlightPinnedUntil: "2027-07-27T00:00:00.000Z" },
+      overrideAccess: false,
+      user: editor,
+    }),
+    "Only one person may be pinned in the active spotlight window.",
+  );
+
+  await expectRejected(
+    () => payload.create({
+      collection: "articles",
+      data: {
+        author: otherPerson.id,
+        body,
+        format: "guide",
+        locale: "en",
+        owner: author.id,
+        slug: "invalid-other-person-byline",
+        sourceNotes: [{ check: "Ownership negative test.", label: "Local fixture" }],
+        summary: "This draft must be rejected because its byline belongs to another account.",
+        title: "Invalid byline",
+        translationGroup: "invalid-other-person-byline",
+      },
+      draft: true,
+      overrideAccess: false,
+      user: author,
+    }),
+    "An author must not submit content under another person's byline.",
+  );
 
   const topicResult = await payload.find({
     collection: "taxonomies",
@@ -168,6 +321,22 @@ async function main() {
       user: editor,
     }));
 
+  const geographyResult = await payload.find({
+    collection: "taxonomies",
+    limit: 1,
+    overrideAccess: true,
+    where: { and: [{ dimension: { equals: "geography" } }, { slug: { equals: "shanghai" } }] },
+  });
+  const geography =
+    geographyResult.docs[0] ??
+    (await payload.create({
+      collection: "taxonomies",
+      data: { dimension: "geography", name: "Shanghai", slug: "shanghai" },
+      overrideAccess: false,
+      user: editor,
+    }));
+
+  await removeAcceptancePlaces(payload);
   await removeAcceptanceArticles(payload);
 
   const english = await payload.create({
@@ -175,8 +344,10 @@ async function main() {
     data: {
       author: person.id,
       body,
+      coverImage: portrait.id,
       format: "guide",
       freshnessDate: "2026-07-27T00:00:00.000Z",
+      geographies: [geography.id],
       locale: "en",
       owner: author.id,
       slug: "driving-in-shanghai",
@@ -198,13 +369,15 @@ async function main() {
   assert.equal(english.workflowStatus, "draft");
   assert.equal(english._status, "draft");
 
-  await payload.create({
+  const spanish = await payload.create({
     collection: "articles",
     data: {
       author: person.id,
       body,
+      coverImage: portrait.id,
       format: "guide",
       freshnessDate: "2026-07-27T00:00:00.000Z",
+      geographies: [geography.id],
       locale: "es",
       owner: author.id,
       slug: "conducir-en-shanghai",
@@ -229,6 +402,7 @@ async function main() {
     data: {
       author: otherPerson.id,
       body,
+      coverImage: portrait.id,
       format: "guide",
       locale: "en",
       owner: otherAuthor.id,
@@ -360,7 +534,12 @@ async function main() {
   const approved = await payload.update({
     collection: "articles",
     id: english.id,
-    data: { workflowStatus: "approved" },
+    data: {
+      homepageEndsAt: "2027-07-27T00:00:00.000Z",
+      homepagePlacement: "lead",
+      homepageStartsAt: "2026-07-27T00:00:00.000Z",
+      workflowStatus: "approved",
+    },
     draft: true,
     overrideAccess: false,
     user: editor,
@@ -379,9 +558,11 @@ async function main() {
   );
   assert.deepEqual(publicationSummary, {
     author: "Chen Rui",
-    classification: "Mobility",
+    classification: "Mobility, Shanghai",
+    cover: "Set",
     freshness: "2026-07-27",
     language: "English",
+    missing: [],
     object: "Guide",
     sources: "Local fixture",
     title: "Driving in Shanghai: licences, permits and the first week",
@@ -410,6 +591,267 @@ async function main() {
   });
   assert.equal(published.workflowStatus, "public");
   assert.equal(published._status, "published");
+  assert.ok(published.publishedAt);
+
+  const publicPerson = await payload.update({
+    collection: "people",
+    id: person.id,
+    data: { profileStatus: "public" },
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.equal(publicPerson.profileStatus, "public");
+  assert.ok(publicPerson.profilePublishedAt);
+
+  const anonymousPerson = await payload.find({
+    collection: "people",
+    depth: 0,
+    limit: 1,
+    overrideAccess: false,
+    where: { slug: { equals: "chen-rui" } },
+  });
+  assert.equal(anonymousPerson.docs.length, 1);
+  assert.equal(anonymousPerson.docs[0]?.user, undefined);
+  assert.equal(anonymousPerson.docs[0]?.profileStatus, undefined);
+  assert.equal(anonymousPerson.docs[0]?.authorApprovalRecordedAt, undefined);
+  assert.equal(anonymousPerson.docs[0]?.profilePublishedAt, undefined);
+
+  const unapprovedMedia = await getOrCreateUnapprovedMedia(payload, author);
+  await payload.delete({
+    collection: "media",
+    overrideAccess: true,
+    where: { alt: { equals: "Forged ownership portrait" } },
+  });
+  const forgedOwnershipFile = await readFile(
+    path.resolve(process.cwd(), "public/images/fixtures/portrait-b-00.webp"),
+  );
+  const forgedOwnershipMedia = await payload.create({
+    collection: "media",
+    data: { alt: "Forged ownership portrait", uploadedBy: otherAuthor.id } as never,
+    file: {
+      data: forgedOwnershipFile,
+      mimetype: "image/webp",
+      name: "forged-ownership-portrait.webp",
+      size: forgedOwnershipFile.byteLength,
+    },
+    overrideAccess: false,
+    user: author,
+  });
+  assert.equal(relationID(forgedOwnershipMedia.uploadedBy), author.id);
+  const anonymousUnapprovedMedia = await payload.find({
+    collection: "media",
+    depth: 0,
+    limit: 1,
+    overrideAccess: false,
+    where: { id: { equals: unapprovedMedia.id } },
+  });
+  assert.equal(anonymousUnapprovedMedia.docs.length, 0);
+  const otherAuthorUnapprovedMedia = await payload.find({
+    collection: "media",
+    depth: 0,
+    limit: 1,
+    overrideAccess: false,
+    user: otherAuthor,
+    where: { id: { equals: unapprovedMedia.id } },
+  });
+  assert.equal(otherAuthorUnapprovedMedia.docs.length, 0);
+  const ownerUnapprovedMedia = await payload.find({
+    collection: "media",
+    depth: 0,
+    limit: 1,
+    overrideAccess: false,
+    user: author,
+    where: { id: { equals: unapprovedMedia.id } },
+  });
+  assert.equal(ownerUnapprovedMedia.docs.length, 1);
+  await expectRejected(
+    () => payload.update({
+      collection: "people",
+      id: person.id,
+      data: { portrait: unapprovedMedia.id },
+      overrideAccess: false,
+      user: editor,
+    }),
+    "An unapproved image must not replace a public portrait.",
+  );
+
+  await expectRejected(
+    () => payload.update({
+      collection: "people",
+      id: person.id,
+      data: { introduction: "Unreviewed public profile change." },
+      overrideAccess: false,
+      user: author,
+    }),
+    "An author must not change a public profile without editorial review.",
+  );
+
+  const concurrentRevisionCreates = await Promise.allSettled([
+    payload.create({
+      collection: "person-revisions",
+      data: {} as never,
+      overrideAccess: false,
+      user: author,
+    }),
+    payload.create({
+      collection: "person-revisions",
+      data: {} as never,
+      overrideAccess: false,
+      user: author,
+    }),
+  ]);
+  assert.equal(concurrentRevisionCreates.filter(({ status }) => status === "fulfilled").length, 1);
+  assert.equal(concurrentRevisionCreates.filter(({ status }) => status === "rejected").length, 1);
+  const profileRevision = concurrentRevisionCreates.find(
+    (result) => result.status === "fulfilled",
+  )!.value;
+  assert.equal(profileRevision.status, "draft");
+  assert.equal(profileRevision.proposedIntroduction, publicPerson.introduction);
+
+  await expectRejected(
+    () => payload.create({
+      collection: "person-revisions",
+      data: {} as never,
+      overrideAccess: false,
+      user: author,
+    }),
+    "Only one open profile revision is allowed per person.",
+  );
+  const hiddenRevision = await payload.find({
+    collection: "person-revisions",
+    depth: 0,
+    limit: 1,
+    overrideAccess: false,
+    user: otherAuthor,
+    where: { id: { equals: profileRevision.id } },
+  });
+  assert.equal(hiddenRevision.docs.length, 0);
+
+  const submittedRevision = await payload.update({
+    collection: "person-revisions",
+    id: profileRevision.id,
+    data: {
+      proposedIntroduction: "A reviewed fictional profile introduction.",
+      status: "submitted",
+    },
+    overrideAccess: false,
+    user: author,
+  });
+  assert.equal(submittedRevision.status, "submitted");
+  assert.ok(submittedRevision.submittedAt);
+
+  const unchangedPublicPerson = await payload.findByID({
+    collection: "people",
+    id: person.id,
+    overrideAccess: true,
+  });
+  assert.notEqual(unchangedPublicPerson.introduction, submittedRevision.proposedIntroduction);
+  await expectRejected(
+    () => payload.update({
+      collection: "person-revisions",
+      id: profileRevision.id,
+      data: { proposedCity: "Unreviewed city" },
+      overrideAccess: false,
+      user: author,
+    }),
+    "An author must not edit a submitted profile revision.",
+  );
+
+  const changesRequestedRevision = await payload.update({
+    collection: "person-revisions",
+    id: profileRevision.id,
+    data: { editorNote: "Use the city shown on the public profile.", status: "changes_requested" },
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.equal(changesRequestedRevision.status, "changes_requested");
+  const resubmittedRevision = await payload.update({
+    collection: "person-revisions",
+    id: profileRevision.id,
+    data: { proposedCity: "Shanghai", status: "submitted" },
+    overrideAccess: false,
+    user: author,
+  });
+  assert.equal(resubmittedRevision.status, "submitted");
+  const personBeforeConcurrentReview = await payload.findByID({
+    collection: "people",
+    id: person.id,
+    overrideAccess: true,
+  });
+  const concurrentReview = await Promise.allSettled([
+    payload.update({
+      collection: "person-revisions",
+      id: profileRevision.id,
+      data: {
+        proposedIntroduction: "An editor must not silently replace the author's revision.",
+        status: "applied",
+      },
+      overrideAccess: false,
+      user: editor,
+    }),
+    payload.update({
+      collection: "person-revisions",
+      id: profileRevision.id,
+      data: { editorNote: "Concurrent review fixture.", status: "changes_requested" },
+      overrideAccess: false,
+      user: editor,
+    }),
+  ]);
+  assert.equal(concurrentReview.filter(({ status }) => status === "fulfilled").length, 1);
+  assert.equal(concurrentReview.filter(({ status }) => status === "rejected").length, 1);
+  const revisionAfterConcurrentReview = await payload.findByID({
+    collection: "person-revisions",
+    id: profileRevision.id,
+    overrideAccess: true,
+  });
+  const personAfterConcurrentReview = await payload.findByID({
+    collection: "people",
+    id: person.id,
+    overrideAccess: true,
+  });
+  if (revisionAfterConcurrentReview.status === "changes_requested") {
+    assert.equal(personAfterConcurrentReview.introduction, personBeforeConcurrentReview.introduction);
+    await payload.update({
+      collection: "person-revisions",
+      id: profileRevision.id,
+      data: { status: "submitted" },
+      overrideAccess: false,
+      user: author,
+    });
+  } else {
+    assert.equal(revisionAfterConcurrentReview.status, "applied");
+    assert.equal(personAfterConcurrentReview.introduction, submittedRevision.proposedIntroduction);
+  }
+  const appliedRevision = revisionAfterConcurrentReview.status === "applied"
+    ? revisionAfterConcurrentReview
+    : await payload.update({
+        collection: "person-revisions",
+        id: profileRevision.id,
+        data: {
+          proposedIntroduction: "An editor must not silently replace the author's revision.",
+          status: "applied",
+        },
+        overrideAccess: false,
+        user: editor,
+      });
+  assert.equal(appliedRevision.status, "applied");
+  assert.equal(appliedRevision.proposedIntroduction, submittedRevision.proposedIntroduction);
+  assert.ok(appliedRevision.appliedAt);
+  const revisedPublicPerson = await payload.findByID({
+    collection: "people",
+    id: person.id,
+    overrideAccess: true,
+  });
+  assert.equal(revisedPublicPerson.introduction, submittedRevision.proposedIntroduction);
+  await expectRejected(
+    () => payload.delete({
+      collection: "person-revisions",
+      id: profileRevision.id,
+      overrideAccess: false,
+      user: superAdmin,
+    }),
+    "Applied profile revision evidence must not be deleted through normal collection access.",
+  );
 
   const englishPublic = await payload.find({
     collection: "articles",
@@ -445,6 +887,186 @@ async function main() {
     },
   });
   assert.equal(spanishPublic.docs.length, 0);
+
+  await payload.update({
+    collection: "articles",
+    id: spanish.id,
+    data: { workflowStatus: "in_review" },
+    draft: true,
+    overrideAccess: false,
+    user: editor,
+  });
+  await payload.update({
+    collection: "articles",
+    id: spanish.id,
+    data: { workflowStatus: "approved" },
+    draft: true,
+    overrideAccess: false,
+    user: editor,
+  });
+  const publishedSpanish = await payload.update({
+    collection: "articles",
+    id: spanish.id,
+    context: { publicationConfirmed: true },
+    data: { workflowStatus: "public" },
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.equal(publishedSpanish.workflowStatus, "public");
+  assert.ok(publishedSpanish.publishedAt);
+
+  const story = await payload.create({
+    collection: "articles",
+    data: {
+      author: person.id,
+      body,
+      coverImage: portrait.id,
+      format: "reporting",
+      geographies: [geography.id],
+      homepagePlacement: "selected",
+      homepageStartsAt: "2026-07-27T00:00:00.000Z",
+      locale: "en",
+      owner: author.id,
+      slug: "shanghai-morning-routes",
+      sourceNotes: [
+        {
+          check: "Fictional source note for the public Story route.",
+          label: "Local fixture",
+        },
+      ],
+      summary: "A fictional report used to verify the public Story route.",
+      title: "Shanghai's morning routes",
+      topics: [topic.id],
+      translationGroup: "acceptance-shanghai-morning-routes",
+    },
+    draft: true,
+    overrideAccess: false,
+    user: editor,
+  });
+  await expectRejected(
+    () => payload.update({
+      collection: "articles",
+      id: story.id,
+      data: { homepageEndsAt: "2025-07-27T00:00:00.000Z" },
+      draft: true,
+      overrideAccess: false,
+      user: editor,
+    }),
+    "Homepage curation must not end before it starts.",
+  );
+  for (const workflowStatus of ["submitted", "in_review", "approved"] as const) {
+    await payload.update({
+      collection: "articles",
+      id: story.id,
+      data: { workflowStatus },
+      draft: true,
+      overrideAccess: false,
+      user: editor,
+    });
+  }
+  const publishedStory = await payload.update({
+    collection: "articles",
+    id: story.id,
+    context: { publicationConfirmed: true },
+    data: { workflowStatus: "public" },
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.equal(publishedStory.workflowStatus, "public");
+  assert.ok(publishedStory.publishedAt);
+
+  const englishPlace = await payload.create({
+    collection: "places",
+    draft: true,
+    data: {
+      coverImage: portrait.id,
+      geography: geography.id,
+      locale: "en",
+      name: "Shanghai",
+      slug: "shanghai",
+      summary: "A fictional place node used to verify geographic discovery.",
+      translationGroup: "acceptance-shanghai",
+    },
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.equal(englishPlace.status, "draft");
+
+  const spanishPlace = await payload.create({
+    collection: "places",
+    draft: true,
+    data: {
+      coverImage: portrait.id,
+      geography: geography.id,
+      locale: "es",
+      name: "Shanghái",
+      slug: "shanghai-es",
+      summary: "Un nodo ficticio para comprobar el descubrimiento geográfico.",
+      translationGroup: "acceptance-shanghai",
+    },
+    overrideAccess: false,
+    user: editor,
+  });
+
+  const publicEnglishPlace = await payload.update({
+    collection: "places",
+    id: englishPlace.id,
+    data: { status: "public" },
+    overrideAccess: false,
+    user: editor,
+  });
+  const publicSpanishPlace = await payload.update({
+    collection: "places",
+    id: spanishPlace.id,
+    data: { status: "public" },
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.ok(publicEnglishPlace.publishedAt);
+  assert.ok(publicSpanishPlace.publishedAt);
+
+  const anonymousPlaces = await payload.find({
+    collection: "places",
+    depth: 0,
+    limit: 10,
+    overrideAccess: false,
+    where: { locale: { equals: "en" } },
+  });
+  assert.equal(anonymousPlaces.docs.length, 1);
+  assert.equal(anonymousPlaces.docs[0]?.name, "Shanghai");
+  assert.equal(anonymousPlaces.docs[0]?.status, undefined);
+
+  const unlinkedGeography = await payload.create({
+    collection: "taxonomies",
+    data: { dimension: "geography", name: "Unlinked", slug: "unlinked" },
+    overrideAccess: false,
+    user: editor,
+  });
+  const unlinkedPlace = await payload.create({
+    collection: "places",
+    draft: true,
+    data: {
+      coverImage: portrait.id,
+      geography: unlinkedGeography.id,
+      locale: "en",
+      name: "Unlinked",
+      slug: "unlinked",
+      summary: "This fixture must remain private without related public content.",
+      translationGroup: "acceptance-unlinked-place",
+    },
+    overrideAccess: false,
+    user: editor,
+  });
+  await expectRejected(
+    () => payload.update({
+      collection: "places",
+      id: unlinkedPlace.id,
+      data: { status: "public" },
+      overrideAccess: false,
+      user: editor,
+    }),
+    "A place without related public content must not become public.",
+  );
 
   const archived = await payload.update({
     collection: "articles",
@@ -531,6 +1153,7 @@ async function main() {
       {
         anonymousEnglish: englishPublic.docs.length,
         anonymousSpanish: spanishPublic.docs.length,
+        anonymousPlaces: anonymousPlaces.docs.length,
         anonymousWithdrawn: withdrawnPublic.docs.length,
         authorSeesOtherDraft: hiddenOtherDraft.docs.length,
         articleID: english.id,

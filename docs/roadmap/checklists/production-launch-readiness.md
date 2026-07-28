@@ -54,6 +54,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - 迁移后 R2 dump、SHA 和零对象媒体清单已写入并读回；首次 run `30287433284` 暴露 PostgreSQL 初始化竞态，修复后的 run `30287841720` 已完成恢复与 23/1/1/6 schema 断言。
 - Newsletter 已使用 Resend Contacts/Topic 真实写路径并保持 Preview 失败关闭；Production 端点有按 IP 限流且不会由公开重复提交逆转退订状态；People 页已接正式 website Discord invite。
 - fixture 占位外链已经移除，最低隐私与订阅同意已实现；首批真实内容及其作者外链仍未审核。
+- 2026-07-28 公共产品彻查结论仍为 `BLOCK`；本地修复已关闭 CMS 公共对象、发布门禁、人物修订、媒体公开使用批准、首页/Spotlight 策展、双语跳转、账号启动工具、移动端和基础可访问性 smoke。本地代码 slice 经首轮 5 个 P1、3 个 P2 修复后第二轮独立复审 PASS；剩余阻塞为受保护 Preview 全量回读与 release-level 独立复审。完整证据与逐项状态见 [`public product audit`](../../reference/implementation/production-public-product-audit-2026-07-28.md)。
 
 ## Accepted Baseline
 
@@ -104,6 +105,14 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 产品负责人批准进入 Production 资源阶段；创建并回读独立 Neon Launch `china-in-fact-production-db` 与 Blob `china-in-fact-production-media`，均仅连接 Production，环境校验为 `cms + blob + noindex`，空库与空 Blob 未执行 migration 或真实数据写入；Neon `History retention` 已回读为 7 days（2026-07-27）。
 - [x] 创建并回读 Production Neon、Blob 与 R2 备份目标及其 secrets；首次空库 dump 与零对象媒体清单已完成写入、读回和隔离恢复，GitHub Actions run `30286886253` 全步骤成功（2026-07-28）。
 - [x] migration 前恢复点已验证，Production migration 已执行并回读 23 张表、1 条 migration、0 业务数据；迁移后 run `30287841720` 完成 R2 读回、SHA、隔离恢复、schema 断言和零媒体清单验证（2026-07-28）。
+- [x] 对全体公共路由、CMS schema、发布门禁、People 机制、双语、账号启动与 CI 覆盖执行只读 Production 产品彻查；结论 `BLOCK`，真实数据门禁撤回到公共产品闭环之后（2026-07-28）。
+- [x] 完成本地第一修复片：CMS 首页、Stories/Guides、People/人物页、Purpose/Topic/About、真实 portrait/cover、发布时间、发布完整性、署名归属、匿名字段隔离、双语 canonical 跳转、People 搜索筛选/分页与按周稳定轮换；生成 migration 与 types，并以临时 PostgreSQL 完成迁移、权限和公共 runtime 验收（2026-07-28）。
+- [x] 固定并实现 Places 一等对象：独立 Place 编辑节点映射 Geography，公开内容和人物自动聚合；列表、详情、双语 canonical、发布负例、25/3 schema、全量 rollback/reapply 与 CMS runtime 均通过本地验收（2026-07-28）。
+- [x] 实现首页 lead/推荐池生效与到期、自动回退，以及 Spotlight 单人置顶、排除、按周稳定轮换和足量人物池下的连续曝光规避；发布窗口与置顶冲突负例由服务端验证（2026-07-28）。
+- [x] 补齐人物资料修订审核和媒体公开使用边界；数据库唯一键阻止并发双修订，行锁和旧值核对阻止并发审核分叉，上传归属不可伪造，应用记录不可常规删除；第 5 条 migration 在空库完成 reverse rollback/reapply 与并发/权限负例，Production 仍未应用（2026-07-28）。
+- [x] 建立首位 Super Admin、密码重置和最多 500 人一批的 dry-run-first 可审计开户 CLI；显式环境/数据库目标和 Production 专属确认失败关闭，首位管理员在锁定事务中建立，批量账户原子写入且邮件结果完整汇总。虚构空库并发启动严格只创建一人，真实账户仍未创建（2026-07-28）。
+- [x] 同一非主持实现者完成公共产品本地候选两轮只读复审：首轮 5 个 P1、3 个 P2 全部修复，第二轮 PASS，P0/P1/P2 为零；该结论不替代受保护 Preview 的 release-level 复审（2026-07-28）。
+- [ ] 用虚构 Preview 数据完成公共路由、真实媒体、人物规模、权限负例、语言跳转、移动端和可访问性验收，并由非主持实现者给出 PASS。
 - [ ] 分别批准真实作者账户、人物、文章、媒体、外链与公开状态；完成编辑审核。
 - [ ] 生成 `--prod --skip-domain` staged deployment，运行完整 release 验收与独立复审。
 - [ ] PASS 后分别批准域名绑定、DNS、内容公开和搜索引擎索引。
@@ -142,4 +151,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-产品负责人已接受 Production 基线并统一批准后续执行；域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 代码、独立 Neon、独立 Blob、R2 备份目标、Production migration 与迁移后恢复已完成并回读。真实数据、内容公开、Production deploy、网站域名绑定和公开索引仍未执行。
+产品负责人已接受 Production 基线并统一批准后续本地修复；域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 环境代码、独立 Neon、独立 Blob、R2 备份目标、首次 Production migration 与迁移后恢复已完成并回读。2026-07-28 公共产品彻查将 release 重新置为 `BLOCK`；本地现为 29 张表/5 条 migration，Production 仍为 23/1。新的 schema migration、首位管理员、真实账户、密码重置邮件、真实数据、内容公开、Production deploy、网站域名绑定和公开索引仍分别执行门禁。

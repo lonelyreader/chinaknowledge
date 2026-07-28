@@ -69,9 +69,11 @@ export interface Config {
   collections: {
     users: User;
     people: Person;
+    'person-revisions': PersonRevision;
     taxonomies: Taxonomy;
     media: Media;
     articles: Article;
+    places: Place;
     'workflow-events': WorkflowEvent;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -82,9 +84,11 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     people: PeopleSelect<false> | PeopleSelect<true>;
+    'person-revisions': PersonRevisionsSelect<false> | PersonRevisionsSelect<true>;
     taxonomies: TaxonomiesSelect<false> | TaxonomiesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
+    places: PlacesSelect<false> | PlacesSelect<true>;
     'workflow-events': WorkflowEventsSelect<false> | WorkflowEventsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -163,6 +167,7 @@ export interface Person {
   identity: string;
   introduction: string;
   city: string;
+  portrait?: (number | null) | Media;
   languages: ('en' | 'es')[];
   topics?: (number | Taxonomy)[] | null;
   links?:
@@ -174,18 +179,10 @@ export interface Person {
     | null;
   user: number | User;
   profileStatus: 'draft' | 'public' | 'paused';
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "taxonomies".
- */
-export interface Taxonomy {
-  id: number;
-  dimension: 'purpose' | 'topic' | 'geography' | 'situation';
-  name: string;
-  slug: string;
+  authorApprovalRecordedAt?: string | null;
+  profilePublishedAt?: string | null;
+  spotlightExcluded?: boolean | null;
+  spotlightPinnedUntil?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -197,6 +194,8 @@ export interface Media {
   id: number;
   alt: string;
   uploadedBy?: (number | null) | User;
+  publicUseApprovedAt?: string | null;
+  publicUseApprovedBy?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -218,6 +217,49 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "taxonomies".
+ */
+export interface Taxonomy {
+  id: number;
+  dimension: 'purpose' | 'topic' | 'geography' | 'situation';
+  name: string;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "person-revisions".
+ */
+export interface PersonRevision {
+  id: number;
+  person: number | Person;
+  proposer: number | User;
+  openPersonKey?: string | null;
+  proposedIdentity: string;
+  proposedIntroduction: string;
+  proposedCity: string;
+  proposedPortrait?: (number | null) | Media;
+  proposedLanguages: ('en' | 'es')[];
+  proposedTopics?: (number | Taxonomy)[] | null;
+  proposedLinks?:
+    | {
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  status: 'draft' | 'submitted' | 'changes_requested' | 'applied';
+  editorNote?: string | null;
+  submittedAt?: string | null;
+  reviewedAt?: string | null;
+  reviewer?: (number | null) | User;
+  appliedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -253,14 +295,12 @@ export interface Article {
   topics?: (number | Taxonomy)[] | null;
   geographies?: (number | Taxonomy)[] | null;
   situations?: (number | Taxonomy)[] | null;
-  sourceNotes?:
-    | {
-        label: string;
-        url?: string | null;
-        check: string;
-        id?: string | null;
-      }[]
-    | null;
+  sourceNotes: {
+    label: string;
+    url?: string | null;
+    check: string;
+    id?: string | null;
+  }[];
   editorComments?:
     | {
         anchor: string;
@@ -273,9 +313,31 @@ export interface Article {
   workflowStatus: 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'public' | 'archived';
   assignedEditor?: (number | null) | User;
   freshnessDate?: string | null;
+  publishedAt?: string | null;
+  homepagePlacement?: ('none' | 'lead' | 'selected') | null;
+  homepageStartsAt?: string | null;
+  homepageEndsAt?: string | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "places".
+ */
+export interface Place {
+  id: number;
+  name: string;
+  summary: string;
+  coverImage?: (number | null) | Media;
+  locale: 'en' | 'es';
+  slug: string;
+  translationGroup: string;
+  geography?: (number | null) | Taxonomy;
+  status: 'draft' | 'public' | 'paused';
+  publishedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -324,6 +386,10 @@ export interface PayloadLockedDocument {
         value: number | Person;
       } | null)
     | ({
+        relationTo: 'person-revisions';
+        value: number | PersonRevision;
+      } | null)
+    | ({
         relationTo: 'taxonomies';
         value: number | Taxonomy;
       } | null)
@@ -334,6 +400,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'articles';
         value: number | Article;
+      } | null)
+    | ({
+        relationTo: 'places';
+        value: number | Place;
       } | null)
     | ({
         relationTo: 'workflow-events';
@@ -415,6 +485,7 @@ export interface PeopleSelect<T extends boolean = true> {
   identity?: T;
   introduction?: T;
   city?: T;
+  portrait?: T;
   languages?: T;
   topics?: T;
   links?:
@@ -426,6 +497,40 @@ export interface PeopleSelect<T extends boolean = true> {
       };
   user?: T;
   profileStatus?: T;
+  authorApprovalRecordedAt?: T;
+  profilePublishedAt?: T;
+  spotlightExcluded?: T;
+  spotlightPinnedUntil?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "person-revisions_select".
+ */
+export interface PersonRevisionsSelect<T extends boolean = true> {
+  person?: T;
+  proposer?: T;
+  openPersonKey?: T;
+  proposedIdentity?: T;
+  proposedIntroduction?: T;
+  proposedCity?: T;
+  proposedPortrait?: T;
+  proposedLanguages?: T;
+  proposedTopics?: T;
+  proposedLinks?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  status?: T;
+  editorNote?: T;
+  submittedAt?: T;
+  reviewedAt?: T;
+  reviewer?: T;
+  appliedAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -447,6 +552,8 @@ export interface TaxonomiesSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   uploadedBy?: T;
+  publicUseApprovedAt?: T;
+  publicUseApprovedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -512,9 +619,30 @@ export interface ArticlesSelect<T extends boolean = true> {
   workflowStatus?: T;
   assignedEditor?: T;
   freshnessDate?: T;
+  publishedAt?: T;
+  homepagePlacement?: T;
+  homepageStartsAt?: T;
+  homepageEndsAt?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "places_select".
+ */
+export interface PlacesSelect<T extends boolean = true> {
+  name?: T;
+  summary?: T;
+  coverImage?: T;
+  locale?: T;
+  slug?: T;
+  translationGroup?: T;
+  geography?: T;
+  status?: T;
+  publishedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

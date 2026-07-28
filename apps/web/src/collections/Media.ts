@@ -1,7 +1,13 @@
 import path from "node:path";
 import type { CollectionConfig } from "payload";
 
-import { authenticated, authenticatedField, editorial } from "@/cms/access";
+import {
+  authenticated,
+  authenticatedField,
+  editorial,
+  editorialField,
+  readApprovedMediaOrOwn,
+} from "@/cms/access";
 import { normalizeUploadBuffers } from "@/cms/media-hooks";
 import { isCMSUser } from "@/cms/roles";
 
@@ -12,7 +18,7 @@ export const Media: CollectionConfig = {
   access: {
     create: authenticated,
     delete: editorial,
-    read: () => true,
+    read: readApprovedMediaOrOwn,
     update: editorial,
   },
   upload: {
@@ -25,8 +31,16 @@ export const Media: CollectionConfig = {
   hooks: {
     afterChange: [normalizeUploadBuffers],
     beforeChange: [
-      ({ data, req }) => {
-        if (!data.uploadedBy && isCMSUser(req.user)) data.uploadedBy = req.user.id;
+      ({ data, operation, originalDoc, req }) => {
+        if (operation === "create" && isCMSUser(req.user)) data.uploadedBy = req.user.id;
+        const wasApproved = Boolean(originalDoc?.publicUseApprovedAt);
+        const isApproved = Boolean(data.publicUseApprovedAt ?? originalDoc?.publicUseApprovedAt);
+        if (!wasApproved && isApproved && isCMSUser(req.user)) {
+          data.publicUseApprovedBy = req.user.id;
+        }
+        if (wasApproved && data.publicUseApprovedAt === null) {
+          data.publicUseApprovedBy = null;
+        }
         return data;
       },
     ],
@@ -37,7 +51,21 @@ export const Media: CollectionConfig = {
       name: "uploadedBy",
       type: "relationship",
       relationTo: "users",
-      access: { read: authenticatedField, update: () => false },
+      access: { create: () => false, read: authenticatedField, update: () => false },
+      admin: { position: "sidebar", readOnly: true },
+    },
+    {
+      name: "publicUseApprovedAt",
+      type: "date",
+      label: "Public use approved",
+      access: { create: editorialField, read: authenticatedField, update: editorialField },
+      admin: { position: "sidebar" },
+    },
+    {
+      name: "publicUseApprovedBy",
+      type: "relationship",
+      relationTo: "users",
+      access: { create: () => false, read: authenticatedField, update: () => false },
       admin: { position: "sidebar", readOnly: true },
     },
   ],

@@ -23,9 +23,9 @@ max_lines: 160
 - P0 Stitch 设计原型、P1 可运行公共产品切片、`P1-EDITORIAL-001` 编辑 CMS 基础与 `P2-PREVIEW-001` 均已完成并归档。
 - Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：现有 Vercel Pro project + 独立 Neon Launch + 独立 Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，异地备份使用 Cloudflare R2。Production migration 已执行一次，形成 23 张 `public` 表和 1 条 migration 记录，业务数据与 Blob 仍为空；迁移后备份、读回、SHA、隔离恢复和 schema 断言均已通过。
 - 人工域名邮箱已复用现有飞书组织完成配置：`chinainfact.com` 邮箱域名、MX、SPF、DKIM 与监测态 DMARC 均已启用，公共邮箱 `hello@chinainfact.com` 已创建并授权给产品负责人；2026-07-27 从该地址向 `gexu@lonelyreader.com` 的真实测试邮件已发送并确认收达。Resend 使用已验证的 `mail.chinainfact.com / us-east-1` 承担程序邮件，真实事务邮件已由飞书主邮箱回读收达。
-- `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。公共站仍保留 typed fixture 读路径；本地可切换到 CMS 公开读路径。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
+- `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。当前本地修复树已接通 CMS 首页、Stories/Guides、Places、People/人物页、Purpose、Topic 与 About，并在 CMS 模式停止公共 fixture 回退。Place 是独立编辑节点，对应一个 Geography；页面自动聚合同语言公开内容与人物。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
 - P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob，基础预算上限为 `US$20/月`；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。受 SSO 保护的当前 Preview 为 [`china-in-fact-m079nig02`](https://china-in-fact-m079nig02-lonelyreader-c40e168c.vercel.app)。环境仍以 `local / preview / production` 失败即停；Production 只有在独立数据库、Blob 与邮件变量齐全时放行，并由独立索引开关保持 `noindex`。
-- CMS 已实现 People、Article、分类、来源说明、编辑评论、版本与工作流审计；Author、Editor、Super Admin 权限和 `draft / submitted / in_review / changes_requested / approved / public / archived` 转换均由服务端约束。英语和西班牙语使用独立文档、URL 与公开状态。
+- CMS 已实现 People、Profile revision、Article、Place、Media、分类、来源说明、编辑评论、版本与工作流审计；人物修订不会提前覆盖公开 Person，Editor 只能要求修改或整体应用作者提案，并发更新由数据库唯一键和行锁保护。经 Payload/API 与 Payload 文件路由读取时，未批准 Media 只对服务端记录的上传者和编辑角色可见，只有批准记录进入匿名读取和内容公开；底层 Blob 是 public store，因此该 collection 不承载敏感原件。Author、Editor、Super Admin 权限和文章状态转换均由服务端约束。英语和西班牙语使用独立文档、URL 与公开状态。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。
@@ -54,5 +54,6 @@ Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为�
 - Production Neon 已执行 `20260727_054408_p1_editorial_foundation`：23 张 `public` 表、1 条 migration，users/people/articles/media/workflow_events 均为 0；Production Blob 为 0B。Cloudflare R2 私有备份桶已在北美东部建立，公开访问关闭；迁移后 run `30287841720` 的 dump、SHA、隔离恢复、23/1/1/6 schema 断言与零对象媒体清单均通过。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容。
 - Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project。独立 Production Neon Launch、Blob、R2、运行变量、migration 与恢复验收已就绪，环境校验为 `cms + blob + noindex`；真实内容尚未审核和写入，因此仍不部署。Payload Resend adapter、Newsletter Contacts/Topic opt-in、最低隐私页、真实 Discord invite 和占位外链清理已实现；公开订阅端点有 Production-only IP 限流，重复提交不会改写已有联系人的退订状态，Local 与 Preview 不写真实订阅者。
+- 2026-07-28 公共产品彻查后的本地修复已覆盖 CMS 公共读取、Places、真实 portrait/cover、发布完整性、署名归属、匿名字段隔离、双语跳转、People 搜索筛选、首页策展、Profile revision、媒体公开使用批准，以及首位管理员和批量开户工具。五条 migration 在临时库形成 29 张表；权限负例、修订与首位管理员并发竞争、账号失败关闭/写入回读、runtime、五条 migration 的完整 reverse rollback/reapply，以及 1440px/390px 公共浏览器与基础可访问性 smoke 均已验证。首轮独立复审的 5 个 P1、3 个 P2 已修复，第二轮本地 slice 复审 PASS、P0/P1/P2 为零；受保护 Preview 全量验收与 release-level 复审仍阻断 Production。Production 仍是 23 张表/1 条 migration，四条新 migration 尚未应用，真实数据、邮件邀请与部署继续停止。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
 
 当上述事实发生变化时更新本页；计划和愿望不得写成当前能力。

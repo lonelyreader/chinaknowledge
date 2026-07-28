@@ -3,8 +3,10 @@ import type { Article, Person, Taxonomy } from "@/payload-types";
 export type PublicationSummary = {
   author: string;
   classification: string;
+  cover: string;
   freshness: string;
   language: string;
+  missing: string[];
   object: string;
   sources: string;
   title: string;
@@ -42,12 +44,22 @@ export function buildPublicationSummary(article: Article): PublicationSummary {
   ];
   const section = article.format === "guide" ? "guides" : "stories";
   const sources = (article.sourceNotes ?? []).map((source) => source.label).filter(Boolean);
+  const person = typeof article.author === "object" ? (article.author as Person) : null;
+  const missing = [
+    ...(!article.coverImage ? ["Cover"] : []),
+    ...(!sources.length ? ["Sources"] : []),
+    ...(article.format === "guide" && !article.freshnessDate ? ["Freshness"] : []),
+    ...(!person?.portrait ? ["Author portrait"] : []),
+    ...(!person?.authorApprovalRecordedAt ? ["Author approval"] : []),
+  ];
 
   return {
     author,
     classification: classification.join(", ") || "Not set",
+    cover: article.coverImage ? "Set" : "Not set",
     freshness: article.freshnessDate?.slice(0, 10) || "Not set",
     language: article.locale === "es" ? "Spanish" : "English",
+    missing,
     object: formatLabels[article.format],
     sources: sources.join(", ") || "Not set",
     title: article.title,

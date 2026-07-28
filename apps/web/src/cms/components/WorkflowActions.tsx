@@ -141,15 +141,19 @@ export function WorkflowActions() {
               <div><dt>Object</dt><dd>{summary.object}</dd></div>
               <div><dt>Language</dt><dd>{summary.language}</dd></div>
               <div><dt>URL</dt><dd>{summary.url}</dd></div>
+              <div><dt>Cover</dt><dd>{summary.cover}</dd></div>
               <div><dt>Sources</dt><dd>{summary.sources}</dd></div>
               <div><dt>Classification</dt><dd>{summary.classification}</dd></div>
               <div><dt>Freshness</dt><dd>{summary.freshness}</dd></div>
             </dl>
           ) : null}
+          {summary?.missing.length ? (
+            <span className="publication-check__error" role="alert">Missing: {summary.missing.join(", ")}</span>
+          ) : null}
           <div className="workflow-actions__buttons">
             <Button
               buttonStyle="primary"
-              disabled={pending !== null || summary === null}
+              disabled={pending !== null || summary === null || summary.missing.length > 0}
               onClick={() => void transition("public", true)}
               size="small"
             >

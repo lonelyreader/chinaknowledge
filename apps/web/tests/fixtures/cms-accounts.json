@@ -1,0 +1,12 @@
+[
+  {
+    "displayName": "Fictional Author",
+    "email": "fictional-author@china-in-fact.test",
+    "role": "author"
+  },
+  {
+    "displayName": "Fictional Editor",
+    "email": "fictional-editor@china-in-fact.test",
+    "role": "editor"
+  }
+]
