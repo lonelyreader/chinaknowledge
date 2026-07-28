@@ -180,12 +180,28 @@ jobs:
             -c "SELECT
               (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'),
               (SELECT count(*) FROM payload_migrations),
-              (SELECT count(*) FROM payload_migrations WHERE name = '20260727_054408_p1_editorial_foundation'),
+              (SELECT count(*) FROM payload_migrations
+                WHERE name IN (
+                  '20260727_054408_p1_editorial_foundation',
+                  '20260727_183217_production_public_product_closure',
+                  '20260727_190700_places_editorial_nodes',
+                  '20260727_191417_homepage_and_spotlight_controls',
+                  '20260727_193832'
+                )),
               (SELECT count(*) FROM information_schema.tables
                 WHERE table_schema = 'public'
-                  AND table_name IN ('users', 'people', 'articles', 'media', 'taxonomies', 'workflow_events'));"
+                  AND table_name IN (
+                    'users',
+                    'people',
+                    'articles',
+                    'media',
+                    'taxonomies',
+                    'workflow_events',
+                    'places',
+                    'person_revisions'
+                  ));"
           )"
-          if [[ "${restored_state}" != "23,1,1,6" ]]; then
+          if [[ "${restored_state}" != "29,5,5,8" ]]; then
             echo "Restored schema does not match the accepted Production baseline: ${restored_state}" >&2
             exit 1
           fi
