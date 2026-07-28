@@ -67,6 +67,7 @@ const production = {
   NEWSLETTER_EMAIL_FROM: "newsletter@mail.chinainfact.com",
   PAYLOAD_EMAIL_FROM: "account@mail.chinainfact.com",
   PAYLOAD_EMAIL_FROM_NAME: "China, in Fact",
+  PAYLOAD_PUBLIC_SERVER_URL: "https://china-in-fact.example.test",
   PUBLIC_INDEXING_ENABLED: "false",
   RESEND_CONTACTS_API_KEY: "re_fixture_contacts_key_123456",
   RESEND_NEWSLETTER_TOPIC_ID: "c6b0f6a2-f1fa-42cf-86ab-0dba63aa7a26",
@@ -92,6 +93,10 @@ assert.throws(
 assert.throws(
   () => validateServerEnvironment({ ...production, BLOB_READ_WRITE_TOKEN: "" }),
   /BLOB_READ_WRITE_TOKEN/,
+);
+assert.throws(
+  () => validateServerEnvironment({ ...production, PAYLOAD_PUBLIC_SERVER_URL: "admin" }),
+  /PAYLOAD_PUBLIC_SERVER_URL/,
 );
 assert.throws(
   () => resolveAppEnvironment({ APP_ENV: "staging" }),

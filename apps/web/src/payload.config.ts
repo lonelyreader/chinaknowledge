@@ -26,6 +26,7 @@ const dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverEnvironment = validateServerEnvironment();
 
 export default buildConfig({
+  serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL,
   admin: {
     user: Users.slug,
     importMap: { baseDir: dirname },

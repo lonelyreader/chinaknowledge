@@ -81,6 +81,21 @@ function isEmailAddress(value: string | undefined) {
   return Boolean(value?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/));
 }
 
+function isHttpsOrigin(value: string | undefined) {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" &&
+      url.pathname === "/" &&
+      !url.search &&
+      !url.hash
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function validateServerEnvironment(
   env: EnvironmentSource = process.env,
 ): ServerEnvironment {
@@ -140,6 +155,9 @@ export function validateServerEnvironment(
     }
     if (!isEmailAddress(env.EMAIL_REPLY_TO)) {
       errors.push("Production requires EMAIL_REPLY_TO.");
+    }
+    if (!isHttpsOrigin(env.PAYLOAD_PUBLIC_SERVER_URL)) {
+      errors.push("Production requires PAYLOAD_PUBLIC_SERVER_URL as an HTTPS origin.");
     }
     if (env.PUBLIC_INDEXING_ENABLED && !["true", "false"].includes(env.PUBLIC_INDEXING_ENABLED)) {
       errors.push("PUBLIC_INDEXING_ENABLED must be true or false.");
