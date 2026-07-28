@@ -4,230 +4,190 @@ doc_type: product
 authority: canonical
 status: active
 scope: product-definition
-last_verified: 2026-07-27
+last_verified: 2026-07-28
 max_lines: 240
 ---
 
 # China, in Fact：产品需求基线
 
-> 正式品牌名：China, in Fact。域名、商标和品牌资产仍待决定。
+> 正式品牌名：China, in Fact。正式域名：`chinainfact.com`。
 
 ## 1. 一句话定义
 
-一个由真实中国人共同构成、由编辑机制组织和把关，面向英语区和西班牙语区用户的中国信息与人物网络：读者既能获得可信、深入的中国信息，也能通过内容认识具体的人，并继续关注、加入社群或进入作者自己的渠道。
+一个由真实中国人持续发布、由站方选择和组织，面向英语区和西班牙语区用户的中国信息与人物网络。读者既能获得可信、深入的信息，也能通过每篇内容认识具体的人，继续进入作者主页、外部渠道和平台社群。
 
-它是一个由人物驱动的编辑型信息 Hub。平台的编辑标准建立公共信任，作者的真实身份、经历和持续表达建立人与人之间的信任；内容把两者连接起来。作者主页、社群和外部渠道属于核心关系链，不是文章之外的附加功能。
+作者负责表达，站方负责策展和分发。两者作用在同一篇内容上：站方编辑不会生成“官方副本”，也不会取代原作者署名。
 
 ## 2. 产品价值
 
 ### 对海外读者
 
-- 在一个地方获得关于中国社会，以及来华、在华、离华后与跨境关系的系统信息。
-- 看到由具体的人持续贡献、有署名且经过编辑组织的中国视角。
-- 从公开内容继续进入 Newsletter、Discord 社群、作者主页和作者自己的服务渠道。
+- 在一个地方理解中国社会，以及来华、在华、离华后和跨境关系。
+- 看到有姓名、经历、位置和持续表达的真实中国人。
+- 区分成员自由发布的内容与站方已经选择、核对和组织的内容。
+- 从内容继续进入作者主页、Newsletter、Discord 和作者自己的渠道。
 
-### 对中国作者与贡献者
+### 对铲子计划成员
 
-- 作为真实人物被看见，拥有公开的作者主页和持续积累的专栏。
-- 借助平台的编辑、分类、分发和 SEO 获得更大的共同流量。
-- 保留自己的对外链接、联系方式与私域入口。
+- 直接发布自己的内容和维护个人页，不等待站方逐篇批准。
+- 作为原作者持续积累公开内容，保留个人网站、社交账号与公开入口。
+- 被站方选中后获得首页、栏目、主题、地点和搜索分发；站方编辑后署名仍属于本人。
 
 ### 对平台
 
-- 通过主编策展，把分散的作者内容组织成可信的主题入口。
-- 同时建立编辑可信度与人物可信度，让读者通过内容、人物与社群形成长期关系。
-- 逐步建立可复用的中国知识库和跨语言分发能力。
+- 从 100–200 名成员已经公开的内容中选择值得扩大分发的部分。
+- 通过编辑、核对、分类和维护建立公共信任，通过人物与内容的持续关系建立温度。
+- 把共同流量准确分发给原作者，同时形成英语与西班牙语的长期知识资产。
 
-## 3. 三方关系
+## 3. 产品关系
 
 ```mermaid
 flowchart LR
-    A["平台 / 主编<br/>策展、审核、分类、分发"] --> H["China, in Fact"]
-    W["真实中国作者与贡献者<br/>发布内容、建立个人主页"] --> H
-    H --> R["英语与西班牙语读者<br/>理解、来华、在华、离华后、跨境关系"]
-    R --> N["Newsletter"]
-    R --> D["Discord / 社群"]
-    R --> P["作者主页与外部渠道"]
-    N --> H
-    D --> H
-    P --> W
+    M["Member / Person<br/>直接发布内容与个人页"] --> A["同一篇 Article"]
+    E["站方 Editor<br/>选择、编辑、核对、分类"] --> A
+    A --> P["作者个人公开空间"]
+    A -->|"Curated 后"| O["Home / Stories / Guides / Topics / Places"]
+    O --> R["海外读者"]
+    P --> R
+    R --> H["Person 主页"]
+    H --> X["作者外链 / Newsletter / Discord"]
 ```
 
-平台负责编辑、核验、策展和聚合流量；作者贡献知识、经历、判断和人格；读者通过内容认识平台与作者，再进入可持续联系渠道。专业程度可以不同，事实、经验和观点必须被清楚区分。
+- Member publication 决定内容是否在作者自己的公开空间出现。
+- Editorial curation 决定同一内容是否进入站方组织和推荐的入口。
+- 公开 Person 是身份；Editor 与 Super Admin 是后台权限。同一账户可以同时拥有 Person 和站方权限。
 
 ## 4. 核心用户
 
 ### 海外读者
 
-1. 对中国感兴趣，想获得比新闻摘要更深入的理解。
-2. 正在计划来华旅行或短期停留。
-3. 准备在中国学习、工作或长期生活。
-4. 想在中国做生意、寻找合作或了解市场。
-5. 从事中国相关研究、媒体、教育或专业工作。
-6. 已经离华、准备离华或长期往返中国。
-7. 华裔、侨民、校友或跨国家庭，希望理解自己与中国的关系。
-8. 关注中国企业、科技、供应链和海外社区。
+1. 想获得比新闻摘要更深入的中国理解。
+2. 正在计划来华旅行、学习、工作或长期生活。
+3. 想在中国经商、寻找合作或了解市场。
+4. 从事中国相关研究、媒体、教育或专业工作。
+5. 已离华、准备离华或长期往返中国。
+6. 华裔、侨民、校友、跨国家庭及关注中国企业、科技、供应链和海外社区的人。
 
-### 中国作者
+### 铲子计划成员
 
-- 预计长期规模为 100–200 人。
-- 首批贡献者来自已有的真实关系网络，能够长期协作；学生或志愿者是参与背景，不作为统一的公开身份包装。
+- 长期规模约 100–200 人，来自已有的真实关系网络。
 - 可能是研究者、创业者、顾问、教师、创作者、律师、医生、旅行者或本地生活服务者。
-- 既可以贡献专业知识，也可以贡献个人经历、地方观察和日常生活；不要求所有人都被包装成专家。
-- 平台分发共同流量，同时允许作者保留个人网站、社交账号和公开渠道。
+- 可以贡献专业知识、个人经历、地方观察和日常生活，不统一包装成专家、员工或志愿者。
+- 每人拥有公开 Person、个人内容归档和可配置外部链接。
 
-### 编辑团队
+### 站方
 
-- 主编负责内容标准、首页策展、内容对象、目的入口与横向语义归类，以及最终发布。
-- 超级管理员负责账号、权限、站点设置和后期分类配置。
+- Editor 从成员内容中选择、编辑、核对、分类、策展和维护官方分发。
+- Super Admin 管理账户、权限、站点安全和恢复，并包含 Editor 能力。
 
 ## 5. 信息架构
 
-### 稳定内容对象
+### 官方稳定入口
 
-首期主导航按稳定对象组织：
-
-| 对象 | 覆盖范围 |
+| 对象 | 站方公开范围 |
 |---|---|
-| Stories | 个人故事、报道、分析和时效更新 |
-| Guides | 可执行、需要持续核验的实用指南 |
+| Stories | 站方已策展的故事、报道、分析、评论和更新 |
+| Guides | 站方已策展且满足来源、时效和维护要求的实用指南 |
 | Places | 中国境内地点及与中国直接相关的海外地理入口 |
-| People | 作者、专家和当地人物等自然人的长期主页 |
+| People | 成员与其他自然人的长期主页及内容归档 |
 
-### 目的入口
+`Understand / Visit / Live / Study / Work / Business` 是目的入口；`Topics / Geography / Situation` 是横向发现。它们组织同一篇 Article，不复制内容，也不改变作者。
 
-`Understand / Visit / Live / Study / Work / Business` 为读者提供目的入口。同一内容可以进入多个目的集合，不复制内容，也不以目的集合决定唯一 URL。
+### 个人公开与官方公开
 
-- `Understand` 服务没有行动任务、但希望理解中国的读者，不作为内容兜底桶。
-- `Live` 覆盖准备、在华生活、离境、离华后、返回与长期往返。
-- `Business` 覆盖经商、创业、投资、采购、合作及企业相关判断。
+- Member Published Article 拥有稳定详情页，并进入作者 Person 的全部内容列表。
+- 只有 `Member Published + Curated` 的 Article 才进入 Home、Stories、Guides、Topics、Places、Purpose、站方推荐和自动最新流。
+- Story/Guide 等是站方对内容的策展分类，不是 Article 的所有权，也不能让 canonical 随分类改变。
+- 当前 `/stories/[slug]` 与 `/guides/[slug]` 在路由升级时必须保持永久兼容；最终稳定详情路由由 migration-ready decision 固定。
+- 未被策展不等于草稿、被拒绝或低质量；它只表示站方尚未把该内容纳入官方分发。
 
-### 横向发现
+### 首页与人物规模
 
-- `Topics` 组织跨对象议题，是全站可见的发现入口，但不是第五个内容对象。
-- `Geography` 覆盖中国境内地点和与中国直接相关的海外社区、企业节点与跨境区域。
-- `Situation` 描述读者与中国的关系状态：`Exploring / Preparing / In China / Leaving / After China / Cross-border`。
-- `Language` 是独立出版轴；`Freshness` 是核验、维护、排序与展示状态。
+- 首页采用少量排期策展与 Curated 内容流组合，不要求每天人工排序。
+- 主故事可由 Editor 排期；无排期时从符合条件的 Curated 内容回退。
+- `Latest / Recently updated` 只从 Curated 内容生成。
+- `People to know` 从资料完整且有 Member Published 内容的人物中每周稳定轮换，允许至多一人临时置顶。
+- People 使用一主两辅 Spotlight、搜索、Topics/Places/Language 筛选和明确分页；不把 100–200 张头像堆成一面墙。
 
-设计原则：
-
-- 每篇内容有一个公开对象；它决定进入 Stories 或 Guides，不由目的入口决定 URL。
-- `visa`、`insurance`、`driving`、`healthcare`、`money`、`internet` 等是 Topics，不升级成主导航。
-- 机构和服务不进入 People，通过内容、搜索或外部链接被发现。
-- 首页不平均展示所有入口，由主编策展出当前最值得读的内容、地点和人物。
-- People 既是独立对象，也是 Stories、Guides 与 Places 的常驻人格层；作者身份不能只出现在文章末尾。
-- 对象类型保持稳定；目的集合与横向语义由编辑配置，不把判断逻辑散落在页面组件里。
-
-### 首页编排
-
-首页采用少量人工决定与自动内容流组合，不要求每天手工重排：
-
-- 主故事由主编排期，可设生效与到期时间；无有效排期时自动回退到最新合格重点内容。
-- 支持内容来自主编维护的推荐池，系统按新鲜度、维护状态、主题与作者重复度轮换。
-- `Latest` 与 `Recently updated` 由发布时间、更新时间和核验状态自动生成。
-- `People to know` 从资料完整且有公开内容的人物中轮换，兼顾主题、地点、新人和近期曝光；允许临时置顶。
-- 重大事件可临时覆盖部分位置，到期后恢复常规编排。正常节奏是每周维护推荐池，日常无需人工排序。
-
-### 公共站首期页面
+### 公共页面
 
 ```text
 /[locale]
 ├── /stories
-│   └── /[slug]
 ├── /guides
-│   └── /[slug]
-├── /places
-│   └── /[slug]
-├── /purposes
-│   └── /[slug]
-├── /topics
-│   └── /[slug]
+├── /places/[slug]
+├── /purposes/[slug]
+├── /topics/[slug]
 ├── /people
 ├── /people/[author-slug]
+├── /[stable-article-route]/[slug]
 ├── /newsletter
 └── /about
 ```
 
-`locale` 首期支持 `en` 与 `es`。语言版本拥有独立 URL 和独立发布状态，不要求所有文章同时具备两种译文。
+`locale` 首期支持 `en` 与 `es`。不同语言是独立 Article，以 translation group 关联，并分别决定个人公开与站方策展。
 
 ## 6. 内容与人物模型
 
-### 内容
+### Article
 
-首期只需要一个统一的 `Article` 模型，通过 `format` 区分编辑形态：
+- 同一语言的一次创作只有一个 Article ID；没有“成员原文”和“站方编辑版”两条记录。
+- `author` 始终是原 Member 的 Person；Editor actor 进入版本和审计，不进入署名。
+- Member publication：`Draft / Published / Withdrawn`。
+- Editorial curation：`Not selected / Selected / Editing / Curated / Needs recheck / Removed`。
+- Member Published Article 最低需要语言、标题、正文、作者和稳定 URL。
+- 进入官方分发时由 Editor 补齐或确认摘要、封面、内容形态、分类、来源、Freshness、SEO 和排期。
+- 内容形态包括 Guide、Reporting、Analysis、First-person、Update；它只决定官方 Stories/Guides 分类。
+- Member 更新已 Curated Article 后，同一 Article 继续在个人页公开，策展状态转为 Needs recheck 并暂时退出官方入口。
+- Member Withdrawn 从个人与官方入口撤回；Removed 只撤出官方分发。
 
-- Guide：可执行、需要持续维护的实用指南，公开进入 Guides。
-- Reporting：报道与现场观察，公开进入 Stories。
-- Analysis：解释、评论与研究，公开进入 Stories。
-- First-person：个人经历与第一人称叙事，公开进入 Stories。
-- Update：时效性较强的变化或提醒，公开进入 Stories。
+### Person
 
-每篇内容至少包含：
+Person 是作者的长期公开空间，包含：
 
-- 标题、摘要、正文、封面图。
-- 原始语言与公开语言版本。
-- 作者。
-- 一个内容形式，由此进入 Stories 或 Guides。
-- 零到多个目的集合、Topics、Geography 与 Situation 值。
-- 发布时间、更新时间、核验与维护状态。
-- 来源或事实核查备注。
-- 编辑状态。
-- SEO 标题、描述和分享图。
+- 姓名、头像、身份、地点、介绍、语言与关注主题。
+- 作者全部 Member Published Article，并可标出站方精选。
+- 个人网站、社交账号和公开联系方式。
+- 与 Stories、Guides、Places、Topics 和 Purpose 的内容关系。
 
-### 作者主页
+成员直接维护自己的 Person，保留版本历史与 Super Admin 暂停/恢复能力，不逐次等待 Editor 应用资料修订。Person 页不是简历、员工页、黄页、排行榜或交易页。
 
-作者页不是简历附件，而是平台的自然人物入口，包含：
-
-- 姓名、头像、简短身份。
-- 一段可读的个人介绍。
-- 这个人理解中国的具体位置、经历或观察角度。
-- 专业主题与所在城市。
-- 作者在平台发布的全部内容。
-- 个人网站、社交账号或公开联系方式。
-- 服务入口可后期增加，首期只做清晰的外部链接，不做站内交易。
-
-每位作者的“子博客”通过 `/people/[author-slug]` 实现，不创建独立 App、子域名或独立内容系统。
-
-People 不使用服务商黄页、创作者排行榜或社交网络式表达。人物发现依靠编辑选择，以及人物与内容、地点、主题之间的交叉关系；不显示粉丝数、热度排名或交易按钮。
-
-100–200 人规模通过分层发现承载：首页和内容页只展示少量相关人物；People 顶部使用每周稳定的一主两辅 `Spotlight`，`All people` 提供姓名搜索、Topics、Places、Language 筛选及明确分页，桌面端每页约 24 人、移动端约 12 人。Spotlight 不是固定三人，也不在每次刷新时随机变化：系统每周从合格人物池生成一组，分别照顾当期重点、新近贡献者和长期低曝光人物；编辑最多临时置顶一人，并可排除不适合推荐的人。
-
-人物资料完整且至少有一篇公开内容后才进入公共 People；暂停贡献者退出自动推荐但保留历史主页。Stories、Guides、Places、Topics 与 Purpose 页面根据人物已有内容的 Topics、Places、Purpose、Language、新鲜度和近期曝光自动匹配相关人物。首期使用可解释的规则，不依赖个性化画像或复杂模型；同一周期内结果保持稳定，并限制少数人物连续高频曝光，不使用商业转化或人气作为默认排序。
-
-## 7. 编辑与发布流程
+## 7. 发布与策展流程
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Draft
-    Draft --> Submitted: 作者投稿
-    Submitted --> InReview: 编辑接手
-    InReview --> RevisionNeeded: 退回修改
-    RevisionNeeded --> Submitted: 作者重投
-    InReview --> Approved: 内容通过
-    Approved --> Published: 编辑发布或定时发布
-    Published --> Archived: 下线或归档
+    state "Member publication" as MP {
+      [*] --> Draft
+      Draft --> Published: Member publish
+      Published --> Published: Member update
+      Published --> Withdrawn: Member withdraw
+      Withdrawn --> Published: Member republish
+    }
+    state "Editorial curation" as EC {
+      [*] --> NotSelected
+      NotSelected --> Selected: Editor selects
+      Selected --> Editing
+      Editing --> Curated: Editor distributes
+      Curated --> NeedsRecheck: Member updates
+      NeedsRecheck --> Curated: Editor reconfirms
+      Curated --> Removed: Editor removes
+      Removed --> Selected: Editor reselects
+    }
 ```
 
-### 角色权限
-
-| 角色 | 权限 |
+| 能力 | 主要任务 |
 |---|---|
-| Author | 创建文章；编辑自己的草稿；提交审核；维护自己的公开资料；不能自行发布 |
-| Editor | 查看全部投稿；编辑内容；指定内容对象、目的与横向分类；退回、批准、定时发布、下线 |
-| Super Admin | 拥有 Editor 权限；管理作者、角色、站点设置；后期管理分类 |
+| Member | 维护自己的 Person；保存、预览、直接公开、更新和撤回自己的 Article |
+| Editor | 查看公开候选；在同一 Article 上编辑、核对、分类、策展、排期、撤出和复核 |
+| Super Admin | 包含 Editor 能力；邀请、暂停、恢复成员和管理权限 |
 
-后台首期不需要自行设计一套复杂工作台。先使用成熟 CMS 的管理界面，只有当真实编辑流程出现明确摩擦时再做定制。
-
-后台原型只证明工作流合同：作者填写内容、来源说明并提交，编辑负责分类、核验、退回、批准与公开。内容审核、分类和最终公开是连续但可区分的步骤；移动端支持状态查看和轻量审核，最终排期或立即公开保留明确确认。
+后台使用 `My work / My profile` 和站方策展入口表达任务，不让 Member 在全量 CMS 集合、审核状态和内部字段中穿行。完整任务合同见 [`Member Publishing And Editorial Curation Requirements`](operational-publishing-requirements.md)。
 
 ## 8. 增长与留存闭环
 
-公共站的主要转化顺序：
+1. 搜索、社交分享、作者渠道或站方栏目带来读者。
+2. Curated 入口把读者带到同一 Article，文章近处明确展示原作者。
+3. 读者进入 Person，看到作者的完整内容、经历和外部链接。
+4. Newsletter 与 Discord 承担平台留存；作者外链承担对成员的流量分发。
 
-1. 搜索、社交分享或作者外部渠道带来读者。
-2. 内容页、人物页、地点与主题之间双向连接，帮助读者从一篇内容认识更多具体的人。
-3. Newsletter 是全站统一的主要留存动作。
-4. Discord 是希望与平台及其人物继续交流的读者入口。
-5. 作者主页把高意向读者引向作者自己的渠道。
-
-首期不做站内私信、关注计数、支付、预约或服务市场。先验证内容是否能形成稳定访问，以及读者是否愿意订阅、加入社群和继续关注作者。
+首期不做站内私信、关注计数、支付、预约、服务市场、排行榜或个性化推荐。成功首先看内容是否带来稳定访问，以及读者是否继续订阅、加入社群和关注具体的人。

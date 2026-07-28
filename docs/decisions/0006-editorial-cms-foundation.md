@@ -13,6 +13,8 @@ change_id: P1-EDITORIAL-001
 
 ## Context
 
+> 2026-07-28：本文关于单一投稿审核状态、Author 禁止公开、Person revision 必审与统一公开门槛的决定已被 [`ADR-0009`](0009-member-publishing-and-editorial-curation.md) 替代；同应用 Payload、PostgreSQL、语言独立记录、服务端权限、版本审计、Media 隔离与 migration 纪律继续有效。
+
 P1 需要在不破坏现有公共站的前提下，证明作者投稿、编辑审核、独立公开确认、双语隔离和公共读取是一条可执行工作流。当前公共应用是 Next.js 16.2.12；Payload 3.86.0 官方模板和 peer dependency 已支持 Next.js 16.2.6 以上版本。
 
 Payload 的 draft 只原生表达 `draft / published`，locale-specific status 仍是实验功能；它们不能直接替代本项目的审核状态和英语、西班牙语独立公开合同。

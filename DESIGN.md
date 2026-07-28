@@ -54,12 +54,13 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 - **Section index:** strong title, one lead story, then an asymmetric editorial grid or divided list.
 - **Homepage:** pair the dominant story with a clearly identifiable author, then include a compact, editorially selected people passage before the page ends. Show people through what they notice or know; never announce a contributor count as a marketing claim.
 - **Homepage composition:** visually distinguish one scheduled lead story, a small editorial selection, automatic `Recently updated` and `Latest` streams, and a rotating `People to know` passage. Do not expose scheduling or ranking logic in public copy.
-- **Article and Guide page:** narrow reading column, calm margin, clear source notes, and a visible author passage near the title or opening. Do not postpone the person behind the content to the footer.
+- **Article and Guide page:** narrow reading column, calm margin, clear source notes when relevant, and a visible original-author passage near the title or opening. Editorial curation or rewriting must never replace the member byline or postpone the person behind the content to the footer.
 - **Compact byline:** portrait or distinctive image, full name, short identity, and city when relevant. Use it consistently on lead stories and selected index items; lighter text-only bylines may serve dense lists.
 - **People index:** an editorial portrait and contribution index with varied scale, a weekly three-person Spotlight, and divided lists for the rest. The Spotlight uses one dominant person and two supporting people; every person is visibly tied to a recent contribution. It must not resemble a staff directory, alumni page, marketplace, or equal avatar grid.
 - **People at scale:** the Spotlight is a stable window into the network, not a permanent featured trio or a carousel. Follow it with a compact `All people` area containing name search, Topics, Places, Language, a functional result count, and explicit pagination of roughly 24 people per page. Each row links identity, place, topics, and a recent contribution. Do not render 100–200 portraits in one continuous wall.
 - **Contextual people:** Stories, Guides, Places, Topics, and Purpose surfaces may show a small number of automatically matched people through their published contributions. Present the contribution relationship, not recommendation scores or matching explanations.
-- **Author profile:** portrait, chosen identity, location, readable first-person introduction, topics and places, selected work, full archive, and direct external links. It is a continuing publication surface, not a résumé or social profile.
+- **Author profile:** portrait, chosen identity, location, readable first-person introduction, topics and places, site-selected work, the member's complete public archive, and direct external links. It is a continuing publication surface, not a résumé or social profile. Content not selected by the site remains visible here when the member has published it.
+- **Curation distinction:** use a restrained label or grouping to distinguish site-selected work from the rest of a member's public archive. Never describe unselected work as rejected, pending approval, or lower quality.
 - **Community continuation:** Discord may appear as one restrained continuation action after a person or story relationship is established. Do not use acquisition banners or repeated community promotion.
 - **Author identity:** no follower counts, ratings, availability badges, popularity rank, transaction controls, or social-score treatment.
 - **Newsletter module:** one field, one primary action, compact success and error states.
@@ -71,14 +72,17 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 ## 6. Admin Components
 
 - Admin screens are operational, calm, and compact. Use `Satoshi` and `Geist Mono` only.
-- The author view prioritizes title, language, last edited time, and editorial status.
-- Author screens use a compact `My work` list and a focused editor. Author actions are limited to saving drafts, previewing, submitting, and responding to requested changes; never show a publish action.
-- The editor queue prioritizes author, submission age, main section, language, and the next editorial action.
-- Review detail separates reading and source checks from classification. Final scheduling or immediate publication uses a distinct confirmation state with title, locale, URL, date, and freshness information visible together.
+- Member entry points are `My work` and `My profile`; do not make a member search full CMS collections for their own records.
+- `My work` prioritizes title, language, member publication state, site curation state, last saved time, and one clear next action.
+- The focused editor supports save, preview, publish, update, and withdraw. It must not show Submit, Resubmit, approval waiting, or site-only curation fields to an ordinary member.
+- `My profile` presents identity, portrait, location, introduction, languages, topics, and external links as one direct editing task with preview and publish.
+- The Editor candidate view prioritizes original author, publication recency, language, curation state, and the next site action. It distinguishes unselected, selected, editing, curated, needs recheck, and removed content.
+- Curation detail separates reading and source checks from classification. Scheduling or site distribution uses a distinct confirmation state with author, locale, stable URL, selected sections, date, and freshness visible together.
 - Status is communicated by text and shape as well as color.
-- Publishing controls are unavailable to authors; the layout should make role boundaries visible through available actions.
-- Mobile supports status checks, revision responses, queue triage, and light review. High-risk publication controls must not become a single sticky tap or share space with ordinary save actions.
-- Classification uses one required public object plus optional Purpose, Topics, Geography, and Situation. Language and Freshness remain separate publication fields. Do not expose a complex taxonomy tree without an observed editorial need.
+- Member publication and site curation are separate controls. Member publish must not imply Home/Stories/Guides placement; Editor removal must not withdraw the member's article.
+- When an Editor edits a member article, the original Person remains visibly fixed as the byline; editor identity belongs in version and audit detail.
+- Mobile supports member writing, profile updates, candidate triage, and light curation. Withdraw and site-distribution controls require clear confirmation and must not share a single ambiguous action.
+- Classification is an Editor task: one site format plus optional Purpose, Topics, Geography, and Situation. Language and Freshness remain separate fields. Do not expose this taxonomy tree to members without an observed need.
 - Tables collapse into stacked rows on mobile with the primary action retained.
 
 ## 7. Layout Principles
@@ -110,7 +114,7 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 - Animate only `transform` and `opacity`.
 - Story lists may enter with a short stagger, but reading content must never wait for decorative animation.
 - Hover reveals image or underline movement of no more than `4px`.
-- Selected filters, menu state, submission status, and save confirmation need clear transitions.
+- Selected filters, menu state, publication/curation status, and save confirmation need clear transitions.
 - Respect reduced-motion settings.
 - No perpetual animation on reading pages. A small status shimmer is allowed only for an active upload or save operation.
 
@@ -123,7 +127,8 @@ Never introduce purple, blue neon, metallic gold, flag-color combinations, or de
 - Do not add capability descriptions to cards, empty states, forms, or heroes.
 - Do not call contributors a team, experts, volunteers, students, creators, or community as a blanket public label. Describe each person specifically.
 - Example public labels: `Stories`, `Guides`, `Places`, `People`, `Understand`, `Visit`, `Live`, `Study`, `Work`, `Business`, `Subscribe`, `Read`, `About the author`.
-- Example author statuses: `Draft`, `Submitted`, `In review`, `Changes requested`, `Public`.
+- Example member publication statuses: `Draft`, `Public`, `Withdrawn`.
+- Example site curation statuses: `Not selected`, `Selected`, `Editing`, `Site selected`, `Needs recheck`, `Removed`.
 
 ## 11. Anti-Patterns
 

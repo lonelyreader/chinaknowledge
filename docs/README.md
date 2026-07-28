@@ -14,7 +14,8 @@ max_lines: 100
 
 | 需要确认 | 唯一入口 | 不要从哪里推断 |
 |---|---|---|
-| 产品定位、用户、栏目、角色 | [`product-brief.md`](product-brief.md) | 旧聊天、fixture、设计草稿 |
+| 产品定位、用户、栏目、角色 | [`product-brief.md`](product-brief.md) | 旧聊天、fixture、旧投稿流程 |
+| 成员发布、站方策展、署名与人物导流 | [`operational-publishing-requirements.md`](operational-publishing-requirements.md) | 后台默认按钮、旧 workflow 状态、临时运维步骤 |
 | 当前真实状态 | [`current-state.md`](current-state.md) | roadmap 目标、历史归档 |
 | 开发授权、风险、验收、文档规则 | [`architecture/README.md`](architecture/README.md) | PR 描述、临时清单 |
 | 当前工作与后置项 | [`roadmap/README.md`](roadmap/README.md) | reference、聊天计划 |

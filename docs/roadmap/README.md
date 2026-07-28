@@ -14,7 +14,7 @@ max_lines: 100
 
 ## Active
 
-当前没有 active checklist。Production launch 已完成并移入 [`archive`](../archive/production-launch-readiness.md)。
+[`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](checklists/member-publishing-curation-closure.md)：把当前投稿审核架构改为成员直接公开与站方策展两条独立状态，在同一 Article 上保留原作者署名，并打通官方入口到 Person 与外链的流量路径。当前已建立产品合同与架构审计；产品代码、schema、migration、public routing、真实账户和 Production 分别过门禁。
 
 ## Deferred
 

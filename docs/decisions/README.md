@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: decisions-index
-last_verified: 2026-07-27
+last_verified: 2026-07-28
 max_lines: 100
 ---
 
@@ -19,9 +19,10 @@ max_lines: 100
 | `ADR-0003` | accepted | [`内容对象与目的入口分层`](0003-layered-information-architecture.md) |
 | `ADR-0004` | accepted | [`拓宽目的入口与横向分类`](0004-broaden-purpose-and-context-classification.md) |
 | `ADR-0005` | accepted | [`公共 Web 基础栈`](0005-public-web-foundation.md) |
-| `ADR-0006` | accepted | [`编辑 CMS 基础`](0006-editorial-cms-foundation.md) |
+| `ADR-0006` | partially superseded | [`编辑 CMS 基础`](0006-editorial-cms-foundation.md) |
 | `ADR-0007` | accepted | [`P2 Preview 托管基础`](0007-preview-hosting-foundation.md) |
 | `ADR-0008` | accepted | [`Production Launch 基础`](0008-production-launch-foundation.md) |
+| `ADR-0009` | accepted | [`成员直接发布与站方策展分离`](0009-member-publishing-and-editorial-curation.md) |
 
 ## 登记规则
 
