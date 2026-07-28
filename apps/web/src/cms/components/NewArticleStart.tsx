@@ -44,9 +44,14 @@ export function NewArticleStart() {
         headers: { "Content-Type": "application/json" },
         method: "POST",
       });
-      const article = await response.json() as { errors?: { message?: string }[]; id?: number | string };
-      if (!response.ok || !article.id) throw new Error(article.errors?.[0]?.message ?? "Article could not be created.");
-      window.location.assign(`/admin/collections/articles/${article.id}?mode=creator`);
+      const article = await response.json() as {
+        doc?: { id?: number | string };
+        errors?: { message?: string }[];
+        id?: number | string;
+      };
+      const articleId = article.doc?.id ?? article.id;
+      if (!response.ok || !articleId) throw new Error(article.errors?.[0]?.message ?? "Article could not be created.");
+      window.location.assign(`/admin/collections/articles/${articleId}?mode=creator`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Article could not be created.");
       setPending(false);
