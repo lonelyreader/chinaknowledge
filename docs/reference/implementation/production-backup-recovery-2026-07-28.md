@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Result
 
-2026-07-28 完成 Production 跨供应商恢复基线、migration 后复验和首位管理员建立后的再次备份：Neon 与 Vercel Blob 的恢复点写入 Cloudflare R2 Standard 私有桶，数据库文件和媒体清单均从 R2 读回；数据库 dump 在隔离 PostgreSQL 17 实例中恢复成功。当前 Production 有 29 张表和 5 条 migration、1 名 Super Admin，内容数据与 Blob 为 0；run `30343054714` 已用当前数据库完成 29/5/5/8 断言。
+2026-07-28 完成 Production 跨供应商恢复基线、migration 后复验、首位管理员和首张真实媒体后的再次备份：Neon 与 Vercel Blob 的恢复点写入 Cloudflare R2 Standard 私有桶，数据库文件和媒体清单均从 R2 读回；数据库 dump 在隔离 PostgreSQL 17 实例中恢复成功。当前 Production 有 29 张表和 5 条 migration、1 名 Super Admin、1 条 Media，Person/Article/Place 为 0；run `30345197248` 已完成 29/5/5/8 断言与真实媒体抽样 SHA 读回。
 
 ## Resource Boundary
 
@@ -66,8 +66,9 @@ GitHub Actions secrets 为 `PRODUCTION_DATABASE_BACKUP_URL`、`PRODUCTION_BLOB_R
 - Workflow update：commit `8cef12e` 将隔离恢复硬断言同步收紧到 `29,5,5,8`，包含全部 migration 名称与 `places / person_revisions`；旧 23/1 基线先完成最后一次恢复，再执行 migration 与 workflow 更新。
 - Post-migration recovery：run [`30339406235`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30339406235) 在 commit `8cef12e` 上用时 41 秒，全步骤成功；`production.dump: OK`、schema assertion `29,5,5,8`、五类业务数据为 0，零对象媒体清单读回成功。
 - First-admin recovery：首位 Super Admin 建立后立即运行 [`30343054714`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30343054714)，全流程成功；`production.dump: OK`、隔离恢复 schema assertion `29,5,5,8`、零对象媒体清单读回成功。备份和文档不记录管理员邮箱、密码或重置 token。
+- First-media recovery：首张本人授权头像写入后运行 [`30345197248`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30345197248)，全流程用时 1m3s；`production.dump: OK`，隔离恢复为 29/5/5/8、users/people/articles/media/workflow_events 为 1/0/0/1/0。Blob 枚举得到原图与 card 版本 2 个对象，全部上传为不可变哈希键；随后下载 manifest 和其中一个对象，SHA-256 与来源一致。
 
 ## Remaining Gate
 
-- 第一批真实媒体写入后再次运行 workflow，要求至少一个媒体对象从 R2 读回且校验一致。
+- 首张真实媒体的数据库记录、原图与派生版本均已进入恢复链路并完成读回；后续每日 workflow 继续覆盖新增媒体。
 - staged Production 已部署；正式域名、真实内容和索引仍须在内容审核与 release 门禁后执行。
