@@ -57,13 +57,14 @@ change_id: PUB-CURATION-001
 ## 独立复审
 
 - 2026-07-29 两位非主持 reviewer 首轮均为 `BLOCK`，共同指出普通 API 可绕过状态动作、未策展文章可从 Home/People 进入站方内容、profile 缺版本/预览、危险动作缺确认和两轴 migration 回退会损坏语义。
-- 上述代码与 migration 问题已修复并补自动化负例；新提交完成后必须重新进行全量独立复审，旧结论不得复用。
+- 后续每次修复都在新提交上重新复审，继续发现并关闭 `_status` 绕过、假公开 Article、同 batch 部分回退、Person/Article 语言和完整性漂移、User 删除使 owner 失联等到达路径。
+- 最终代码基线 `8956ee7` 由产品/UX reviewer 与技术/权限/migration reviewer 分别给出 `PASS`，两边均为 `P0/P1/P2 = 0/0/0`；旧 BLOCK 结论未被复用。
 
 ## 尚未完成
 
 - 事务通知与通知重试。
 - 英西成对 fixture、metadata/sitemap 全矩阵、无障碍和正式 390px/桌面验证。
-- 旧 Production 数据形状恢复夹具、Preview migration、独立复审复验。
+- 旧 Production 数据形状恢复夹具、Preview migration 与 Preview 环境复验。
 - Production 备份、migration、真实 Ge Xu 内容原地映射、public routing 与部署。
 
 Production 当前仍运行旧单轴工作流；本页所有新能力只存在于本地实现与临时数据库。

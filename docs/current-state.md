@@ -44,7 +44,7 @@ max_lines: 160
 
 ## 当前执行线
 
-当前唯一 active 执行线是 [`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](roadmap/checklists/member-publishing-curation-closure.md)。产品合同、核心代码、schema、受保护的 recovery migration、公开 read model、稳定路由和 Member/Editor 基础工作台已在本地完成；首轮独立复审的 BLOCK 项已修复，仍需新提交上的复验。事务通知、完整双语/无障碍验证、Preview RC、Production migration 与部署仍未完成。`PROD-LAUNCH-001` 已完成并归档；P3 仍等待真实访问、订阅和作者运营数据。
+当前唯一 active 执行线是 [`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](roadmap/checklists/member-publishing-curation-closure.md)。产品合同、核心代码、schema、受保护的 recovery migration、公开 read model、稳定路由和 Member/Editor 基础工作台已在本地完成；最终代码基线 `8956ee7` 已通过产品/UX与技术/权限/migration 双重独立复审，两边 `P0/P1/P2` 均为 0。事务通知、完整双语/无障碍验证、Preview RC、Production migration 与部署仍未完成。`PROD-LAUNCH-001` 已完成并归档；P3 仍等待真实访问、订阅和作者运营数据。
 
 ## 当前运行边界
 

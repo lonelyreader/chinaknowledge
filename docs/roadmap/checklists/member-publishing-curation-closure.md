@@ -58,6 +58,7 @@ approval_gates: checklist-commit, product-code, dependency-install, database-sch
 - [x] 在 Person 与 Article 上完成 `官方入口 → Article → 原作者 → Person → 外链`，并给 Curated 内容提供克制的站方选择标记。
 - [x] 拆分个人发布和官方策展的媒体、来源、封面、Freshness 与 SEO 门槛；Member 上传权限和匿名隔离保持服务端有效。
 - [x] 修复独立复审 BLOCK：普通 API publication/profile/`_status` 状态绕过、未公开 Person 的假公开 Article、站方字段伪造、未策展内容从 Home/People 泄入站方入口、Person 版本/预览缺失、危险动作无确认和两轴回退语义损坏。
+- [x] 在代码基线 `8956ee7` 完成本地 core 双重独立复审：产品/UX与技术/权限/migration 均 `PASS`，两边 `P0/P1/P2 = 0/0/0`。
 - [ ] 更新邀请、组合权限、通知、审计与后台直达关系；Editor/Super Admin 关联 Person 后也能作为 Member 发文。
 - [ ] 用虚构数据完成状态矩阵、同 Article 断言、署名断言、双语隔离、桌面/移动和无障碍验证。
 - [ ] 在临时 PostgreSQL 完成 migration apply、rollback/reapply、旧 Production 形状恢复和旧 URL 兼容测试。
