@@ -47,6 +47,8 @@ change_id: PUB-CURATION-001
 
 2026-07-29 已按本决定完成 Production migration 与部署：现有英西 Article 原地保留 ID、作者、owner、translation group、正文与媒体，并映射为 `Published + Curated`；migration 前后恢复点均完成异地读回和隔离恢复。
 
+同日完成产品体验收口：Editor/Super Admin 关联 Person 后使用同一 My work/My profile 与聚焦 Writing 工作区；英语/西语 Person、实际可达的 Article/Person/Place alternate、确定共享的 Purpose 入口和失败可恢复的自动保存均成为本决定的运行合同。最终 Preview 与 Production 为 33 张表、12 条 migration，两位独立 reviewer 均以零 finding 放行。
+
 ## Supersession
 
 本决定仅替代 [`ADR-0006`](0006-editorial-cms-foundation.md) 中关于 Article 审核状态、Author 禁止公开、Person revision 必审和统一公开门槛的产品工作流。ADR-0006 的同应用 Payload、PostgreSQL、语言独立记录、服务端权限、版本审计、Media 隔离和 migration 纪律继续有效。

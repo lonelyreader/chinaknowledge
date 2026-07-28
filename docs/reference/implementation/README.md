@@ -18,6 +18,6 @@ max_lines: 60
 | `P1-EDITORIAL-001` | 实现者验证与产品负责人授权的代理独立复审均通过 | [`p1-editorial-cms-foundation-2026-07-27.md`](p1-editorial-cms-foundation-2026-07-27.md) |
 | `P2-PREVIEW-001` | 实现者验收与第二轮独立复审均 PASS；P0/P1/P2 finding 为零 | [`local preparation`](p2-preview-local-preparation-2026-07-27.md)、[`provider research`](p2-preview-provider-research-2026-07-27.md)、[`migration and recovery plan`](p2-preview-migration-recovery-plan-2026-07-27.md) |
 | `PROD-LAUNCH-001` | 真实内容、正式域名、恢复演练与独立复审均完成 | [`readiness research`](production-launch-readiness-research-2026-07-27.md)、[`backup and recovery`](production-backup-recovery-2026-07-28.md)、[`public product audit`](production-public-product-audit-2026-07-28.md) |
-| `PUB-CURATION-001` | 成员直接发布与站方同文档策展已完成 Preview、Production migration、真实数据读回、部署、恢复演练与独立复审 | [`architecture audit`](member-publishing-curation-architecture-audit-2026-07-28.md)、[`closure evidence`](member-publishing-curation-core-slice-2026-07-28.md) |
+| `PUB-CURATION-001` | 成员直接发布、站方同文档策展、聚焦 Editor 工作区、双语 Person/路由、Production 读回、恢复与双重独立复审全部通过 | [`architecture audit`](member-publishing-curation-architecture-audit-2026-07-28.md)、[`closure evidence`](member-publishing-curation-core-slice-2026-07-28.md) |
 
 原始截图位于 `assets/`，由对应 evidence 文档解释；不要脱离测试结论单独把图片当作接受依据。

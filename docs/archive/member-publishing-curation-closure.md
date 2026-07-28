@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: member-publishing-curation-closure
 last_verified: 2026-07-29
 max_lines: 300
@@ -64,25 +64,29 @@ approval_gates: checklist-commit, product-code, dependency-install, database-sch
 - [x] 在临时 PostgreSQL 完成 migration apply、rollback/reapply、旧 Production 形状恢复和旧 URL 兼容测试。
 - [x] 完成 Preview release candidate 和非主持独立复审，修复至 PASS。
 - [x] 取得用户对后续操作的整体明确批准；建立 migration 前恢复点后把现有 Ge Xu 英西 Article 原地迁移为 Published + Curated，以候选态验证后 promote Production 并回读。
-- [ ] 验收 Editor/Super Admin 作为作者的完整登录、个人页、新建、预览、公开、更新与撤回旅程。
-- [ ] 固定双语 Person 产品决定并实现 English/Spanish 资料编辑与公共页面选择/fallback。
-- [ ] 把 Editor 默认入口收敛为 Needs attention 任务收件箱，保留语言、负责人、最后动作与下一动作信息；全量 Articles 降为次级入口。
-- [ ] 把头像、封面和外链变成页面内高频任务：上传/替换/删除、类型、URL 校验、排序与预览均可理解。
-- [ ] 固定自动保存状态、失败恢复、离页保护、并发锁定与版本恢复合同并验收。
-- [ ] 在真实 Person 上建立至少一个明确属于作者本人的外部渠道，完成官方入口到作者外链的 Production 点击闭环。
-- [ ] 把 My profile 设为持久导航入口，并让语言切换直接输出目标语言 canonical URL。
-- [ ] 修复最终 UX 独立复审的 `P1=6 / P2=2` 至 `P0/P1/P2 = 0/0/0`。
-- [ ] 完成最后一轮 Production schema/data/deploy/readback 与恢复点验证。
-- [ ] 写回 current、decision 和 implementation evidence，归档本 checklist。
+- [x] 验收 Editor/Super Admin 作为作者的完整登录、个人页、新建、预览、公开、更新与撤回旅程。
+- [x] 固定双语 Person 产品决定并实现 English/Spanish 资料编辑与公共页面选择/fallback。
+- [x] 把 Editor 默认入口收敛为 Needs attention 任务收件箱，保留语言、负责人、最后动作与下一动作信息；全量 Articles 降为次级入口。
+- [x] 把头像、封面和外链变成页面内高频任务：上传/替换/删除、类型、URL 校验、排序与预览均可理解。
+- [x] 固定自动保存状态、失败恢复、离页保护、并发锁定与版本恢复合同并验收。
+- [x] 在真实 Person 上建立至少一个明确属于作者本人的外部渠道，完成官方入口到作者外链的 Production 点击闭环。
+- [x] 把 My profile 设为持久导航入口，并让语言切换直接输出目标语言 canonical URL。
+- [x] 修复最终 UX 独立复审的 `P1=6 / P2=2` 至 `P0/P1/P2 = 0/0/0`。
+- [x] 完成最后一轮 Production schema/data/deploy/readback 与恢复点验证。
+- [x] 写回 current、decision 和 implementation evidence，归档本 checklist。
 
 ## Closure
 
 - GitHub Preview checks run `30388465174` 在全新 PostgreSQL 上完整 PASS。
-- Production migration 后为 33 张表、10 条 migration；真实实体计数保持 users/people/articles/media/workflow events `1/1/2/2/8`，身份与翻译不变量异常均为 0。
-- Production deployment `dpl_2gJFdjQEQ9kfyzYqRdUmnDKFJh5y` 先以候选态完成真实内容、桌面、390px、英西、后台和日志复验，再 promote 到 `chinainfact.com`。
+- 首轮 Production migration 后为 33 张表、10 条 migration；真实实体计数保持 users/people/articles/media/workflow events `1/1/2/2/8`，身份与翻译不变量异常均为 0。
+- 首轮 Production deployment `dpl_2gJFdjQEQ9kfyzYqRdUmnDKFJh5y` 先以候选态完成真实内容、桌面、390px、英西、后台和日志复验，再 promote 到 `chinainfact.com`。
 - migration 前 backup run `30384139368` 与 migration 后 run `30389201732` 均完成不可变上传、SHA 读回、隔离恢复和 schema/count/media 断言。
 - 技术/权限/migration 最终 Production 独立复审 `PASS`，`P0/P1/P2 = 0/0/0`；上一 Production deployment 在 10-migration 数据库上保持兼容，数据恢复点也已验证。
-- 产品/UX 最终复审暂为 `BLOCK`，`P0/P1/P2 = 0/6/2`；上述八项已回填为 active closure，不沿用 Preview 的旧 PASS。
+- 最终 Preview `dpl_57WuvghzZvvP39yvX11tzYdDBViM` 在 `31f38c9` 上集中验证 Editor 起稿、Writing/Site 聚焦、My profile、双语 Person、Purpose/Place/Article 语言 canonical、保存失败重试、重试期间继续输入、390px 与无障碍；临时草稿全部清理。
+- 本地集中验证 `typecheck / lint / build / editorial / migration recovery / diff check` 全部通过；lint 只有生成 migration 的 40 条既有 warning。Preview 与 Production 均为 33 张表、12 条 migration。
+- 产品/UX与技术/权限/migration 两位独立 reviewer 最终均 `PASS`，两边 `P0/P1/P2 = 0/0/0`。
+- Production 候选 `dpl_BXJNsTa28fwmMqcxt9k22VbCJoWb` 完成英西首页、Person、Article、后台登录页、robots、sitemap、390px 与 100 条日志零 error/5xx 后 promote 到 `chinainfact.com`。
+- 最终恢复 run [`30395828366`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30395828366) 在 `31f38c9` 上完成 R2 不可变上传、读回、隔离恢复、33/12/12/8 断言与媒体核验。
 
 ## Acceptance
 

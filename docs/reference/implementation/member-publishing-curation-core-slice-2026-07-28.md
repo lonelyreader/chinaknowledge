@@ -35,13 +35,14 @@ change_id: PUB-CURATION-001
 
 ## 自动化证据
 
-- 临时 PostgreSQL：从空库执行全部 10 条 migration PASS；新增 Person 版本历史、事务通知投递状态和 `translation group + locale` 复合唯一索引。
-- Recovery：无新模型写入的全新数据库完成 10 条 migration 上行与整批 rollback；清空同一临时目标后重新执行全部 migration PASS。最新受保护 migration 在整批 down 的第一步同时检查 Article 两轴/versions、Person versions、Member media、workflow axis 与 paused accounts；任一新模型写入都会在任何 schema 或身份索引被拆除前拒绝回退并要求恢复 migration 前备份，账户状态 migration 另有独立防线。
+- 临时 PostgreSQL：从空库执行全部 12 条 migration PASS；新增 Person 双语资料、聚焦 Creator workspace 所需 schema、Person 版本历史、事务通知投递状态和 `translation group + locale` 复合唯一索引。
+- Recovery：无新模型写入的全新数据库完成 12 条 migration 上行与整批 rollback；清空同一临时目标后重新执行全部 migration PASS。第 12 条 batch barrier 在整批 down 的第一步同时检查 Article 两轴/versions、Person versions/双语资料、Member media、workflow axis 与 paused accounts；任一新模型写入都会在任何 schema 或身份索引被拆除前拒绝回退并要求恢复 migration 前备份。
 - `npm run test:migration-recovery` 可重复创建独立临时数据库，验证 clean apply/整批 rollback/清空重建，以及 populated down 在第一条 migration fail-closed 后 Person versions、account status、Article 两轴字段和 migration ledger 全部仍在；脚本结束会删除其随机临时数据库。
 - `npm run test:editorial` PASS：Article count 保持 1、原 byline 不变、15 条双轴事件、最终 Published + Curated；同时覆盖普通 API publication/profile/`_status` 绕过、未公开 Person 的 Article publication、canonical 篡改、站方字段伪造、Curated 后直接改文进入 Needs recheck、个人未策展文章、本人版本隔离、Editor/Super Admin 组合权限、账户自动建 Person、暂停登录和暂停前 JWT 不再获得授权。
 - `npm run typecheck` PASS。
 - `npm run lint` PASS，只有已有及生成 migration 的未使用参数 warning。
-- `npm run build` PASS，包含动态 `/posts`、永久 legacy route 与静态 `sitemap.xml`。
+- `npm run build` PASS，包含动态 `/posts`、永久 legacy route、Person/Place alternate 与静态 `sitemap.xml`。
+- 最终批次集中运行 `typecheck / lint / build / editorial / migration recovery / diff check` 全部 PASS；lint 为 0 error，只有生成 migration 的 40 条未使用参数 warning。
 - GitHub Preview checks run [`30388465174`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30388465174) 在全新 PostgreSQL 上完成 10 条 migration、治理、权限与编辑流程、Newsletter、lint、typecheck、production dependency audit、build 和公开路由 smoke，全部 PASS。
 
 ## 浏览器证据
@@ -55,18 +56,20 @@ change_id: PUB-CURATION-001
 - Published Article 修改时，autosave 先保持公开旧版；点击 Update public article 后最新草稿原地替换公开版本、进入 Needs recheck、退出 Home，Person 页继续显示同一 Article ID 的最新公开标题。
 - 登录态 Preview 显示未公开草稿，robots 为 `noindex, nofollow`；登出后同一 preview URL 返回 404，普通公开 URL 继续显示旧公开版本且不泄漏草稿。
 - Member 侧栏只保留 People、Images 与 Articles；Users、Categories、Places 和策展队列不再干扰成员任务。
-- Preview RC `dpl_9fpnVzGPaWN6gPJg5wFddUcHzJiQ` 完成 Member、Editor、anonymous 的桌面与 390px 复验；移动端无横向溢出，Member 工作台只保留本人发文与资料任务，Editor 保留本人发文和六个策展队列。
-- Production `dpl_2gJFdjQEQ9kfyzYqRdUmnDKFJh5y` 在不接管域名的候选态完成真实 Home、英西 Article、Person、语言跳转、登录页、robots、sitemap、桌面与 390px 检查后才 promote；`chinainfact.com` 复验均为 200，运行日志 100 条中 error 与 5xx 均为 0。
+- 最终 Preview RC `dpl_57WuvghzZvvP39yvX11tzYdDBViM` 在 `31f38c9` 上完成 Editor 起稿、Needs attention、Writing/Site 聚焦、My profile 英西资料、头像、类型化外链、语言 canonical、失败重试、重试期间继续输入与 390px 复验；移动端无横向溢出，临时 Article 全部清理。
+- 单语 Article 只显示实际存在的语言；英西 Article 与 Person 直达对方 canonical；确定共享的根、列表、静态页与 Purpose 显示 EN/ES；Place 只按实际公开 translation group 输出另一语言真实 slug。
+- Production `dpl_BXJNsTa28fwmMqcxt9k22VbCJoWb` 在受保护候选态完成真实 Home、英西 Article、Person、语言跳转、登录页、robots、sitemap 与 390px 检查后才 promote；`chinainfact.com` 复验均为 200，运行日志 100 条中 error 与 5xx 均为 0。
 
 ## 独立复审
 
 - 2026-07-29 两位非主持 reviewer 首轮均为 `BLOCK`，共同指出普通 API 可绕过状态动作、未策展文章可从 Home/People 进入站方内容、profile 缺版本/预览、危险动作缺确认和两轴 migration 回退会损坏语义。
-- 后续每次修复都在新提交上重新复审，继续发现并关闭 `_status` 绕过、假公开 Article、同 batch 部分回退、Person/Article 语言和完整性漂移、User 删除使 owner 失联等到达路径。
-- Preview 最终基线由产品/UX reviewer 与技术/权限/migration reviewer 分别给出 `PASS`，两边均为 `P0/P1/P2 = 0/0/0`；旧 BLOCK 结论未被复用。
+- 后续复审继续发现并关闭 `_status` 绕过、假公开 Article、同 batch 部分回退、Person/Article 语言和完整性漂移、User 删除使 owner 失联、Editor 聚焦残留、语言入口和失败重试并发状态等到达路径。
+- 最终批次在同一 Preview 上由产品/UX reviewer 与技术/权限/migration reviewer 并行复审，分别给出 `PASS`，两边均为 `P0/P1/P2 = 0/0/0`；旧 BLOCK 结论未被复用。
 
 ## Production 数据与恢复
 
 - migration 前恢复点 run [`30384139368`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30384139368) 完成 dump、R2 不可变上传、SHA 读回、隔离恢复和旧 29/5 schema/count 断言。
-- Production 依次执行新增 5 条 migration，最终为 33 张表、10 条 migration；users/people/articles/media/workflow events 保持 `1/1/2/2/8`。
+- Production 最终为 33 张表、12 条 migration；users/people/articles/media/workflow events 保持 `1/1/2/2/8`。
 - Ge Xu 的英西 Article 保持原 ID、slug、translation group、owner 与 author，原地映射为 `Published + Curated`；重复 locale、混合 owner、混合 author、owner/byline mismatch 和 owner/author 缺失均为 0。
 - migration 后恢复点首次运行因 Docker Hub 拉取镜像时网络重置而在导出前失败；重跑 run [`30389201732`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30389201732) 完成导出、R2 不可变上传、隔离恢复、33/10/10/8 断言与媒体读回，全部 PASS。
+- 最终恢复 run [`30395828366`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30395828366) 在 `31f38c9` 上完成 R2 不可变上传、SHA 读回、隔离恢复、33/12/12/8 断言与媒体核验，全部 PASS。

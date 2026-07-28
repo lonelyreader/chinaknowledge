@@ -20,6 +20,7 @@ max_lines: 80
 | `P1-EDITORIAL-001` | 本地编辑 CMS、角色权限、双语隔离与公开确认已实现并接受 | [`p1-editorial-cms-foundation.md`](p1-editorial-cms-foundation.md) |
 | `P2-PREVIEW-001` | 受保护 Preview、migration、媒体持久化、灾备恢复与独立复审均通过 | [`p2-preview-release-candidate.md`](p2-preview-release-candidate.md) |
 | `PROD-LAUNCH-001` | 正式域名、真实内容、匿名公开、搜索索引、恢复与回滚演练均通过 | [`production-launch-readiness.md`](production-launch-readiness.md) |
+| `PUB-CURATION-001` | 成员直接发布、站方同文档策展、Editor 作者体验、双语资料、生产恢复与双重独立复审均通过 | [`member-publishing-curation-closure.md`](member-publishing-curation-closure.md) |
 
 规则：
 

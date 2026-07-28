@@ -14,7 +14,7 @@ max_lines: 100
 
 ## Active
 
-[`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](checklists/member-publishing-curation-closure.md)：技术、权限、migration、真实数据和恢复已通过 Production 独立复审；最终产品/UX复审发现 Editor 作者旅程、双语 Person、任务收件箱、媒体/外链、防丢稿与直接语言 canonical 仍需收口，当前 `P0/P1/P2 = 0/6/2`。
+当前没有 active checklist。新工作必须先建立单一执行清单；已完成的 `PUB-CURATION-001` 见 [`archive`](../archive/member-publishing-curation-closure.md)。
 
 ## Deferred
 
