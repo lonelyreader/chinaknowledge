@@ -24,7 +24,6 @@ export const People: CollectionConfig = {
     defaultColumns: ["name", "city", "profileStatus", "updatedAt"],
     group: "People",
     hideAPIURL: true,
-    hidden: ({ user }) => user?.role !== "super_admin",
     preview: (doc) => {
       const locale = Array.isArray(doc.languages) && doc.languages[0] === "es" ? "es" : "en";
       return doc.id && doc.slug

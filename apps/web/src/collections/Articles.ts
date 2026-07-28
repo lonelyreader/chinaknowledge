@@ -39,7 +39,6 @@ export const Articles: CollectionConfig = {
     useAsTitle: "title",
     defaultColumns: ["title", "author", "locale", "publishedAt", "curationStatus", "updatedAt"],
     group: "Editorial",
-    hidden: ({ user }) => user?.role === "author",
     hideAPIURL: true,
     preview: (doc) => {
       const locale = doc.locale === "es" ? "es" : "en";

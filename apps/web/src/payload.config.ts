@@ -32,6 +32,7 @@ export default buildConfig({
     importMap: { baseDir: dirname },
     meta: { titleSuffix: " — China, in Fact" },
     components: {
+      Nav: "/cms/components/AdminNav#AdminNav",
       graphics: {
         Icon: "/cms/components/Brand#AdminIcon",
         Logo: "/cms/components/Brand#AdminLogo",

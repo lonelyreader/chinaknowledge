@@ -27,6 +27,7 @@ import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { WorkflowActions as WorkflowActions_ea3d5400a97dd7cd909f85f38b9a5a7a } from '../../../cms/components/WorkflowActions'
 import { TranslationActions as TranslationActions_6c2c63c3c83feba5cd3ba61c3cf4bf74 } from '../../../cms/components/TranslationActions'
 import { NoPublishButton as NoPublishButton_50c7962da54e4303ee7d2a1305f15bba } from '../../../cms/components/NoPublishButton'
+import { AdminNav as AdminNav_73f332fc79c391e1acaf3a413e900378 } from '../../../cms/components/AdminNav'
 import { AdminIcon as AdminIcon_bc64442ee066953691f85c8dc29a6959 } from '../../../cms/components/Brand'
 import { AdminLogo as AdminLogo_bc64442ee066953691f85c8dc29a6959 } from '../../../cms/components/Brand'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
@@ -64,6 +65,7 @@ export const importMap = {
   "/cms/components/WorkflowActions#WorkflowActions": WorkflowActions_ea3d5400a97dd7cd909f85f38b9a5a7a,
   "/cms/components/TranslationActions#TranslationActions": TranslationActions_6c2c63c3c83feba5cd3ba61c3cf4bf74,
   "/cms/components/NoPublishButton#NoPublishButton": NoPublishButton_50c7962da54e4303ee7d2a1305f15bba,
+  "/cms/components/AdminNav#AdminNav": AdminNav_73f332fc79c391e1acaf3a413e900378,
   "/cms/components/Brand#AdminIcon": AdminIcon_bc64442ee066953691f85c8dc29a6959,
   "/cms/components/Brand#AdminLogo": AdminLogo_bc64442ee066953691f85c8dc29a6959,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,

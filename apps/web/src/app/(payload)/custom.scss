@@ -24,6 +24,37 @@
   width: 2rem;
 }
 
+.admin-nav {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 100%;
+  padding: 1.5rem 1rem;
+}
+
+.admin-nav a {
+  border-radius: var(--style-radius-s);
+  color: var(--theme-text);
+  min-height: 44px;
+  padding: 0.7rem 0.8rem;
+  text-decoration: none;
+}
+
+.admin-nav a:hover {
+  background: var(--theme-elevation-100);
+}
+
+.admin-nav__brand {
+  font-family: Georgia, serif;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.admin-nav__logout {
+  margin-top: auto;
+}
+
 .member-workspace {
   border-bottom: 1px solid var(--theme-elevation-150);
   display: grid;

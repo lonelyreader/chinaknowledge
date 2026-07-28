@@ -18,7 +18,6 @@ export const Media: CollectionConfig = {
   admin: {
     useAsTitle: "alt",
     group: "Editorial",
-    hidden: ({ user }) => user?.role !== "super_admin",
     hideAPIURL: true,
   },
   access: {
