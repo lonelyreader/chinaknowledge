@@ -6,6 +6,7 @@ import { cache } from "react";
 import config from "@payload-config";
 import type { Article, Media, Person, Place, Taxonomy } from "@/payload-types";
 import type { Locale } from "./types";
+export { stableWeeklyPeople } from "./stable-weekly-people";
 
 export type PublishedCMSImage = {
   alt: string;
@@ -395,28 +396,4 @@ export function articlePath(locale: Locale, article: PublishedCMSArticleSummary)
 
 export function placePath(locale: Locale, place: Pick<PublishedCMSPlace, "slug">) {
   return `/${locale}/places/${place.slug}`;
-}
-
-export function stableWeeklyPeople<T extends { slug: string; spotlightExcluded?: boolean; spotlightPinnedUntil?: string | null }>(items: T[], count: number) {
-  const now = new Date();
-  const week = currentUTCWeek(now);
-  const eligible = items.filter((item) => !item.spotlightExcluded);
-  const pinned = eligible
-    .filter((item) => item.spotlightPinnedUntil && new Date(item.spotlightPinnedUntil).getTime() > now.getTime())
-    .sort((left, right) => (right.spotlightPinnedUntil ?? "").localeCompare(left.spotlightPinnedUntil ?? ""))
-    .slice(0, 1);
-  const pinnedSlugs = new Set(pinned.map((item) => item.slug));
-  const rotationPool = eligible.filter((item) => !pinnedSlugs.has(item.slug));
-  const previous = new Set(
-    [...rotationPool]
-      .sort((left, right) => weeklyScore(week - 1, left.slug) - weeklyScore(week - 1, right.slug))
-      .slice(0, count)
-      .map((item) => item.slug),
-  );
-  const candidates = rotationPool.length >= count * 2
-    ? rotationPool.filter((item) => !previous.has(item.slug))
-    : rotationPool;
-  const rotated = [...candidates]
-    .sort((left, right) => weeklyScore(week, left.slug) - weeklyScore(week, right.slug));
-  return [...pinned, ...rotated].slice(0, count);
 }

@@ -8,6 +8,7 @@ import { getPayload, type Payload } from "payload";
 import config from "@payload-config";
 import { buildPublicationSummary } from "@/cms/publication-summary";
 import type { Article, Media, User } from "@/payload-types";
+import { stableWeeklyPeople } from "@/content/stable-weekly-people";
 
 const password = process.env.CMS_TEST_PASSWORD;
 if (!password) throw new Error("CMS_TEST_PASSWORD is required for local fixture tests.");
@@ -224,6 +225,178 @@ async function expectRejected(action: () => Promise<unknown>, label: string) {
 
 function relationID(value: number | string | { id: number | string } | null | undefined) {
   return value && typeof value === "object" ? value.id : value;
+}
+
+const scalePersonSlugs = Array.from(
+  { length: 24 },
+  (_, index) => `acceptance-person-${String(index + 1).padStart(2, "0")}`,
+);
+
+async function advanceScaleArticle(
+  payload: Payload,
+  editor: User,
+  article: Article,
+) {
+  let current = article;
+  if (current.workflowStatus === "archived") {
+    current = await payload.update({
+      collection: "articles",
+      id: current.id,
+      data: { workflowStatus: "draft" },
+      draft: true,
+      overrideAccess: false,
+      user: editor,
+    });
+  }
+  if (["draft", "submitted", "changes_requested"].includes(current.workflowStatus)) {
+    current = await payload.update({
+      collection: "articles",
+      id: current.id,
+      data: { workflowStatus: "in_review" },
+      draft: true,
+      overrideAccess: false,
+      user: editor,
+    });
+  }
+  if (current.workflowStatus === "in_review") {
+    current = await payload.update({
+      collection: "articles",
+      id: current.id,
+      data: { workflowStatus: "approved" },
+      draft: true,
+      overrideAccess: false,
+      user: editor,
+    });
+  }
+  if (current.workflowStatus === "approved") {
+    current = await payload.update({
+      collection: "articles",
+      id: current.id,
+      context: { publicationConfirmed: true },
+      data: { workflowStatus: "public" },
+      overrideAccess: false,
+      user: editor,
+    });
+  }
+  assert.equal(current.workflowStatus, "public");
+  assert.equal(current._status, "published");
+  return current;
+}
+
+async function ensureScalePeople(
+  payload: Payload,
+  editor: User,
+  portrait: Media,
+  topicID: number,
+  geographyID: number,
+) {
+  for (const [index, slug] of scalePersonSlugs.entries()) {
+    const sequence = index + 1;
+    const user = await getOrCreateUser(payload, {
+      displayName: `Acceptance Person ${String(sequence).padStart(2, "0")}`,
+      email: `${slug}@china-in-fact.test`,
+      role: "author",
+    });
+    const peopleResult = await payload.find({
+      collection: "people",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { slug: { equals: slug } },
+    });
+    let scalePerson = peopleResult.docs[0];
+    if (!scalePerson) {
+      scalePerson = await payload.create({
+        collection: "people",
+        data: {
+          authorApprovalRecordedAt: "2026-07-27T00:00:00.000Z",
+          city: sequence % 2 === 0 ? "Chengdu" : "Shanghai",
+          identity: "Fictional scale-test contributor",
+          introduction: "A fictional profile used only to verify people discovery at pagination scale.",
+          languages: sequence % 3 === 0 ? ["en", "es"] : ["en"],
+          name: `Acceptance Person ${String(sequence).padStart(2, "0")}`,
+          portrait: portrait.id,
+          profileStatus: "draft",
+          slug,
+          topics: [topicID],
+          user: user.id,
+        },
+        overrideAccess: false,
+        user: editor,
+      });
+    }
+
+    const articleSlug = `${slug}-report`;
+    const articleResult = await payload.find({
+      collection: "articles",
+      depth: 0,
+      limit: 1,
+      overrideAccess: true,
+      where: { and: [{ locale: { equals: "en" } }, { slug: { equals: articleSlug } }] },
+    });
+    let scaleArticle = articleResult.docs[0];
+    if (!scaleArticle) {
+      scaleArticle = await payload.create({
+        collection: "articles",
+        data: {
+          author: scalePerson.id,
+          body,
+          coverImage: portrait.id,
+          format: "reporting",
+          geographies: [geographyID],
+          locale: "en",
+          owner: user.id,
+          slug: articleSlug,
+          sourceNotes: [{ check: "Fictional scale fixture.", label: "Local fixture" }],
+          summary: "A fictional contribution used only to verify the People directory at scale.",
+          title: `What acceptance person ${String(sequence).padStart(2, "0")} notices`,
+          topics: [topicID],
+          translationGroup: `acceptance-people-scale-${String(sequence).padStart(2, "0")}`,
+        },
+        draft: true,
+        overrideAccess: false,
+        user: editor,
+      });
+    }
+    await advanceScaleArticle(payload, editor, scaleArticle);
+
+    if (scalePerson.profileStatus !== "public") {
+      scalePerson = await payload.update({
+        collection: "people",
+        id: scalePerson.id,
+        data: { profileStatus: "public" },
+        overrideAccess: false,
+        user: editor,
+      });
+    }
+    assert.equal(scalePerson.profileStatus, "public");
+  }
+
+  const publicScalePeople = await payload.find({
+    collection: "people",
+    depth: 0,
+    limit: 100,
+    overrideAccess: false,
+    pagination: false,
+    where: { slug: { in: scalePersonSlugs } },
+  });
+  assert.equal(publicScalePeople.docs.length, scalePersonSlugs.length);
+
+  const rotationPool = scalePersonSlugs.map((slug) => ({ slug }));
+  const firstWeek = stableWeeklyPeople(rotationPool, 3, new Date("2026-01-02T00:00:00.000Z"));
+  const repeatedWeek = stableWeeklyPeople(rotationPool, 3, new Date("2026-01-03T00:00:00.000Z"));
+  const nextWeek = stableWeeklyPeople(rotationPool, 3, new Date("2026-01-09T00:00:00.000Z"));
+  assert.deepEqual(repeatedWeek.map((person) => person.slug), firstWeek.map((person) => person.slug));
+  assert.equal(
+    nextWeek.filter((person) => firstWeek.some((previous) => previous.slug === person.slug)).length,
+    0,
+  );
+
+  return {
+    publicScalePeople: publicScalePeople.docs.length,
+    rotationFirstWeek: firstWeek.map((person) => person.slug),
+    rotationNextWeek: nextWeek.map((person) => person.slug),
+  };
 }
 
 async function main() {
@@ -1139,6 +1312,14 @@ async function main() {
     user: superAdmin,
   });
 
+  const peopleScale = await ensureScalePeople(
+    payload,
+    editor,
+    portrait,
+    topic.id,
+    geography.id,
+  );
+
   const events = await payload.find({
     collection: "workflow-events",
     limit: 50,
@@ -1158,6 +1339,7 @@ async function main() {
         authorSeesOtherDraft: hiddenOtherDraft.docs.length,
         articleID: english.id,
         checks: "PASS",
+        peopleScale,
         workflowEvents: events.docs.length,
       },
       null,
