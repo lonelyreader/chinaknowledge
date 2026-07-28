@@ -142,7 +142,7 @@ html[data-article-mode="creator"] :is(
   display: none;
 }
 
-html[data-article-mode="creator"] .field-type:has(> :is(
+html[data-article-mode="creator"] .field-type:has(:is(
   #field-format,
   #field-purposes,
   #field-topics,
@@ -175,7 +175,7 @@ html[data-profile-mode="self"] :is(
   display: none;
 }
 
-html[data-profile-mode="self"] .field-type:has(> :is(
+html[data-profile-mode="self"] .field-type:has(:is(
   #field-slug,
   #field-user,
   #field-authorApprovalRecordedAt,
