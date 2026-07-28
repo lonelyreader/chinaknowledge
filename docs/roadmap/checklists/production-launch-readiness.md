@@ -50,7 +50,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 - 独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建；Neon 7 天恢复窗口、R2 30 天防删、数据库 90 天保留和首次恢复演练均已回读。
 - staged Production `dpl_DvSJVxiPcpAGfrhWk3GcSW92tcCp` 已 `READY / target: production`，生成 `.vercel.app` 地址受 SSO 保护且 `noindex`；已购正式域名尚未绑定项目。
-- Production 已执行全部 5 条 migration：29 张 `public` 表，业务数据与 Blob 仍为空；Resend 域名、密钥与发件配置已经就绪。
+- Production 已执行全部 5 条 migration：29 张 `public` 表；首位 Super Admin 已建立，内容数据与 Blob 仍为空；Resend 域名、密钥与发件配置已经就绪。
 - 迁移后 R2 dump、SHA 和零对象媒体清单已写入并读回；首次 run `30287433284` 暴露 PostgreSQL 初始化竞态，修复后的 run `30287841720` 已完成恢复与 23/1/1/6 schema 断言。
 - Newsletter 已使用 Resend Contacts/Topic 真实写路径并保持 Preview 失败关闭；Production 端点有按 IP 限流且不会由公开重复提交逆转退订状态；People 页已接正式 website Discord invite。
 - fixture 占位外链已经移除，最低隐私与订阅同意已实现；首批真实内容及其作者外链仍未审核。
@@ -83,7 +83,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - Discord 已就绪：`China, in Fact` server 的 website invite 已实时验证为永久有效并进入 `start-here`；无需新建 server 或 invite。
 - Resend 已就绪：`mail.chinainfact.com / us-east-1` 已验证，Topic、locale 属性、两把职责隔离的 Production key 与八项 Vercel 变量均已回读。
 - 已创建：`china-in-fact-production-db` 为 Neon Launch、`iad1 / us-east-1`、仅连接 Production；`china-in-fact-production-media` 为公开 Blob、`iad1`、仅连接 Production。
-- Production 已具备独立数据库、Blob、Payload、CMS、邮件和 `noindex` 变量；环境校验通过，migration 后数据库为 29 张 `public` 表和 5 条 migration，业务数据为 0，Blob 为 0B。
+- Production 已具备独立数据库、Blob、Payload、CMS、邮件、稳定 HTTPS origin 和 `noindex` 变量；环境校验通过，migration 后数据库为 29 张 `public` 表和 5 条 migration，首位 Super Admin 已建立，内容数据为 0，Blob 为 0B。
 - Neon Console 已完成账号激活并将 `History retention` 从 1 day 调整为 7 days；异地备份目标、只读 backup role 与首次恢复演练已完成。
 - Cloudflare R2 Standard 已激活；私有桶使用 North America East、全部对象 30 天防删、`database/` 90 天生命周期。Account API token 只允许指定桶对象读写，GitHub Actions secrets/variables 已配置，每月 US$10 预算提醒已建立。
 - Neon Launch 或其他付费资源出现结算/条款确认时由产品负责人完成；Codex 不代替接受付费条款。
@@ -111,7 +111,8 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 固定并实现 Places 一等对象：独立 Place 编辑节点映射 Geography，公开内容和人物自动聚合；列表、详情、双语 canonical、发布负例、25/3 schema、全量 rollback/reapply 与 CMS runtime 均通过本地验收（2026-07-28）。
 - [x] 实现首页 lead/推荐池生效与到期、自动回退，以及 Spotlight 单人置顶、排除、按周稳定轮换和足量人物池下的连续曝光规避；发布窗口与置顶冲突负例由服务端验证（2026-07-28）。
 - [x] 补齐人物资料修订审核和媒体公开使用边界；数据库唯一键阻止并发双修订，行锁和旧值核对阻止并发审核分叉，上传归属不可伪造，应用记录不可常规删除；第 5 条 migration 在空库完成 reverse rollback/reapply 与并发/权限负例，Production 仍未应用（2026-07-28）。
-- [x] 建立首位 Super Admin、密码重置和最多 500 人一批的 dry-run-first 可审计开户 CLI；显式环境/数据库目标和 Production 专属确认失败关闭，首位管理员在锁定事务中建立，批量账户原子写入且邮件结果完整汇总。虚构空库并发启动严格只创建一人，真实账户仍未创建（2026-07-28）。
+- [x] 建立首位 Super Admin、密码重置和最多 500 人一批的 dry-run-first 可审计开户 CLI；显式环境/数据库目标和 Production 专属确认失败关闭，首位管理员在锁定事务中建立，批量账户原子写入且邮件结果完整汇总。虚构空库并发启动严格只创建一人（2026-07-28）。
+- [x] 经产品负责人提供身份后在 Production 建立首位 Super Admin，回读严格为 1 名 Super Admin；建立后备份 run `30343054714` 完成 dump、SHA、隔离恢复、29/5/5/8 断言和零媒体清单。首次真实重置邮件暴露相对链接缺陷，提交 `bd35454` 增加经环境校验的 HTTPS Production origin；deployment `dpl_4QkjZptx6L5LGspiS61nDMWNLFHL` 上重发成功，Resend 回读 delivered 且邮件使用稳定 alias，健康检查为 200（2026-07-28）。
 - [x] 同一非主持实现者完成公共产品本地候选两轮只读复审：首轮 5 个 P1、3 个 P2 全部修复，第二轮 PASS，P0/P1/P2 为零；该结论不替代受保护 Preview 的 release-level 复审（2026-07-28）。
 - [x] 产品负责人批准提交候选并推进受保护 Preview；创建提交 `4125230`。发布前回读发现 Preview schema 仍为 23/1，旧短 `PAYLOAD_SECRET` 已安全轮换，deployment 在 migration 门禁前停止（2026-07-28）。
 - [x] 经单独批准建立迁移前 dump 与隔离恢复点，Preview 从 23/1 升至 29/5；纯虚构数据完成公共路由、媒体公开批准、25 人桌面/移动分页、搜索/Topic/Place/Language 筛选、Spotlight 周稳定与跨周/跨年避重、权限负例、语言跳转、基础可访问性、保护/noindex 和运行日志验收，clean deployment 经独立复审 PASS（2026-07-28）。
@@ -155,4 +156,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-产品负责人已接受 Production 基线，并于 2026-07-28 明确统一批准为查看 Production 所需的后续动作。域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 环境代码、独立 Neon、独立 Blob、R2、全部 migration、29/5 恢复断言和 staged Production deploy 已完成并回读。Production 仍为零业务数据；没有可供推导的真实名单或内容，因此首位管理员、真实账户、真实数据、内容公开、正式域名绑定和索引均未擅自执行。
+产品负责人已接受 Production 基线，并于 2026-07-28 明确统一批准为查看 Production 所需的后续动作。域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 环境代码、独立 Neon、独立 Blob、R2、全部 migration、29/5 恢复断言、staged Production deploy 与首位 Super Admin 已完成并回读。Production 内容数据仍为零；没有可供推导的真实贡献者名单或内容，因此其他账户、真实内容、内容公开、正式域名绑定和索引均未擅自执行。

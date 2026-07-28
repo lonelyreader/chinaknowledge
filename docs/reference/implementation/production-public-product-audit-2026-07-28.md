@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Verdict
 
-受保护 Preview 与不绑定正式域名的 staged Production 均为 `PASS`，最终独立复审 P0/P1/P2 均为零；Production 公共发布仍因没有真实内容而 `BLOCK`。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2，Preview 又补齐人物规模与跨周/跨年轮换。产品负责人统一批准查看 Production 所需动作后，Production 从 23/1 升至 29/5、完成迁移前后异地恢复并部署 clean HEAD `d95e2b1`；真实数据、正式域名与索引仍未执行。
+受保护 Preview 与不绑定正式域名的 staged Production 均为 `PASS`，最终独立复审 P0/P1/P2 均为零；Production 公共发布仍因没有真实内容而 `BLOCK`。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2，Preview 又补齐人物规模与跨周/跨年轮换。产品负责人统一批准查看 Production 所需动作后，Production 从 23/1 升至 29/5、完成异地恢复、建立首位 Super Admin，并以提交 `bd35454` 修复真实密码重置邮件的相对链接缺陷；真实内容、正式域名与索引仍未执行。
 
 ## Findings At Audit Start
 
@@ -40,14 +40,14 @@ change_id: PROD-LAUNCH-001
 ## Verified Healthy Boundaries
 
 - 公共产品候选、人物规模与跨年轮换修复已提交为 `4125230`、`31a7988`、`5964da7` 与 `3be99c6`；最终 deployment 绑定 clean HEAD `2ec2aeb`，meta 没有 `gitDirty`。
-- Vercel 实时回读只有 Ready Preview 与一条 Error Production；没有 Ready Production deployment，`chinainfact.com` 没有项目 alias。
-- Production database 和 Blob 仍为空；没有真实数据或公开事故。
+- 审计开始时 Vercel 只有 Ready Preview 与一条 Error Production；当前最新 staged Production 为 `dpl_4QkjZptx6L5LGspiS61nDMWNLFHL / READY / target: production`，`chinainfact.com` 仍没有项目 alias。
+- Production 已有首位 Super Admin；内容数据和 Blob 仍为空，没有内容公开事故。
 - `governance:check`、lint、typecheck、environment、Newsletter 和 Preview storage tests 通过；lint 只有 20 条 Payload 自动生成 migration 的 unused-argument warnings。
 - Newsletter、环境守卫、数据库与媒体备份恢复不是本轮发现的失败面。
 
 ## Local Remediation Status
 
-以下改动已进入提交 `4125230` 并在受保护 Preview 验收；Production 尚未应用四条新增 migration 或部署：
+以下改动从提交 `4125230` 开始形成，并已在受保护 Preview 和 staged Production 验收：
 
 - 已关闭：`CMS_READ_MODE=cms` 下首页、Stories、Guides、Places、People、人物页不再读取 fixture；补齐 Story、Place、Purpose、Topic 与 About 详情路由。
 - 已关闭：公共内容使用 CMS portrait/cover；Guide 不再伪造 Freshness；公开门禁要求 cover、Sources、Guide Freshness、人物 portrait 与作者批准记录，并在首次公开时记录 `publishedAt`。
@@ -74,7 +74,7 @@ change_id: PROD-LAUNCH-001
 
 - 空 PostgreSQL 16 完整应用 5 条 migration 后为 29 张 `public` 表；Profile revision 并发双创建只有一条成功，并发 Apply/Changes requested 只有一个状态提交且 Person 与最终状态一致；伪造媒体上传者被服务端覆盖。匿名与跨 Author 媒体隔离、未批准媒体发布、作者/编辑越权、公开版本保持与整体应用负例均通过。
 - `migrate:down` 按最新到最旧完整回滚 5 条 migration 后重新应用并复测通过。Payload 3.86 的 `migrate:reset` 会按错误顺序执行 down，本项目发布与恢复流程禁止使用该命令。
-- 账号工具在独立空库完成两次并发首位管理员 apply，结果严格为一次成功、一次非空库拒绝、最终仅一名用户；2 人批量写入、重复运行、目标环境缺失拒绝和密码重置重发也已验证。全部使用虚构 `.test` 账户，未触碰 Production 或真实邮件。
+- 账号工具先在独立空库完成两次并发首位管理员 apply，结果严格为一次成功、一次非空库拒绝、最终仅一名用户；2 人批量写入、重复运行、目标环境缺失拒绝和密码重置重发也以虚构 `.test` 账户验证。随后经单独授权在 Production 建立首位 Super Admin，回读 users=1、super_admin=1；未建立其他真实账户。
 - CMS production build 后以 1440px 与 390px 浏览器逐页验证 Home、People、Person、Story、Place 和西班牙语 Home：状态均为 200，无 console/page/network error、横向溢出、损坏图片、无名交互控件或缺失 form label；英语/西班牙语 `html lang` 已分别回读为 `en / es`。证据截图：[`desktop home`](assets/production-public-closure/desktop-home.png)、[`mobile home`](assets/production-public-closure/mobile-home.png)、[`mobile people`](assets/production-public-closure/mobile-people.png)。
 - 非主持独立复审首轮提出 5 个 P1 与 3 个 P2；并发唯一性、事务锁、生产失败关闭、媒体归属、批量写入/邮件摘要、Blob 表述和审核记录保留全部修复。第二轮只读复审 `PASS`，P0/P1/P2 为零。
 - Preview migration 前 custom dump 的 SHA-256 为 `b6dd68dd45e5b0bfe1517a873cfeced0e5672044f61a865019b827600619a89f`；隔离恢复回读与原库一致，均为 23 张表、1 条 migration、3/1/2/1 个虚构 User/Person/Article/Media，临时恢复库随后删除。
@@ -85,6 +85,7 @@ change_id: PROD-LAUNCH-001
 - staged Production `dpl_DvSJVxiPcpAGfrhWk3GcSW92tcCp` 为 `READY / target: production / iad1`，绑定 clean HEAD `d95e2b1`，使用 `--skip-domain`，正式域名未绑定；匿名请求进入 SSO，授权 `/api/health` 与 `/en` 为 200，响应和 robots 均为 `noindex`。
 - 首轮 Production accessibility 发现空内容首页没有 `h1`、`--stone` 可见文字对比度为 4.39:1；提交 `d95e2b1` 将空首页 Newsletter 标题提升为唯一 `h1`，并以最小幅度将 `--stone` 调整为 `#6b6c66`。最终桌面 1440×900 自动检查为零 contrast failure、零可见无标签控件、逻辑 tab order 和全局 3px `:focus-visible`；移动 390×844 无横向溢出、破图、overlay 或 console error。Production runtime 没有 `No email adapter` 告警或 5xx，两个 P2 均关闭。
 - 最终非主持独立复审重新回读部署/HEAD/区域、SSO/noindex、授权健康检查、29/5 空库、两次恢复、桌面/移动和可访问性；浏览器只有扩展自身的 listener/message-channel 噪声，没有应用来源错误。结论 `PASS`，P0=0、P1=0、P2=0；复审未编辑文件、写 Production、绑定域名或执行公开动作。
+- 首位管理员创建后的真实密码重置请求虽然成功发信，但邮件使用 `admin/reset/...` 相对地址，浏览器将 `admin` 当作主机名并报 `ERR_NAME_NOT_RESOLVED`。根因是 Payload 未配置 `serverURL`，请求 origin 又未进入其可信来源回退。提交 `bd35454` 增加 `PAYLOAD_PUBLIC_SERVER_URL` 的 Production HTTPS origin 校验并传入 Payload；最新 deployment `dpl_4QkjZptx6L5LGspiS61nDMWNLFHL` 为 READY，环境检查 `production / cms / blob / noindex`、授权健康检查 200、重发接口返回成功。Resend 控制台回读最新邮件为 delivered，预览中的 reset URL 使用稳定 Production alias；近 10 分钟运行日志无 warning、error 或 5xx。旧 token 已由重发失效，证据不记录 token。
 
 ## Account Startup Contract
 
@@ -96,7 +97,7 @@ change_id: PROD-LAUNCH-001
 ## Required Recovery Sequence
 
 1. 由产品负责人提供真实贡献者与首发内容；不得从 Preview 虚构夹具推导或复制。
-2. 建立首位管理员后，按真实名单开户、发送重置邮件并完成内容/媒体/外链审核。
+2. 首位管理员完成密码设置后，按真实名单开户、发送重置邮件并完成内容/媒体/外链审核。
 3. staged Production 独立复审通过后，再绑定正式域名；内容公开和索引仍以真实内容审核结果为准。
 
 ## Evidence Pointers
