@@ -9,6 +9,7 @@ import {
   articlePath,
   cmsReadEnabled,
   getPublishedCMSPlace,
+  getPublishedCMSPlaces,
   placePath,
   resolvePublishedCMSPlace,
 } from "@/content/cms";
@@ -20,7 +21,19 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const locale = requireLocale(rawLocale);
   if (!cmsReadEnabled()) return {};
   const place = await getPublishedCMSPlace(locale, slug);
-  return place ? { title: place.name, description: place.summary } : {};
+  if (!place) return {};
+  const targetLocales = ["en", "es"] as const;
+  const translations = await Promise.all(targetLocales.map(async (targetLocale) =>
+    (await getPublishedCMSPlaces(targetLocale)).find((candidate) => candidate.translationGroup === place.translationGroup),
+  ));
+  const languages = Object.fromEntries(translations.flatMap((translation, index) =>
+    translation ? [[targetLocales[index], placePath(targetLocales[index], translation)]] : [],
+  ));
+  return {
+    alternates: { canonical: placePath(locale, place), languages },
+    description: place.summary,
+    title: place.name,
+  };
 }
 
 export default async function PlacePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {

@@ -7,12 +7,17 @@ import type { Locale } from "@/content";
 import { ui } from "@/content";
 
 const sharedLanguageRoutes = new Set(["about", "guides", "newsletter", "people", "places", "privacy", "stories"]);
+const sharedPurposeRoutes = new Set(["business", "live", "study", "understand", "visit", "work"]);
 
 function sharedLanguageHref(pathname: string, targetLocale: Locale) {
   const parts = pathname.split("/").filter(Boolean);
-  if ((parts[0] !== "en" && parts[0] !== "es") || parts.length > 2) return null;
-  if (parts.length === 2 && !sharedLanguageRoutes.has(parts[1])) return null;
-  return `/${targetLocale}${parts.length === 2 ? `/${parts[1]}` : ""}`;
+  if (parts[0] !== "en" && parts[0] !== "es") return null;
+  if (parts.length === 1) return `/${targetLocale}`;
+  if (parts.length === 2 && sharedLanguageRoutes.has(parts[1])) return `/${targetLocale}/${parts[1]}`;
+  if (parts.length === 3 && parts[1] === "purposes" && sharedPurposeRoutes.has(parts[2])) {
+    return `/${targetLocale}/purposes/${parts[2]}`;
+  }
+  return null;
 }
 
 export function SiteHeader({ locale }: { locale: Locale }) {

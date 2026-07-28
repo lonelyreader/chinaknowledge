@@ -26,6 +26,8 @@ export function SaveSafetyStatus() {
     documentIsLocked,
     id,
     mostRecentVersionIsAutosaved,
+    setMostRecentVersionIsAutosaved,
+    setUnpublishedVersionCount,
   } = useDocumentInfo();
   const lockedBy = editorName(currentEditor);
   const currentEditorID = currentEditor && typeof currentEditor === "object" && "id" in currentEditor
@@ -95,7 +97,12 @@ export function SaveSafetyStatus() {
           overrides: { _status: "draft" },
           skipValidation: true,
         });
-        if (!result?.res?.ok) setRetrying(false);
+        if (result?.res?.ok && !mostRecentVersionIsAutosaved) {
+          setMostRecentVersionIsAutosaved(true);
+          setUnpublishedVersionCount((count) => count + 1);
+        } else if (!result?.res?.ok) {
+          setRetrying(false);
+        }
         return;
       }
       const result = await submit();
