@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Verdict
 
-`BLOCK`（针对 Production release）。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；当前本地候选已关闭下列代码 finding，非主持独立复审首轮发现 5 个 P1、3 个 P2，修复后第二轮为 `PASS`，P0/P1/P2 均为零。候选仍未提交，也未完成受保护 Preview 全量回读或 Production migration；不得进入真实数据、Production deploy、域名绑定或内容公开。
+`BLOCK`（针对 Production release）。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；候选已在 `4125230` 提交，非主持独立复审首轮发现 5 个 P1、3 个 P2，修复后第二轮为 `PASS`，P0/P1/P2 均为零。受保护 Preview 发布前回读发现目标仍为 23 张表/1 条 migration，而候选需要 29/5；部署已在 schema migration 门禁前停止。不得进入真实数据、Production deploy、域名绑定或内容公开。
 
 ## Findings At Audit Start
 
@@ -47,7 +47,7 @@ change_id: PROD-LAUNCH-001
 
 ## Local Remediation Status
 
-以下改动只存在于当前本地修复树，尚未提交、应用 Production migration 或部署：
+以下改动已进入提交 `4125230`，尚未应用 Preview/Production migration 或部署：
 
 - 已关闭：`CMS_READ_MODE=cms` 下首页、Stories、Guides、Places、People、人物页不再读取 fixture；补齐 Story、Place、Purpose、Topic 与 About 详情路由。
 - 已关闭：公共内容使用 CMS portrait/cover；Guide 不再伪造 Freshness；公开门禁要求 cover、Sources、Guide Freshness、人物 portrait 与作者批准记录，并在首次公开时记录 `publishedAt`。
@@ -77,6 +77,7 @@ change_id: PROD-LAUNCH-001
 - 账号工具在独立空库完成两次并发首位管理员 apply，结果严格为一次成功、一次非空库拒绝、最终仅一名用户；2 人批量写入、重复运行、目标环境缺失拒绝和密码重置重发也已验证。全部使用虚构 `.test` 账户，未触碰 Production 或真实邮件。
 - CMS production build 后以 1440px 与 390px 浏览器逐页验证 Home、People、Person、Story、Place 和西班牙语 Home：状态均为 200，无 console/page/network error、横向溢出、损坏图片、无名交互控件或缺失 form label；英语/西班牙语 `html lang` 已分别回读为 `en / es`。证据截图：[`desktop home`](assets/production-public-closure/desktop-home.png)、[`mobile home`](assets/production-public-closure/mobile-home.png)、[`mobile people`](assets/production-public-closure/mobile-people.png)。
 - 非主持独立复审首轮提出 5 个 P1 与 3 个 P2；并发唯一性、事务锁、生产失败关闭、媒体归属、批量写入/邮件摘要、Blob 表述和审核记录保留全部修复。第二轮只读复审 `PASS`，P0/P1/P2 为零；该结论只覆盖当前本地修复树。
+- 受保护 Preview 发布前回读为 PostgreSQL 17.10、23 张表、1 条 migration、3/1/2/1 个虚构 User/Person/Article/Media；`places` 与 `person_revisions` 尚不存在。旧 11 字符 Preview `PAYLOAD_SECRET` 已轮换为不落盘的随机值，旧 Preview 登录会话失效；尚未创建新 deployment。
 
 ## Account Startup Contract
 

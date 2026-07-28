@@ -55,6 +55,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - Newsletter 已使用 Resend Contacts/Topic 真实写路径并保持 Preview 失败关闭；Production 端点有按 IP 限流且不会由公开重复提交逆转退订状态；People 页已接正式 website Discord invite。
 - fixture 占位外链已经移除，最低隐私与订阅同意已实现；首批真实内容及其作者外链仍未审核。
 - 2026-07-28 公共产品彻查结论仍为 `BLOCK`；本地修复已关闭 CMS 公共对象、发布门禁、人物修订、媒体公开使用批准、首页/Spotlight 策展、双语跳转、账号启动工具、移动端和基础可访问性 smoke。本地代码 slice 经首轮 5 个 P1、3 个 P2 修复后第二轮独立复审 PASS；剩余阻塞为受保护 Preview 全量回读与 release-level 独立复审。完整证据与逐项状态见 [`public product audit`](../../reference/implementation/production-public-product-audit-2026-07-28.md)。
+- 公共产品候选已提交为 `4125230`。发布前回读确认 Preview 仍是 23 张表/1 条 migration、3/1/2/1 个虚构 User/Person/Article/Media；候选依赖的 Place 与 Profile revision schema 尚不存在。部署停在四条 Preview migration 的单独批准门禁，Production 未触碰。
 
 ## Accepted Baseline
 
@@ -112,6 +113,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 补齐人物资料修订审核和媒体公开使用边界；数据库唯一键阻止并发双修订，行锁和旧值核对阻止并发审核分叉，上传归属不可伪造，应用记录不可常规删除；第 5 条 migration 在空库完成 reverse rollback/reapply 与并发/权限负例，Production 仍未应用（2026-07-28）。
 - [x] 建立首位 Super Admin、密码重置和最多 500 人一批的 dry-run-first 可审计开户 CLI；显式环境/数据库目标和 Production 专属确认失败关闭，首位管理员在锁定事务中建立，批量账户原子写入且邮件结果完整汇总。虚构空库并发启动严格只创建一人，真实账户仍未创建（2026-07-28）。
 - [x] 同一非主持实现者完成公共产品本地候选两轮只读复审：首轮 5 个 P1、3 个 P2 全部修复，第二轮 PASS，P0/P1/P2 为零；该结论不替代受保护 Preview 的 release-level 复审（2026-07-28）。
+- [x] 产品负责人批准提交候选并推进受保护 Preview；创建提交 `4125230`。发布前回读发现 Preview schema 仍为 23/1，旧短 `PAYLOAD_SECRET` 已安全轮换，deployment 在 migration 门禁前停止（2026-07-28）。
 - [ ] 用虚构 Preview 数据完成公共路由、真实媒体、人物规模、权限负例、语言跳转、移动端和可访问性验收，并由非主持实现者给出 PASS。
 - [ ] 分别批准真实作者账户、人物、文章、媒体、外链与公开状态；完成编辑审核。
 - [ ] 生成 `--prod --skip-domain` staged deployment，运行完整 release 验收与独立复审。

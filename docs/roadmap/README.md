@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 状态 | 当前门禁 |
 |---|---|---|
-| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 本地代码 slice 第二轮独立复审 PASS；当前门禁为受保护 Preview 全量回读与 release-level 独立复审 |
+| [`PROD-LAUNCH-001`](checklists/production-launch-readiness.md) | active | 候选已提交；Preview 仍为 23/1，当前门禁为四条 Preview migration 的单独批准 |
 
 ## Deferred
 
