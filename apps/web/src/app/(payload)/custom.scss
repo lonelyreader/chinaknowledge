@@ -88,6 +88,16 @@
   display: none;
 }
 
+// The generated storage name is not an editorial decision. Keep it in the
+// record, but remove the rename control from the image upload task.
+.collection-edit--media .file-field__filename {
+  display: none;
+}
+
+.collection-edit--media .public-use-approval {
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 768px) {
   .workflow-actions__buttons .btn {
     min-height: 44px;

@@ -9,7 +9,7 @@ import {
   readApprovedMediaOrOwn,
 } from "@/cms/access";
 import { normalizeUploadBuffers } from "@/cms/media-hooks";
-import { isCMSUser } from "@/cms/roles";
+import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 
 export const Media: CollectionConfig = {
   slug: "media",
@@ -46,27 +46,33 @@ export const Media: CollectionConfig = {
     ],
   },
   fields: [
-    { name: "alt", type: "text", required: true, label: "Alt text" },
+    { name: "alt", type: "text", required: true, label: "Image description" },
     {
       name: "uploadedBy",
       type: "relationship",
       relationTo: "users",
       access: { create: () => false, read: authenticatedField, update: () => false },
-      admin: { position: "sidebar", readOnly: true },
+      admin: { hidden: true },
     },
     {
       name: "publicUseApprovedAt",
       type: "date",
-      label: "Public use approved",
+      label: "Approved for public use",
       access: { create: editorialField, read: authenticatedField, update: editorialField },
-      admin: { position: "sidebar" },
+      admin: {
+        components: {
+          Field: "/cms/components/PublicUseApprovalField#PublicUseApprovalField",
+        },
+        condition: (_data, _siblingData, { user }) =>
+          isCMSUser(user) && hasEditorialRole(user),
+      },
     },
     {
       name: "publicUseApprovedBy",
       type: "relationship",
       relationTo: "users",
       access: { create: () => false, read: authenticatedField, update: () => false },
-      admin: { position: "sidebar", readOnly: true },
+      admin: { hidden: true },
     },
   ],
 };
