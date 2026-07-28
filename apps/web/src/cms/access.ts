@@ -51,10 +51,20 @@ export const readPublicArticlesOrOwned: Access = async ({ req }) => {
       ],
     },
   });
+  const completePublicPeople = publicPeople.docs.filter((person) =>
+    Boolean(
+      person.name?.trim()
+      && person.identity?.trim()
+      && person.introduction?.trim()
+      && person.city?.trim()
+      && person.portrait
+      && person.languages?.length,
+    ),
+  );
   const publicAuthorsByLocale: Where[] = (["en", "es"] as const).map((locale): Where => ({
     and: [
       { locale: { equals: locale } },
-      { author: { in: publicPeople.docs
+      { author: { in: completePublicPeople
         .filter((person) => person.languages?.includes(locale))
         .map((person) => person.id) } },
     ],

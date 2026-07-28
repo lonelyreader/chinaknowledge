@@ -6,7 +6,7 @@ import {
   superAdminField,
   updateOwnUserOrSuperAdmin,
 } from "@/cms/access";
-import { ensureMemberProfile, requireActiveAccount } from "@/cms/user-hooks";
+import { ensureMemberProfile, protectMemberAccount, requireActiveAccount } from "@/cms/user-hooks";
 
 export const Users: CollectionConfig = {
   slug: "users",
@@ -30,7 +30,11 @@ export const Users: CollectionConfig = {
     read: readUsers,
     update: updateOwnUserOrSuperAdmin,
   },
-  hooks: { afterChange: [ensureMemberProfile], beforeLogin: [requireActiveAccount] },
+  hooks: {
+    afterChange: [ensureMemberProfile],
+    beforeDelete: [protectMemberAccount],
+    beforeLogin: [requireActiveAccount],
+  },
   fields: [
     {
       name: "accountStatus",

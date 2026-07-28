@@ -29,7 +29,7 @@ change_id: PUB-CURATION-001
 - Member 自有媒体可在个人公开内容中使用；进入站方策展时仍要求 Editor 的公共使用确认、封面、来源、分类及 Guide freshness。
 - Production indexable 环境生成 sitemap；非索引环境保持空 sitemap 和 robots disallow。
 - 已公开 Article 的 locale、slug 与 translation group 不再允许改动；Member 不能通过普通 API 绕过发布动作，也不能写入分类、format、来源、freshness 或首页排期等站方字段。
-- Article 的 Payload `_status` 始终由 Member publication 归一化，Member 或 Editor 不能单独改 `_status` 让个人文章消失；Person 未公开时 Article publication 会被服务端拒绝，有公开 Article 的 Person 也不能隐藏、删除或移除文章所用语言。已公开 Person 的 slug 与账户归属保持固定。匿名 Article access 再次约束 author 必须仍为公开且支持 Article 语言的 Person。People Spotlight 只从带 Curated contribution 的人物中选取，完整 People 目录仍保留全部公开人物。
+- Article 的 Payload `_status` 始终由 Member publication 归一化，Member 或 Editor 不能单独改 `_status` 让个人文章消失；Person 未公开、资料不完整或不支持 Article 语言时，Article publication 会被服务端拒绝。有 Article 的 Person 不能删除；有公开 Article 的 Person 不能隐藏、清空公开必填资料或移除文章所用语言。已公开 Person 的 slug、账户归属和系统发布时间保持固定；有 Person 或 Article 的 User 只能暂停，不能删除。匿名 Article access 再次约束 author 必须仍为资料完整、公开且支持 Article 语言的 Person。People Spotlight 只从带 Curated contribution 的人物中选取，完整 People 目录仍保留全部公开人物。
 
 ## 自动化证据
 

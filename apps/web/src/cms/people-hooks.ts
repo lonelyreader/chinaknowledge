@@ -65,6 +65,13 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
   if (originalDoc?.profilePublishedAt && data.slug !== undefined && data.slug !== originalDoc.slug) {
     throw new APIError("A published profile URL cannot be changed.", 403);
   }
+  if (
+    originalDoc
+    && data.profilePublishedAt !== undefined
+    && data.profilePublishedAt !== originalDoc.profilePublishedAt
+  ) {
+    throw new APIError("Profile publication time is managed by profile actions.", 403);
+  }
 
   if (originalDoc && nextStatus !== currentStatus && context.profileTransitionConfirmed !== true) {
     throw new APIError("Use the profile action to change profile visibility.", 403);
@@ -96,13 +103,13 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
 
   if (nextStatus !== "public") return data;
 
-  const name = data.name ?? originalDoc?.name;
-  const identity = data.identity ?? originalDoc?.identity;
-  const introduction = data.introduction ?? originalDoc?.introduction;
-  const city = data.city ?? originalDoc?.city;
-  const languages = data.languages ?? originalDoc?.languages ?? [];
-  const portrait = data.portrait ?? originalDoc?.portrait;
-  const links = data.links ?? originalDoc?.links ?? [];
+  const name = data.name !== undefined ? data.name : originalDoc?.name;
+  const identity = data.identity !== undefined ? data.identity : originalDoc?.identity;
+  const introduction = data.introduction !== undefined ? data.introduction : originalDoc?.introduction;
+  const city = data.city !== undefined ? data.city : originalDoc?.city;
+  const languages = data.languages !== undefined ? data.languages ?? [] : originalDoc?.languages ?? [];
+  const portrait = data.portrait !== undefined ? data.portrait : originalDoc?.portrait;
+  const links = data.links !== undefined ? data.links ?? [] : originalDoc?.links ?? [];
   if (!name?.trim() || !identity?.trim() || !introduction?.trim() || !city?.trim() || !languages.length) {
     throw new APIError("Name, identity, introduction, location, and languages are required before a profile can be public.", 400);
   }
@@ -143,19 +150,14 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
   return data;
 };
 
-export const protectPersonWithPublishedArticles: CollectionBeforeDeleteHook = async ({ id, req }) => {
-  const published = await req.payload.count({
+export const protectPersonWithArticles: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  const articles = await req.payload.count({
     collection: "articles",
     overrideAccess: true,
     req,
-    where: {
-      and: [
-        { author: { equals: id } },
-        { publicationStatus: { equals: "published" } },
-      ],
-    },
+    where: { author: { equals: id } },
   });
-  if (published.totalDocs > 0) {
-    throw new APIError("Withdraw this person's public articles before deleting the profile.", 400);
+  if (articles.totalDocs > 0) {
+    throw new APIError("Remove this person's articles before deleting the profile.", 400);
   }
 };

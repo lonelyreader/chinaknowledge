@@ -1,4 +1,4 @@
-import { APIError, type CollectionAfterChangeHook, type CollectionBeforeLoginHook } from "payload";
+import { APIError, type CollectionAfterChangeHook, type CollectionBeforeDeleteHook, type CollectionBeforeLoginHook } from "payload";
 
 import type { User } from "@/payload-types";
 
@@ -53,4 +53,24 @@ export const ensureMemberProfile: CollectionAfterChangeHook<User> = async ({ con
 
 export const requireActiveAccount: CollectionBeforeLoginHook<User> = ({ user }) => {
   if (user.accountStatus === "paused") throw new APIError("This account is paused.", 403);
+};
+
+export const protectMemberAccount: CollectionBeforeDeleteHook = async ({ id, req }) => {
+  const [people, articles] = await Promise.all([
+    req.payload.count({
+      collection: "people",
+      overrideAccess: true,
+      req,
+      where: { user: { equals: id } },
+    }),
+    req.payload.count({
+      collection: "articles",
+      overrideAccess: true,
+      req,
+      where: { owner: { equals: id } },
+    }),
+  ]);
+  if (people.totalDocs > 0 || articles.totalDocs > 0) {
+    throw new APIError("Pause this account instead of deleting a member with a profile or articles.", 400);
+  }
 };

@@ -171,6 +171,18 @@ async function main() {
   const publishedPortrait = await payload.findByID({ collection: "media", id: memberPortrait.id, overrideAccess: true });
   assert.ok(publishedPortrait.memberUsePublishedAt);
 
+  const unsupportedLanguageDraft = await payload.create({
+    collection: "articles",
+    data: { body, locale: "es", slug: `unsupported-language-${randomUUID()}`, title: "Unsupported language", translationGroup: randomUUID() },
+    draft: true, overrideAccess: false, user: member,
+  });
+  await expectRejected(() => payload.update({
+    collection: "articles", id: unsupportedLanguageDraft.id, context: { memberPublicationConfirmed: true },
+    data: { publicationStatus: "published" }, draft: false, overrideAccess: false, user: member,
+  }), "An article language must already be public on its author profile.");
+  await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: unsupportedLanguageDraft.id } } });
+  await payload.delete({ collection: "articles", id: unsupportedLanguageDraft.id, overrideAccess: true });
+
   const draft = await payload.create({
     collection: "articles",
     data: { body, locale: "en", slug: "member-direct-post", title: "Member direct post", translationGroup: "acceptance-member-curation" },
@@ -216,11 +228,26 @@ async function main() {
   }), "A public profile must retain every language used by its public articles.");
   await expectRejected(() => payload.update({
     collection: "people", id: memberPerson.id,
+    data: { portrait: null }, overrideAccess: false, user: member,
+  }), "A public profile cannot remove its portrait.");
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id,
+    data: { identity: null }, overrideAccess: false, user: member,
+  }), "A public profile cannot clear required identity information.");
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id,
+    data: { profilePublishedAt: null }, overrideAccess: false, user: editor,
+  }), "Profile publication time cannot be cleared through the normal API.");
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id,
     data: { slug: "changed-public-profile-url" }, overrideAccess: false, user: member,
   }), "A published profile URL is canonical and cannot be changed.");
   await expectRejected(() => payload.delete({
     collection: "people", id: memberPerson.id, overrideAccess: false, user: admin,
   }), "A profile with public articles cannot be deleted.");
+  await expectRejected(() => payload.delete({
+    collection: "users", id: member.id, overrideAccess: false, user: admin,
+  }), "A member account with a profile or articles cannot be deleted.");
   const memberStatusBypass = await payload.update({
     collection: "articles", id: draft.id, data: { _status: "draft" },
     draft: false, overrideAccess: false, user: member,

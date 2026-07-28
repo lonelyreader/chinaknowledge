@@ -8,7 +8,7 @@ import {
   readPublicPeopleOrOwn,
   updateOwnPersonOrEditorial,
 } from "@/cms/access";
-import { enforcePersonPublication, protectPersonWithPublishedArticles } from "@/cms/people-hooks";
+import { enforcePersonPublication, protectPersonWithArticles } from "@/cms/people-hooks";
 import { transitionProfileEndpoint } from "@/cms/people-endpoints";
 import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 
@@ -40,7 +40,7 @@ export const People: CollectionConfig = {
   },
   hooks: {
     beforeChange: [enforcePersonPublication],
-    beforeDelete: [protectPersonWithPublishedArticles],
+    beforeDelete: [protectPersonWithArticles],
   },
   versions: { maxPerDoc: 50 },
   fields: [

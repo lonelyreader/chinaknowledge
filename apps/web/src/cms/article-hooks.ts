@@ -113,6 +113,9 @@ async function assertMemberPublicationComplete(
   if (person.profileStatus !== "public" || !person.profilePublishedAt) {
     throw new APIError("Publish your profile before publishing an article.", 400);
   }
+  if (!person.languages?.includes(article.locale)) {
+    throw new APIError("Add this article language to your public profile before publishing.", 400);
+  }
   if (article.coverImage) {
     await markMediaForMemberPublication(article.coverImage, req, "Cover image");
   }
