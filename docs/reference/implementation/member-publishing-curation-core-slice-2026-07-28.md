@@ -35,8 +35,8 @@ change_id: PUB-CURATION-001
 
 ## 自动化证据
 
-- 临时 PostgreSQL：从空库执行全部 9 条 migration PASS；新增 Person 版本历史和事务通知投递状态 schema。
-- Recovery：无新模型写入的全新数据库完成 9 条 migration 上行与整批 rollback；清空同一临时目标后重新执行全部 migration PASS。最新受保护 migration 在整批 down 的第一步同时检查 Article 两轴/versions、Person versions、Member media、workflow axis 与 paused accounts；任一新模型写入都会在任何 schema 被拆除前拒绝回退并要求恢复 migration 前备份，账户状态 migration 另有独立防线。
+- 临时 PostgreSQL：从空库执行全部 10 条 migration PASS；新增 Person 版本历史、事务通知投递状态和 `translation group + locale` 复合唯一索引。
+- Recovery：无新模型写入的全新数据库完成 10 条 migration 上行与整批 rollback；清空同一临时目标后重新执行全部 migration PASS。最新受保护 migration 在整批 down 的第一步同时检查 Article 两轴/versions、Person versions、Member media、workflow axis 与 paused accounts；任一新模型写入都会在任何 schema 或身份索引被拆除前拒绝回退并要求恢复 migration 前备份，账户状态 migration 另有独立防线。
 - `npm run test:migration-recovery` 可重复创建独立临时数据库，验证 clean apply/整批 rollback/清空重建，以及 populated down 在第一条 migration fail-closed 后 Person versions、account status、Article 两轴字段和 migration ledger 全部仍在；脚本结束会删除其随机临时数据库。
 - `npm run test:editorial` PASS：Article count 保持 1、原 byline 不变、15 条双轴事件、最终 Published + Curated；同时覆盖普通 API publication/profile/`_status` 绕过、未公开 Person 的 Article publication、canonical 篡改、站方字段伪造、Curated 后直接改文进入 Needs recheck、个人未策展文章、本人版本隔离、Editor/Super Admin 组合权限、账户自动建 Person、暂停登录和暂停前 JWT 不再获得授权。
 - `npm run typecheck` PASS。

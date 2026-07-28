@@ -94,7 +94,7 @@ async function person(
 async function clean(payload: Payload) {
   const articles = await payload.find({
     collection: "articles", depth: 0, limit: 50, overrideAccess: true,
-    where: { translationGroup: { in: ["acceptance-member-curation", "acceptance-member-personal-only", "acceptance-editor-member", "acceptance-other-personal-only"] } },
+    where: { translationGroup: { in: ["acceptance-member-curation", "acceptance-member-personal-only", "acceptance-editor-member", "acceptance-forged-byline", "acceptance-other-personal-only"] } },
   });
   for (const article of articles.docs) {
     await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: article.id } } });
@@ -203,13 +203,18 @@ async function main() {
   }), "Another member cannot edit the article.");
   const forgedCreate = await payload.create({
     collection: "articles",
-    data: { author: otherPerson.id, body, locale: "en", owner: member.id, slug: "forged-byline", title: "Forged byline", translationGroup: "acceptance-member-curation" },
+    data: { author: otherPerson.id, body, locale: "en", owner: member.id, slug: "forged-byline", title: "Forged byline", translationGroup: "acceptance-forged-byline" },
     draft: true, overrideAccess: false, user: member,
   });
   assert.equal(relationID(forgedCreate.owner), member.id);
   assert.equal(relationID(forgedCreate.author), memberPerson.id);
   await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: forgedCreate.id } } });
   await payload.delete({ collection: "articles", id: forgedCreate.id, overrideAccess: true });
+  await expectRejected(() => payload.create({
+    collection: "articles",
+    data: { body, locale: "en", slug: "duplicate-translation-identity", title: "Duplicate translation identity", translationGroup: "acceptance-member-curation" },
+    draft: true, overrideAccess: false, user: member,
+  }), "A translation group can contain only one Article per language.");
 
   const memberPublished = await payload.update({
     collection: "articles", id: draft.id, context: { memberPublicationConfirmed: true },

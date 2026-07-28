@@ -54,8 +54,9 @@ try {
     EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'account_status'),
     EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'articles' AND column_name = 'publication_status'),
     EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'workflow_events' AND column_name = 'notification_status'),
-    (SELECT count(*) >= 9 FROM payload_migrations)`);
-  if (assertions !== "t|t|t|t|t") {
+    to_regclass('public."translationGroup_locale_idx"') IS NOT NULL,
+    (SELECT count(*) >= 10 FROM payload_migrations)`);
+  if (assertions !== "t|t|t|t|t|t") {
     throw new Error(`Rollback guard left the schema or migration ledger incomplete: ${assertions}`);
   }
 

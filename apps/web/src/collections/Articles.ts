@@ -33,6 +33,7 @@ const categoryField = (name: string, label: string, dimension: string) => ({
 
 export const Articles: CollectionConfig = {
   slug: "articles",
+  indexes: [{ fields: ["translationGroup", "locale"], unique: true }],
   labels: { singular: "Article", plural: "Articles" },
   admin: {
     useAsTitle: "title",
