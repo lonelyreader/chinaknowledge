@@ -386,9 +386,15 @@ async function ensureScalePeople(
   const firstWeek = stableWeeklyPeople(rotationPool, 3, new Date("2026-01-02T00:00:00.000Z"));
   const repeatedWeek = stableWeeklyPeople(rotationPool, 3, new Date("2026-01-03T00:00:00.000Z"));
   const nextWeek = stableWeeklyPeople(rotationPool, 3, new Date("2026-01-09T00:00:00.000Z"));
+  const yearEndWeek = stableWeeklyPeople(rotationPool, 3, new Date("2026-12-29T00:00:00.000Z"));
+  const newYearWeek = stableWeeklyPeople(rotationPool, 3, new Date("2027-01-05T00:00:00.000Z"));
   assert.deepEqual(repeatedWeek.map((person) => person.slug), firstWeek.map((person) => person.slug));
   assert.equal(
     nextWeek.filter((person) => firstWeek.some((previous) => previous.slug === person.slug)).length,
+    0,
+  );
+  assert.equal(
+    newYearWeek.filter((person) => yearEndWeek.some((previous) => previous.slug === person.slug)).length,
     0,
   );
 

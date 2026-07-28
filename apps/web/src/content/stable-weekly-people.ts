@@ -6,8 +6,8 @@ function weeklyScore(week: number, slug: string) {
 }
 
 function currentUTCWeek(now: Date) {
-  const start = Date.UTC(now.getUTCFullYear(), 0, 1);
-  return Math.floor((now.getTime() - start) / 604_800_000);
+  const mondayEpoch = Date.UTC(1970, 0, 5);
+  return Math.floor((now.getTime() - mondayEpoch) / 604_800_000);
 }
 
 export function stableWeeklyPeople<
