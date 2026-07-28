@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth, useDocumentInfo, useFormProcessing } from "@payloadcms/ui";
+import { useAuth, useDocumentInfo, useForm, useFormProcessing } from "@payloadcms/ui";
 import { useEffect, useState } from "react";
 
 import { usePendingFormChanges } from "../use-pending-form-changes";
@@ -15,11 +15,18 @@ function editorName(value: ReturnType<typeof useDocumentInfo>["currentEditor"]) 
 export function SaveSafetyStatus() {
   const pendingChanges = usePendingFormChanges();
   const processing = useFormProcessing();
+  const { submit } = useForm();
   const [saveFailed, setSaveFailed] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [online, setOnline] = useState(() => typeof navigator === "undefined" || navigator.onLine);
   const { user } = useAuth();
-  const { currentEditor, documentIsLocked } = useDocumentInfo();
+  const {
+    collectionSlug,
+    currentEditor,
+    documentIsLocked,
+    id,
+    mostRecentVersionIsAutosaved,
+  } = useDocumentInfo();
   const lockedBy = editorName(currentEditor);
   const currentEditorID = currentEditor && typeof currentEditor === "object" && "id" in currentEditor
     ? String(currentEditor.id)
@@ -70,9 +77,27 @@ export function SaveSafetyStatus() {
     };
   }, []);
 
-  function retry() {
+  async function retry() {
     setRetrying(true);
-    document.querySelector<HTMLFormElement>("form.collection-edit__form")?.requestSubmit();
+    if (collectionSlug === "articles" && id) {
+      const result = await submit({
+        acceptValues: { overrideLocalChanges: false },
+        action: `/api/articles/${id}?autosave=true&depth=0&draft=true&fallback-locale=null`,
+        context: {
+          getDocPermissions: false,
+          incrementVersionCount: !mostRecentVersionIsAutosaved,
+        },
+        disableFormWhileProcessing: false,
+        disableSuccessStatus: true,
+        method: "PATCH",
+        overrides: { _status: "draft" },
+        skipValidation: true,
+      });
+      if (!result?.res?.ok) setRetrying(false);
+      return;
+    }
+    const result = await submit();
+    if (!result?.res?.ok) setRetrying(false);
   }
 
   const state = lockedBySomeoneElse
@@ -88,7 +113,7 @@ export function SaveSafetyStatus() {
   return (
     <div className="save-safety" role="status">
       <span>{state}</span>
-      {saveFailed ? <button disabled={!online || retrying} onClick={retry} type="button">Retry</button> : null}
+      {saveFailed ? <button disabled={!online || retrying} onClick={() => void retry()} type="button">Retry</button> : null}
     </div>
   );
 }
