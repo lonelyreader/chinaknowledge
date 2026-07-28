@@ -204,6 +204,11 @@ async function main() {
     data: { links: [{ label: "Unsafe", type: "personal_site", url: "javascript:alert(1)" }] },
     overrideAccess: false, user: member,
   }), "A public profile rejects unsafe personal links.");
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id,
+    data: { links: [{ label: "Email", type: "email", url: "mailto:" }] },
+    overrideAccess: false, user: member,
+  }), "A public profile rejects an email link without a recipient.");
   const localizedProfile = await payload.update({
     collection: "people", id: memberPerson.id,
     data: {

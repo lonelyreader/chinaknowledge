@@ -12,21 +12,19 @@ import {
 import { enforcePersonPublication, protectPersonWithArticles } from "@/cms/people-hooks";
 import { transitionProfileEndpoint } from "@/cms/people-endpoints";
 import { hasEditorialRole, isCMSUser } from "@/cms/roles";
+import { isValidEmailProfileLink, isValidWebProfileLink } from "@/cms/profile-links";
 
 const editorialCondition = (_data: unknown, _siblingData: unknown, { user }: { user: unknown }) =>
   isCMSUser(user) && hasEditorialRole(user);
 
 const validateProfileLink: TextFieldSingleValidation = (value, { siblingData }) => {
   if (!value) return "Link address is required.";
-  try {
-    const url = new URL(value);
-    const row = siblingData as { type?: unknown } | undefined;
-    const linkType = typeof row?.type === "string" ? row.type : "personal_site";
-    if (linkType === "email") return url.protocol === "mailto:" || "Email links must use mailto:.";
-    return ["https:", "http:"].includes(url.protocol) || "Links must use https:// or http://.";
-  } catch {
-    return "Enter a valid link address.";
+  const row = siblingData as { type?: unknown } | undefined;
+  const linkType = typeof row?.type === "string" ? row.type : "personal_site";
+  if (linkType === "email") {
+    return isValidEmailProfileLink(value) || "Enter a complete email address using mailto:.";
   }
+  return isValidWebProfileLink(value) || "Links must use https:// or http://.";
 };
 
 export const People: CollectionConfig = {
@@ -65,12 +63,22 @@ export const People: CollectionConfig = {
         {
           label: "Profile",
           fields: [
+            {
+              name: "profileFocus",
+              type: "ui",
+              admin: { components: { Field: "/cms/components/ProfileFocus#ProfileFocus" } },
+            },
             { name: "name", type: "text", required: true },
             {
               name: "portrait",
               type: "upload",
               relationTo: "media",
               label: "Portrait",
+            },
+            {
+              name: "portraitAccessibility",
+              type: "ui",
+              admin: { components: { Field: "/cms/components/UploadAccessibility#UploadAccessibility" } },
             },
             {
               name: "languages",

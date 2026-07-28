@@ -19,7 +19,19 @@ export async function generateMetadata({ params, searchParams }: { params: Promi
   if (cmsReadEnabled()) {
     if (preview) return { robots: { follow: false, index: false } };
     const person = await getPublishedCMSPerson(locale, slug);
-    return person ? { title: person.name, description: person.identity } : {};
+    if (!person) return {};
+    const languagePeople = await Promise.all(locales.map(async (targetLocale) => [
+      targetLocale,
+      await getPublishedCMSPerson(targetLocale, slug),
+    ] as const));
+    const languages = Object.fromEntries(languagePeople.flatMap(([targetLocale, localizedPerson]) =>
+      localizedPerson ? [[targetLocale, `/${targetLocale}/people/${slug}`]] : [],
+    ));
+    return {
+      title: person.name,
+      description: person.identity,
+      alternates: { canonical: `/${locale}/people/${slug}`, languages },
+    };
   }
   const person = getPerson(slug);
   return person ? { title: person.name, description: localize(person.identity, locale) } : {};

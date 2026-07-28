@@ -171,7 +171,7 @@ export function WorkflowActions() {
   return (
     <section className="workflow-actions">
       {owner ? (
-        <div className="workflow-actions__group">
+        <div className="workflow-actions__group workflow-actions__group--publication">
           <span className="workflow-actions__label">Personal publication</span>
           <strong className="workflow-actions__status">{publicationLabels[publication]}</strong>
           <div className="workflow-actions__buttons">
@@ -189,7 +189,7 @@ export function WorkflowActions() {
       ) : null}
 
       {editorial ? (
-        <div className="workflow-actions__group">
+        <div className="workflow-actions__group workflow-actions__group--curation">
           <span className="workflow-actions__label">Site curation</span>
           <strong className="workflow-actions__status">{curationLabels[curation]}</strong>
           <div className="workflow-actions__buttons">
@@ -233,7 +233,7 @@ export function WorkflowActions() {
           <div className="workflow-actions__buttons">
             <Button
               buttonStyle="primary"
-              disabled={!summary || summary.missing.length > 0}
+              disabled={pendingChanges || !summary || summary.missing.length > 0}
               onClick={() => void transition(pending)}
               size="small"
             >Confirm</Button>
@@ -248,7 +248,7 @@ export function WorkflowActions() {
             {pending.status === "withdrawn" ? "Withdraw article?" : "Remove from site?"}
           </strong>
           <div className="workflow-actions__buttons">
-            <Button buttonStyle="primary" onClick={() => void transition(pending)} size="small">Confirm</Button>
+            <Button buttonStyle="primary" disabled={pendingChanges} onClick={() => void transition(pending)} size="small">Confirm</Button>
             <Button buttonStyle="secondary" onClick={() => setPending(null)} size="small">Cancel</Button>
           </div>
         </div>

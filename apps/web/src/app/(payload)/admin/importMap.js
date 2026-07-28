@@ -1,8 +1,11 @@
 import { InviteMember as InviteMember_35b0175858e203b26be928c9b71a3f28 } from '../../../cms/components/InviteMember'
+import { ProfileFocus as ProfileFocus_c8fd3e7633d353c634b61ba5ac1d05d5 } from '../../../cms/components/ProfileFocus'
+import { UploadAccessibility as UploadAccessibility_c25306a914307f3a2b4cb153e11372e9 } from '../../../cms/components/UploadAccessibility'
 import { ProfileLinkRowLabel as ProfileLinkRowLabel_1b98b60a237989df169007b015908d8e } from '../../../cms/components/ProfileLinkRowLabel'
 import { ProfileActions as ProfileActions_fb26de006462dd6fc68c4cd3109e5592 } from '../../../cms/components/ProfileActions'
 import { SaveSafetyStatus as SaveSafetyStatus_0b96e9d086ac5fb8716f1b23cacceec3 } from '../../../cms/components/SaveSafetyStatus'
 import { PublicUseApprovalField as PublicUseApprovalField_7cd11cb6a7c06a35008b33e3b40bbae3 } from '../../../cms/components/PublicUseApprovalField'
+import { ArticleWorkspaceMode as ArticleWorkspaceMode_e9c5286a57e82c6a54524c62b0db9fcf } from '../../../cms/components/ArticleWorkspaceMode'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -39,10 +42,13 @@ import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } f
 /** @type import('payload').ImportMap */
 export const importMap = {
   "/cms/components/InviteMember#InviteMember": InviteMember_35b0175858e203b26be928c9b71a3f28,
+  "/cms/components/ProfileFocus#ProfileFocus": ProfileFocus_c8fd3e7633d353c634b61ba5ac1d05d5,
+  "/cms/components/UploadAccessibility#UploadAccessibility": UploadAccessibility_c25306a914307f3a2b4cb153e11372e9,
   "/cms/components/ProfileLinkRowLabel#ProfileLinkRowLabel": ProfileLinkRowLabel_1b98b60a237989df169007b015908d8e,
   "/cms/components/ProfileActions#ProfileActions": ProfileActions_fb26de006462dd6fc68c4cd3109e5592,
   "/cms/components/SaveSafetyStatus#SaveSafetyStatus": SaveSafetyStatus_0b96e9d086ac5fb8716f1b23cacceec3,
   "/cms/components/PublicUseApprovalField#PublicUseApprovalField": PublicUseApprovalField_7cd11cb6a7c06a35008b33e3b40bbae3,
+  "/cms/components/ArticleWorkspaceMode#ArticleWorkspaceMode": ArticleWorkspaceMode_e9c5286a57e82c6a54524c62b0db9fcf,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

@@ -192,7 +192,8 @@ jobs:
                   '20260728_163327',
                   '20260728_171030_editorial_notifications_and_invites',
                   '20260728_172626_article_translation_identity',
-                  '20260729_030000_profile_localization_and_creator_workspace'
+                  '20260729_030000_profile_localization_and_creator_workspace',
+                  '20260729_193000_batch_rollback_barrier'
                 )),
               (SELECT count(*) FROM information_schema.tables
                 WHERE table_schema = 'public'
@@ -207,7 +208,7 @@ jobs:
                     'person_revisions'
                   ));"
           )"
-          if [[ "${restored_state}" != "33,11,11,8" ]]; then
+          if [[ "${restored_state}" != "33,12,12,8" ]]; then
             echo "Restored schema does not match the accepted Production baseline: ${restored_state}" >&2
             exit 1
           fi

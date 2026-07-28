@@ -6,32 +6,29 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@/content";
 import { ui } from "@/content";
 
-function localePath(pathname: string, locale: Locale) {
-  const parts = pathname.split("/");
-  parts[1] = locale;
-  return parts.join("/") || `/${locale}`;
-}
-
 export function SiteHeader({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
-  const [languageHrefs, setLanguageHrefs] = useState<Record<Locale, string> | null>(null);
   const pathname = usePathname();
+  const [languageHrefs, setLanguageHrefs] = useState<Partial<Record<Locale, string>>>({ [locale]: pathname });
   const copy = ui[locale];
   const navHrefs = ["stories", "guides", "places", "people"];
 
   useEffect(() => {
     const readAlternates = () => {
-      const entries = (["en", "es"] as const).map((targetLocale) => {
+      const entries = (["en", "es"] as const).flatMap((targetLocale) => {
         const alternate = document.querySelector<HTMLLinkElement>(`link[rel="alternate"][hreflang="${targetLocale}"]`);
-        return [targetLocale, alternate?.getAttribute("href") || localePath(pathname, targetLocale)] as const;
+        const href = alternate?.getAttribute("href") || (targetLocale === locale ? pathname : null);
+        return href ? [[targetLocale, href] as const] : [];
       });
-      setLanguageHrefs(Object.fromEntries(entries) as Record<Locale, string>);
+      setLanguageHrefs(Object.fromEntries(entries) as Partial<Record<Locale, string>>);
     };
     readAlternates();
     const observer = new MutationObserver(readAlternates);
     observer.observe(document.head, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [pathname]);
+  }, [locale, pathname]);
+
+  const availableLanguages = (["en", "es"] as const).filter((targetLocale) => languageHrefs[targetLocale]);
 
   return (
     <header className="site-header">
@@ -48,9 +45,12 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         </nav>
         <div className="header-actions">
           <div className="language-switch" aria-label={locale === "en" ? "Language" : "Idioma"}>
-            <Link className={locale === "en" ? "is-active" : ""} href={languageHrefs?.en ?? localePath(pathname, "en")}>EN</Link>
-            <span aria-hidden="true">/</span>
-            <Link className={locale === "es" ? "is-active" : ""} href={languageHrefs?.es ?? localePath(pathname, "es")}>ES</Link>
+            {availableLanguages.map((targetLocale, index) => (
+              <span key={targetLocale}>
+                {index ? <span aria-hidden="true">/</span> : null}
+                <Link className={locale === targetLocale ? "is-active" : ""} href={languageHrefs[targetLocale]!}>{targetLocale.toUpperCase()}</Link>
+              </span>
+            ))}
           </div>
           <Link className="button button--compact desktop-subscribe" href={`/${locale}/newsletter`}>
             {copy.subscribe}

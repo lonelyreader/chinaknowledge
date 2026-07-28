@@ -9,6 +9,7 @@ import * as migration_20260728_163327 from './20260728_163327';
 import * as migration_20260728_171030_editorial_notifications_and_invites from './20260728_171030_editorial_notifications_and_invites';
 import * as migration_20260728_172626_article_translation_identity from './20260728_172626_article_translation_identity';
 import * as migration_20260729_030000_profile_localization_and_creator_workspace from './20260729_030000_profile_localization_and_creator_workspace';
+import * as migration_20260729_193000_batch_rollback_barrier from './20260729_193000_batch_rollback_barrier';
 
 export const migrations = [
   {
@@ -65,5 +66,10 @@ export const migrations = [
     up: migration_20260729_030000_profile_localization_and_creator_workspace.up,
     down: migration_20260729_030000_profile_localization_and_creator_workspace.down,
     name: '20260729_030000_profile_localization_and_creator_workspace'
+  },
+  {
+    up: migration_20260729_193000_batch_rollback_barrier.up,
+    down: migration_20260729_193000_batch_rollback_barrier.down,
+    name: '20260729_193000_batch_rollback_barrier'
   },
 ];

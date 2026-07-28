@@ -3,6 +3,7 @@ import { APIError } from "payload";
 
 import { hasEditorialRole, isCMSUser } from "./roles";
 import { markMediaForMemberPublication } from "./media-policy";
+import { isValidEmailProfileLink, isValidWebProfileLink } from "./profile-links";
 
 type PersonShape = {
   authorApprovalRecordedAt?: string | null;
@@ -126,14 +127,10 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
   if (!portrait) throw new APIError("A portrait is required before a profile can be public.", 400);
   await markMediaForMemberPublication(portrait, req, "Portrait");
   for (const link of links) {
-    try {
-      const url = new URL(link.url ?? "");
-      if (link.type === "email") {
-        if (url.protocol !== "mailto:") throw new Error("Unsafe protocol");
-      } else if (url.protocol !== "https:" && url.protocol !== "http:") {
-        throw new Error("Unsafe protocol");
-      }
-    } catch {
+    const valid = link.type === "email"
+      ? isValidEmailProfileLink(link.url ?? "")
+      : isValidWebProfileLink(link.url ?? "");
+    if (!valid) {
       throw new APIError(link.type === "email" ? "Email links must use a valid mailto address." : "Profile links must use a valid http or https URL.", 400);
     }
   }

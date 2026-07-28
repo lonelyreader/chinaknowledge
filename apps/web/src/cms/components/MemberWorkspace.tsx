@@ -2,17 +2,18 @@ import type { ServerProps } from "payload";
 import Link from "next/link";
 
 import type { Article, Person, User, WorkflowEvent } from "@/payload-types";
+import { NewArticleStart } from "./NewArticleStart";
 
 function relationID(value: Article["owner"]) {
   return value && typeof value === "object" ? value.id : value;
 }
 
-function articleURL(article: Article) {
-  return `/admin/collections/articles/${article.id}`;
+function articleURL(article: Article, mode: "creator" | "curation") {
+  return `/admin/collections/articles/${article.id}?mode=${mode}`;
 }
 
 function workURL(userID: number | string) {
-  return `/admin/collections/articles?where[owner][equals]=${encodeURIComponent(String(userID))}`;
+  return `/admin/collections/articles?where[owner][equals]=${encodeURIComponent(String(userID))}&where[title][exists]=true`;
 }
 
 function curationURL(status: Article["curationStatus"]) {
@@ -70,7 +71,12 @@ export async function MemberWorkspace({ payload, searchParams, user: untypedUser
       overrideAccess: true,
       pagination: false,
       sort: "-updatedAt",
-      where: { owner: { equals: user.id } },
+      where: {
+        and: [
+          { owner: { equals: user.id } },
+          { title: { exists: true } },
+        ],
+      },
     }),
   ]);
   const person = people.docs[0] as Person | undefined;
@@ -154,7 +160,7 @@ export async function MemberWorkspace({ payload, searchParams, user: untypedUser
               {attention.docs.map((article) => {
                 const event = latestEvents.get(String(article.id));
                 return (
-                  <Link className="member-workspace__item member-workspace__item--attention" href={articleURL(article)} key={article.id}>
+                  <Link className="member-workspace__item member-workspace__item--attention" href={articleURL(article, "curation")} key={article.id}>
                     <strong>{article.title || "Untitled"}</strong>
                     <span>{article.locale?.toUpperCase()} · {authorName(article.author)} · {editorName(article.assignedEditor)}</span>
                     <span>{event ? `${curationLabel(event.toStatus as Article["curationStatus"])} · ${new Date(event.occurredAt).toLocaleDateString("en-CA")}` : `Updated · ${new Date(article.updatedAt).toLocaleDateString("en-CA")}`} · {curationAction(article)}</span>
@@ -170,7 +176,7 @@ export async function MemberWorkspace({ payload, searchParams, user: untypedUser
         {editorial ? <h2>My work</h2> : <h1>My work</h1>}
         <div className="member-workspace__actions">
           <Link className="btn btn--style-secondary btn--size-small" href={workURL(user.id)}>All work</Link>
-          <Link className="btn btn--style-primary btn--size-small" href="/admin/collections/articles/create">New article</Link>
+          <NewArticleStart />
           {person ? (
             <Link className="btn btn--style-secondary btn--size-small" href={`/admin/collections/people/${person.id}`}>My profile</Link>
           ) : null}
@@ -180,7 +186,7 @@ export async function MemberWorkspace({ payload, searchParams, user: untypedUser
       {work.docs.length ? (
         <div className="member-workspace__list">
           {work.docs.map((article) => relationID(article.owner) === user.id ? (
-            <Link className="member-workspace__item" href={articleURL(article)} key={article.id}>
+            <Link className="member-workspace__item" href={articleURL(article, "creator")} key={article.id}>
               <strong>{article.title || "Untitled"}</strong>
               <span>{article.locale?.toUpperCase()} · {article.publicationStatus === "published" ? "Public" : article.publicationStatus === "withdrawn" ? "Withdrawn" : "Draft"} · {curationLabel(article.curationStatus)}</span>
               <span>{new Date(article.updatedAt).toLocaleDateString("en-CA")} · {nextAction(article)}</span>

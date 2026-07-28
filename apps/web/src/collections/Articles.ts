@@ -73,6 +73,11 @@ export const Articles: CollectionConfig = {
     maxPerDoc: 50,
   },
   fields: [
+    {
+      name: "articleWorkspaceMode",
+      type: "ui",
+      admin: { components: { Field: "/cms/components/ArticleWorkspaceMode#ArticleWorkspaceMode" } },
+    },
     { name: "title", type: "text", required: true },
     { name: "summary", type: "textarea" },
     { name: "body", type: "richText", required: true },
@@ -81,6 +86,11 @@ export const Articles: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       label: "Cover image",
+    },
+    {
+      name: "coverImageAccessibility",
+      type: "ui",
+      admin: { components: { Field: "/cms/components/UploadAccessibility#UploadAccessibility" } },
     },
     {
       name: "format",

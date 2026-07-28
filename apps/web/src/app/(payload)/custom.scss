@@ -101,6 +101,85 @@
   gap: 0.75rem;
 }
 
+.article-workspace-mode {
+  border-bottom: 1px solid var(--theme-elevation-150);
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+}
+
+.article-workspace-mode button {
+  background: transparent;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+  color: inherit;
+  min-height: 44px;
+  padding: 0.55rem 0.9rem;
+}
+
+.article-workspace-mode button[aria-pressed="true"] {
+  background: var(--theme-elevation-100);
+  border-color: var(--theme-text);
+}
+
+html[data-article-mode="creator"] :is(
+  #field-format,
+  #field-purposes,
+  #field-topics,
+  #field-geographies,
+  #field-situations,
+  #field-sourceNotes,
+  #field-editorComments,
+  #field-assignedEditor,
+  #field-freshnessDate,
+  #field-publishedAt,
+  #field-homepagePlacement,
+  #field-homepageStartsAt,
+  #field-homepageEndsAt,
+  .workflow-actions__group--curation
+) {
+  display: none;
+}
+
+html[data-article-mode="curation"] .workflow-actions__group--publication {
+  display: none;
+}
+
+html[data-profile-mode="self"] :is(
+  #field-slug,
+  #field-user,
+  #field-authorApprovalRecordedAt,
+  #field-profilePublishedAt,
+  #field-spotlightExcluded,
+  #field-spotlightPinnedUntil
+) {
+  display: none;
+}
+
+.new-article-start {
+  align-items: end;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(12rem, 1fr) auto auto auto;
+  width: min(42rem, 100%);
+}
+
+.new-article-start label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.new-article-start input,
+.new-article-start select {
+  background: var(--theme-input-bg);
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: var(--style-radius-s);
+  color: inherit;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+}
+
 .member-workspace__actions .btn,
 .member-workspace__filters a,
 .member-workspace__queues a {
@@ -318,6 +397,10 @@
 
   .member-workspace {
     min-width: 0 !important;
+  }
+
+  .new-article-start {
+    grid-template-columns: 1fr;
   }
 
   .member-workspace__actions {

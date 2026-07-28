@@ -39,7 +39,7 @@ export function AdminNav() {
   }, [user?.id]);
 
   const myWork = user?.id
-    ? `/admin/collections/articles?where[owner][equals]=${encodeURIComponent(String(user.id))}`
+    ? `/admin/collections/articles?where[owner][equals]=${encodeURIComponent(String(user.id))}&where[title][exists]=true`
     : "/admin";
 
   return (
