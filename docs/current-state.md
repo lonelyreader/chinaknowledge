@@ -12,7 +12,7 @@ max_lines: 160
 
 ## 当前阶段
 
-项目已完成并归档 **P1：可运行公共产品切片**、**P1：编辑 CMS 基础** 与 **P2：Preview release candidate**。当前唯一 active checklist 为 [`PROD-LAUNCH-001`](roadmap/checklists/production-launch-readiness.md)；受保护 Preview 已关闭人物规模与轮换 finding，正在等待最后一次 clean deployment 身份回读。真实数据、Production migration/deploy、网站域名、DNS 和公开仍分别过门禁。
+项目已完成并归档 **P1：可运行公共产品切片**、**P1：编辑 CMS 基础** 与 **P2：Preview release candidate**。当前唯一 active checklist 为 [`PROD-LAUNCH-001`](roadmap/checklists/production-launch-readiness.md)；受保护 Preview 公共产品 release 已 `PASS`，下一门禁是 Production 的四条新增 migration 与 29/5 恢复断言。真实数据、Production deploy、网站域名、DNS 和公开仍分别过门禁。
 
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
@@ -44,16 +44,16 @@ max_lines: 160
 
 ## 当前执行线
 
-Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的 Preview schema、虚构编辑流、人物规模、分页/筛选、保护与运行日志已经通过，最后门禁是 clean deployment 的独立身份回读；邮件、Newsletter、Discord、最低隐私和 Production 环境代码也已通过。Production 现有 23/1 基线及恢复 workflow 已通过，但候选需要的四条新增 migration 尚未批准应用，29/5 恢复断言也尚未更新。
+Active 工作及其授权边界以 [`roadmap/README.md`](roadmap/README.md) 为准。`PROD-LAUNCH-001` 的 Preview schema、虚构编辑流、人物规模、分页/筛选、保护、运行日志与独立复审已经通过；邮件、Newsletter、Discord、最低隐私和 Production 环境代码也已通过。Production 现有 23/1 基线及恢复 workflow 已通过，但候选需要的四条新增 migration 尚未批准应用，29/5 恢复断言也尚未更新。
 
 ## 当前运行边界
 
 - 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
-- Preview deployment `dpl_3SLFrGmuSEDXM1GyNnnJ7L7xdWk1` 为 `READY / target: null`，绑定提交 `31a7988`；匿名请求进入 Vercel SSO，授权健康检查返回 200。Preview 为 29/5，并以 25 个合格虚构人物完成桌面 24/页、移动 12/页、翻页、筛选与 Spotlight 验收；连续周与跨年轮换修复已提交，等待 clean redeploy。没有正式域名或可用的 Production URL。
+- Preview deployment `dpl_AZaJ5DPimMSjq2NakcciToVAvVrL` 为 `READY / target: null`，绑定 clean HEAD `2ec2aeb`；匿名请求进入 Vercel SSO，授权健康检查返回 200。Preview 为 29/5，并以 25 个合格虚构人物完成桌面 24/页、移动 12/页、翻页、筛选、Spotlight、连续周和跨年轮换验收。唯一 WARN 是 Preview 未配置邮件适配器的预期提示；没有正式域名或可用的 Production URL。
 - 首次 CLI 部署误取 production target，但环境守卫在构建期拒绝并留下一个 `ERROR` 记录；没有启动 production runtime、写入 production 数据或生成可用地址。后续部署均显式使用 Preview。
 - Production Neon 已执行 `20260727_054408_p1_editorial_foundation`：23 张 `public` 表、1 条 migration，users/people/articles/media/workflow_events 均为 0；Production Blob 为 0B。Cloudflare R2 私有备份桶已在北美东部建立，公开访问关闭；迁移后 run `30287841720` 的 dump、SHA、隔离恢复、23/1/1/6 schema 断言与零对象媒体清单均通过。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容。
 - Vercel project 当前回读为 `live: false`，已购 `chinainfact.com` 尚未绑定网站 project。独立 Production Neon Launch、Blob、R2、运行变量、migration 与恢复验收已就绪，环境校验为 `cms + blob + noindex`；真实内容尚未审核和写入，因此仍不部署。Payload Resend adapter、Newsletter Contacts/Topic opt-in、最低隐私页、真实 Discord invite 和占位外链清理已实现；公开订阅端点有 Production-only IP 限流，重复提交不会改写已有联系人的退订状态，Local 与 Preview 不写真实订阅者。
-- 2026-07-28 公共产品彻查后的修复已提交为 `4125230`；人物规模复审进一步形成 `31a7988 / 5964da7 / 3be99c6`，补齐 25 人分页、筛选、相邻周互斥轮换和跨年连续周边界。Preview 为 29/5，Production 保持 23/1；完成 clean redeploy 独立回读后，下一步才是单独批准 Production 四条新增 migration 与 29/5 恢复断言。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
+- 2026-07-28 公共产品彻查后的修复已提交为 `4125230`；人物规模复审进一步形成 `31a7988 / 5964da7 / 3be99c6`，补齐 25 人分页、筛选、相邻周互斥轮换和跨年连续周边界。最终 release-level 独立复审 `PASS`，P0/P1 为零；完整 accessibility 与 Production 邮件适配器日志是 staged Production 的两个 P2。Preview 为 29/5，Production 保持 23/1；下一步是单独批准 Production 四条新增 migration 与 29/5 恢复断言。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
 
 当上述事实发生变化时更新本页；计划和愿望不得写成当前能力。

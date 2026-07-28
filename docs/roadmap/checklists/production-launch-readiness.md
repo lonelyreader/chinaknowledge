@@ -54,8 +54,8 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - 迁移后 R2 dump、SHA 和零对象媒体清单已写入并读回；首次 run `30287433284` 暴露 PostgreSQL 初始化竞态，修复后的 run `30287841720` 已完成恢复与 23/1/1/6 schema 断言。
 - Newsletter 已使用 Resend Contacts/Topic 真实写路径并保持 Preview 失败关闭；Production 端点有按 IP 限流且不会由公开重复提交逆转退订状态；People 页已接正式 website Discord invite。
 - fixture 占位外链已经移除，最低隐私与订阅同意已实现；首批真实内容及其作者外链仍未审核。
-- 2026-07-28 公共产品彻查的本地修复已 `PASS`；Preview 已从 23/1 迁移为 29/5，纯虚构 editorial workflow、英西双语公共路由、权限、媒体、保护/noindex 与运行日志完成回读。release 复审发现 3 人数据无法验证 100–200 人发现机制；新增 24 组固定 `.test` 人物/贡献后，25 人桌面 24/页、移动 12/页、翻页、筛选与 Spotlight 已通过，周轮换改为相邻周互斥并补跨年边界。当前只剩 clean deployment 身份回读。
-- 公共产品候选提交为 `4125230`，人物规模与轮换修复提交为 `31a7988 / 5964da7 / 3be99c6`。当前受保护 deployment `dpl_3SLFrGmuSEDXM1GyNnnJ7L7xdWk1` 为 `READY / target: null`；Production 未触碰，仍为 23/1、零业务数据。
+- 2026-07-28 公共产品彻查的本地修复与受保护 Preview release 均已 `PASS`。Preview 已从 23/1 迁移为 29/5；release 复审发现 3 人数据无法验证 100–200 人发现机制，新增 24 组固定 `.test` 人物/贡献后，25 人桌面 24/页、移动 12/页、翻页、筛选与 Spotlight 已通过，周轮换改为相邻周互斥并补跨年边界。P0/P1 为零；完整 accessibility 与 Production 邮件适配器日志是 staged Production 的两个 P2。
+- 公共产品候选提交为 `4125230`，人物规模与轮换修复提交为 `31a7988 / 5964da7 / 3be99c6`。最终受保护 deployment `dpl_AZaJ5DPimMSjq2NakcciToVAvVrL` 为 `READY / target: null`，绑定 clean HEAD `2ec2aeb`；Production 未触碰，仍为 23/1、零业务数据。
 
 ## Accepted Baseline
 
@@ -114,10 +114,10 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 建立首位 Super Admin、密码重置和最多 500 人一批的 dry-run-first 可审计开户 CLI；显式环境/数据库目标和 Production 专属确认失败关闭，首位管理员在锁定事务中建立，批量账户原子写入且邮件结果完整汇总。虚构空库并发启动严格只创建一人，真实账户仍未创建（2026-07-28）。
 - [x] 同一非主持实现者完成公共产品本地候选两轮只读复审：首轮 5 个 P1、3 个 P2 全部修复，第二轮 PASS，P0/P1/P2 为零；该结论不替代受保护 Preview 的 release-level 复审（2026-07-28）。
 - [x] 产品负责人批准提交候选并推进受保护 Preview；创建提交 `4125230`。发布前回读发现 Preview schema 仍为 23/1，旧短 `PAYLOAD_SECRET` 已安全轮换，deployment 在 migration 门禁前停止（2026-07-28）。
-- [ ] 经单独批准建立迁移前 dump 与隔离恢复点，Preview 从 23/1 升至 29/5；纯虚构数据已完成公共路由、媒体公开批准、25 人桌面/移动分页、搜索/Topic/Place/Language 筛选、Spotlight 周稳定与跨周/跨年避重、权限负例、语言跳转、基础可访问性、保护/noindex 和运行日志验收。最后一步为 clean deployment 的独立身份/日志回读。
+- [x] 经单独批准建立迁移前 dump 与隔离恢复点，Preview 从 23/1 升至 29/5；纯虚构数据完成公共路由、媒体公开批准、25 人桌面/移动分页、搜索/Topic/Place/Language 筛选、Spotlight 周稳定与跨周/跨年避重、权限负例、语言跳转、基础可访问性、保护/noindex 和运行日志验收，clean deployment 经独立复审 PASS（2026-07-28）。
 - [ ] 单独批准并应用 Production 四条新增 migration；把备份/恢复 workflow 的 schema 断言原子更新为 29 张表、5 条 migration。
 - [ ] 分别批准真实作者账户、人物、文章、媒体、外链与公开状态；完成编辑审核。
-- [ ] 生成 `--prod --skip-domain` staged deployment，运行完整 release 验收与独立复审。
+- [ ] 生成 `--prod --skip-domain` staged deployment，补键盘顺序、焦点可见性、自动化 accessibility/contrast 与 Production 邮件适配器日志检查，再运行完整 release 验收与独立复审。
 - [ ] PASS 后分别批准域名绑定、DNS、内容公开和搜索引擎索引。
 - [ ] 发布后回读、监控、回滚演练和归档。
 
@@ -154,4 +154,4 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 
 ## Approval Gates
 
-产品负责人已接受 Production 基线并统一批准后续本地修复；域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 环境代码、独立 Neon、独立 Blob、R2 备份目标、首次 Production migration 与迁移后恢复已完成并回读。2026-07-28 Preview 为 29/5，人物规模与轮换 finding 已修，等待 clean deployment 独立回读；Production 保持 23/1 和零业务数据。Production 四条新增 schema migration、29/5 恢复断言、首位管理员、真实账户、密码重置邮件、真实数据、内容公开、Production deploy、网站域名绑定和公开索引仍分别执行门禁。
+产品负责人已接受 Production 基线并统一批准后续本地修复；域名购买、飞书人工邮箱、Resend、邮件 DNS/密钥、Newsletter/隐私、Discord、Production 环境代码、独立 Neon、独立 Blob、R2 备份目标、首次 Production migration 与迁移后恢复已完成并回读。2026-07-28 受保护 Preview 公共产品 release 已 `PASS`，Preview 为 29/5；Production 保持 23/1 和零业务数据。Production 四条新增 schema migration、29/5 恢复断言、首位管理员、真实账户、密码重置邮件、真实数据、内容公开、Production deploy、网站域名绑定和公开索引仍分别执行门禁。

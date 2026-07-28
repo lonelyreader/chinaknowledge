@@ -13,7 +13,7 @@ change_id: PROD-LAUNCH-001
 
 ## Verdict
 
-受保护 Preview release candidate 正在完成最终 clean deployment 身份回读；Production release 继续 `BLOCK`。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选已在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2。产品负责人单独批准 Preview migration 后，数据库从 23 张表/1 条 migration 升至 29/5；release 复审发现并修复人物规模与跨周/跨年轮换缺口。Production 仍为 23/1；真实数据、Production migration/deploy、域名绑定与内容公开均未授权。
+受保护 Preview release candidate 为 `PASS`，P0/P1 为零；Production release 继续 `BLOCK`。审计开始时公共产品仍是 P1 fixture 原型与单篇 Guide CMS 证明的组合；修复候选已在 `4125230` 提交，本地两轮非主持独立复审关闭 5 个 P1、3 个 P2。产品负责人单独批准 Preview migration 后，数据库从 23 张表/1 条 migration 升至 29/5；release 复审又发现并修复人物规模与跨周/跨年轮换缺口，最终 clean deployment 完成独立回读。Production 仍为 23/1；真实数据、Production migration/deploy、域名绑定与内容公开均未授权。
 
 ## Findings At Audit Start
 
@@ -39,7 +39,7 @@ change_id: PROD-LAUNCH-001
 
 ## Verified Healthy Boundaries
 
-- 公共产品候选、人物规模与跨年轮换修复已提交为 `4125230`、`31a7988`、`5964da7` 与 `3be99c6`；最后一次 clean deployment 身份回读尚待完成。
+- 公共产品候选、人物规模与跨年轮换修复已提交为 `4125230`、`31a7988`、`5964da7` 与 `3be99c6`；最终 deployment 绑定 clean HEAD `2ec2aeb`，meta 没有 `gitDirty`。
 - Vercel 实时回读只有 Ready Preview 与一条 Error Production；没有 Ready Production deployment，`chinainfact.com` 没有项目 alias。
 - Production database 和 Blob 仍为空；没有真实数据或公开事故。
 - `governance:check`、lint、typecheck、environment、Newsletter 和 Preview storage tests 通过；lint 只有 20 条 Payload 自动生成 migration 的 unused-argument warnings。
@@ -60,7 +60,7 @@ change_id: PROD-LAUNCH-001
 - 已关闭：Profile revision 保存作者完整资料快照；Author 只能维护自己的 Draft/Changes requested 并提交，Editor 只能要求修改或整体应用，不能静默改写提案。数据库唯一键保证每人至多一条开放修订，更新事务先锁定并核对当前 revision，避免并发 Apply/Changes requested 造成 Person 与审核状态分叉；应用记录不允许通过 collection access 删除。
 - 已关闭：Media 增加 Editor 公开使用批准；上传归属由服务端无条件写入，不能由 Author 伪造。Payload/API 和 Payload 文件路由内，未批准记录只对真实上传者与编辑角色可见；Article、Person 与 Place 公开时校验实际媒体记录。底层 public Blob URL 不受这层权限保护，敏感文件继续禁止进入该 collection。
 - 已关闭：首位 Super Admin CLI 在锁定事务内执行零用户检查与创建；批量开户默认 dry-run，只允许 Author/Editor，账户写入为单事务，邮件阶段逐项汇总并支持失败后重发。所有 apply 明确声明应用环境和数据库目标，Production 另有专属确认且强制密码重置邮件。
-- 已关闭：受保护 Preview 的完整公共路由、人物规模、桌面/移动分页与筛选、基础可访问性和运行日志；release-level 独立复审只剩 clean deployment 身份回读。
+- 已关闭：受保护 Preview 的完整公共路由、人物规模、桌面/移动分页与筛选、基础可访问性、运行日志与 release-level 独立复审。
 - Production backup workflow 仍按已部署的 1 条 migration 断言；四条待应用 migration 获批应用时，必须与 5 条 migration、29 张表的恢复断言原子更新，不能提前改坏现有每日备份。
 
 ## Media Storage Boundary
@@ -79,7 +79,8 @@ change_id: PROD-LAUNCH-001
 - 非主持独立复审首轮提出 5 个 P1 与 3 个 P2；并发唯一性、事务锁、生产失败关闭、媒体归属、批量写入/邮件摘要、Blob 表述和审核记录保留全部修复。第二轮只读复审 `PASS`，P0/P1/P2 为零。
 - Preview migration 前 custom dump 的 SHA-256 为 `b6dd68dd45e5b0bfe1517a873cfeced0e5672044f61a865019b827600619a89f`；隔离恢复回读与原库一致，均为 23 张表、1 条 migration、3/1/2/1 个虚构 User/Person/Article/Media，临时恢复库随后删除。
 - 四条新增 migration 依次成功，读回为 29 张表、5 条 migration；`places`、`person_revisions`、开放修订唯一索引和媒体公开批准字段均存在，原有记录数量在迁移后未变。纯虚构 editorial workflow 随后 `PASS`，当前形成 31 个账户、27 个人物、30 篇文章、4 个媒体记录、3 个地点、1 条已应用人物修订和 130 条 workflow event。额外 24 个固定 `.test` 账户、人物与公开贡献专门用于规模验收；没有写入真实个人或正式内容。
-- 受保护 Preview `dpl_3SLFrGmuSEDXM1GyNnnJ7L7xdWk1` 为 `READY / target: null`，代码提交为 `31a7988`。英语/西班牙语 Home、People、Person、Guide、Story、Place、Purpose、Topic 与 About 在 1440×900 和 390×844 均有有效 `main / h1 / lang`，无横向溢出、破图、缺失控件名称或 console error/warn。People 读回 25 个合格人物：桌面 24/页、移动 12/页，翻页、姓名、Topic、Place 与 Language 筛选均通过；同周稳定、跨周与跨年边界轮换断言通过。授权健康检查为 200，`robots.txt` 为 `Disallow: /`，页面响应带 `x-robots-tag: noindex, nofollow, noarchive`，匿名访问进入保护层，运行日志无 warning/error/fatal。
+- 最终受保护 Preview `dpl_AZaJ5DPimMSjq2NakcciToVAvVrL` 为 `READY / target: null`，绑定 clean HEAD `2ec2aeb`。英语/西班牙语 Home、People、Person、Guide、Story、Place、Purpose、Topic 与 About 在 1440×900 和 390×844 均有有效 `main / h1 / lang`，无横向溢出、破图、缺失控件名称或 console error。People 读回 25 个合格人物：桌面 24/页、移动 12/页，翻页、姓名、Topic、Place 与 Language 筛选均通过；同周稳定、跨周与跨年边界轮换断言通过。授权健康检查为 200，`robots.txt` 为 `Disallow: /`，页面响应带 `x-robots-tag: noindex, nofollow, noarchive`，匿名访问进入保护层。唯一运行 WARN 是 Preview 故意不配置邮件适配器时 Payload 的 console-email 提示；Preview 不发真实邮件，因此不阻断。
+- release-level 第二轮独立复审 `PASS`，P0=0、P1=0、P2=2。两个 P2 留给 staged Production：确认 Production 邮件适配器下不再出现上述 WARN；补键盘顺序、焦点可见性与自动化 accessibility/contrast 检查。
 
 ## Account Startup Contract
 
@@ -90,10 +91,9 @@ change_id: PROD-LAUNCH-001
 
 ## Required Recovery Sequence
 
-1. 完成修复提交的 clean protected Preview deployment 与独立身份/日志回读。
-2. PASS 后单独批准并执行 Production 的四条新增 migration；同步把备份恢复断言从 23/1 更新为 29/5。
-3. 由产品负责人提供并逐项批准真实贡献者与首发内容；不得从 Preview 虚构夹具推导或复制。
-4. 分别批准首位管理员、真实账户、真实数据、`--prod --skip-domain` staged deploy、正式域名与公开索引。
+1. 单独批准并执行 Production 的四条新增 migration；同步把备份恢复断言从 23/1 更新为 29/5。
+2. 由产品负责人提供并逐项批准真实贡献者与首发内容；不得从 Preview 虚构夹具推导或复制。
+3. 分别批准首位管理员、真实账户、真实数据、`--prod --skip-domain` staged deploy、正式域名与公开索引。
 
 ## Evidence Pointers
 
