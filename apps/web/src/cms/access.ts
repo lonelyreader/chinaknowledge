@@ -14,9 +14,12 @@ export const authenticatedField: FieldAccess = ({ req }) => isCMSUser(req.user);
 
 function relationID(value: unknown) {
   if (typeof value === "number" || typeof value === "string") return value;
-  if (value && typeof value === "object" && "id" in value) {
-    const id = (value as { id?: unknown }).id;
-    return typeof id === "number" || typeof id === "string" ? id : null;
+  if (value && typeof value === "object") {
+    if ("id" in value) {
+      const id = (value as { id?: unknown }).id;
+      return typeof id === "number" || typeof id === "string" ? id : null;
+    }
+    if ("value" in value) return relationID((value as { value?: unknown }).value);
   }
   return null;
 }
@@ -24,13 +27,13 @@ function relationID(value: unknown) {
 export const ownArticleFieldOrEditorial: FieldAccess = ({ doc, req }) => {
   if (!isCMSUser(req.user)) return false;
   if (hasEditorialRole(req.user)) return true;
-  return relationID(doc?.owner) === req.user.id;
+  return String(relationID(doc?.owner)) === String(req.user.id);
 };
 
 export const ownPersonFieldOrEditorial: FieldAccess = ({ doc, req }) => {
   if (!isCMSUser(req.user)) return false;
   if (hasEditorialRole(req.user)) return true;
-  return relationID(doc?.user) === req.user.id;
+  return String(relationID(doc?.user)) === String(req.user.id);
 };
 
 export const editorialField: FieldAccess = ({ req }) =>
