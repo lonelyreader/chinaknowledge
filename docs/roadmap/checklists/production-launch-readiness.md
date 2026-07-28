@@ -49,7 +49,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 ## Current Blockers
 
 - 独立 Production Neon Launch、Blob 与 Cloudflare R2 私有备份桶已创建；Neon 7 天恢复窗口、R2 30 天防删、数据库 90 天保留和首次恢复演练均已回读。
-- staged Production `dpl_DvSJVxiPcpAGfrhWk3GcSW92tcCp` 已 `READY / target: production`，生成 `.vercel.app` 地址受 SSO 保护且 `noindex`；已购正式域名尚未绑定项目。
+- 最新 staged Production `dpl_Di8rJZg5ByBr9V7tE3pgBU4TYBf2` 已 `READY / target: production`，生成 `.vercel.app` 地址受 SSO 保护且 `noindex`；已购正式域名尚未绑定项目。
 - Production 已执行全部 5 条 migration：29 张 `public` 表；首位 Super Admin、公开 Person、2 张已批准真实 Media 和 2 篇同组英西公开 Article 已建立，Place 仍为空；Resend 域名、密钥与发件配置已经就绪。
 - 首篇真实双语内容后的 run `30354709841` 已完成数据库与媒体异地备份：恢复库为 29/5/5/8，users/people/articles/media/workflow_events 为 1/1/2/2/8，头像与文章封面的 4 个 Blob 对象由不可变备份覆盖，并抽样下载核对 SHA。
 - Newsletter 已使用 Resend Contacts/Topic 真实写路径并保持 Preview 失败关闭；Production 端点有按 IP 限流且不会由公开重复提交逆转退订状态；People 页已接正式 website Discord invite。
@@ -120,6 +120,7 @@ approval_gates: checklist-commit, product-code, dependency-install, provider-cho
 - [x] 经单独批准建立迁移前 dump 与隔离恢复点，Preview 从 23/1 升至 29/5；纯虚构数据完成公共路由、媒体公开批准、25 人桌面/移动分页、搜索/Topic/Place/Language 筛选、Spotlight 周稳定与跨周/跨年避重、权限负例、语言跳转、基础可访问性、保护/noindex 和运行日志验收，clean deployment 经独立复审 PASS（2026-07-28）。
 - [x] 产品负责人统一批准后，先以 run `30339027394` 完成最后一次 23/1 恢复，再应用 Production 四条新增 migration；workflow 在 commit `8cef12e` 收紧到 29/5，run `30339406235` 完成 R2 读回、SHA、隔离恢复、29/5/5/8 断言和零媒体清单（2026-07-28）。
 - [x] 产品负责人批准首篇真实内容的专有名词核对、英译、拉美西语翻译和公开；Production 建立原创批准封面、2 篇 Analysis 和统一翻译组，两个版本分别走完 Draft → In review → Approved → Public，Person `gexu` 随后公开。英语、西语文章页、Stories 列表、人物贡献页和双向 canonical 跳转均无浏览器错误；当前没有作者外链。run `30354709841` 恢复为 1/1/2/2/8 并完成 4 个媒体对象的备份读回（2026-07-28）。
+- [x] 首篇文章上线复验发现受保护 Production 下 Next 图片优化器不能读取同源 CMS 文件；提交 `614265b` 仅对 CMS 媒体保持尺寸约束并改为浏览器直取。Production deployment `dpl_Di8rJZg5ByBr9V7tE3pgBU4TYBf2` 为 READY，英文与西语文章的头像和封面均回读到有效自然尺寸，页面无横向溢出，双语 canonical 跳转继续通过（2026-07-28）。
 - [x] 生成 `--prod --skip-domain` staged deployment `dpl_DvSJVxiPcpAGfrhWk3GcSW92tcCp`；首轮发现并修复空首页无 `h1` 和 4.39:1 对比度，最终实现者复验唯一 `h1`、零 contrast failure、逻辑 tab order、3px focus-visible、桌面/移动无溢出/破图/浏览器错误、健康检查 200、无邮件适配器告警或 5xx（2026-07-28）。
 - [x] 非主持实现者完成 staged Production 独立复审：部署/HEAD/SSO/noindex、29/5 空库、迁移前后恢复、桌面/移动、可访问性和运行日志均回读，结论 `PASS`，P0/P1/P2 为 0；该结论不授权真实数据、正式域名或索引（2026-07-28）。
 - [ ] PASS 后分别批准域名绑定、DNS、内容公开和搜索引擎索引。
