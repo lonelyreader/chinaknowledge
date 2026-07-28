@@ -4,10 +4,16 @@ import {
   authenticatedField,
   editorial,
   editorialField,
+  readOwnPersonVersionsOrEditorial,
   readPublicPeopleOrOwn,
   updateOwnPersonOrEditorial,
 } from "@/cms/access";
 import { enforcePersonPublication } from "@/cms/people-hooks";
+import { transitionProfileEndpoint } from "@/cms/people-endpoints";
+import { hasEditorialRole, isCMSUser } from "@/cms/roles";
+
+const editorialCondition = (_data: unknown, _siblingData: unknown, { user }: { user: unknown }) =>
+  isCMSUser(user) && hasEditorialRole(user);
 
 export const People: CollectionConfig = {
   slug: "people",
@@ -17,14 +23,23 @@ export const People: CollectionConfig = {
     defaultColumns: ["name", "city", "profileStatus", "updatedAt"],
     group: "People",
     hideAPIURL: true,
+    preview: (doc) => {
+      const locale = Array.isArray(doc.languages) && doc.languages[0] === "es" ? "es" : "en";
+      return doc.id && doc.slug
+        ? `/${locale}/people/${doc.slug}?preview=${encodeURIComponent(String(doc.id))}`
+        : null;
+    },
   },
+  endpoints: [transitionProfileEndpoint],
   access: {
     create: editorial,
     delete: editorial,
     read: readPublicPeopleOrOwn,
+    readVersions: readOwnPersonVersionsOrEditorial,
     update: updateOwnPersonOrEditorial,
   },
   hooks: { beforeChange: [enforcePersonPublication] },
+  versions: { maxPerDoc: 50 },
   fields: [
     { name: "name", type: "text", required: true },
     { name: "slug", type: "text", required: true, unique: true, index: true },
@@ -69,7 +84,7 @@ export const People: CollectionConfig = {
       required: true,
       unique: true,
       access: { create: editorialField, read: authenticatedField, update: editorialField },
-      admin: { position: "sidebar" },
+      admin: { condition: editorialCondition, position: "sidebar" },
     },
     {
       name: "profileStatus",
@@ -82,21 +97,21 @@ export const People: CollectionConfig = {
         { label: "Public", value: "public" },
         { label: "Paused", value: "paused" },
       ],
-      admin: { position: "sidebar" },
+      admin: { hidden: true },
     },
     {
       name: "authorApprovalRecordedAt",
       type: "date",
       label: "Author approval recorded",
       access: { create: editorialField, read: authenticatedField, update: editorialField },
-      admin: { position: "sidebar" },
+      admin: { condition: editorialCondition, position: "sidebar" },
     },
     {
       name: "profilePublishedAt",
       type: "date",
       label: "Profile published",
       access: { create: editorialField, read: authenticatedField, update: authenticatedField },
-      admin: { position: "sidebar", readOnly: true },
+      admin: { condition: editorialCondition, position: "sidebar", readOnly: true },
     },
     {
       name: "spotlightExcluded",
@@ -104,14 +119,22 @@ export const People: CollectionConfig = {
       label: "Exclude from spotlight",
       defaultValue: false,
       access: { create: editorialField, update: editorialField },
-      admin: { position: "sidebar" },
+      admin: { condition: editorialCondition, position: "sidebar" },
     },
     {
       name: "spotlightPinnedUntil",
       type: "date",
       label: "Spotlight pinned until",
       access: { create: editorialField, update: editorialField },
-      admin: { position: "sidebar" },
+      admin: { condition: editorialCondition, position: "sidebar" },
+    },
+    {
+      name: "profileActions",
+      type: "ui",
+      admin: {
+        position: "sidebar",
+        components: { Field: "/cms/components/ProfileActions#ProfileActions" },
+      },
     },
   ],
 };

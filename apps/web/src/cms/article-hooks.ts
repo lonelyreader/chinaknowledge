@@ -250,6 +250,18 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
     throw new APIError("Unknown curation status.", 400);
   }
 
+  if (data.translationGroup !== undefined && data.translationGroup !== originalDoc.translationGroup) {
+    throw new APIError("An article translation group cannot be changed.", 403);
+  }
+  if (currentPublication !== "draft" || originalDoc.publishedAt) {
+    if (data.locale !== undefined && data.locale !== originalDoc.locale) {
+      throw new APIError("A published article language cannot be changed.", 403);
+    }
+    if (data.slug !== undefined && data.slug !== originalDoc.slug) {
+      throw new APIError("A published article URL cannot be changed.", 403);
+    }
+  }
+
   const ownerID = relationID(originalDoc.owner);
   const ownerAction = ownerID === req.user.id;
   if (!hasEditorialRole(req.user) && !ownerAction) {
@@ -262,6 +274,9 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
     if (!ownerAction && !isSuperAdmin(req.user)) {
       throw new APIError("Only the member or a Super Admin can change personal publication.", 403);
     }
+    if (context.publicationTransitionConfirmed !== true && context.memberPublicationConfirmed !== true) {
+      throw new APIError("Use the publication action to change personal publication.", 403);
+    }
     assertPublicationTransition(currentPublication, nextPublication);
   }
   if (nextCuration !== currentCuration) {
@@ -269,6 +284,13 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
       throw new APIError("Only an Editor can change site curation.", 403);
     }
     assertCurationTransition(currentCuration, nextCuration);
+  }
+
+  const memberChangedPublicContent = ["title", "summary", "body", "coverImage"]
+    .some((field) => Object.prototype.hasOwnProperty.call(data, field));
+  if (!hasEditorialRole(req.user) && ownerAction && currentCuration === "curated" && memberChangedPublicContent) {
+    data.curationStatus = "needs_recheck";
+    nextCuration = "needs_recheck";
   }
 
   if (context.memberPublicationConfirmed === true && nextPublication === "published") {

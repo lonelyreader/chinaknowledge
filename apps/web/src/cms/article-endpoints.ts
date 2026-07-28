@@ -29,7 +29,16 @@ function relationIDs(values: unknown[] | null | undefined) {
   });
 }
 
-function promotableArticleData(article: Article) {
+function memberPromotableArticleData(article: Article) {
+  return {
+    body: article.body,
+    coverImage: relationID(article.coverImage),
+    summary: article.summary,
+    title: article.title,
+  };
+}
+
+function editorialPromotableArticleData(article: Article) {
   return {
     assignedEditor: relationID(article.assignedEditor),
     body: article.body,
@@ -41,10 +50,8 @@ function promotableArticleData(article: Article) {
     homepageEndsAt: article.homepageEndsAt,
     homepagePlacement: article.homepagePlacement,
     homepageStartsAt: article.homepageStartsAt,
-    locale: article.locale,
     purposes: relationIDs(article.purposes),
     situations: relationIDs(article.situations),
-    slug: article.slug,
     sourceNotes: article.sourceNotes,
     summary: article.summary,
     title: article.title,
@@ -57,6 +64,7 @@ export async function getLatestDraftData(
   id: number | string,
   fallback: Article,
   req?: PayloadRequest,
+  axis: "publication" | "curation" = "publication",
 ) {
   const versions = await payload.findVersions({
     collection: "articles",
@@ -74,7 +82,10 @@ export async function getLatestDraftData(
       ],
     },
   });
-  return promotableArticleData(versions.docs[0]?.version ?? fallback);
+  const article = versions.docs[0]?.version ?? fallback;
+  return axis === "publication"
+    ? memberPromotableArticleData(article)
+    : editorialPromotableArticleData(article);
 }
 
 export const transitionArticleEndpoint: Endpoint = {
@@ -115,7 +126,10 @@ export const transitionArticleEndpoint: Endpoint = {
       const article = await req.payload.update({
         collection: "articles",
         id,
-        context: { memberPublicationConfirmed: body.status === "published" },
+        context: {
+          memberPublicationConfirmed: body.status === "published",
+          publicationTransitionConfirmed: true,
+        },
         data: {
           ...promotedData,
           publicationStatus: body.status,
@@ -136,7 +150,7 @@ export const transitionArticleEndpoint: Endpoint = {
     if (!isCurationStatus(body.status)) throw new APIError("Unknown curation status.", 400);
     const promotedData =
       body.status === "curated"
-        ? await getLatestDraftData(req.payload, id, current, req)
+        ? await getLatestDraftData(req.payload, id, current, req, "curation")
         : undefined;
     const article = await req.payload.update({
       collection: "articles",

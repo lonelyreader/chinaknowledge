@@ -22,6 +22,7 @@ type PersonShape = {
 };
 
 export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> = async ({
+  context,
   data,
   originalDoc,
   req,
@@ -52,6 +53,10 @@ export const enforcePersonPublication: CollectionBeforeChangeHook<PersonShape> =
 
   const currentStatus = originalDoc?.profileStatus ?? "draft";
   const nextStatus = data.profileStatus ?? currentStatus;
+
+  if (originalDoc && nextStatus !== currentStatus && context.profileTransitionConfirmed !== true) {
+    throw new APIError("Use the profile action to change profile visibility.", 403);
+  }
 
   if (!hasEditorialRole(req.user)) {
     data.profilePublishedAt = originalDoc?.profilePublishedAt ?? null;

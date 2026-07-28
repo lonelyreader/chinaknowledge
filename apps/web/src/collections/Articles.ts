@@ -26,6 +26,7 @@ const categoryField = (name: string, label: string, dimension: string) => ({
   type: "relationship" as const,
   relationTo: "taxonomies" as const,
   hasMany: true,
+  access: { create: editorialField, update: editorialField },
   filterOptions: { dimension: { equals: dimension } },
   admin: { condition: editorialCondition },
 });
@@ -35,7 +36,7 @@ export const Articles: CollectionConfig = {
   labels: { singular: "Article", plural: "Articles" },
   admin: {
     useAsTitle: "title",
-    defaultColumns: ["title", "locale", "publicationStatus", "curationStatus", "updatedAt"],
+    defaultColumns: ["title", "author", "locale", "publishedAt", "curationStatus", "updatedAt"],
     group: "Editorial",
     hideAPIURL: true,
     preview: (doc) => {
@@ -82,6 +83,7 @@ export const Articles: CollectionConfig = {
     {
       name: "format",
       type: "select",
+      access: { create: editorialField, update: editorialField },
       admin: { condition: editorialCondition },
       options: [
         { label: "Guide", value: "guide" },
@@ -138,6 +140,7 @@ export const Articles: CollectionConfig = {
       name: "sourceNotes",
       type: "array",
       label: "Sources",
+      access: { create: editorialField, update: editorialField },
       admin: { condition: editorialCondition },
       fields: [
         { name: "label", type: "text", required: true },
@@ -229,6 +232,7 @@ export const Articles: CollectionConfig = {
       name: "freshnessDate",
       type: "date",
       label: "Freshness date",
+      access: { create: editorialField, update: editorialField },
       admin: { condition: editorialCondition, position: "sidebar", date: { pickerAppearance: "dayOnly" } },
     },
     {

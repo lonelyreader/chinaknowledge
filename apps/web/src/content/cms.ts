@@ -18,7 +18,7 @@ export type PublishedCMSImage = {
 
 export type PublishedCMSPerson = {
   city: string;
-  contribution: PublishedCMSArticleSummary;
+  contribution?: PublishedCMSArticleSummary;
   identity: string;
   image: PublishedCMSImage;
   introduction: string;
@@ -375,14 +375,45 @@ export async function getPublishedCMSPeople(locale: Locale) {
       sort: "name",
       where: { languages: { contains: locale } },
     }),
-    findMemberPublishedArticles(locale),
+    findCuratedArticles(locale),
   ]);
 
   return peopleResult.docs.flatMap((person) => {
     const base = personBase(person);
     const contribution = articles.find((article) => article.authorSlug === person.slug);
-    return base && contribution ? [{ ...base, contribution }] : [];
+    return base ? [{ ...base, ...(contribution ? { contribution } : {}) }] : [];
   });
+}
+
+export async function getPublishedCMSHomepagePeople(locale: Locale) {
+  return (await getPublishedCMSPeople(locale)).flatMap((person) =>
+    person.contribution ? [{ ...person, contribution: person.contribution }] : [],
+  );
+}
+
+export async function getPreviewCMSPerson(
+  locale: Locale,
+  id: number | string,
+  requestHeaders: Headers,
+) {
+  if (!cmsReadEnabled()) return null;
+  const payload = await getPayload({ config });
+  const { user } = await payload.auth({ headers: requestHeaders });
+  if (!isCMSUser(user)) return null;
+  const person = await payload.findByID({
+    collection: "people",
+    depth: 2,
+    id,
+    overrideAccess: true,
+  });
+  const ownerID = person.user && typeof person.user === "object" ? person.user.id : person.user;
+  if (ownerID !== user.id && !hasEditorialRole(user)) return null;
+  if (!person.languages?.includes(locale)) return null;
+  const base = personBase(person);
+  if (!base) return null;
+  const contribution = (await findCuratedArticles(locale))
+    .find((article) => article.authorSlug === person.slug);
+  return { ...base, ...(contribution ? { contribution } : {}) };
 }
 
 export async function getPublishedCMSPerson(locale: Locale, slug: string) {

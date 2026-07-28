@@ -69,22 +69,10 @@ export const updateOwnedArticlesOrEditorial: Access = async ({ id, req }) => {
   return ownerID === req.user.id;
 };
 
-export const readOwnedArticleVersionsOrEditorial: Access = async ({ id, req }) => {
+export const readOwnedArticleVersionsOrEditorial: Access = ({ req }) => {
   if (!isCMSUser(req.user)) return false;
   if (hasEditorialRole(req.user)) return true;
-  if (id === undefined || id === null) return false;
-
-  const article = await req.payload.findByID({
-    collection: "articles",
-    id,
-    depth: 0,
-    draft: true,
-    overrideAccess: true,
-    req,
-  });
-  const owner = article.owner;
-  const ownerID = owner && typeof owner === "object" ? owner.id : owner;
-  return ownerID === req.user.id;
+  return { "version.owner": { equals: req.user.id } };
 };
 
 export const readPublicPeopleOrOwn: Access = ({ req }) => {
@@ -110,6 +98,12 @@ export const updateOwnPersonOrEditorial: Access = ({ req }) => {
   if (!isCMSUser(req.user)) return false;
   if (hasEditorialRole(req.user)) return true;
   return { user: { equals: req.user.id } };
+};
+
+export const readOwnPersonVersionsOrEditorial: Access = ({ req }) => {
+  if (!isCMSUser(req.user)) return false;
+  if (hasEditorialRole(req.user)) return true;
+  return { "version.user": { equals: req.user.id } };
 };
 
 export const createOwnPersonRevision: Access = ({ req }) =>

@@ -19,6 +19,19 @@ function curationURL(status: Article["curationStatus"]) {
   return `/admin/collections/articles?where[publicationStatus][equals]=published&where[curationStatus][equals]=${status}`;
 }
 
+function curationLabel(status: Article["curationStatus"]) {
+  if (status === "curated") return "Site selected";
+  if (status === "needs_recheck") return "Needs recheck";
+  if (status === "not_selected") return "Not selected";
+  return status ? status.replaceAll("_", " ") : "Not selected";
+}
+
+function nextAction(article: Article) {
+  if (article.publicationStatus === "draft") return "Continue";
+  if (article.publicationStatus === "withdrawn") return "Republish";
+  return "Edit";
+}
+
 export async function MemberWorkspace({ payload, user: untypedUser }: ServerProps) {
   const user = untypedUser as User | undefined;
   if (!user) return null;
@@ -82,7 +95,8 @@ export async function MemberWorkspace({ payload, user: untypedUser }: ServerProp
           {work.docs.map((article) => relationID(article.owner) === user.id ? (
             <Link className="member-workspace__item" href={articleURL(article)} key={article.id}>
               <strong>{article.title || "Untitled"}</strong>
-              <span>{article.locale?.toUpperCase()} · {article.publicationStatus === "published" ? "Public" : article.publicationStatus === "withdrawn" ? "Withdrawn" : "Draft"}</span>
+              <span>{article.locale?.toUpperCase()} · {article.publicationStatus === "published" ? "Public" : article.publicationStatus === "withdrawn" ? "Withdrawn" : "Draft"} · {curationLabel(article.curationStatus)}</span>
+              <span>{new Date(article.updatedAt).toLocaleDateString("en-CA")} · {nextAction(article)}</span>
             </Link>
           ) : null)}
         </div>

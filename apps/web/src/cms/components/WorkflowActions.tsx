@@ -67,6 +67,10 @@ function relationID(value: unknown) {
   return value;
 }
 
+function requiresConfirmation(action: Transition) {
+  return action.status === "withdrawn" || action.status === "removed";
+}
+
 export function WorkflowActions() {
   const { user } = useAuth<User>();
   const { id } = useDocumentInfo();
@@ -121,6 +125,16 @@ export function WorkflowActions() {
     }
   }
 
+  function selectAction(action: Transition) {
+    if (action.status === "curated") {
+      void openCurationCheck(action);
+    } else if (requiresConfirmation(action)) {
+      setPending(action);
+    } else {
+      void transition(action);
+    }
+  }
+
   if (!id) return null;
 
   return (
@@ -135,7 +149,7 @@ export function WorkflowActions() {
                 buttonStyle={action.style ?? "primary"}
                 disabled={modified || pending !== null}
                 key={`${action.axis}-${action.status}`}
-                onClick={() => void transition(action)}
+                onClick={() => selectAction(action)}
                 size="small"
               >{action.label}</Button>
             ))}
@@ -153,9 +167,7 @@ export function WorkflowActions() {
                 buttonStyle={action.style ?? "primary"}
                 disabled={modified || pending !== null}
                 key={`${action.axis}-${action.status}`}
-                onClick={() => action.status === "curated"
-                  ? void openCurationCheck(action)
-                  : void transition(action)}
+                onClick={() => selectAction(action)}
                 size="small"
               >{action.label}</Button>
             ))}
@@ -188,6 +200,18 @@ export function WorkflowActions() {
               onClick={() => void transition(pending)}
               size="small"
             >Confirm</Button>
+            <Button buttonStyle="secondary" onClick={() => setPending(null)} size="small">Cancel</Button>
+          </div>
+        </div>
+      ) : null}
+
+      {pending && requiresConfirmation(pending) ? (
+        <div className="publication-check">
+          <strong className="publication-check__title">
+            {pending.status === "withdrawn" ? "Withdraw article?" : "Remove from site?"}
+          </strong>
+          <div className="workflow-actions__buttons">
+            <Button buttonStyle="primary" onClick={() => void transition(pending)} size="small">Confirm</Button>
             <Button buttonStyle="secondary" onClick={() => setPending(null)} size="small">Cancel</Button>
           </div>
         </div>

@@ -4,7 +4,7 @@ doc_type: checklist
 authority: execution
 status: active
 scope: member-publishing-curation-closure
-last_verified: 2026-07-28
+last_verified: 2026-07-29
 max_lines: 300
 change_id: PUB-CURATION-001
 risk_tier: upgraded
@@ -57,6 +57,7 @@ approval_gates: checklist-commit, product-code, dependency-install, database-sch
 - [x] 固定 Article canonical 与旧 URL 永久兼容；更新 metadata、sitemap、locale alternate 和错误语言行为。
 - [x] 在 Person 与 Article 上完成 `官方入口 → Article → 原作者 → Person → 外链`，并给 Curated 内容提供克制的站方选择标记。
 - [x] 拆分个人发布和官方策展的媒体、来源、封面、Freshness 与 SEO 门槛；Member 上传权限和匿名隔离保持服务端有效。
+- [x] 修复首轮独立复审 BLOCK：普通 API 状态绕过、站方字段伪造、未策展内容从 Home/People 泄入站方入口、Person 版本/预览缺失、危险动作无确认和两轴回退语义损坏。
 - [ ] 更新邀请、组合权限、通知、审计与后台直达关系；Editor/Super Admin 关联 Person 后也能作为 Member 发文。
 - [ ] 用虚构数据完成状态矩阵、同 Article 断言、署名断言、双语隔离、桌面/移动和无障碍验证。
 - [ ] 在临时 PostgreSQL 完成 migration apply、rollback/reapply、旧 Production 形状恢复和旧 URL 兼容测试。

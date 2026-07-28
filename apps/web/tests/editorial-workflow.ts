@@ -9,6 +9,7 @@ import { getPayload, type Payload } from "payload";
 import config from "@payload-config";
 import { getLatestDraftData } from "@/cms/article-endpoints";
 import { buildPublicationSummary } from "@/cms/publication-summary";
+import { isCMSUser } from "@/cms/roles";
 import type { Article, Media, User } from "@/payload-types";
 
 const password = process.env.CMS_TEST_PASSWORD;
@@ -77,6 +78,7 @@ async function person(
   if (existing.docs[0]) {
     return payload.update({
       collection: "people", id: existing.docs[0].id,
+      context: { profileTransitionConfirmed: true },
       data: { city: "Test City", identity: "Fictional member", introduction: "Local acceptance profile.", languages: ["en"], name: member.displayName, portrait: portrait.id, profileStatus: "draft", slug },
       overrideAccess: false, user: editor,
     });
@@ -92,7 +94,7 @@ async function person(
 async function clean(payload: Payload) {
   const articles = await payload.find({
     collection: "articles", depth: 0, limit: 50, overrideAccess: true,
-    where: { translationGroup: { in: ["acceptance-member-curation", "acceptance-member-personal-only", "acceptance-editor-member"] } },
+    where: { translationGroup: { in: ["acceptance-member-curation", "acceptance-member-personal-only", "acceptance-editor-member", "acceptance-other-personal-only"] } },
   });
   for (const article of articles.docs) {
     await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: article.id } } });
@@ -114,6 +116,10 @@ async function main() {
   });
   assert.equal(lifecycleProfiles.docs.length, 1);
   assert.equal(lifecycleProfiles.docs[0]?.profileStatus, "draft");
+  const lifecycleLogin = await payload.login({
+    collection: "users", data: { email: lifecycleEmail, password: password! },
+  });
+  assert.ok(lifecycleLogin.token);
   await payload.update({
     collection: "users", id: lifecycleUser.id,
     data: { accountStatus: "paused" }, overrideAccess: true,
@@ -121,6 +127,11 @@ async function main() {
   await expectRejected(() => payload.login({
     collection: "users", data: { email: lifecycleEmail, password: password! },
   }), "A paused member cannot log in.");
+  const pausedJWT = await payload.auth({
+    headers: new Headers({ authorization: `JWT ${lifecycleLogin.token}` }),
+  });
+  assert.equal(pausedJWT.user?.accountStatus, "paused");
+  assert.equal(isCMSUser(pausedJWT.user), false, "A pre-existing JWT cannot authorize a paused account.");
   await expectRejected(() => payload.update({
     collection: "users", id: lifecycleUser.id,
     data: { displayName: "Paused update" }, overrideAccess: false, user: { ...lifecycleUser, accountStatus: "paused" },
@@ -141,7 +152,7 @@ async function main() {
   const editorPerson = await person(payload, admin, editor, approvedImage, "acceptance-editor");
 
   const publicProfile = await payload.update({
-    collection: "people", id: memberPerson.id, data: { profileStatus: "public" },
+    collection: "people", id: memberPerson.id, context: { profileTransitionConfirmed: true }, data: { profileStatus: "public" },
     overrideAccess: false, user: member,
   });
   assert.equal(publicProfile.profileStatus, "public");
@@ -158,6 +169,10 @@ async function main() {
   assert.equal(draft.curationStatus, "not_selected");
   assert.equal(relationID(draft.owner), member.id);
   assert.equal(relationID(draft.author), memberPerson.id);
+  assert.equal((await payload.findVersions({
+    collection: "articles", limit: 10, overrideAccess: false, user: other,
+    where: { parent: { equals: draft.id } },
+  })).totalDocs, 0);
 
   await expectRejected(() => payload.update({
     collection: "articles", id: draft.id, data: { title: "Wrong owner" }, draft: true,
@@ -180,6 +195,22 @@ async function main() {
   assert.equal(memberPublished.publicationStatus, "published");
   assert.equal(memberPublished.curationStatus, "not_selected");
   assert.equal(memberPublished._status, "published");
+  await expectRejected(() => payload.update({
+    collection: "articles", id: draft.id, data: { publicationStatus: "withdrawn" },
+    overrideAccess: false, user: member,
+  }), "A member cannot bypass the publication action through the normal API.");
+  await expectRejected(() => payload.update({
+    collection: "articles", id: draft.id, data: { locale: "es" }, draft: false,
+    overrideAccess: false, user: member,
+  }), "A published article language is canonical and cannot be changed.");
+  await expectRejected(() => payload.update({
+    collection: "articles", id: draft.id, data: { slug: "changed-public-url" }, draft: false,
+    overrideAccess: false, user: member,
+  }), "A published article URL is canonical and cannot be changed.");
+  await expectRejected(() => payload.update({
+    collection: "articles", id: draft.id, data: { translationGroup: "changed-group" }, draft: false,
+    overrideAccess: false, user: member,
+  }), "An article translation group is immutable.");
 
   const anonymousBeforeCuration = await payload.find({
     collection: "articles", depth: 0, limit: 5, overrideAccess: false,
@@ -229,6 +260,26 @@ async function main() {
   assert.equal(buildPublicationSummary(await payload.findByID({ collection: "articles", id: draft.id, depth: 2, draft: true, overrideAccess: true })).url, "/en/posts/member-direct-post");
   assert.equal(prepared.id, curated.id);
 
+  const memberAttemptedEditorialChange = await payload.update({
+    collection: "articles", id: draft.id,
+    data: {
+      format: "reporting",
+      freshnessDate: "2027-01-01T00:00:00.000Z",
+      sourceNotes: [{ label: "Member should not set this" }],
+      title: "Member ordinary edit after curation",
+    },
+    draft: false, overrideAccess: false, user: member,
+  });
+  assert.equal(memberAttemptedEditorialChange.format, "analysis");
+  assert.equal(memberAttemptedEditorialChange.freshnessDate, null);
+  assert.deepEqual(memberAttemptedEditorialChange.sourceNotes, prepared.sourceNotes);
+  assert.equal(memberAttemptedEditorialChange.curationStatus, "needs_recheck");
+  const recurateAfterDirectEdit = await payload.update({
+    collection: "articles", id: draft.id, data: { curationStatus: "curated" },
+    draft: false, overrideAccess: false, user: editor,
+  });
+  assert.equal(recurateAfterDirectEdit.curationStatus, "curated");
+
   const articleCount = await payload.count({
     collection: "articles", overrideAccess: true,
     where: { translationGroup: { equals: "acceptance-member-curation" } },
@@ -265,7 +316,7 @@ async function main() {
   assert.equal((await payload.find({ collection: "articles", limit: 1, overrideAccess: false, where: { id: { equals: draft.id } } })).docs.length, 1);
 
   const withdrawn = await payload.update({
-    collection: "articles", id: draft.id, data: { publicationStatus: "withdrawn", _status: "draft" },
+    collection: "articles", id: draft.id, context: { publicationTransitionConfirmed: true }, data: { publicationStatus: "withdrawn", _status: "draft" },
     overrideAccess: false, user: member,
   });
   assert.equal(withdrawn.publicationStatus, "withdrawn");
@@ -299,14 +350,63 @@ async function main() {
     data: { publicationStatus: "published" }, draft: false, overrideAccess: false, user: member,
   });
   assert.equal(personalOnly.curationStatus, "not_selected");
+  const adminWithdrawn = await payload.update({
+    collection: "articles", id: personalOnly.id, context: { publicationTransitionConfirmed: true },
+    data: { publicationStatus: "withdrawn" }, overrideAccess: false, user: admin,
+  });
+  assert.equal(adminWithdrawn.publicationStatus, "withdrawn");
+  const adminRepublished = await payload.update({
+    collection: "articles", id: personalOnly.id,
+    context: { memberPublicationConfirmed: true, publicationTransitionConfirmed: true },
+    data: { publicationStatus: "published" }, draft: false, overrideAccess: false, user: admin,
+  });
+  assert.equal(adminRepublished.publicationStatus, "published");
+
+  await payload.update({
+    collection: "people", id: otherPerson.id, context: { profileTransitionConfirmed: true }, data: { profileStatus: "public" },
+    overrideAccess: false, user: other,
+  });
+  const otherPersonalDraft = await payload.create({
+    collection: "articles",
+    data: { body, locale: "en", slug: "other-member-personal-only", title: "Other member personal-only post", translationGroup: "acceptance-other-personal-only" },
+    draft: true, overrideAccess: false, user: other,
+  });
+  await payload.update({
+    collection: "articles", id: otherPersonalDraft.id, context: { memberPublicationConfirmed: true },
+    data: { publicationStatus: "published" }, draft: false, overrideAccess: false, user: other,
+  });
+  const siteSelectedOtherArticles = await payload.find({
+    collection: "articles", limit: 10, overrideAccess: true,
+    where: {
+      and: [
+        { owner: { equals: other.id } },
+        { publicationStatus: { equals: "published" } },
+        { curationStatus: { equals: "curated" } },
+      ],
+    },
+  });
+  assert.equal(siteSelectedOtherArticles.totalDocs, 0);
 
   const directProfileUpdate = await payload.update({
     collection: "people", id: memberPerson.id, data: { introduction: "Updated directly by the member." },
     overrideAccess: false, user: member,
   });
   assert.equal(directProfileUpdate.introduction, "Updated directly by the member.");
+  await expectRejected(() => payload.update({
+    collection: "people", id: memberPerson.id, data: { profileStatus: "draft" },
+    overrideAccess: false, user: member,
+  }), "A member cannot bypass the profile visibility action through the normal API.");
+  const profileVersions = await payload.findVersions({
+    collection: "people", limit: 10, overrideAccess: false, user: member,
+    where: { parent: { equals: memberPerson.id } },
+  });
+  assert.ok(profileVersions.totalDocs >= 1);
+  assert.equal((await payload.findVersions({
+    collection: "people", limit: 10, overrideAccess: false, user: other,
+    where: { parent: { equals: memberPerson.id } },
+  })).totalDocs, 0);
 
-  await payload.update({ collection: "people", id: editorPerson.id, data: { profileStatus: "public" }, overrideAccess: false, user: editor });
+  await payload.update({ collection: "people", id: editorPerson.id, context: { profileTransitionConfirmed: true }, data: { profileStatus: "public" }, overrideAccess: false, user: editor });
   const editorDraft = await payload.create({
     collection: "articles",
     data: { author: editorPerson.id, body, locale: "en", owner: editor.id, slug: "editor-as-member", title: "Editor as member", translationGroup: "acceptance-editor-member" },

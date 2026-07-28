@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-07-28
+last_verified: 2026-07-29
 max_lines: 100
 ---
 
@@ -14,7 +14,7 @@ max_lines: 100
 
 ## Active
 
-[`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](checklists/member-publishing-curation-closure.md)：本地核心 slice 已完成两轴状态、同 Article 策展、原作者署名、个人/官方 read model、稳定路由、草稿预览、Member/Editor 工作台和账户生命周期；事务通知、完整双语/无障碍验证、Preview、独立复审和 Production 仍按各自门禁推进。
+[`PUB-CURATION-001 Member Publishing And Editorial Curation Closure`](checklists/member-publishing-curation-closure.md)：本地核心 slice 已完成两轴状态、同 Article 策展、原作者署名、个人/官方 read model、稳定路由、草稿与 Person 预览、版本历史、Member/Editor 工作台和账户生命周期；首轮独立复审的 BLOCK 项已修复并等待新提交复验，事务通知、完整双语/无障碍验证、Preview 和 Production 仍按各自门禁推进。
 
 ## Deferred
 

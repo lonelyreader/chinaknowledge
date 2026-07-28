@@ -4,7 +4,7 @@ import { NewsletterForm } from "@/components/newsletter-form";
 import { CMSPersonRow } from "@/components/cms-person-row";
 import { PersonRow } from "@/components/person-row";
 import { drivingGuide, kindLabels, localize, people, requireLocale, stories, ui } from "@/content";
-import { articlePath, cmsReadEnabled, getPublishedCMSHomepage, getPublishedCMSPeople, getPublishedCMSPlaces, placePath, stableWeeklyPeople } from "@/content/cms";
+import { articlePath, cmsReadEnabled, getPublishedCMSHomepage, getPublishedCMSHomepagePeople, getPublishedCMSPlaces, placePath, stableWeeklyPeople } from "@/content/cms";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     const [homepage, cmsPlaces, cmsPeople] = await Promise.all([
       getPublishedCMSHomepage(locale),
       getPublishedCMSPlaces(locale),
-      getPublishedCMSPeople(locale),
+      getPublishedCMSHomepagePeople(locale),
     ]);
     const { articles, lead, selected } = homepage;
     const featuredPeople = stableWeeklyPeople(cmsPeople, 4);

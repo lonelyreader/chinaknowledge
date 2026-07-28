@@ -5,7 +5,7 @@ import type { Locale } from "@/content";
 import type { PublishedCMSPerson } from "@/content/cms";
 
 function contributionPath(locale: Locale, person: PublishedCMSPerson) {
-  return `/${locale}/posts/${person.contribution.slug}`;
+  return person.contribution ? `/${locale}/posts/${person.contribution.slug}` : null;
 }
 
 export function CMSPersonRow({
@@ -17,6 +17,7 @@ export function CMSPersonRow({
   locale: Locale;
   featured?: boolean;
 }) {
+  const contributionURL = contributionPath(locale, person);
   return (
     <article className={featured ? "person-card person-card--featured" : "person-row"}>
       <Link className="person-image" href={`/${locale}/people/${person.slug}`} aria-label={person.name}>
@@ -34,9 +35,11 @@ export function CMSPersonRow({
         <p className="person-place">{person.city}</p>
         <h3><Link href={`/${locale}/people/${person.slug}`}>{person.name}</Link></h3>
         <p>{person.identity}</p>
-        <Link className="contribution-link" href={contributionPath(locale, person)}>
-          {person.contribution.title}
-        </Link>
+        {contributionURL && person.contribution ? (
+          <Link className="contribution-link" href={contributionURL}>
+            {person.contribution.title}
+          </Link>
+        ) : null}
       </div>
     </article>
   );

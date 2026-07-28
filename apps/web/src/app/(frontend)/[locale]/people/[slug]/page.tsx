@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { getPerson, kindLabels, localize, locales, people, requireLocale, stories, ui } from "@/content";
-import { articlePath, cmsReadEnabled, getPublishedCMSPerson, getPublishedCMSPersonArticles } from "@/content/cms";
+import { articlePath, cmsReadEnabled, getPreviewCMSPerson, getPublishedCMSPerson, getPublishedCMSPersonArticles } from "@/content/cms";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -11,10 +12,12 @@ export function generateStaticParams() {
   return locales.flatMap((locale) => people.map((person) => ({ locale, slug: person.slug })));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ preview?: string }> }): Promise<Metadata> {
   const { locale: rawLocale, slug } = await params;
+  const { preview } = await searchParams;
   const locale = requireLocale(rawLocale);
   if (cmsReadEnabled()) {
+    if (preview) return { robots: { follow: false, index: false } };
     const person = await getPublishedCMSPerson(locale, slug);
     return person ? { title: person.name, description: person.identity } : {};
   }
@@ -22,12 +25,18 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return person ? { title: person.name, description: localize(person.identity, locale) } : {};
 }
 
-export default async function PersonPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+export default async function PersonPage({ params, searchParams }: { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<{ preview?: string }> }) {
   const { locale: rawLocale, slug } = await params;
+  const { preview } = await searchParams;
   const locale = requireLocale(rawLocale);
   if (cmsReadEnabled()) {
+    const previewRequested = Boolean(preview && /^\d+$/.test(preview));
+    const previewPerson = previewRequested
+      ? await getPreviewCMSPerson(locale, preview!, new Headers(await headers()))
+      : null;
+    if (previewRequested && !previewPerson) notFound();
     const [person, authored] = await Promise.all([
-      getPublishedCMSPerson(locale, slug),
+      previewRequested ? Promise.resolve(previewPerson) : getPublishedCMSPerson(locale, slug),
       getPublishedCMSPersonArticles(locale, slug),
     ]);
     if (!person) notFound();

@@ -178,7 +178,7 @@ export interface Person {
         id?: string | null;
       }[]
     | null;
-  user: number | User;
+  user?: (number | null) | User;
   profileStatus: 'draft' | 'public' | 'paused';
   authorApprovalRecordedAt?: string | null;
   profilePublishedAt?: string | null;
