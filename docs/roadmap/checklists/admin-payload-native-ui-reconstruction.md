@@ -100,9 +100,9 @@ approval_gates: checklist-commit, payload-native-baseline, visual-direction, pro
 
 ## Work
 
-- [ ] 用户批准并提交本 checklist，建立后续产品代码的 HEAD 授权基线。
-- [ ] 在隔离的本地测试数据上恢复并截图 Payload `3.86.0` 原生 Admin 基线；不得连接或改写 Production 数据。
-- [ ] 建立 `docs/reference/implementation/admin-payload-native-baseline-2026-07-29.md`，逐项记录原生能力、当前自定义、视觉问题、业务缺口与裁决。
+- [x] 用户批准并提交本 checklist，建立后续产品代码的 HEAD 授权基线；commit `c9e228b`。
+- [x] 在隔离的本地测试数据上恢复并截图 Payload `3.86.0` 原生 Admin 基线；未连接或改写 Production 数据。
+- [x] 建立 `docs/reference/implementation/admin-payload-native-baseline-2026-07-29.md`，逐项记录原生能力、当前自定义、视觉问题、业务缺口与裁决。
 - [ ] 对所有 Admin 路由建立页面 × 角色 × 状态清单，覆盖正常、空、加载、错误、disabled、modal/drawer 和长内容。
 - [ ] 输出 Dashboard、Members list、Article edit 三个桌面参考面，取得 `payload-native-baseline` 与 `visual-direction` 双门禁批准。
 - [ ] 恢复 Payload 原生 Nav、header、breadcrumbs、content gutter 与 collection list shell，移除整壳替换。
