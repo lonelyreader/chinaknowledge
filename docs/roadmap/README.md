@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-07-29
+last_verified: 2026-07-30
 max_lines: 100
 ---
 
@@ -14,7 +14,9 @@ max_lines: 100
 
 ## Active
 
-当前无 active checklist。新工作开始前必须先建立并提交范围与门禁。
+当前 active checklist：
+
+- [`BRAND-WORDMARK-001`](checklists/brand-wordmark-site-integration.md)：把已定稿的 `China, in Fact` 矢量字标接入公共网站 Header 与 Footer。
 
 ## Deferred
 

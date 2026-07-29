@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: active-checklists
-last_verified: 2026-07-29
+last_verified: 2026-07-30
 max_lines: 80
 ---
 
@@ -14,6 +14,6 @@ max_lines: 80
 
 当前 active checklist：
 
-- 无。`ADMIN-UI-001` 已完成并进入 [`archive`](../../archive/admin-payload-native-ui-reconstruction.md)。
+- [`BRAND-WORDMARK-001`](brand-wordmark-site-integration.md)：公共网站字标接入。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。
