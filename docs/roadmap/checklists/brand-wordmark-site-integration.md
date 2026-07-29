@@ -68,8 +68,8 @@ approval_gates: checklist-commit, product-code, preview-deploy, production-deplo
 ## Work
 
 - [x] 提交本 checklist，建立 HEAD 授权基线。
-- [ ] 生成并校验网页用紧边界 SVG 资产。
-- [ ] 接入 Header 与 Footer 的复用组件。
-- [ ] 写回稳定设计规则、当前事实和验证证据。
-- [ ] 通过代码、治理、桌面与移动视觉门禁。
+- [x] 生成并校验网页用紧边界 SVG 资产。
+- [x] 接入 Header 与 Footer 的复用组件。
+- [x] 写回稳定设计规则、当前事实和验证证据。
+- [x] 通过 SVG、typecheck、lint、build、桌面与移动视觉门禁；完整治理命令受既有无关 dirty outputs 阻挡，任务内文档与功能登记检查通过。
 - [ ] 归档 checklist 并记录实现提交。

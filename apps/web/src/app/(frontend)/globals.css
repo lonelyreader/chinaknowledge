@@ -128,12 +128,15 @@ p {
 
 .wordmark {
   display: inline-flex;
+  flex: 0 0 auto;
   min-height: 44px;
   align-items: center;
-  font-family: var(--display);
-  font-size: 1.4rem;
-  letter-spacing: -0.025em;
-  white-space: nowrap;
+}
+
+.wordmark__image {
+  display: block;
+  width: clamp(9rem, 14vw, 11.25rem);
+  height: auto;
 }
 
 .button {

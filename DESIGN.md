@@ -10,6 +10,8 @@ Create a global China information and people hub built from useful knowledge and
 
 - The public brand name is `China, in Fact`. Retain the comma in the wordmark and running text.
 
+- The public wordmark is the approved single-line outlined asset at `apps/web/public/brand/china-in-fact-wordmark.svg`. Its custom letterforms are fixed artwork, not a font choice: do not re-typeset, redraw, substitute Instrument Serif, or rebuild it from HTML text. Charcoal Ink applies to the base name; Cinnabar applies only to `h`, the first `i`, the comma, and `act`, so the accent layer reads `hi, act` while the full name remains immediately legible. Header and Footer must use the same asset.
+
 - **Density:** 5/10 — balanced editorial density with generous reading space.
 - **Variance:** 7/10 — asymmetric compositions, offset columns, and varied story scale.
 - **Motion:** 4/10 — restrained, purposeful transitions rather than cinematic spectacle.

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Instrument_Serif } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
+import { Wordmark } from "@/components/wordmark";
 import { validateServerEnvironment } from "@/config/environment";
 import { locales, requireLocale, ui } from "@/content";
 import Link from "next/link";
@@ -42,7 +43,7 @@ export default async function LocaleLayout({ children, params }: Readonly<{ chil
         {children}
         <footer className="site-footer">
           <div className="site-footer__inner">
-            <p className="wordmark">China, in Fact</p>
+            <p className="wordmark"><Wordmark /></p>
             <nav aria-label="Footer">
               <Link href={`/${locale}/stories`}>{copy.nav[0]}</Link>
               <Link href={`/${locale}/guides`}>{copy.nav[1]}</Link>

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Locale } from "@/content";
 import { ui } from "@/content";
+import { Wordmark } from "@/components/wordmark";
 
 const sharedLanguageRoutes = new Set(["about", "guides", "newsletter", "people", "places", "privacy", "stories"]);
 const sharedPurposeRoutes = new Set(["business", "live", "study", "understand", "visit", "work"]);
@@ -50,7 +51,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
     <header className="site-header">
       <div className="site-header__inner">
         <Link className="wordmark" href={`/${locale}`} onClick={() => setOpen(false)}>
-          China, in Fact
+          <Wordmark priority />
         </Link>
         <nav className="desktop-nav" aria-label={locale === "en" ? "Primary" : "Principal"}>
           {copy.nav.map((item, index) => (

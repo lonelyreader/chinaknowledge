@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-07-29
+last_verified: 2026-07-30
 max_lines: 160
 ---
 
@@ -16,7 +16,7 @@ max_lines: 160
 
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
-- 正式品牌名为 **China, in Fact**，正式网站为 [`chinainfact.com`](https://chinainfact.com)；域名已绑定 `china-in-fact` project，`www.chinainfact.com` 以 308 永久跳转到主域名，TLS、匿名访问和公开索引均已启用。Registrar 与 nameserver 均为 Vercel，到期日为 2027-07-27；邮件专用 DNS 保持独立。商标和品牌资产尚未确定。
+- 正式品牌名为 **China, in Fact**，正式网站为 [`chinainfact.com`](https://chinainfact.com)；域名已绑定 `china-in-fact` project，`www.chinainfact.com` 以 308 永久跳转到主域名，TLS、匿名访问和公开索引均已启用。Registrar 与 nameserver 均为 Vercel，到期日为 2027-07-27；邮件专用 DNS 保持独立。正式公共字标已经定稿并接入本地 Header 与 Footer：轮廓母版位于 `apps/web/public/brand/china-in-fact-wordmark.svg`，朱砂红层读作 `hi, act`；商标可用性仍需另行核验。
 - 信息架构采用稳定内容对象、目的入口与横向语义分层：`Stories / Guides / Places / People` 为主导航，`Understand / Visit / Live / Study / Work / Business` 为目的入口，`Topics / Geography / Situation` 为横向发现。
 - 产品进一步明确为由真实中国成员直接发布、经站方选择与策展的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。成员个人公开与站方官方分发是两个决定，站方在同一 Article 上编辑且不改变原作者署名。
 - Stitch 公共站、People 机制及 Newsletter 状态已经形成 P1 视觉基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；公共 Article、Home 与 Person 已具备明显作者链接。`PUB-CURATION-001` 已把 Member publication 与 Editorial curation 两轴、同 Article 编辑和人物流量链路部署到 Production。
@@ -28,7 +28,7 @@ max_lines: 160
 - CMS 已上线 Member publication 与 Editorial curation 两轴、同 Article 编辑、固定原作者、个人/官方 read model、稳定 `/posts` canonical、登录态草稿与 Person 预览、My work/My profile、Person 版本历史、Editor Needs attention 收件箱、账户邀请和暂停、可重试事务通知。`ADMIN-UI-001` 已恢复 Payload 原生 Nav、Dashboard、list 与 document shell，并用受支持的 workspace widget、list slot、field condition 和 Writing/Site tabs 承载业务；自动保存、并发、离页和版本边界不变，Members 开户入口已收敛为 invite-only。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
-- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 70 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；185 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
+- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；187 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
 - Preview 与 Production 均已执行全部 12 条 CMS migration，形成 33 张表。Preview 只使用 `.test` 账户与虚构验收内容；Production 当前为 1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇同一翻译组下的 Published + Curated Article、8 条 workflow event 和 0 Place，未复制 Preview 夹具。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-当前没有 active checklist。`ADMIN-UI-001` 已在提交 `3872a3e` 完成并部署：Invite 是 Members 唯一开户入口，Payload 原生直接创建被服务端 access 拒绝；邀请 endpoint 只允许 Super Admin，并只在同一请求调用期间授予一次性创建能力。Production schema、migration、真实数据和公开内容未被本轮 UI 重构改变。
+当前 active checklist 为 [`BRAND-WORDMARK-001`](roadmap/checklists/brand-wordmark-site-integration.md)，只负责把已定稿的字标接入公共 Header 与 Footer。本地实现和桌面/移动视觉验证已完成；本任务不包含 Preview、Production、merge 或 push。
 
 ## 当前运行边界
 
