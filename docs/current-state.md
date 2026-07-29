@@ -25,10 +25,10 @@ max_lines: 160
 - 人工域名邮箱已复用现有飞书组织完成配置：`chinainfact.com` 邮箱域名、MX、SPF、DKIM 与监测态 DMARC 均已启用，公共邮箱 `hello@chinainfact.com` 已创建并授权给产品负责人；2026-07-27 从该地址向 `gexu@lonelyreader.com` 的真实测试邮件已发送并确认收达。Resend 使用已验证的 `mail.chinainfact.com / us-east-1` 承担程序邮件，真实事务邮件已由飞书主邮箱回读收达。
 - `apps/web` 是 Next.js 16 公共应用与 Payload 3.86.0 编辑 CMS 的同一部署单元。提交 `4125230` 已接通 CMS 首页、Stories/Guides、Places、People/人物页、Purpose、Topic 与 About，并在 CMS 模式停止公共 fixture 回退。Place 是独立编辑节点，对应一个 Geography；页面自动聚合同语言公开内容与人物。Payload Admin 与 API 位于 `/admin` 和 `/api`，本地 PostgreSQL 16 只绑定回环地址。
 - P2 Preview 使用 Vercel Pro + Neon Free + Vercel Blob；Vercel Functions/Blob 位于 `iad1`，Neon 位于 AWS `us-east-1`。`PUB-CURATION-001` 最终受 SSO 保护的 Preview RC 为 [`china-in-fact-hlngq6kq7`](https://china-in-fact-hlngq6kq7-lonelyreader-c40e168c.vercel.app)，保持 `noindex`。
-- CMS 已上线 Member publication 与 Editorial curation 两轴、同 Article 编辑、固定原作者、个人/官方 read model、稳定 `/posts` canonical、登录态草稿与 Person 预览、My work/My profile、Person 版本历史、Editor Needs attention 收件箱、账户邀请和暂停、可重试事务通知。Editor 作为作者时可直接起稿并进入聚焦 Writing 工作区，Site 操作独立；个人资料支持英语/西语、头像与类型化外链。自动保存具备失败、重试、并发编辑、离页保护和版本状态同步。普通 API 不能绕过发布/显隐动作，站方字段由服务端隔离，未策展文章不会进入官方内容入口。
+- CMS 已上线 Member publication 与 Editorial curation 两轴、同 Article 编辑、固定原作者、个人/官方 read model、稳定 `/posts` canonical、登录态草稿与 Person 预览、My work/My profile、Person 版本历史、Editor Needs attention 收件箱、账户邀请和暂停、可重试事务通知。当前本地 `ADMIN-UI-001` 已恢复 Payload 原生 Nav、Dashboard、list 与 document shell，并用受支持的 widgets、list slot、field condition 和 Writing/Site tabs 承载业务；尚未 commit 或部署。自动保存、并发、离页和版本边界不变；Members 开户权限按已批准决定收敛为 invite-only。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
-- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 70 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；188 个功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
+- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 70 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；185 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
 - Preview 与 Production 均已执行全部 12 条 CMS migration，形成 33 张表。Preview 只使用 `.test` 账户与虚构验收内容；Production 当前为 1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇同一翻译组下的 Published + Curated Article、8 条 workflow event 和 0 Place，未复制 Preview 夹具。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-当前没有 active checklist。`PUB-CURATION-001` 的 Editor 作者旅程、双语 Person、默认任务收件箱、媒体/外链、防丢稿、持久 My profile、Purpose/Place/Article 语言 canonical、Production 发布与恢复均已收口；产品/UX与技术/权限/migration 复审均为 `PASS (P0/P1/P2 = 0/0/0)`。
+当前 active checklist 是 [`ADMIN-UI-001`](roadmap/checklists/admin-payload-native-ui-reconstruction.md)。用户已批准 Members 的 `permission-change`：Invite 是唯一开户入口，Payload 原生直接创建被服务端 access 拒绝；邀请 endpoint 只允许 Super Admin，并只在同一请求调用期间授予一次性创建能力。该本地变更尚未 commit 或部署。`PUB-CURATION-001` 的 Production schema、migration、真实数据未被本地 UI 重构改变。
 
 ## 当前运行边界
 

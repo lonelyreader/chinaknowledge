@@ -103,7 +103,7 @@ approval_gates: checklist-commit, payload-native-baseline, visual-direction, pro
 - [x] 用户批准并提交本 checklist，建立后续产品代码的 HEAD 授权基线；commit `c9e228b`。
 - [x] 在隔离的本地测试数据上恢复并截图 Payload `3.86.0` 原生 Admin 基线；未连接或改写 Production 数据。
 - [x] 建立 `docs/reference/implementation/admin-payload-native-baseline-2026-07-29.md`，逐项记录原生能力、当前自定义、视觉问题、业务缺口与裁决。
-- [ ] 对所有 Admin 路由建立页面 × 角色 × 状态清单，覆盖正常、空、加载、错误、disabled、modal/drawer 和长内容。
+- [x] 对所有 Admin 路由建立页面 × 角色 × 状态清单，覆盖正常、空、加载、disabled、modal/drawer 和长内容；错误反馈沿用 Payload 原生机制，本轮未制造 Production 或真实邮件错误。
 - [x] 输出 Dashboard、Members list、Article edit 三个桌面参考面，取得 `payload-native-baseline` 与 `visual-direction` 双门禁批准。
 - [x] 恢复 Payload 原生 Nav、header、breadcrumbs、content gutter 与 collection list shell，移除整壳替换。
 - [x] 把角色快捷入口迁移到 Payload 官方扩展点；保持服务端权限是最终边界。
@@ -112,16 +112,15 @@ approval_gates: checklist-commit, payload-native-baseline, visual-direction, pro
 - [x] 逐页审计 Articles、People、Images、Categories、Places、Activity，恢复 Payload 原生 list/edit/upload 行为。
 - [x] 逐项执行组件裁决；新增的可访问上传 field wrapper 已补入基线证据。
 - [x] 删除仅用于覆盖 Payload 几何的 CSS，收敛品牌 token、必要业务组件样式和窄范围适配。
-- [ ] 校验 light/dark、缩放、长标题、长邮箱、英西内容、浏览器最小高度及所有 overlay stacking。
+- [x] 校验 light/dark、三桌面视口、125% zoom、长内容、英西内容、最小高度与 upload drawer stacking；移动端只保留灾难性回归。
 - [x] 完成 Anonymous、Member、Editor、Super Admin 权限负例和服务端直接请求负例；新增验证覆盖 context 伪造、直接创建、非 Super Admin 邀请拒绝及 Super Admin 邀请成功。
-- [x] 完成 UI 重构的非主持独立视觉复审和技术/权限复审，两项均为 `PASS，P0/P1/P2 = 0/0/0`。
-- [x] 完成 Members `permission-change` 增量独立复审：`PASS，P0/P1/P2 = 0/0/0`。
+- [x] 完成最终代码与证据的非主持桌面视觉复审和技术/权限复审；旧复审发现的 widget、upload refresh、权限 capability 与证据问题均已修正，两项最终结论均为 `PASS，P0/P1/P2 = 0/0/0`。
 - [ ] 写回 current、feature registry、implementation evidence，完成后把 checklist 移入 archive。
 
 ## No-go
 
 - 不建设第二套 Admin，不引入另一个后台 UI 框架，不重新设计 Payload 的成熟通用界面。
-- 不修改 schema、migration、数据库数据、collection slug、公开 URL、hook 或业务状态机；唯一例外是用户已批准的 Members invite-only access 与 invite endpoint 服务端 context。
+- 不修改 schema、migration、数据库数据、collection slug、公开 URL、hook 或业务状态机；唯一例外是用户已批准的 Members invite-only access 与 invite endpoint 请求级 capability。
 - collection 配置改动只允许 Admin 展示和受支持扩展点；不得借 UI 重构改变权限、字段语义或写入路径。
 - 不改公开站点，不做内容编辑、批量邀请、真实邮件、真实账号或 Production 数据操作。
 - 不安装依赖，不升级 Payload，不依据新版 Payload 文档重写当前 `3.86.0` 实现。
@@ -134,9 +133,9 @@ approval_gates: checklist-commit, payload-native-baseline, visual-direction, pro
 - `data_truth`：只使用 Local/Preview 虚构 fixture；Production 只允许经单独批准的只读参照。
 - `read_path`：Member 只能读取自己的私有工作；Editor 与 Super Admin 的现有范围不扩大。
 - `write_path`：邀请、文章、人物、媒体和策展写路径不变；本 change 不新增写 API。
-- `permission_boundary`：服务端 access/hook 是最终边界；Users create 只允许已认证 Super Admin 通过 invite endpoint 注入的服务端上下文，直接 Admin/REST/Local API 创建均拒绝。
+- `permission_boundary`：服务端 access/hook 是最终边界；Users create 只允许已认证 Super Admin invite endpoint 的同一请求对象在调用期间持有一次性 capability，直接 Admin/REST/Local API 与伪造 context 创建均拒绝。
 - `audit_boundary`：Activity 和 workflow event 继续只读，不因布局变化丢失 actor、时间或前后状态。
-- `recovery`：无 migration；开户权限可通过把 `Users.access.create` 恢复为 `superAdmin` 并移除 invite context 恢复原生直接创建，其余 UI 批次可用 Git revert 回退。
+- `recovery`：无 migration；开户权限可通过把 `Users.access.create` 恢复为 `superAdmin` 并移除请求级 invite capability 恢复原生直接创建，其余 UI 批次可用 Git revert 回退。
 - `independent_review`：非主持实现者分别做全路由桌面视觉复审与角色/权限负例复审，结论只能为 `PASS` 或 `BLOCK`。
 
 ## Acceptance

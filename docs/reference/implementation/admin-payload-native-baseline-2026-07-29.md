@@ -124,28 +124,67 @@ Payload 原生 editor 已经提供 breadcrumbs、title、versions、document sta
 
 | Surface | Member | Editor | Super Admin | Native shell decision |
 |---|---|---|---|---|
-| Dashboard | My work / My profile | Needs attention / own work | Needs attention / administration | 原生 dashboard + role widgets |
+| Dashboard | My work / My profile | Needs attention / own work / queues | Needs attention / own work / queues | 原生 dashboard + one role-aware workspace widget |
 | Users | no entry | no entry | invite、resend、role、pause | 原生 list/edit + one invite extension |
 | People | own profile direct | list/edit | list/edit | 原生 list/edit；保留 profile action |
 | Articles | own create/list/edit | own work + all/curation | own work + all/curation | 原生 list/edit；保留双轴 action |
 | Images | own uploads | editorial use | all | 原生 list/upload/edit |
-| Categories / Places | no entry | editorial list/edit | list/edit | 原生 list/edit |
-| Activity | no entry | read-only | read-only | 原生 list，禁止自定义编辑行为 |
+| Categories / Places | no entry | no entry | list/edit | 原生 list/edit |
+| Activity | no entry | no entry | read-only | 原生 list，禁止自定义编辑行为 |
 
 ## Three-surface Direction
 
-待用户确认的方向只有一条：
+用户已通过以下方向，并批准进入本地产品代码：
 
 1. Dashboard 使用 Payload 原生 header、gutter、nav 和 dashboard widget 网格；Needs attention、My work、Queues 是业务 widgets。
 2. Members 完整保留原生 Users list；Invite 进入原生 action 层，不再横跨 viewport。
 3. Article 完整保留原生 document shell、fields、sidebar、status、versions 和 preview；只在受支持区域保留双轴动作与翻译。
 
-这三条通过 `payload-native-baseline` 与 `visual-direction` 门禁后，才开始修改主工作树产品代码。
+`payload-native-baseline`、`visual-direction`、`product-code` 与 Members `permission-change` 已通过；commit、merge、push 和部署仍分别受门禁约束。
+
+## Implemented Result
+
+- 整 Nav 与整 Dashboard 替换已删除；原生 Nav、header、breadcrumbs、gutter、collection list 和 document edit 成为壳层。
+- `Needs attention`、`My work`、`Queues` 进入一个按角色渲染的 Payload dashboard widget；既避免重复注册，也避免低权限用户从 Add Widget 抽屉加入无权组件后出现空 shimmer。EN、ES、Mine、Unassigned 筛选恢复。
+- `InviteMember` 进入 `beforeListTable`，字段改用 Payload `TextInput`、`SelectInput`、`Button` 和 toast；提交与重发均在请求前校验名称和邮箱。服务端只允许已认证 Super Admin 的 invite endpoint 在同一请求对象上临时取得一次性创建能力，调用结束即撤销。
+- Article 用 Payload conditional tabs 表达 Writing / Site：Member 本人只见 Writing，Editor 编辑他人只见 Site，Editor 本人同时拥有两者。
+- Profile 本人聚焦改由 field condition 判定关联 User；不再用 CSS/DOM 隐藏治理字段。
+- `SaveSafetyStatus` 删除；实测 Payload 原生 autosave 呈现 `Saving` 与 `Last saved`。本轮未强制制造服务端失败，离线恢复仍列入后续状态补验。
+- `UploadAccessibility` 的全页 observer 删除；原生关系卡缺少按钮名称，改为公有 `UploadInput`、`useField`、`useDocumentDrawer` 的最小 wrapper，Edit/Remove 均有可访问名称。
+- `custom.scss` 已清除 viewport min-width、全局 theme 替换、私有 field selector、`:has()`、dataset mode、DOM 隐藏和全局 upload 补丁；Admin 使用 Satoshi，focus 使用 Cinnabar。
+- Users / Workflow events 的可见对象名收敛为 Members / Activity；原生 Account 的内部标题与 public 状态通过官方 i18n override 收敛；空列表只保留 Payload 原生 `No Results.` 标题。
+
+![Final desktop contact sheet](assets/admin-payload-native-reconstruction/00-contact-sheet-1440x900.png)
+
+contact sheet 保留初轮几何对照；permission-change 后的 Members 复拍见下方单图，原生 `Create New` 已消失，Invite 是唯一开户入口。
+
+| Surface | 1280×800 | 1440×900 | 1920×1080 | Result |
+|---|---:|---:|---:|---|
+| Dashboard | no overflow | no overflow | no overflow | Payload widgets and stable task rows |
+| Members | no overflow | no overflow | no overflow | Native list plus aligned invite extension |
+| Article edit | no overflow | no overflow | no overflow | Native shell plus Writing / Site tabs |
+
+补验：1440 桌面按 125% 等效 CSS viewport 为 `1152×720`，Dashboard、Members 与 Article 的 `scrollWidth === clientWidth`；Dashboard 与 Members 在 Payload 左侧栏展开的 1280、1440、1920 三档同样无溢出，直接覆盖原问题形态。超长 invite 邮箱输入时 Members 仍无横向溢出。Dark 模式在 Members 复验为 `data-theme=dark` 且无溢出，测试后恢复 Automatic。移动端沿用灾难性回归证据，不作为本轮设计主线。
+
+状态覆盖：三角色均核对 Dashboard 与直接入口；Member 核对 My work、My profile、本人 Article、锁定/disabled Article、Images 和 Users 拒绝；Editor 核对本人 Writing + Site、他人 Site、People、Images、Users/Categories/Places/Activity 拒绝；Super Admin 核对 Members、People、Images、Articles、Categories、Places、Activity、profile 和 Article。空态、原生 loading、lock/disabled、version/preview、upload drawer、长内容、125% zoom、light/dark 均有运行时证据；不制造真实邀请、邮件或 Production 写入。
+
+关键证据：
+
+- [Dashboard 1440（统一 workspace widget）](assets/admin-payload-native-reconstruction/19-dashboard-workspace-1440x900.png)
+- [Members 1440（invite-only）](assets/admin-payload-native-reconstruction/16-members-invite-only-1440x900.png)
+- [Article Writing 1440](assets/admin-payload-native-reconstruction/13-article-writing-final-1440x900.png)
+- [Article Site 1440](assets/admin-payload-native-reconstruction/14-article-site-final-1440x900.png)
+- [Dashboard Dark 1440](assets/admin-payload-native-reconstruction/15-dashboard-dark-final-1440x900.png)
+- [Members Dark 1440](assets/admin-payload-native-reconstruction/18-members-dark-1440x900.png)
+- [Upload drawer 125%](assets/admin-payload-native-reconstruction/17-upload-drawer-125-percent.png)
+- [Dashboard 侧栏展开 1440](assets/admin-payload-native-reconstruction/20-dashboard-nav-expanded-1440x900.png)
+- [Members 侧栏展开 1440](assets/admin-payload-native-reconstruction/21-members-nav-expanded-1440x900.png)
+
+独立复审：最终桌面视觉专项与 UI 技术/权限专项均为 `PASS，P0/P1/P2 = 0/0/0`。视觉复审明确核对 invite-only Members、展开侧栏、三桌面视口、125% upload drawer、dark、Writing/Site 与长内容；技术复审明确核对请求级 invite capability、单一 role-aware widget、upload 保存刷新、无 schema/migration 变化和删除组件无残留。
+
+验证：最终结果以本变更提交与部署读回为准。主工作树的两个无关 editorial draft 输出不属于 `ADMIN-UI-001`，不修改、不暂存；治理门禁在最终提交的干净 worktree 中复验。
 
 ## Remaining Audit
 
-- 完成 Member、Editor、Super Admin 三角色的全路由运行时截图。
-- 补齐 empty、loading、error、disabled、lock、version、upload、drawer/dialog 和长内容状态。
-- 验证 Payload 原生 autosave 失败、离线恢复和 upload aria，决定两个 `remove` 优先组件的最终去留。
-- 解决 Members 的 Invite 与原生 Create New 单一路径问题；若必须改变 create permission 或 endpoint，另走 `permission-change` 门禁。
-- 完成 `1280×800`、`1440×900`、`1920×1080` 和 125% zoom 桌面复审。
+- Payload 原生 autosave 失败与离线恢复未在本轮强制制造；本轮没有替换对应原生机制，已有 autosave、lock、version、validation 和 toast 结构保持不变。
+- Members 单一路径已解决：`Users.access.create` 只接受已认证 Super Admin invite endpoint 当前请求对象持有的一次性能力；endpoint 保持 `overrideAccess: false`。权限负例覆盖 Anonymous、Member、Editor、Super Admin 直接创建、可伪造 context 和非 Super Admin invite，Super Admin invite 正例仍能建立唯一 Person。

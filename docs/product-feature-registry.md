@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-07-29
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:fe14b27959746b8b77bbd27f8947071cf7ae7d9207836baea8b1b573b9501f49
+implementation_fingerprint: sha256:66fdbe454f928cba3fda6a74c34fdbd84e98f808ff1f15df92d05461eb6e8cad
 ---
 
 # App 功能登记册
@@ -47,9 +47,9 @@ Member 是有后台账户并关联 Person 的内容作者。文章公开由本�
 |---|---|---|---|
 | MEM-01 | 登录和密码设置 | 使用邀请/重置邮件设置密码并登录后台；连续失败会触发临时锁定 | `/admin`；暂停账户不能登录 |
 | MEM-02 | My work | 登录后查看自己的最近文章、语言、个人公开状态、站方选择状态和下一动作 | `/admin`；只显示本人文章，支持进入全部个人文章 |
-| MEM-03 | 快速起稿 | 从工作台直接选择 English 或 Español 新建文章，并立即进入写作页 | My work 的新文章动作；作者、owner 和稳定身份由服务端建立 |
+| MEM-03 | 新建文章 | 从 My work 进入 Payload 原生 Article 新建页，选择 English 或 Español 后开始写作 | My work 的 New article；作者、owner 和稳定身份由服务端建立 |
 | MEM-04 | 文章写作 | 编辑标题、摘要、富文本正文和封面；封面可在文章内上传、预览、替换或移除 | Article 的 Writing 模式 |
-| MEM-05 | 保存状态与失败恢复 | 持续看到 Unsaved、Saving、Saved、Save failed；Article 自动保存，失败后保留本地内容并重试 | Article/Person 编辑页；Article 重试期间继续输入不会被旧版本覆盖 |
+| MEM-05 | 保存状态与失败恢复 | 使用 Payload 原生 Saving、Last saved 和错误反馈；Article 自动保存，失败后保留本地内容并在后续周期重试 | Article/Person 编辑页；重试期间继续输入不会被旧版本覆盖 |
 | MEM-06 | 并发与离页保护 | 看到其他编辑者的锁定状态；未保存时阻止误离开；避免静默覆盖 | Article 与 Person 编辑页，锁定时长 5 分钟 |
 | MEM-07 | 版本历史 | 查看和恢复 Article、Person 的历史版本；自动保存版本状态与界面同步 | 后台版本入口；每个文档最多保留 50 个版本 |
 | MEM-08 | 登录态预览 | 在公开前预览自己的文章和 Person；预览页不会被搜索引擎索引 | Article/Person 的 Preview |
@@ -89,7 +89,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 
 | 编号 | 当前功能 | 人能做到的事情 | 主要入口与边界 |
 |---|---|---|---|
-| ADM-01 | 成员邀请 | 用姓名、邮箱和 Member/Editor 角色邀请账户，并发送密码设置邮件 | Members；同一邮箱和 Person 关系保持唯一 |
+| ADM-01 | 成员邀请 | 用姓名、邮箱和 Member/Editor 角色邀请账户，并发送密码设置邮件 | Members 的唯一开户入口；同一邮箱和 Person 关系保持唯一 |
 | ADM-02 | 重发邀请 | 对尚需激活的账户重新发送密码设置邮件 | Members |
 | ADM-03 | 角色管理 | 在 Member、Editor、Super Admin 之间调整后台权限 | Members；普通用户不能修改自己的角色 |
 | ADM-04 | 暂停与恢复 | 暂停账户登录或恢复访问，不删除 Person、文章、版本和审计记录 | Members |
@@ -98,7 +98,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | ADM-07 | Places 管理 | 维护地点名称、摘要、封面、所属 Geography、英西 slug 与公开状态 | Places；地点页自动聚合相关人物和文章 |
 | ADM-08 | Images 管理 | 查看和管理图片、上传者、图片说明和公开使用状态 | Images；创建、读取、修改和删除均受角色权限控制 |
 | ADM-09 | Activity 审计 | 查看文章发布、策展、通知等工作流事件及操作者、前后状态和时间 | Activity；记录只读，不允许后台改写 |
-| ADM-10 | 全量内容管理 | 访问全部 Articles、People、Images、Categories、Places 和 Users | 后台主导航；权限仍由服务端执行 |
+| ADM-10 | 全量内容管理 | 访问全部 Articles、People、Images、Categories、Places 和 Members | 后台主导航；权限仍由服务端执行 |
 
 ## 运营与维护
 

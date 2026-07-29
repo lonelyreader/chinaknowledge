@@ -14,8 +14,19 @@ import { transitionProfileEndpoint } from "@/cms/people-endpoints";
 import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 import { isValidEmailProfileLink, isValidWebProfileLink } from "@/cms/profile-links";
 
-const editorialCondition = (_data: unknown, _siblingData: unknown, { user }: { user: unknown }) =>
-  isCMSUser(user) && hasEditorialRole(user);
+function relationID(value: unknown) {
+  if (value && typeof value === "object") {
+    if ("value" in value) return relationID((value as { value: unknown }).value);
+    if ("id" in value) return (value as { id: unknown }).id;
+  }
+  return value;
+}
+
+const governanceCondition = (data: unknown, _siblingData: unknown, { user }: { user: unknown }) => {
+  if (!isCMSUser(user) || !hasEditorialRole(user)) return false;
+  const personUser = relationID((data as { user?: unknown } | null)?.user);
+  return personUser == null || String(personUser) !== String(user.id);
+};
 
 const validateProfileLink: TextFieldSingleValidation = (value, { siblingData }) => {
   if (!value) return "Link address is required.";
@@ -63,22 +74,13 @@ export const People: CollectionConfig = {
         {
           label: "Profile",
           fields: [
-            {
-              name: "profileFocus",
-              type: "ui",
-              admin: { components: { Field: "/cms/components/ProfileFocus#ProfileFocus" } },
-            },
             { name: "name", type: "text", required: true },
             {
               name: "portrait",
               type: "upload",
               relationTo: "media",
               label: "Portrait",
-            },
-            {
-              name: "portraitAccessibility",
-              type: "ui",
-              admin: { components: { Field: "/cms/components/UploadAccessibility#UploadAccessibility" } },
+              admin: { components: { Field: "/cms/components/AccessibleUploadField#AccessibleUploadField" } },
             },
             {
               name: "languages",
@@ -156,7 +158,7 @@ export const People: CollectionConfig = {
       unique: true,
       index: true,
       access: { update: editorialField },
-      admin: { condition: editorialCondition },
+      admin: { condition: governanceCondition },
     },
     {
       name: "user",
@@ -165,7 +167,7 @@ export const People: CollectionConfig = {
       required: true,
       unique: true,
       access: { create: editorialField, read: ownPersonFieldOrEditorial, update: editorialField },
-      admin: { condition: editorialCondition, position: "sidebar" },
+      admin: { condition: governanceCondition, position: "sidebar" },
     },
     {
       name: "profileStatus",
@@ -185,14 +187,14 @@ export const People: CollectionConfig = {
       type: "date",
       label: "Author approval recorded",
       access: { create: editorialField, read: ownPersonFieldOrEditorial, update: editorialField },
-      admin: { condition: editorialCondition, position: "sidebar" },
+      admin: { condition: governanceCondition, position: "sidebar" },
     },
     {
       name: "profilePublishedAt",
       type: "date",
       label: "Profile published",
       access: { create: editorialField, read: ownPersonFieldOrEditorial, update: authenticatedField },
-      admin: { condition: editorialCondition, position: "sidebar", readOnly: true },
+      admin: { condition: governanceCondition, position: "sidebar", readOnly: true },
     },
     {
       name: "spotlightExcluded",
@@ -200,14 +202,14 @@ export const People: CollectionConfig = {
       label: "Exclude from spotlight",
       defaultValue: false,
       access: { create: editorialField, read: editorialField, update: editorialField },
-      admin: { condition: editorialCondition, position: "sidebar" },
+      admin: { condition: governanceCondition, position: "sidebar" },
     },
     {
       name: "spotlightPinnedUntil",
       type: "date",
       label: "Spotlight pinned until",
       access: { create: editorialField, read: editorialField, update: editorialField },
-      admin: { condition: editorialCondition, position: "sidebar" },
+      admin: { condition: governanceCondition, position: "sidebar" },
     },
     {
       name: "profileActions",
@@ -215,14 +217,6 @@ export const People: CollectionConfig = {
       admin: {
         position: "sidebar",
         components: { Field: "/cms/components/ProfileActions#ProfileActions" },
-      },
-    },
-    {
-      name: "saveSafety",
-      type: "ui",
-      admin: {
-        position: "sidebar",
-        components: { Field: "/cms/components/SaveSafetyStatus#SaveSafetyStatus" },
       },
     },
   ],

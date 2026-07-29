@@ -11,14 +11,31 @@ const legacyStatuses = [
   "public",
   "archived",
 ] as const;
+const statusLabels: Record<string, string> = {
+  approved: "Approved",
+  archived: "Archived",
+  curated: "Site selected",
+  draft: "Draft",
+  editing: "Editing",
+  in_review: "In review",
+  needs_recheck: "Needs recheck",
+  not_selected: "Not selected",
+  public: "Public",
+  published: "Public",
+  removed: "Removed",
+  selected: "Selected",
+  submitted: "Submitted",
+  withdrawn: "Withdrawn",
+  changes_requested: "Changes requested",
+};
 const statusOptions = [...publicationStatuses, ...curationStatuses, ...legacyStatuses].map((value) => ({
-  label: value.replaceAll("_", " "),
+  label: statusLabels[value] ?? value,
   value,
 }));
 
 export const WorkflowEvents: CollectionConfig = {
   slug: "workflow-events",
-  labels: { singular: "Workflow event", plural: "Workflow events" },
+  labels: { singular: "Activity item", plural: "Activity" },
   admin: {
     defaultColumns: ["article", "fromStatus", "toStatus", "actor", "notificationStatus", "occurredAt"],
     group: "Editorial",

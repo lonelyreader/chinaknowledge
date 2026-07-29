@@ -4,6 +4,7 @@ import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
+import { enTranslations } from "@payloadcms/translations/languages/en";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildConfig } from "payload";
@@ -32,14 +33,23 @@ export default buildConfig({
     importMap: { baseDir: dirname },
     meta: { titleSuffix: " — China, in Fact" },
     components: {
-      Nav: "/cms/components/AdminNav#AdminNav",
+      beforeNavLinks: ["/cms/components/AdminNav#AdminNavLinks"],
       graphics: {
         Icon: "/cms/components/Brand#AdminIcon",
         Logo: "/cms/components/Brand#AdminLogo",
       },
-      views: {
-        dashboard: { Component: "/cms/components/MemberWorkspace#MemberWorkspace" },
-      },
+    },
+    dashboard: {
+      defaultLayout: [{ widgetSlug: "workspace", width: "full" }],
+      widgets: [
+        {
+          Component: "/cms/components/MemberWorkspace#WorkspaceWidget",
+          label: "Workspace",
+          maxWidth: "full",
+          minWidth: "full",
+          slug: "workspace",
+        },
+      ],
     },
   },
   collections: [
@@ -62,6 +72,28 @@ export default buildConfig({
       process.env.NODE_ENV === "development",
   }),
   editor: lexicalEditor(),
+  i18n: {
+    translations: {
+      en: {
+        ...enTranslations,
+        general: {
+          ...enTranslations.general,
+          noResultsDescription: "\u200B",
+          payloadSettings: "Preferences",
+          restoreAsPublished: "Restore as public",
+        },
+        version: {
+          ...enTranslations.version,
+          currentlyPublished: "Currently public",
+          currentPublishedVersion: "Current public version",
+          draftHasPublishedVersion: "Draft has a public version",
+          previouslyPublished: "Previously public",
+          published: "Public",
+          revertToPublished: "Revert to public version",
+        },
+      },
+    },
+  },
   ...(serverEnvironment.transactionalEmailEnabled
     ? {
         email: resendAdapter({

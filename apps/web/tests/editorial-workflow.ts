@@ -4,12 +4,13 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { getPayload, type Payload } from "payload";
+import { createLocalReq, getPayload, type Payload } from "payload";
 
 import config from "@payload-config";
 import { getLatestDraftData } from "@/cms/article-endpoints";
 import { buildPublicationSummary } from "@/cms/publication-summary";
 import { isCMSUser } from "@/cms/roles";
+import { inviteUserEndpoint } from "@/cms/user-endpoints";
 import type { Article, Media, User } from "@/payload-types";
 
 const password = process.env.CMS_TEST_PASSWORD;
@@ -158,12 +159,57 @@ async function main() {
   assert.equal(editorVisibleUsers.totalDocs, 1);
   assert.equal(editorVisibleUsers.docs[0]?.id, editor.id);
   const invitedEmail = `invited-member-${randomUUID()}@test.invalid`;
-  const invited = await payload.create({
+  const spoofedDirectCreateData = {
+    accountStatus: "active" as const,
+    displayName: "Spoofed Direct Member",
+    email: `spoofed-direct-${randomUUID()}@test.invalid`,
+    password,
+    role: "author" as const,
+  };
+  await expectRejected(() => payload.create({
+    collection: "users",
+    context: { userInviteCreate: true },
+    data: spoofedDirectCreateData,
+    overrideAccess: false,
+    user: admin,
+  }), "A Super Admin cannot forge invitation access through Local API context.");
+  await expectRejected(() => payload.create({
     collection: "users",
     data: { accountStatus: "active", displayName: "Invited Member", email: invitedEmail, password, role: "author" },
     overrideAccess: false,
     user: admin,
-  });
+  }), "A Super Admin cannot create a member outside the invitation endpoint.");
+  await expectRejected(() => payload.create({
+    collection: "users",
+    context: { userInviteCreate: true },
+    data: { accountStatus: "active", displayName: "Forged Member", email: `forged-member-${randomUUID()}@test.invalid`, password, role: "author" },
+    overrideAccess: false,
+    user: member,
+  }), "A Member cannot create an account even with a forged invitation context.");
+  const anonymousInviteRequest = await createLocalReq({}, payload);
+  anonymousInviteRequest.json = async () => ({ displayName: "Anonymous Invite", email: `anonymous-invite-${randomUUID()}@test.invalid`, role: "author" });
+  await expectRejected(
+    async () => inviteUserEndpoint.handler(anonymousInviteRequest),
+    "An anonymous request cannot use the invitation endpoint.",
+  );
+  const memberInviteRequest = await createLocalReq({ user: member }, payload);
+  memberInviteRequest.json = async () => ({ displayName: "Member Invite", email: `member-invite-${randomUUID()}@test.invalid`, role: "author" });
+  await expectRejected(
+    async () => inviteUserEndpoint.handler(memberInviteRequest),
+    "A Member cannot use the invitation endpoint.",
+  );
+  const editorInviteRequest = await createLocalReq({ user: editor }, payload);
+  editorInviteRequest.json = async () => ({ displayName: "Blocked Invite", email: `blocked-invite-${randomUUID()}@test.invalid`, role: "author" });
+  await expectRejected(
+    async () => inviteUserEndpoint.handler(editorInviteRequest),
+    "Only a Super Admin can use the invitation endpoint.",
+  );
+  const adminInviteRequest = await createLocalReq({ user: admin }, payload);
+  adminInviteRequest.json = async () => ({ displayName: "Invited Member", email: invitedEmail, role: "author" });
+  const inviteResponse = await inviteUserEndpoint.handler(adminInviteRequest);
+  assert.equal(inviteResponse.status, 201);
+  const inviteResult = await inviteResponse.json() as { id: number };
+  const invited = await payload.findByID({ collection: "users", id: inviteResult.id, overrideAccess: true });
   const invitedProfiles = await payload.find({
     collection: "people", limit: 2, overrideAccess: true,
     where: { user: { equals: invited.id } },

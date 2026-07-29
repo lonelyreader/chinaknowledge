@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { APIError, type Endpoint } from "payload";
 
+import { withUserInviteCreateAccess } from "./access";
 import { isCMSUser, isSuperAdmin } from "./roles";
 
 type InviteBody = {
@@ -48,12 +49,12 @@ export const inviteUserEndpoint: Endpoint = {
     if (existing.docs.length) throw new APIError("This email already has an account.", 409);
 
     const password = `${randomBytes(32).toString("base64url")}Aa1!`;
-    const user = await req.payload.create({
+    const user = await withUserInviteCreateAccess(req, () => req.payload.create({
       collection: "users",
       data: { accountStatus: "active", displayName, email, password, role },
       overrideAccess: false,
       req,
-    });
+    }));
 
     try {
       await req.payload.forgotPassword({

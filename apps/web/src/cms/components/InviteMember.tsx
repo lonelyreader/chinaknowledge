@@ -1,11 +1,19 @@
 "use client";
 
-import { Button, toast, useAuth } from "@payloadcms/ui";
-import { FormEvent, useState } from "react";
+import { Button, SelectInput, TextInput, toast, useAuth } from "@payloadcms/ui";
+import { useRouter } from "next/navigation";
+import { type ChangeEvent, FormEvent, useState } from "react";
 
 import type { User } from "@/payload-types";
 
 type Role = "author" | "editor";
+
+function selectedRole(option: unknown): Role {
+  if (option && !Array.isArray(option) && typeof option === "object" && "value" in option) {
+    return (option as { value: Role }).value;
+  }
+  return "author";
+}
 
 function errorMessage(value: unknown) {
   if (!value || typeof value !== "object") return "Invitation failed.";
@@ -13,8 +21,13 @@ function errorMessage(value: unknown) {
   return errors?.[0]?.message ?? "Invitation failed.";
 }
 
+function validEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
 export function InviteMember() {
   const { user } = useAuth<User>();
+  const router = useRouter();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("author");
@@ -23,12 +36,22 @@ export function InviteMember() {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const name = displayName.trim();
+    const address = email.trim();
+    if (!name) {
+      toast.error("Name is required.");
+      return;
+    }
+    if (!validEmail(address)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
     setPending(true);
     try {
       const response = await fetch("/api/users/invite", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName, email, role }),
+        body: JSON.stringify({ displayName: name, email: address, role }),
       });
       const data = await response.json() as unknown;
       if (!response.ok) throw new Error(errorMessage(data));
@@ -36,6 +59,7 @@ export function InviteMember() {
       setDisplayName("");
       setEmail("");
       setRole("author");
+      router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Invitation failed.");
     } finally {
@@ -44,13 +68,17 @@ export function InviteMember() {
   }
 
   async function resend() {
-    if (!email.trim()) return;
+    const address = email.trim();
+    if (!validEmail(address)) {
+      toast.error("Enter a valid email address.");
+      return;
+    }
     setPending(true);
     try {
       const response = await fetch("/api/users/invite/resend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: address }),
       });
       const data = await response.json() as unknown;
       if (!response.ok) throw new Error(errorMessage(data));
@@ -63,16 +91,43 @@ export function InviteMember() {
   }
 
   return (
-    <form className="invite-member" onSubmit={submit}>
-      <strong>Invite</strong>
-      <input aria-label="Name" onChange={(event) => setDisplayName(event.target.value)} placeholder="Name" required value={displayName} />
-      <input aria-label="Email" onChange={(event) => setEmail(event.target.value)} placeholder="Email" required type="email" value={email} />
-      <select aria-label="Role" onChange={(event) => setRole(event.target.value as Role)} value={role}>
-        <option value="author">Member</option>
-        <option value="editor">Editor</option>
-      </select>
-      <Button buttonStyle="primary" disabled={pending} size="small" type="submit">Send</Button>
-      <Button buttonStyle="secondary" disabled={pending || !email.trim()} onClick={() => void resend()} size="small" type="button">Resend</Button>
-    </form>
+    <section className="invite-member">
+      <h2>Invite member</h2>
+      <form className="invite-member__form" onSubmit={submit}>
+        <TextInput
+          htmlAttributes={{ autoComplete: "name" }}
+          label="Name"
+          onChange={(event: ChangeEvent<HTMLInputElement>) => setDisplayName(event.target.value)}
+          path="invite-display-name"
+          required
+          value={displayName}
+        />
+        <TextInput
+          htmlAttributes={{ autoComplete: "email" }}
+          label="Email"
+          onChange={(event: ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
+          path="invite-email"
+          required
+          value={email}
+        />
+        <SelectInput
+          isClearable={false}
+          label="Role"
+          name="invite-role"
+          onChange={(option) => setRole(selectedRole(option))}
+          options={[
+            { label: "Member", value: "author" },
+            { label: "Editor", value: "editor" },
+          ]}
+          path="invite-role"
+          required
+          value={role}
+        />
+        <div className="invite-member__actions">
+          <Button buttonStyle="primary" disabled={pending} size="small" type="submit">Send</Button>
+          <Button buttonStyle="secondary" disabled={pending || !email.trim()} onClick={() => void resend()} size="small" type="button">Resend</Button>
+        </div>
+      </form>
+    </section>
   );
 }

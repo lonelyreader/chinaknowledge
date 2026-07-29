@@ -78,7 +78,7 @@ export const Places: CollectionConfig = {
     {
       name: "publishedAt",
       type: "date",
-      label: "Published",
+      label: "Public since",
       access: { create: editorialField, update: editorialField },
       admin: { position: "sidebar", readOnly: true },
     },

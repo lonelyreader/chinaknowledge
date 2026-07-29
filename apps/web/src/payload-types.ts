@@ -103,6 +103,7 @@ export interface Config {
   globalsSelect: {};
   locale: null;
   widgets: {
+    workspace: WorkspaceWidget;
     collections: CollectionsWidget;
   };
   user: User;
@@ -293,12 +294,10 @@ export interface Article {
     [k: string]: unknown;
   };
   coverImage?: (number | null) | Media;
-  format?: ('guide' | 'reporting' | 'analysis' | 'first_person' | 'update') | null;
   locale: 'en' | 'es';
   slug: string;
-  translationGroup: string;
-  author?: (number | null) | Person;
-  owner: number | User;
+  author: number | Person;
+  format?: ('guide' | 'reporting' | 'analysis' | 'first_person' | 'update') | null;
   purposes?: (number | Taxonomy)[] | null;
   topics?: (number | Taxonomy)[] | null;
   geographies?: (number | Taxonomy)[] | null;
@@ -320,15 +319,17 @@ export interface Article {
         id?: string | null;
       }[]
     | null;
-  publicationStatus: 'draft' | 'published' | 'withdrawn';
-  curationStatus: 'not_selected' | 'selected' | 'editing' | 'curated' | 'needs_recheck' | 'removed';
-  workflowStatus: 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'public' | 'archived';
   assignedEditor?: (number | null) | User;
   freshnessDate?: string | null;
   publishedAt?: string | null;
   homepagePlacement?: ('none' | 'lead' | 'selected') | null;
   homepageStartsAt?: string | null;
   homepageEndsAt?: string | null;
+  translationGroup: string;
+  owner: number | User;
+  publicationStatus: 'draft' | 'published' | 'withdrawn';
+  curationStatus: 'not_selected' | 'selected' | 'editing' | 'curated' | 'needs_recheck' | 'removed';
+  workflowStatus: 'draft' | 'submitted' | 'in_review' | 'changes_requested' | 'approved' | 'public' | 'archived';
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -649,12 +650,10 @@ export interface ArticlesSelect<T extends boolean = true> {
   summary?: T;
   body?: T;
   coverImage?: T;
-  format?: T;
   locale?: T;
   slug?: T;
-  translationGroup?: T;
   author?: T;
-  owner?: T;
+  format?: T;
   purposes?: T;
   topics?: T;
   geographies?: T;
@@ -676,15 +675,17 @@ export interface ArticlesSelect<T extends boolean = true> {
         createdBy?: T;
         id?: T;
       };
-  publicationStatus?: T;
-  curationStatus?: T;
-  workflowStatus?: T;
   assignedEditor?: T;
   freshnessDate?: T;
   publishedAt?: T;
   homepagePlacement?: T;
   homepageStartsAt?: T;
   homepageEndsAt?: T;
+  translationGroup?: T;
+  owner?: T;
+  publicationStatus?: T;
+  curationStatus?: T;
+  workflowStatus?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -766,6 +767,16 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "workspace_widget".
+ */
+export interface WorkspaceWidget {
+  data?: {
+    [k: string]: unknown;
+  };
+  width: 'full';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

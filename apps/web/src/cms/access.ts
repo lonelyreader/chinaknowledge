@@ -10,6 +10,22 @@ export const editorial: Access = ({ req }) =>
 export const superAdmin: Access = ({ req }) =>
   isCMSUser(req.user) && isSuperAdmin(req.user);
 
+const authorizedUserInviteRequests = new WeakSet<object>();
+
+export async function withUserInviteCreateAccess<T>(req: object, action: () => Promise<T>) {
+  authorizedUserInviteRequests.add(req);
+  try {
+    return await action();
+  } finally {
+    authorizedUserInviteRequests.delete(req);
+  }
+}
+
+export const createUserFromInvite: Access = ({ req }) =>
+  isCMSUser(req.user)
+  && isSuperAdmin(req.user)
+  && authorizedUserInviteRequests.has(req);
+
 export const authenticatedField: FieldAccess = ({ req }) => isCMSUser(req.user);
 
 function relationID(value: unknown) {

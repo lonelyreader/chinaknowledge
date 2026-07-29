@@ -72,7 +72,7 @@ function requiresConfirmation(action: Transition) {
   return action.status === "withdrawn" || action.status === "removed";
 }
 
-export function WorkflowActions() {
+export function WorkflowActions({ axis = "both" }: { axis?: "both" | "curation" | "publication" }) {
   const { user } = useAuth<User>();
   const { id } = useDocumentInfo();
   const pendingChanges = usePendingFormChanges();
@@ -170,7 +170,7 @@ export function WorkflowActions() {
 
   return (
     <section className="workflow-actions">
-      {owner ? (
+      {owner && axis !== "curation" ? (
         <div className="workflow-actions__group workflow-actions__group--publication">
           <span className="workflow-actions__label">Personal publication</span>
           <strong className="workflow-actions__status">{publicationLabels[publication]}</strong>
@@ -188,7 +188,7 @@ export function WorkflowActions() {
         </div>
       ) : null}
 
-      {editorial ? (
+      {editorial && axis !== "publication" ? (
         <div className="workflow-actions__group workflow-actions__group--curation">
           <span className="workflow-actions__label">Site curation</span>
           <strong className="workflow-actions__status">{curationLabels[curation]}</strong>
@@ -255,4 +255,12 @@ export function WorkflowActions() {
       ) : null}
     </section>
   );
+}
+
+export function PublicationActions() {
+  return <WorkflowActions axis="publication" />;
+}
+
+export function CurationActions() {
+  return <WorkflowActions axis="curation" />;
 }

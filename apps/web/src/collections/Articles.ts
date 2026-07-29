@@ -20,6 +20,21 @@ import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 const editorialCondition = (_data: unknown, _siblingData: unknown, { user }: { user: unknown }) =>
   isCMSUser(user) && hasEditorialRole(user);
 
+function relationID(value: unknown) {
+  if (value && typeof value === "object") {
+    if ("value" in value) return relationID((value as { value: unknown }).value);
+    if ("id" in value) return (value as { id: unknown }).id;
+  }
+  return value;
+}
+
+const writingCondition = (data: unknown, _siblingData: unknown, { user }: { user: unknown }) => {
+  if (!isCMSUser(user)) return false;
+  if (!hasEditorialRole(user)) return true;
+  const owner = relationID((data as { owner?: unknown } | null)?.owner);
+  return owner == null || String(owner) === String(user.id);
+};
+
 const categoryField = (name: string, label: string, dimension: string) => ({
   name,
   label,
@@ -50,7 +65,6 @@ export const Articles: CollectionConfig = {
     components: {
       edit: {
         PublishButton: "/cms/components/NoPublishButton#NoPublishButton",
-        Status: "/cms/components/NoPublishButton#NoPublishButton",
         UnpublishButton: "/cms/components/NoPublishButton#NoPublishButton",
       },
     },
@@ -73,11 +87,6 @@ export const Articles: CollectionConfig = {
     maxPerDoc: 50,
   },
   fields: [
-    {
-      name: "articleWorkspaceMode",
-      type: "ui",
-      admin: { components: { Field: "/cms/components/ArticleWorkspaceMode#ArticleWorkspaceMode" } },
-    },
     { name: "title", type: "text", required: true },
     { name: "summary", type: "textarea" },
     { name: "body", type: "richText", required: true },
@@ -86,24 +95,7 @@ export const Articles: CollectionConfig = {
       type: "upload",
       relationTo: "media",
       label: "Cover image",
-    },
-    {
-      name: "coverImageAccessibility",
-      type: "ui",
-      admin: { components: { Field: "/cms/components/UploadAccessibility#UploadAccessibility" } },
-    },
-    {
-      name: "format",
-      type: "select",
-      access: { create: editorialField, update: editorialField },
-      admin: { condition: editorialCondition },
-      options: [
-        { label: "Guide", value: "guide" },
-        { label: "Reporting", value: "reporting" },
-        { label: "Analysis", value: "analysis" },
-        { label: "First person", value: "first_person" },
-        { label: "Update", value: "update" },
-      ],
+      admin: { components: { Field: "/cms/components/AccessibleUploadField#AccessibleUploadField" } },
     },
     {
       type: "row",
@@ -122,19 +114,148 @@ export const Articles: CollectionConfig = {
       ],
     },
     {
+      type: "tabs",
+      tabs: [
+        {
+          label: "Writing",
+          admin: { condition: writingCondition },
+          fields: [
+            {
+              name: "publicationActions",
+              type: "ui",
+              admin: { components: { Field: "/cms/components/WorkflowActions#PublicationActions" } },
+            },
+            {
+              name: "translationActions",
+              type: "ui",
+              admin: { components: { Field: "/cms/components/TranslationActions#TranslationActions" } },
+            },
+          ],
+        },
+        {
+          label: "Site",
+          admin: { condition: editorialCondition },
+          fields: [
+            {
+              name: "author",
+              type: "relationship",
+              relationTo: "people",
+              required: true,
+              access: { create: editorialField, update: () => false },
+              admin: { readOnly: true },
+            },
+            {
+              name: "format",
+              type: "select",
+              access: { create: editorialField, update: editorialField },
+              options: [
+                { label: "Guide", value: "guide" },
+                { label: "Reporting", value: "reporting" },
+                { label: "Analysis", value: "analysis" },
+                { label: "First person", value: "first_person" },
+                { label: "Update", value: "update" },
+              ],
+            },
+            categoryField("purposes", "Purposes", "purpose"),
+            categoryField("topics", "Topics", "topic"),
+            categoryField("geographies", "Geography", "geography"),
+            categoryField("situations", "Situation", "situation"),
+            {
+              name: "sourceNotes",
+              type: "array",
+              label: "Sources",
+              access: { create: editorialField, update: editorialField },
+              fields: [
+                { name: "label", type: "text", required: true },
+                { name: "url", type: "text" },
+                {
+                  name: "check",
+                  type: "textarea",
+                  label: "Check",
+                  access: { read: ownArticleFieldOrEditorial },
+                },
+              ],
+            },
+            {
+              name: "editorComments",
+              type: "array",
+              label: "Comments",
+              access: {
+                create: editorialField,
+                read: ownArticleFieldOrEditorial,
+                update: editorialField,
+              },
+              fields: [
+                { name: "anchor", type: "text", required: true },
+                { name: "message", type: "textarea", required: true },
+                { name: "resolved", type: "checkbox", defaultValue: false },
+                { name: "createdBy", type: "relationship", relationTo: "users", required: true },
+              ],
+            },
+            {
+              name: "assignedEditor",
+              type: "relationship",
+              relationTo: "users",
+              access: {
+                create: editorialField,
+                read: ownArticleFieldOrEditorial,
+                update: editorialField,
+              },
+              filterOptions: { role: { in: ["editor", "super_admin"] } },
+            },
+            {
+              name: "freshnessDate",
+              type: "date",
+              label: "Freshness date",
+              access: { create: editorialField, update: editorialField },
+              admin: { date: { pickerAppearance: "dayOnly" } },
+            },
+            {
+              name: "publishedAt",
+              type: "date",
+              label: "Public since",
+              access: { create: editorialField, update: editorialField },
+              admin: { readOnly: true },
+            },
+            {
+              name: "homepagePlacement",
+              type: "select",
+              label: "Homepage",
+              defaultValue: "none",
+              access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
+              options: [
+                { label: "None", value: "none" },
+                { label: "Lead", value: "lead" },
+                { label: "Selected", value: "selected" },
+              ],
+            },
+            {
+              name: "homepageStartsAt",
+              type: "date",
+              label: "Homepage starts",
+              access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
+            },
+            {
+              name: "homepageEndsAt",
+              type: "date",
+              label: "Homepage ends",
+              access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
+            },
+            {
+              name: "curationActions",
+              type: "ui",
+              admin: { components: { Field: "/cms/components/WorkflowActions#CurationActions" } },
+            },
+          ],
+        },
+      ],
+    },
+    {
       name: "translationGroup",
       type: "text",
       required: true,
       index: true,
       admin: { hidden: true },
-    },
-    {
-      name: "author",
-      type: "relationship",
-      relationTo: "people",
-      required: true,
-      access: { create: editorialField, update: () => false },
-      admin: { condition: editorialCondition, readOnly: true },
     },
     {
       name: "owner",
@@ -143,44 +264,6 @@ export const Articles: CollectionConfig = {
       required: true,
       access: { read: ownArticleFieldOrEditorial, update: editorialField },
       admin: { hidden: true },
-    },
-    categoryField("purposes", "Purposes", "purpose"),
-    categoryField("topics", "Topics", "topic"),
-    categoryField("geographies", "Geography", "geography"),
-    categoryField("situations", "Situation", "situation"),
-    {
-      name: "sourceNotes",
-      type: "array",
-      label: "Sources",
-      access: { create: editorialField, update: editorialField },
-      admin: { condition: editorialCondition },
-      fields: [
-        { name: "label", type: "text", required: true },
-        { name: "url", type: "text" },
-        {
-          name: "check",
-          type: "textarea",
-          label: "Check",
-          access: { read: ownArticleFieldOrEditorial },
-        },
-      ],
-    },
-    {
-      name: "editorComments",
-      type: "array",
-      label: "Comments",
-      access: {
-        create: editorialField,
-        read: ownArticleFieldOrEditorial,
-        update: editorialField,
-      },
-      admin: { condition: editorialCondition },
-      fields: [
-        { name: "anchor", type: "text", required: true },
-        { name: "message", type: "textarea", required: true },
-        { name: "resolved", type: "checkbox", defaultValue: false },
-        { name: "createdBy", type: "relationship", relationTo: "users", required: true },
-      ],
     },
     {
       name: "publicationStatus",
@@ -227,87 +310,6 @@ export const Articles: CollectionConfig = {
         { label: "Archived", value: "archived" },
       ],
       admin: { hidden: true },
-    },
-    {
-      name: "assignedEditor",
-      type: "relationship",
-      relationTo: "users",
-      access: {
-        create: editorialField,
-        read: ownArticleFieldOrEditorial,
-        update: editorialField,
-      },
-      filterOptions: { role: { in: ["editor", "super_admin"] } },
-      admin: { condition: editorialCondition, position: "sidebar" },
-    },
-    {
-      name: "freshnessDate",
-      type: "date",
-      label: "Freshness date",
-      access: { create: editorialField, update: editorialField },
-      admin: { condition: editorialCondition, position: "sidebar", date: { pickerAppearance: "dayOnly" } },
-    },
-    {
-      name: "publishedAt",
-      type: "date",
-      label: "Published",
-      access: { create: editorialField, update: editorialField },
-      admin: { condition: editorialCondition, position: "sidebar", readOnly: true },
-    },
-    {
-      name: "homepagePlacement",
-      type: "select",
-      label: "Homepage",
-      defaultValue: "none",
-      access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
-      options: [
-        { label: "None", value: "none" },
-        { label: "Lead", value: "lead" },
-        { label: "Selected", value: "selected" },
-      ],
-      admin: { condition: editorialCondition, position: "sidebar" },
-    },
-    {
-      name: "homepageStartsAt",
-      type: "date",
-      label: "Homepage starts",
-      access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
-      admin: { condition: editorialCondition, position: "sidebar" },
-    },
-    {
-      name: "homepageEndsAt",
-      type: "date",
-      label: "Homepage ends",
-      access: { create: editorialField, read: ownArticleFieldOrEditorial, update: editorialField },
-      admin: { condition: editorialCondition, position: "sidebar" },
-    },
-    {
-      name: "workflowActions",
-      type: "ui",
-      admin: {
-        position: "sidebar",
-        components: {
-          Field: "/cms/components/WorkflowActions#WorkflowActions",
-        },
-      },
-    },
-    {
-      name: "translationActions",
-      type: "ui",
-      admin: {
-        position: "sidebar",
-        components: {
-          Field: "/cms/components/TranslationActions#TranslationActions",
-        },
-      },
-    },
-    {
-      name: "saveSafety",
-      type: "ui",
-      admin: {
-        position: "sidebar",
-        components: { Field: "/cms/components/SaveSafetyStatus#SaveSafetyStatus" },
-      },
     },
   ],
 };

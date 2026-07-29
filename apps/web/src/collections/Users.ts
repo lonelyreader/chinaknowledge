@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 
 import {
+  createUserFromInvite,
   readUsers,
   superAdmin,
   superAdminField,
@@ -11,7 +12,7 @@ import { inviteUserEndpoint, resendUserInviteEndpoint } from "@/cms/user-endpoin
 
 export const Users: CollectionConfig = {
   slug: "users",
-  labels: { singular: "User", plural: "Users" },
+  labels: { singular: "Member", plural: "Members" },
   admin: {
     useAsTitle: "email",
     defaultColumns: ["email", "role", "accountStatus", "updatedAt"],
@@ -19,7 +20,7 @@ export const Users: CollectionConfig = {
     hidden: ({ user }) => user?.role !== "super_admin",
     hideAPIURL: true,
     components: {
-      beforeList: ["/cms/components/InviteMember#InviteMember"],
+      beforeListTable: ["/cms/components/InviteMember#InviteMember"],
     },
   },
   endpoints: [inviteUserEndpoint, resendUserInviteEndpoint],
@@ -30,7 +31,7 @@ export const Users: CollectionConfig = {
   },
   access: {
     admin: ({ req }) => Boolean(req.user && req.user.accountStatus !== "paused"),
-    create: superAdmin,
+    create: createUserFromInvite,
     delete: superAdmin,
     read: readUsers,
     update: updateOwnUserOrSuperAdmin,
