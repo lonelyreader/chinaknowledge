@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: brand-wordmark-site-integration
 last_verified: 2026-07-30
 max_lines: 180
@@ -72,4 +72,11 @@ approval_gates: checklist-commit, product-code, preview-deploy, production-deplo
 - [x] 接入 Header 与 Footer 的复用组件。
 - [x] 写回稳定设计规则、当前事实和验证证据。
 - [x] 通过 SVG、typecheck、lint、build、桌面与移动视觉门禁；完整治理命令受既有无关 dirty outputs 阻挡，任务内文档与功能登记检查通过。
-- [ ] 归档 checklist 并记录实现提交。
+- [x] 归档 checklist；实现提交 `17f88fa`。
+
+## Closure
+
+- 实现提交：`17f88fa`。
+- 本地 Header 与 Footer 已共用正式轮廓字标；未执行 Preview、Production、merge 或 push。
+- SVG、typecheck、lint、fixture build、桌面与移动浏览器、菜单交互、console、文档治理、功能登记与 diff 检查通过。
+- 完整 `npm run governance:check` 的 change-intake 子项仍会列出任务开始前已有的 `outputs/**` 与文章草稿 dirty files；本提交未暂存、修改或归属这些文件。

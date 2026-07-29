@@ -14,6 +14,6 @@ max_lines: 80
 
 当前 active checklist：
 
-- [`BRAND-WORDMARK-001`](brand-wordmark-site-integration.md)：公共网站字标接入。
+- 无。`BRAND-WORDMARK-001` 已完成并进入 [`archive`](../../archive/brand-wordmark-site-integration.md)。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

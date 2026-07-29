@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-当前 active checklist 为 [`BRAND-WORDMARK-001`](roadmap/checklists/brand-wordmark-site-integration.md)，只负责把已定稿的字标接入公共 Header 与 Footer。本地实现和桌面/移动视觉验证已完成；本任务不包含 Preview、Production、merge 或 push。
+当前没有 active checklist。`BRAND-WORDMARK-001` 已在提交 `17f88fa` 完成本地实现和桌面/移动视觉验证：公共 Header 与 Footer 共用正式轮廓字标；尚未部署 Preview 或 Production，也未 merge 或 push。
 
 ## 当前运行边界
 
