@@ -4,7 +4,7 @@ doc_type: decision
 authority: canonical
 status: accepted
 scope: decision-brand-name
-last_verified: 2026-07-26
+last_verified: 2026-07-30
 max_lines: 100
 ---
 
@@ -12,7 +12,7 @@ max_lines: 100
 
 ## Context
 
-项目需要用一个面向英语和西班牙语读者的正式品牌名替代工作名 `China Knowledge Hub`。名称需要同时承载可信信息、编辑策展和真实作者网络，并避免旅游平台、官方机构或咨询公司的语气。
+项目需要用一个面向全球用户的正式品牌名替代工作名 `China Knowledge Hub`。名称需要同时容纳丰富的中国信息、具体的人、继续交流和共同流量。站方负责选择和组织内容，但这属于运营机制，不把品牌限定为出版物、媒体或杂志。
 
 ## Decision
 
@@ -24,7 +24,7 @@ max_lines: 100
 
 ## Consequences
 
-- 品牌可以围绕事实、人物和亲历内容建立编辑识别。
+- 品牌可以围绕具体信息、人物和亲历经验建立识别。
 - 对外文案不得把名称扩写成“唯一真实的中国”或纠正他人的宣传口号。
 - 后续字标可以强化逗号，但不能牺牲名称的可读性。
 

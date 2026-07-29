@@ -4,7 +4,9 @@
 
 ## 1. Visual Theme & Atmosphere
 
-Create a people-powered international editorial publication. Editorial discipline gives every page authority; named people, recognizable voices, and lived experience give it warmth. The visitor should sense that a real, varied group of Chinese contributors is present throughout the product, not hidden behind an institutional masthead.
+Create a global China information and people hub built from useful knowledge and the presence of many distinct contributors. Visitors should be able to find what they need, discover someone worth knowing, and continue into a deeper relationship. Selection, classification, verification, and maintenance keep the information useful; they are operating mechanisms, not a reason to frame the brand as an international editorial publication, media brand, or magazine.
+
+- The internal brand context lives in [`docs/product-brief.md`](docs/product-brief.md#内部品牌语境非对外文案). It guides design decisions but must not be copied into public UI as brand description or explanatory copy.
 
 - The public brand name is `China, in Fact`. Retain the comma in the wordmark and running text.
 
