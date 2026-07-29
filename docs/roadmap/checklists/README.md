@@ -14,6 +14,6 @@ max_lines: 80
 
 当前 active checklist：
 
-- [`ADMIN-UI-001 — Payload-native Admin UI Reconstruction`](admin-payload-native-ui-reconstruction.md)：桌面优先的全 Admin 视觉审计与重构；Payload 原生能力优先，自定义只承担已证明的产品独有缺口。
+- 无。`ADMIN-UI-001` 已完成并进入 [`archive`](../../archive/admin-payload-native-ui-reconstruction.md)。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

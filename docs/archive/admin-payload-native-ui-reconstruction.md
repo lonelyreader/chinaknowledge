@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: admin-payload-native-ui-reconstruction
 last_verified: 2026-07-29
 max_lines: 300
@@ -115,7 +115,7 @@ approval_gates: checklist-commit, payload-native-baseline, visual-direction, pro
 - [x] 校验 light/dark、三桌面视口、125% zoom、长内容、英西内容、最小高度与 upload drawer stacking；移动端只保留灾难性回归。
 - [x] 完成 Anonymous、Member、Editor、Super Admin 权限负例和服务端直接请求负例；新增验证覆盖 context 伪造、直接创建、非 Super Admin 邀请拒绝及 Super Admin 邀请成功。
 - [x] 完成最终代码与证据的非主持桌面视觉复审和技术/权限复审；旧复审发现的 widget、upload refresh、权限 capability 与证据问题均已修正，两项最终结论均为 `PASS，P0/P1/P2 = 0/0/0`。
-- [ ] 写回 current、feature registry、implementation evidence，完成后把 checklist 移入 archive。
+- [x] 写回 current、feature registry、implementation evidence，并把 checklist 移入 archive。
 
 ## No-go
 
@@ -188,3 +188,10 @@ approval_gates: checklist-commit, payload-native-baseline, visual-direction, pro
 - `merge / push`：分别批准，不从实现或 commit 授权推导。
 
 当前门禁：`payload-native-baseline`、`visual-direction`、`product-code`、`permission-change`、`commit`、`push`、`preview-deploy` 与 `production-deploy` 已通过；本分支为 `main`，不涉及单独 merge。Members 仅保留 Invite 作为开户入口，原生直接创建由服务端权限关闭；部署不授权 migration、真实邀请、真实邮件、批量数据或内容公开。
+
+## Closure
+
+- 实现提交：`3872a3e`，已 push 到 `origin/main`。
+- Preview：`dpl_512krg6eXjSvLe5Grv8bZNb8Aiss`，Ready；health、Admin 和 login 只读检查通过。
+- Production：`dpl_AtoZhpk3PudBrkZPq9NZfzDgxYbG`，Ready 并已 promote 到 `chinainfact.com`；health、Admin、login、Home、robots 均为 200，发布后 error/warning 日志为 0。
+- 本轮没有 migration、真实邀请、真实邮件、内容发布或 Production 数据写入；回滚目标保留为上一正式部署 `dpl_BXJNsTa28fwmMqcxt9k22VbCJoWb`。

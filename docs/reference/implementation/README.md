@@ -19,6 +19,6 @@ max_lines: 60
 | `P2-PREVIEW-001` | 实现者验收与第二轮独立复审均 PASS；P0/P1/P2 finding 为零 | [`local preparation`](p2-preview-local-preparation-2026-07-27.md)、[`provider research`](p2-preview-provider-research-2026-07-27.md)、[`migration and recovery plan`](p2-preview-migration-recovery-plan-2026-07-27.md) |
 | `PROD-LAUNCH-001` | 真实内容、正式域名、恢复演练与独立复审均完成 | [`readiness research`](production-launch-readiness-research-2026-07-27.md)、[`backup and recovery`](production-backup-recovery-2026-07-28.md)、[`public product audit`](production-public-product-audit-2026-07-28.md) |
 | `PUB-CURATION-001` | 成员直接发布、站方同文档策展、聚焦 Editor 工作区、双语 Person/路由、Production 读回、恢复与双重独立复审全部通过 | [`architecture audit`](member-publishing-curation-architecture-audit-2026-07-28.md)、[`closure evidence`](member-publishing-curation-core-slice-2026-07-28.md) |
-| `ADMIN-UI-001` | Payload-native 桌面基线与首轮组件裁决已完成；全路由审计和视觉门禁进行中 | [`native baseline`](admin-payload-native-baseline-2026-07-29.md) |
+| `ADMIN-UI-001` | Payload-native 全 Admin 桌面审计、三视口矩阵、权限负例、双重独立复审和 Production 读回均通过 | [`native baseline and closure`](admin-payload-native-baseline-2026-07-29.md) |
 
 原始截图位于 `assets/`，由对应 evidence 文档解释；不要脱离测试结论单独把图片当作接受依据。

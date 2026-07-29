@@ -22,6 +22,7 @@ max_lines: 80
 | `PROD-LAUNCH-001` | 正式域名、真实内容、匿名公开、搜索索引、恢复与回滚演练均通过 | [`production-launch-readiness.md`](production-launch-readiness.md) |
 | `PUB-CURATION-001` | 成员直接发布、站方同文档策展、Editor 作者体验、双语资料、生产恢复与双重独立复审均通过 | [`member-publishing-curation-closure.md`](member-publishing-curation-closure.md) |
 | `FEATURE-REGISTRY-001` | 70 项当前功能已按用户类型登记，188 个实现与事实文件受同步门禁约束 | [`app-feature-registry.md`](app-feature-registry.md) |
+| `ADMIN-UI-001` | 全部自定义 Admin UI 已按 Payload `3.86.0` 原生能力重构，桌面视觉与技术/权限独立复审通过并部署 Production | [`admin-payload-native-ui-reconstruction.md`](admin-payload-native-ui-reconstruction.md) |
 
 规则：
 

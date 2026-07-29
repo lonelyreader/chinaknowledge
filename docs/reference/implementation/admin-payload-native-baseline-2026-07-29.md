@@ -182,7 +182,9 @@ contact sheet 保留初轮几何对照；permission-change 后的 Members 复拍
 
 独立复审：最终桌面视觉专项与 UI 技术/权限专项均为 `PASS，P0/P1/P2 = 0/0/0`。视觉复审明确核对 invite-only Members、展开侧栏、三桌面视口、125% upload drawer、dark、Writing/Site 与长内容；技术复审明确核对请求级 invite capability、单一 role-aware widget、upload 保存刷新、无 schema/migration 变化和删除组件无残留。
 
-验证：最终结果以本变更提交与部署读回为准。主工作树的两个无关 editorial draft 输出不属于 `ADMIN-UI-001`，不修改、不暂存；治理门禁在最终提交的干净 worktree 中复验。
+验证：typecheck、lint（0 errors，40 个既有 migration warnings）、build、干净隔离库 12 条 migration 后的 `test:editorial`、feature registry、文档治理、change intake 和 `git diff --check` 均通过。主工作树的两个无关 editorial draft 输出不属于 `ADMIN-UI-001`，未修改、未暂存；完整治理门禁在提交 `3872a3e` 的干净 worktree 中 PASS。
+
+部署读回：Preview `dpl_512krg6eXjSvLe5Grv8bZNb8Aiss` 与 Production `dpl_AtoZhpk3PudBrkZPq9NZfzDgxYbG` 均为 Ready。Production 候选完成 health、Admin 与 login 只读检查后 promote；正式域名的 health、Admin、login、Home 与 robots 均为 200，发布后 error/warning 日志为 0。没有 migration、真实邀请、真实邮件或 Production 数据写入。
 
 ## Remaining Audit
 
