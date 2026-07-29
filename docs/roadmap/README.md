@@ -14,7 +14,7 @@ max_lines: 100
 
 ## Active
 
-当前没有 active checklist。已完成的 `FEATURE-REGISTRY-001` 见 [`archive`](../archive/app-feature-registry.md)。
+`ADMIN-UI-001`：以当前 Payload `3.86.0` 原生 Admin 为基线，系统审计全部自定义 Admin UI，删除重复实现，只最小保留产品独有工作流。执行与门禁见 [`admin-payload-native-ui-reconstruction.md`](checklists/admin-payload-native-ui-reconstruction.md)。
 
 ## Deferred
 

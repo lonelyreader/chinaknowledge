@@ -12,6 +12,8 @@ max_lines: 80
 
 本目录只存 active 执行清单。一个 checklist 对应一个交付目标，完成或被替代后移入 `docs/archive/`。
 
-当前没有 active checklist。`FEATURE-REGISTRY-001` 已完成并移入 [`archive`](../../archive/app-feature-registry.md)。
+当前 active checklist：
+
+- [`ADMIN-UI-001 — Payload-native Admin UI Reconstruction`](admin-payload-native-ui-reconstruction.md)：桌面优先的全 Admin 视觉审计与重构；Payload 原生能力优先，自定义只承担已证明的产品独有缺口。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。
