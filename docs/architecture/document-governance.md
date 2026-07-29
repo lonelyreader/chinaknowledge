@@ -71,7 +71,8 @@ Active checklist 还必须声明 `change_id`、`risk_tier`、`validation_profile
 - Router 不含 checkbox。
 - Active checklist 的合同字段与必需章节。
 - 当前工作树中的所有改动都被 active checklist 的 `allowed_paths` 覆盖。
+- 功能实现观察范围与 `product-feature-registry.md` 的实现指纹一致。
 - 稳定入口文件不混入阶段状态或执行清单。
 
-机器检查只证明结构和路径覆盖合法。Current、roadmap、checklist 与实际代码是否一致，
-仍需人工语义复核。
+机器检查证明结构、路径覆盖和功能登记所对应的实现快照一致。登记册的自然语言是否准确，
+仍需在任务验收和独立复审中按受影响功能编号核对。

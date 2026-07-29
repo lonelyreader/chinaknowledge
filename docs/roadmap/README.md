@@ -14,7 +14,7 @@ max_lines: 100
 
 ## Active
 
-[`FEATURE-REGISTRY-001 App Feature Registry`](checklists/app-feature-registry.md)：建立按用户类型组织的当前功能登记册，并增加功能变更必须同步更新登记册的机器门禁。
+当前没有 active checklist。已完成的 `FEATURE-REGISTRY-001` 见 [`archive`](../archive/app-feature-registry.md)。
 
 ## Deferred
 

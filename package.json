@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "docs:governance:check": "node scripts/check-doc-governance.mjs",
+    "feature-registry:check": "node scripts/check-feature-registry.mjs",
+    "feature-registry:update": "node scripts/check-feature-registry.mjs --update",
     "change:intake:verify": "node scripts/check-change-intake.mjs",
-    "governance:check": "npm run docs:governance:check && npm run change:intake:verify"
+    "governance:check": "npm run docs:governance:check && npm run feature-registry:check && npm run change:intake:verify"
   }
 }

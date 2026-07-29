@@ -50,6 +50,7 @@ chinaknowledge/
 3. 按任务打开它指向的最小材料
 
 当前事实见 [`docs/current-state.md`](docs/current-state.md)，当前执行见 [`docs/roadmap/README.md`](docs/roadmap/README.md)。
+按用户类型查看 App 已经具备的全部功能，见 [`docs/product-feature-registry.md`](docs/product-feature-registry.md)。
 
 技术选型仍是待确认建议，见
 [`docs/reference/technical-stack-proposal.md`](docs/reference/technical-stack-proposal.md)。
@@ -74,6 +75,9 @@ chinaknowledge/
 npm run governance:check
 git diff --check
 ```
+
+功能、权限、路由、schema、运维能力或上线状态发生变化时，必须同步更新功能登记册并运行
+`npm run feature-registry:update`；登记册未同步时治理检查会失败。
 
 完整合同见 [`docs/architecture/README.md`](docs/architecture/README.md)。
 

@@ -55,6 +55,14 @@ approval_gates: 仍需单独批准的动作
 - 唯一例外是首次建立本治理基线：必须有用户明确授权、标记 `bootstrap: true`，并在首次治理提交后立即归档；此例外不能再次使用。
 - 完成后 checklist 进入 archive，当前事实写回 current；不要把完成项长期留在 active 队列。
 
+## 功能登记硬门禁
+
+- [`../product-feature-registry.md`](../product-feature-registry.md) 是 App 当前已实现功能的唯一人类可读登记册，按访客、Member、Editor、Super Admin 和运营维护分类。
+- 功能新增、行为调整、功能下线、角色或权限变化、公开路由变化、schema 变化、运维能力变化及上线状态变化，必须在同一 active checklist 和同一变更批次更新登记册。
+- `npm run feature-registry:check` 用实现指纹核对公共页面、CMS、权限、schema、环境、运维脚本、产品事实和治理入口；观察范围发生变化而登记册未同步时必须失败。
+- 实现者先更新受影响功能的自然语言、入口与边界，再运行 `npm run feature-registry:update`。刷新指纹不是语义复核的替代品。
+- Reviewer 必须按受影响功能编号核对实际行为；新增能力若没有登记编号、权限边界和入口，不得判定完成。
+
 ## 风险分级
 
 ### Base
@@ -132,6 +140,7 @@ approval_gates: 仍需单独批准的动作
 | 发生变化 | 写回 |
 |---|---|
 | 当前真实能力、运行入口、环境 | `docs/current-state.md` |
+| App 已实现功能及各角色可见能力 | `docs/product-feature-registry.md` |
 | 产品定位、栏目或角色 | `docs/product-brief.md` |
 | 长期工程规则 | `docs/architecture/` 中现有合同 |
 | 当前执行状态 | `docs/roadmap/README.md` 和 active checklist |

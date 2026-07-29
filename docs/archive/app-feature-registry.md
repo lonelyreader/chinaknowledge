@@ -2,14 +2,14 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: app-feature-registry-delivery
 last_verified: 2026-07-29
 max_lines: 180
 change_id: FEATURE-REGISTRY-001
 risk_tier: base
 validation_profile: work_item
-allowed_paths: README.md, package.json, .github/PULL_REQUEST_TEMPLATE.md, docs/README.md, docs/START-HERE.md, docs/current-state.md, docs/architecture/development-governance.md, docs/architecture/document-governance.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/app-feature-registry.md, docs/archive/README.md, docs/archive/app-feature-registry.md, scripts/check-feature-registry.mjs
+allowed_paths: README.md, package.json, .github/PULL_REQUEST_TEMPLATE.md, docs/README.md, docs/START-HERE.md, docs/current-state.md, docs/architecture/README.md, docs/architecture/development-governance.md, docs/architecture/document-governance.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/app-feature-registry.md, docs/archive/README.md, docs/archive/app-feature-registry.md, scripts/check-feature-registry.mjs
 approval_gates: commit, merge, production-deploy
 ---
 
@@ -34,13 +34,21 @@ approval_gates: commit, merge, production-deploy
 
 ## Work
 
-- [ ] 建立按访客、Member、Editor、Super Admin 和运营维护分类的功能登记册。
-- [ ] 为每组能力标明入口、边界和当前事实来源。
-- [ ] 将登记册挂载到项目文档路由和任务恢复路由。
-- [ ] 增加功能变更与登记册同步的机器门禁。
-- [ ] 更新治理合同、PR 模板和当前状态。
-- [ ] 运行治理、门禁、脚本语法和 diff 检查。
-- [ ] 完成后写回并归档本清单。
+- [x] 建立按访客、Member、Editor、Super Admin 和运营维护分类的功能登记册。
+- [x] 为每组能力标明入口、边界和当前事实来源。
+- [x] 将登记册挂载到项目文档路由和任务恢复路由。
+- [x] 增加功能变更与登记册同步的机器门禁。
+- [x] 更新治理合同、PR 模板和当前状态。
+- [x] 运行治理、门禁、脚本语法和 diff 检查。
+- [x] 完成后写回并归档本清单。
+
+## Closure
+
+- 登记册按五类用户/维护角色记录 70 项当前能力，并明确当前不提供的能力。
+- 根 README、Docs Router、Start Here 与 Current State 均已挂载登记册。
+- 功能指纹覆盖 188 个公共页面、CMS、权限、schema、测试、环境、运维、产品事实和治理文件。
+- 临时变更探针证明观察范围变化且未更新登记册时检查以 exit 1 失败；恢复后检查 PASS。
+- `node --check`、文档治理、功能登记、change intake 与 diff check 均通过；用户的两份未跟踪文章草稿保持未修改、未提交。
 
 ## Acceptance
 
