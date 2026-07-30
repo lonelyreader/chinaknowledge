@@ -9,7 +9,7 @@ max_lines: 300
 change_id: AGENT-WORKSPACE-001
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: .github/workflows/**, package.json, package-lock.json, apps/web/package.json, apps/web/package-lock.json, apps/web/src/agent/**, apps/web/src/app/(payload)/**, apps/web/src/app/(frontend)/api/agent/**, apps/web/src/cms/**, apps/web/src/collections/AgentConnections.ts, apps/web/src/collections/AgentEvents.ts, apps/web/src/migrations/**, apps/web/src/payload-types.ts, apps/web/src/payload.config.ts, apps/web/tests/**, docs/README.md, docs/START-HERE.md, docs/agent-workspace-requirements.md, docs/product-brief.md, docs/product-feature-registry.md, docs/current-state.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-member-foundation.md, docs/reference/README.md, docs/reference/implementation/**, docs/decisions/**, docs/archive/README.md, docs/archive/agent-workspace-member-foundation.md
+allowed_paths: .github/workflows/**, package.json, package-lock.json, apps/web/package.json, apps/web/package-lock.json, apps/web/src/agent/**, apps/web/src/app/(payload)/**, apps/web/src/app/(frontend)/api/agent/**, apps/web/src/cms/**, apps/web/src/collections/AgentOAuthClients.ts, apps/web/src/collections/AgentConnections.ts, apps/web/src/collections/AgentEvents.ts, apps/web/src/migrations/**, apps/web/src/payload-types.ts, apps/web/src/payload.config.ts, apps/web/tests/**, docs/README.md, docs/START-HERE.md, docs/agent-workspace-requirements.md, docs/product-brief.md, docs/product-feature-registry.md, docs/current-state.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-member-foundation.md, docs/reference/README.md, docs/reference/implementation/**, docs/decisions/**, docs/archive/README.md, docs/archive/agent-workspace-member-foundation.md
 approval_gates: checklist-commit, auth-design, product-code, dependency-install, database-schema, migration, preview-deploy, real-account, real-data, production-deploy, public-mcp, merge, push
 ---
 
@@ -58,16 +58,16 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 
 ### Gate 0 — 授权基线
 
-- [ ] 将需求、roadmap 与本 checklist 提交进 HEAD；提交前不修改代码、配置或 schema。
-- [ ] 取得 `auth-design` 批准：确认 OAuth provider/library、metadata、PKCE、audience、token TTL、refresh rotation、撤销和客户端注册方案；不手写加密或 token 协议。
-- [ ] 取得 `product-code` 批准后再开始本地实现；新增依赖和 schema 分别使用独立门禁。
+- [x] 将需求、roadmap 与本 checklist 提交进 HEAD；提交前不修改代码、配置或 schema。
+- [x] 取得 `auth-design` 批准：用户于 2026-07-31 接受 auth design evidence；OAuth provider/library、metadata、PKCE、audience、token TTL、refresh rotation、撤销和客户端注册方案已固定。
+- [x] 取得 `product-code` 批准后再开始本地实现；用户于 2026-07-31 要求开始执行 001，新增依赖和 schema 仍使用独立门禁。
 
 ### Gate 1 — Contract spike
 
 - [ ] 在 reference 记录 Cursor、TRAE、WorkBuddy、Codex、Claude、Gemini 当前项目配置、Streamable HTTP 和 OAuth 能力，只保留官方证据与版本日期。
 - [ ] 用一次性 spike 验证现有 Vercel/Next 路由能承载无状态 Streamable HTTP MCP、OAuth metadata 和 callback；失败时停止，不直接拆服务。
-- [ ] 固定 `AgentToolResultV1`、错误码、request ID、revision、idempotency key 和 capability response；工具说明前 512 字符自足。
-- [ ] 固定最小 Markdown/正文映射，证明支持的结构可往返；不支持的 Lexical 节点必须拒绝或无损保留。
+- [x] 固定 `AgentToolResultV1`、错误码、request ID、revision、idempotency key 和 capability response；工具说明前 512 字符自足。
+- [x] 固定最小 Markdown/正文映射，证明支持的结构可往返；不支持的 Lexical 节点必须拒绝或无损保留。
 
 ### Gate 2 — Identity and connections
 
@@ -156,4 +156,4 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 - `production-deploy`：独立复审 PASS、恢复和监控就绪后单独批准。
 - `merge / push`：分别批准。
 
-当前门禁：仅需求与 checklist 文档已获编写授权；`checklist-commit`、`auth-design`、`product-code` 及其余外部动作尚未通过。
+当前门禁：`checklist-commit`、`product-code`、`auth-design`、`dependency-install` 与 `database-schema` 已通过；认证设计见 [`auth design evidence`](../../reference/implementation/agent-workspace-001-auth-design-2026-07-31.md)。`migration` 及全部外部动作尚未通过。
