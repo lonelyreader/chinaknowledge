@@ -4,12 +4,12 @@ doc_type: checklist
 authority: execution
 status: active
 scope: agent-workspace-member-foundation
-last_verified: 2026-07-30
+last_verified: 2026-07-31
 max_lines: 300
 change_id: AGENT-WORKSPACE-001
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: .github/workflows/**, package.json, package-lock.json, apps/web/package.json, apps/web/package-lock.json, apps/web/src/agent/**, apps/web/src/app/(payload)/**, apps/web/src/app/(frontend)/api/agent/**, apps/web/src/cms/**, apps/web/src/collections/AgentConnections.ts, apps/web/src/collections/AgentEvents.ts, apps/web/src/migrations/**, apps/web/src/payload-types.ts, apps/web/src/payload.config.ts, apps/web/tests/**, docs/README.md, docs/START-HERE.md, docs/agent-workspace-requirements.md, docs/product-brief.md, docs/product-feature-registry.md, docs/current-state.md, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-member-foundation.md, docs/reference/README.md, docs/reference/implementation/**, docs/decisions/**, docs/archive/README.md, docs/archive/agent-workspace-member-foundation.md
+allowed_paths: .github/workflows/**, package.json, package-lock.json, apps/web/package.json, apps/web/package-lock.json, apps/web/src/agent/**, apps/web/src/app/(payload)/**, apps/web/src/app/(frontend)/api/agent/**, apps/web/src/cms/**, apps/web/src/collections/AgentConnections.ts, apps/web/src/collections/AgentEvents.ts, apps/web/src/migrations/**, apps/web/src/payload-types.ts, apps/web/src/payload.config.ts, apps/web/tests/**, docs/README.md, docs/START-HERE.md, docs/agent-workspace-requirements.md, docs/product-brief.md, docs/product-feature-registry.md, docs/current-state.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-member-foundation.md, docs/reference/README.md, docs/reference/implementation/**, docs/decisions/**, docs/archive/README.md, docs/archive/agent-workspace-member-foundation.md
 approval_gates: checklist-commit, auth-design, product-code, dependency-install, database-schema, migration, preview-deploy, real-account, real-data, production-deploy, public-mcp, merge, push
 ---
 
@@ -101,6 +101,7 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 - [ ] 用桌面浏览器验证 `Agent access` 的正常、空、错误和撤销状态；人工执行 `DESIGN.md` copy gate。
 - [ ] 完成 OAuth/MCP 安全独立复审与 Member 权限独立复审，所有 BLOCK 修复后复验。
 - [ ] 更新 App 功能登记册与实现指纹；只在能力已真实验证后更新 current。
+- [ ] 关闭 001 前更新父级清单并完成 transition review；基于真实证据决定 002–005 保留、拆分、合并、改序或取消，不自动启动 002。
 - [ ] Preview 部署、migration 和真实账户测试分别取得批准；本地完成不推导外部授权。
 - [ ] 全部验收通过后写 implementation evidence、必要 ADR，并把 checklist 移入 archive。
 
@@ -140,6 +141,7 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 - OAuth、MCP、客户端兼容、权限与复审证据：`docs/reference/implementation/`。
 - 被接受的长期技术选择：必要时新增 `docs/decisions/` ADR 并登记。
 - 当前执行：本 checklist、`docs/roadmap/README.md`、`docs/roadmap/checklists/README.md`。
+- 父级计划与阶段转换：`docs/roadmap/agent-workspace-program.md`。
 - 完成历史：`docs/archive/agent-workspace-member-foundation.md`。
 
 ## Approval Gates
