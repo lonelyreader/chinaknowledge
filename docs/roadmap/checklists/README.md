@@ -14,6 +14,6 @@ max_lines: 80
 
 当前 active checklist：
 
-- 无。`BRAND-WORDMARK-001` 已完成并进入 [`archive`](../../archive/brand-wordmark-site-integration.md)。
+- [`AGENT-WORKSPACE-001`](agent-workspace-member-foundation.md)：远程 MCP、OAuth 与 Member read/draft/preview 基础；产品代码和外部动作仍受单独门禁约束。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

@@ -17,6 +17,7 @@ max_lines: 100
 | “现在是什么状态” | [`current-state.md`](current-state.md)、相关 active checklist、当前 repo/runtime 证据 |
 | “App 有什么功能”或功能影响分析 | [`product-feature-registry.md`](product-feature-registry.md)、受影响源码；开发后更新登记册指纹 |
 | 新需求或产品讨论 | [`product-brief.md`](product-brief.md)、[`roadmap/README.md`](roadmap/README.md) |
+| Agent Workspace、MCP 或 Agent 权限 | [`agent-workspace-requirements.md`](agent-workspace-requirements.md)、相关 active checklist、CMS 权限与业务端点 |
 | Stitch、UI 或文案 | [`../DESIGN.md`](../DESIGN.md)、相关设计 reference、active checklist |
 | 实现或修复 | [`architecture/development-governance.md`](architecture/development-governance.md)、active checklist、相关源码 |
 | CMS、权限、数据或 migration | 开发治理合同、相关 architecture、权限与 migration 证据 |

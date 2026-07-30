@@ -4,7 +4,7 @@ doc_type: product
 authority: canonical
 status: active
 scope: product-definition
-last_verified: 2026-07-28
+last_verified: 2026-07-31
 max_lines: 240
 ---
 
@@ -196,6 +196,8 @@ stateDiagram-v2
 | Super Admin | 包含 Editor 能力；邀请、暂停、恢复成员和管理权限 |
 
 后台使用 `My work / My profile` 和站方策展入口表达任务，不让 Member 在全量 CMS 集合、审核状态和内部字段中穿行。完整任务合同见 [`Member Publishing And Editorial Curation Requirements`](operational-publishing-requirements.md)。
+
+Agent Workspace 的目标是让已有后台账户的人从自己的 Agent 完成同一组权限内任务。Agent 通过远程 Gateway 获得结构化业务工具，服务器继续逐次校验身份、角色、对象所有权和状态转换；本地 Workspace、客户端配置和模型判断都不授予权限。该能力尚未实现，完整合同见 [`Agent Workspace Requirements`](agent-workspace-requirements.md)。
 
 ## 8. 增长与留存闭环
 

@@ -17,6 +17,7 @@ max_lines: 100
 | 产品定位、用户、栏目、角色 | [`product-brief.md`](product-brief.md) | 旧聊天、fixture、旧投稿流程 |
 | App 按用户类型已经具备哪些功能 | [`product-feature-registry.md`](product-feature-registry.md) | 产品愿景、旧验收清单、单个页面截图 |
 | 成员发布、站方策展、署名与人物导流 | [`operational-publishing-requirements.md`](operational-publishing-requirements.md) | 后台默认按钮、旧 workflow 状态、临时运维步骤 |
+| 后台用户通过自己的 Agent 工作 | [`agent-workspace-requirements.md`](agent-workspace-requirements.md) | 本地规则、客户端配置、模型自行推断的权限 |
 | 当前真实状态 | [`current-state.md`](current-state.md) | roadmap 目标、历史归档 |
 | 开发授权、风险、验收、文档规则 | [`architecture/README.md`](architecture/README.md) | PR 描述、临时清单 |
 | 当前工作与后置项 | [`roadmap/README.md`](roadmap/README.md) | reference、聊天计划 |

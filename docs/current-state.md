@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-07-30
+last_verified: 2026-07-31
 max_lines: 160
 ---
 
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-当前没有 active checklist。`BRAND-WORDMARK-001` 已在提交 `17f88fa` 完成本地实现和桌面/移动视觉验证：公共 Header 与 Footer 共用正式轮廓字标；尚未部署 Preview 或 Production，也未 merge 或 push。
+[`AGENT-WORKSPACE-001`](roadmap/checklists/agent-workspace-member-foundation.md) 是当前 active checklist，目标是建立远程 MCP、OAuth 与 Member read/draft/preview 首个闭环。当前只完成需求与执行清单，尚未实现 Agent 产品能力；代码、依赖、schema、migration、Preview、真实账户和 Production 分别受门禁约束。
 
 ## 当前运行边界
 
