@@ -4,7 +4,7 @@ doc_type: product
 authority: canonical
 status: active
 scope: permissioned-agent-workspace
-last_verified: 2026-07-30
+last_verified: 2026-07-31
 max_lines: 260
 ---
 
@@ -189,6 +189,8 @@ member_commit_invite
 - 成员已经具备可用网络条件；本需求不包含大陆网络封锁适配、区域中继、境内镜像或相关基础设施。
 
 ## 9. 首个交付切片
+
+完整阶段关系和 001 完成后的重新分析门槛见 [`Agent Workspace Parent Checklist`](roadmap/agent-workspace-program.md)。002–005 目前只是候选方向，不构成实现授权。
 
 首个实现只交付一条可真实验证的 Member 闭环：
 
