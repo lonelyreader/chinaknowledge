@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-workspace-member-foundation
 last_verified: 2026-07-31
 max_lines: 300
@@ -64,7 +64,7 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 
 ### Gate 1 — Contract spike
 
-- [x] 在 [`client compatibility evidence`](../../reference/implementation/agent-workspace-001-client-compatibility-2026-07-31.md) 记录 Cursor、TRAE、WorkBuddy、Codex、Claude、Gemini 当前项目配置、Streamable HTTP 和 OAuth 能力；不明确的能力保留为真实测试项。
+- [x] 在 [`client compatibility evidence`](../reference/implementation/agent-workspace-001-client-compatibility-2026-07-31.md) 记录 Cursor、TRAE、WorkBuddy、Codex、Claude、Gemini 当前项目配置、Streamable HTTP 和 OAuth 能力；不明确的能力保留为真实测试项。
 - [x] 自动 spike 已证明现有 Next Route Handler 能承载无状态 Streamable HTTP MCP、OAuth metadata、Bearer challenge 和 callback 路由合同，不需要拆分第二个服务。
 - [x] 固定 `AgentToolResultV1`、错误码、request ID、revision、idempotency key 和 capability response；工具说明前 512 字符自足。
 - [x] 固定最小 Markdown/正文映射，证明支持的结构可往返；不支持的 Lexical 节点必须拒绝或无损保留。
@@ -101,9 +101,9 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 - [x] 用桌面浏览器验证 `Agent access` 的正常、空、错误和撤销状态；桌面与 390px 均无横向溢出，人工 `DESIGN.md` copy gate 通过。
 - [x] 完成 OAuth/MCP 安全独立复审与 Member 权限独立复审；首审及窄复验发现的 Gateway 默认关闭、refresh family replay、`offline_access`、Consent 能力、请求体上限、Codex fixture、撤销审计、连接排序、范围合同和文档状态均已修复，同一 reviewer 最终复验 `PASS`，P0/P1/P2 为 `0/0/0`。
 - [x] 更新 App 功能登记册与实现指纹；只在能力已真实验证后更新 current。
-- [ ] 关闭 001 前更新父级清单并完成 transition review；基于真实证据决定 002–005 保留、拆分、合并、改序或取消，不自动启动 002。
-- [ ] Preview 部署、migration 和真实账户测试分别取得批准；本地完成不推导外部授权。
-- [ ] 全部验收通过后写 implementation evidence、必要 ADR，并把 checklist 移入 archive。
+- [x] 更新父级清单并完成 transition review；002 `keep + narrow`，003 `keep` 并排在 002 后，004 `split`，005 `keep + expand`；未自动启动 002。
+- [x] 经逐项批准，在 Preview 备份后应用 migration，以虚构 `.test` Member 完成公开 MCP、真实 Cursor OAuth/工具链、越权和撤权验收；随后删除全部测试记录并恢复 Vercel SSO 保护。Production 未触碰。
+- [x] 写回 Preview、transition review 与最终复审证据，并把 checklist 移入 archive。
 
 ## Acceptance
 
@@ -156,4 +156,4 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 - `production-deploy`：独立复审 PASS、恢复和监控就绪后单独批准。
 - `merge / push`：分别批准。
 
-当前门禁：`checklist-commit`、`product-code`、`auth-design`、`dependency-install`、`database-schema`、Local `migration`、Cursor Local 真实客户端与最终独立复审已通过；认证设计见 [`auth design evidence`](../../reference/implementation/agent-workspace-001-auth-design-2026-07-31.md)，本地 migration、schema、OAuth/MCP、权限与 Cursor 结果见 [`local runtime evidence`](../../reference/implementation/agent-workspace-001-local-runtime-2026-07-31.md)，复审见 [`final review`](../../reference/implementation/agent-workspace-001-final-review-2026-07-31.md)。用户已条件授权复审 PASS 后的窄提交；TRAE/WorkBuddy 为 `NOT RUN / NOT_VERIFIED`，Preview、公开 MCP、真实账户、Production、merge 与 push 均未获批准或未验证，001 继续保持 active。
+关闭状态：Local 与 Preview migration、远程 OAuth/MCP、Cursor 真实客户端、Member 草稿、越权拒绝、后台撤权和独立复审均通过。Preview 只使用已删除的虚构 `.test` 夹具，SSO 已恢复；TRAE/WorkBuddy 继续为 `NOT RUN / NOT_VERIFIED` 并转入 005。Production、merge 与 push 均未执行。证据见 [`local runtime`](../reference/implementation/agent-workspace-001-local-runtime-2026-07-31.md)、[`Preview runtime`](../reference/implementation/agent-workspace-001-preview-runtime-2026-07-31.md)、[`transition review`](../reference/implementation/agent-workspace-001-transition-review-2026-07-31.md) 与 [`final review`](../reference/implementation/agent-workspace-001-final-review-2026-07-31.md)。

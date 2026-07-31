@@ -63,6 +63,14 @@ function oauthFailure(error: unknown) {
   );
 }
 
+function logOAuthFailure(operation: string, error: unknown) {
+  if (error instanceof OAuth2Server.OAuthError || error instanceof RequestBodyTooLarge) return;
+  const detail = error instanceof Error
+    ? { message: error.message, name: error.name, stack: error.stack }
+    : { message: "Unknown OAuth failure", name: typeof error };
+  console.error(`[agent-oauth] ${operation} failed`, detail);
+}
+
 async function limitedFormText(request: Request) {
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (Number.isFinite(declared) && declared > oauthFormLimit) {
@@ -125,6 +133,27 @@ export function validateAuthorizeRequest(input: URLSearchParams, origin: string 
   return value as AuthorizeRequest;
 }
 
+export function validAuthorizePostOrigin(headers: Headers, origin: string | URL) {
+  const requestOrigin = headers.get("origin");
+  if (!requestOrigin) return true;
+  if (requestOrigin === "null") {
+    return headers.get("sec-fetch-site") === "same-origin"
+      && headers.get("sec-fetch-mode") === "navigate"
+      && headers.get("sec-fetch-dest") === "document";
+  }
+  try {
+    return new URL(requestOrigin).origin === new URL(origin).origin;
+  } catch {
+    return false;
+  }
+}
+
+export function authorizeActorHeaders(headers: Headers) {
+  const value = new Headers(headers);
+  if (value.get("origin") === "null") value.delete("origin");
+  return value;
+}
+
 function redirectError(redirectUri: string, state: string, error: string) {
   const target = new URL(redirectUri);
   target.searchParams.set("error", error);
@@ -163,8 +192,8 @@ function formActionSource(redirectUri: string) {
     : redirect.protocol;
 }
 
-async function actorForRequest(request: Request, payload: Payload) {
-  const { user } = await payload.auth({ headers: request.headers });
+async function actorForRequest(request: Request, payload: Payload, headers = request.headers) {
+  const { user } = await payload.auth({ headers });
   if (!isCMSUser(user)) return null;
   const people = await payload.find({
     collection: "people",
@@ -293,14 +322,13 @@ export async function handleAuthorizeGet(request: Request, payload: Payload, ori
 
 export async function handleAuthorizePost(request: Request, payload: Payload, origin: string, secret: string) {
   try {
-    const requestOrigin = request.headers.get("origin");
-    if (requestOrigin && new URL(requestOrigin).origin !== new URL(origin).origin) throw new OAuth2Server.InvalidRequestError("Invalid request origin.");
+    if (!validAuthorizePostOrigin(request.headers, origin)) throw new OAuth2Server.InvalidRequestError("Invalid request origin.");
     const form = new URLSearchParams(await limitedFormText(request));
     const approval = form.get("approval") ?? "";
     const stored = await openSeal<{ actor: { personId: number; userId: number }; approvalId: string; exp: number; params: AuthorizeRequest }>(approval, secret);
     if (stored.exp < Date.now()) throw new OAuth2Server.InvalidRequestError("Authorization approval expired.");
     if (!/^[A-Za-z0-9_-]{32}$/.test(stored.approvalId)) throw new OAuth2Server.InvalidRequestError("Invalid authorization approval.");
-    const actor = linkedActor(await actorForRequest(request, payload));
+    const actor = linkedActor(await actorForRequest(request, payload, authorizeActorHeaders(request.headers)));
     if (!actor || String(actor.userId) !== String(stored.actor.userId) || String(actor.personId) !== String(stored.actor.personId)) throw new OAuth2Server.AccessDeniedError("Account changed during authorization.");
     const client = await oauthClient(payload, stored.params.client_id);
     if (!client || !acceptsRedirect(client, stored.params.redirect_uri)) throw new OAuth2Server.InvalidClientError("Unknown client or redirect URI.");
@@ -317,6 +345,7 @@ export async function handleAuthorizePost(request: Request, payload: Payload, or
     if (!location) throw new Error("Authorization redirect missing.");
     return Response.redirect(location, oauthResponse.status ?? 302);
   } catch (error) {
+    logOAuthFailure("authorize_post", error);
     return oauthFailure(error);
   }
 }

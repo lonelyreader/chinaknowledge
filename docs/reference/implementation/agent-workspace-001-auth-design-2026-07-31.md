@@ -143,4 +143,4 @@ Local 使用 fixture 完成 apply → rollback → reapply。Preview migration�
 - `database-schema`：允许增加 `agent-oauth-clients`、`agent-connections`、`agent-events`；
 - 路径扩展：metadata routes 已由 `(payload)/**` 覆盖，并精确增加 `AgentOAuthClients.ts`。
 
-`migration`、Preview、真实账户、真实数据、public MCP、Production、merge 和 push 继续保持未授权。
+本设计批准时，`migration`、Preview、真实账户、真实数据、public MCP、Production、merge 和 push 仍未授权；随后经逐项批准完成 Local/Preview migration 与虚构 `.test` Cursor 验收，见 [`Preview runtime`](agent-workspace-001-preview-runtime-2026-07-31.md)。Production、真实成员/内容、merge 和 push 仍未执行。

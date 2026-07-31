@@ -12,7 +12,7 @@ max_lines: 220
 
 本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。当前 active 子级见 [`AGENT-WORKSPACE-001`](checklists/agent-workspace-member-foundation.md)。
+稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001 已完成并归档；当前没有 active 子级，下一候选是经单独批准后建立收窄版 002。
 
 ## Program Goal
 
@@ -22,23 +22,23 @@ max_lines: 220
 flowchart LR
     P["Parent checklist<br/>阶段、依赖、转换决定"] --> A1["001<br/>Member foundation"]
     A1 --> R["Transition review<br/>根据真实证据重估"]
-    R -.-> A2["002 provisional<br/>Member publication"]
-    R -.-> A3["003 provisional<br/>Editor curation"]
-    R -.-> A4["004 provisional<br/>Super Admin"]
-    R -.-> A5["005 provisional<br/>Compatibility + release"]
+    R --> A2["002 next candidate<br/>Member publication"]
+    A2 -.-> A3["003 provisional<br/>Editor curation"]
+    A3 -.-> A4["004 provisional<br/>Admin safe subsets"]
+    A4 -.-> A5["005 provisional<br/>Compatibility + release"]
 ```
 
-虚线表示候选关系，不表示已经批准的执行顺序。001 完成后必须重新分析；002–005 可以保留、拆分、合并、改序或取消。
+实线表示 transition review 推荐的下一步，仍不构成执行授权；虚线表示后续候选关系。
 
 ## Program Status
 
 | ID | 当前状态 | 候选结果 | 进入条件 |
 |---|---|---|---|
-| `AGENT-WORKSPACE-001` | active；Cursor Local real-client 与独立复审 PASS | OAuth、远程 MCP、Member read/draft/preview | 剩余 Gate 5 与外部门禁；TRAE/WorkBuddy 转 005 |
-| `AGENT-WORKSPACE-002` | provisional | Member prepare/confirm/commit，个人公开、更新、撤回与重新公开 | 001 closure + transition review 后重新定义 |
-| `AGENT-WORKSPACE-003` | provisional | Editor Needs attention、分配、分类、来源、策展、排期与复核 | 001 closure 后由 transition review 判断是否已具备工具、并发和确认基础；不预设必须等待 002 |
-| `AGENT-WORKSPACE-004` | provisional | Super Admin 明确安全子集、step-up、账户与基础对象操作 | 特权动作风险与网页保留边界重新评估后定义 |
-| `AGENT-WORKSPACE-005` | provisional | 多客户端收口、必要时 CLI fallback、运营监控和 Production release | 真实客户端使用证据与 002–004 实际范围确定后定义 |
+| `AGENT-WORKSPACE-001` | completed；Local + Preview Cursor real-client PASS | OAuth、远程 MCP、Member read/draft/preview | 已归档；TRAE/WorkBuddy 转 005 |
+| `AGENT-WORKSPACE-002` | next candidate；`keep + narrow` | 在既有 Article 上验证 Member publication 的 prepare/confirm/commit/readback | 单独建立 active checklist 并批准公开状态写路径 |
+| `AGENT-WORKSPACE-003` | provisional；`keep` | Editor Needs attention、分配、分类、来源、策展、排期与复核 | 002 先证明确认合同，再定义 Editor 跨作者工具 |
+| `AGENT-WORKSPACE-004` | provisional；`split` | 低风险站务和高风险账户/身份分开；只评估适合 Agent 的安全子集 | 删除、提权、migration、密钥和 Production 动作保持网页或专门流程 |
+| `AGENT-WORKSPACE-005` | provisional；`keep + expand` | TRAE/WorkBuddy 真实兼容、Cursor callback 预检、运营监控、限流、支持、恢复与 Production release | 002–004 范围稳定并取得目标客户端账号；CLI fallback 仍须真实需求证据 |
 
 `provisional` 只保留问题和候选结果，不是仓库通用 checklist 状态，也不构成实现授权。子级真正开始时只能使用仓库允许的 `active` 状态。
 
@@ -46,14 +46,16 @@ flowchart LR
 
 - [x] 建立完整 Agent Workspace 产品需求，固定远程 MCP、服务器权限和多客户端方向。
 - [x] 建立 `AGENT-WORKSPACE-001`，只交付 Member read/draft/preview 基础。
-- [ ] 完成 001 的实现、验证、独立复审、证据写回与 closure。
-- [ ] 进行一次正式 transition review，不沿用 001 开始前对 002–005 的工作量和顺序假设。
-- [ ] 根据 transition review 对 002–005 做 `keep / split / merge / reorder / cancel` 决定，并记录理由。
+- [x] 完成 001 的实现、Local/Preview 验证、独立复审、证据写回与 closure。
+- [x] 完成正式 transition review，以 Cursor Preview 运行和撤权证据重新估算 002–005。
+- [x] 记录决定：002 `keep + narrow`，003 `keep` 且排在 002 后，004 `split`，005 `keep + expand`。
 - [ ] 只为下一条得到批准的结果创建一个 active 子级 checklist；其余继续停留在本页。
 - [ ] 每个子级关闭后更新本页的实际结果、遗留风险、可复用合同和下一阶段进入条件。
 - [ ] 必要 capability 子级完成后，再把 005 定义为 phase-release 子级；Production 部署、真实成员接入和公开启用仍在 005 内分别批准和读回。
 
 ## Transition Review After 001
+
+正式证据见 [`Agent Workspace 001 Transition Review`](../reference/implementation/agent-workspace-001-transition-review-2026-07-31.md)。结论是保持 `002 → 003 → 004 → 005` 的推荐顺序，但只有 002 是下一候选，任何阶段都须另建 active checklist。
 
 001 关闭后至少回答：
 
@@ -82,7 +84,7 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 
 - 候选目标：让 Editor 处理 Needs attention 到 Curated/Removed 的受约束工作流。
 - 必须重新验证：跨作者编辑、负责人、来源、分类、排期、Needs recheck、作者通知和公开署名。
-- 当前不决定：是否与 002 并行、合并或先于 002。
+- 推荐排在 002 后；具体工具范围、是否继续拆分及实现仍须独立 checklist 和批准。
 
 ### 004 — Super Admin candidate
 

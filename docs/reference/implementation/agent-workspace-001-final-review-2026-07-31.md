@@ -46,4 +46,19 @@ P2：
 
 同一 reviewer 对最终快照完成第二轮只读复验；首审 7 项、范围与 Cursor callback 文档项、`offline_access` 和 8 KiB body 上限均已关闭，没有剩余 P0/P1/P2。最终读回包括 `test:agent`、`test:agent:live`、typecheck、60 份文档治理、221 文件功能指纹、范围隔离后的完整 governance 与 `git diff --check`；reviewer 未编辑、暂存或提交。
 
-这个 PASS 不授权 Preview migration/deploy、public MCP、真实账户/数据、Production、merge 或 push。001 保持 active；Gate 5 的完整错误/浏览器复合项、transition review、外部门禁和 closure 仍未完成，TRAE/WorkBuddy 真实连接属于 005。
+这个阶段性 PASS 当时不授权 Preview migration/deploy、public MCP、真实账户/数据、Production、merge 或 push。随后 Preview 动作经逐项批准执行，并进入下面的 closure review。
+
+## Closure review
+
+同一独立 reviewer 对当前未提交 closure 快照复核 OAuth `Origin: null` 边界、Preview migration/部署、Cursor 八步工具链、跨成员拒绝、后台撤权、精确清理、SSO 恢复、误建 Vercel project 恢复、001 归档与 transition review。
+
+首轮结论为 `BLOCK — P0/P1/P2 = 0/0/1`：父级 status 已推荐 003 排在 002 后，但 003 候选边界仍保留“可能并行或先于 002”的旧句。修复后，003 明确推荐排在 002 后，同时保留工具范围重审、继续拆分和独立 checklist/批准门禁。
+
+最终结论：`FINAL PASS — P0/P1/P2 = 0/0/0`。
+
+- `Origin: null` 只在 same-origin navigation document 的 Fetch Metadata 同时成立时接受；只从交给 Payload auth 的克隆 headers 删除 opaque Origin，Cookie 与其他认证 headers 保留。自动测试和真实 Preview OAuth 均通过。
+- Preview `/api/health` 已现场读回为 Vercel SSO `302`；仓库根 `.vercel` 不存在，`apps/web` 仍链接既有 `china-in-fact` project。
+- 排除用户既有 `outputs/**` 后，本批次路径全部由 HEAD 中 001 合同覆盖；暂存区为空。
+- Docs governance `62 docs / 17 scopes`、feature registry `221 files` 与 `git diff --check` 均通过。Reviewer 未编辑、暂存或提交。
+
+这个最终 PASS 允许按用户此前的条件授权提交 001 closure。Production、真实成员/内容、merge 和 push 仍未授权或未执行；TRAE/WorkBuddy 继续属于 005。

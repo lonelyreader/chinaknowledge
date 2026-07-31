@@ -197,7 +197,7 @@ stateDiagram-v2
 
 后台使用 `My work / My profile` 和站方策展入口表达任务，不让 Member 在全量 CMS 集合、审核状态和内部字段中穿行。完整任务合同见 [`Member Publishing And Editorial Curation Requirements`](operational-publishing-requirements.md)。
 
-Agent Workspace 的目标是让已有后台账户的人从自己的 Agent 完成同一组权限内任务。Agent 通过远程 Gateway 获得结构化业务工具，服务器继续逐次校验身份、角色、对象所有权和状态转换；本地 Workspace、客户端配置和模型判断都不授予权限。001 的 Member foundation 与 Cursor 真实客户端只在 Local 通过，尚未进入 Preview 或 Production；完整合同见 [`Agent Workspace Requirements`](agent-workspace-requirements.md)。
+Agent Workspace 的目标是让已有后台账户的人从自己的 Agent 完成同一组权限内任务。Agent 通过远程 Gateway 获得结构化业务工具，服务器继续逐次校验身份、角色、对象所有权和状态转换；本地 Workspace、客户端配置和模型判断都不授予权限。001 的 Member foundation 已用 Cursor 在 Local 与受保护 Preview 完成真实 OAuth、草稿工具链、越权拒绝和撤权验证；测试夹具已删除，Production 仍未提供该入口。完整合同见 [`Agent Workspace Requirements`](agent-workspace-requirements.md)。
 
 ## 8. 增长与留存闭环
 

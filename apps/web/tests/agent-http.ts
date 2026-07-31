@@ -15,7 +15,9 @@ import {
   handleAuthorizePost,
   handleRevokePost,
   handleTokenPost,
+  authorizeActorHeaders,
   validRedirectUri,
+  validAuthorizePostOrigin,
   validateAuthorizeRequest,
 } from "@/agent/oauth-http";
 import { handleRegistrationPost } from "@/agent/registration";
@@ -91,6 +93,28 @@ assert.equal(validRedirectUri("http://localhost:4321/callback"), true);
 assert.equal(validRedirectUri("cursor://anysphere.cursor-mcp/oauth/callback"), true);
 assert.equal(validRedirectUri("cursor://other/callback"), false);
 assert.equal(validRedirectUri("https://user:pass@agent.example/callback"), false);
+assert.equal(validAuthorizePostOrigin(new Headers({ origin }), origin), true);
+assert.equal(validAuthorizePostOrigin(new Headers({ origin: "https://attacker.example" }), origin), false);
+assert.equal(validAuthorizePostOrigin(new Headers({ origin: "not a url" }), origin), false);
+assert.equal(validAuthorizePostOrigin(new Headers({
+  origin: "null",
+  "sec-fetch-dest": "document",
+  "sec-fetch-mode": "navigate",
+  "sec-fetch-site": "same-origin",
+}), origin), true);
+assert.equal(validAuthorizePostOrigin(new Headers({
+  origin: "null",
+  "sec-fetch-dest": "document",
+  "sec-fetch-mode": "navigate",
+  "sec-fetch-site": "cross-site",
+}), origin), false);
+const opaqueOriginAuthHeaders = authorizeActorHeaders(new Headers({
+  cookie: "payload-token=fixture",
+  origin: "null",
+  "sec-fetch-site": "same-origin",
+}));
+assert.equal(opaqueOriginAuthHeaders.has("origin"), false);
+assert.equal(opaqueOriginAuthHeaders.get("cookie"), "payload-token=fixture");
 assert.equal(digestAgentSecret("fixture-token", "fixture-secret"), digestAgentSecret("fixture-token", "fixture-secret"));
 assert.notEqual(digestAgentSecret("fixture-token", "fixture-secret"), digestAgentSecret("other-token", "fixture-secret"));
 

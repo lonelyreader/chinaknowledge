@@ -72,7 +72,7 @@ max_lines: 220
 
 ## Evidence Boundary
 
-- Cursor 已完成本项目 Gateway 的 Local PKCE、DCR、callback handoff、refresh、工具调用和撤销；Preview/public MCP 仍未验证。
+- Cursor 已完成本项目 Gateway 的 Local PKCE、DCR、callback handoff、refresh、工具调用和撤销；随后 Preview/public MCP 临时验收也已通过，见 [`Preview runtime`](agent-workspace-001-preview-runtime-2026-07-31.md)。
 - TRAE：`NOT RUN / NOT_VERIFIED` — 当前没有客户端账号；未验证本项目 Gateway 的 OAuth、DCR、callback 或 Member workflow。若 005 实测不能完成标准 discovery，不以 API key 降级。
 - WorkBuddy：`NOT RUN / NOT_VERIFIED` — 当前没有客户端账号；未验证本项目 Gateway 的 OAuth、DCR、callback 或 Member workflow。真实测试前不标记支持。
 - 所有客户端的 OAuth 凭据必须保存在客户端自己的安全存储；Workspace fixture 不包含 bearer token、refresh token 或 client secret。

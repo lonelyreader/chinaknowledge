@@ -14,7 +14,7 @@ max_lines: 160
 
 `LOCAL CURSOR CLIENT PASS`
 
-AGENT-WORKSPACE-001 的 Local migration、live schema、真实 OAuth allow flow、真实 MCP Gateway 调用、Member 权限、后台最小界面与 Cursor 3.13.10 真实客户端已通过。这个结论不等于 001 closure，也不授权 Preview、公开 MCP、真实账户、Production、commit、merge 或 push。
+AGENT-WORKSPACE-001 的 Local migration、live schema、真实 OAuth allow flow、真实 MCP Gateway 调用、Member 权限、后台最小界面与 Cursor 3.13.10 真实客户端已通过。本页保留 Local 证据；随后完成的 Preview 与 closure 见 [`Preview runtime`](agent-workspace-001-preview-runtime-2026-07-31.md)。
 
 本轮提交前独立 reviewer 首审为 `BLOCK`，并在窄复验继续发现范围、callback、`offline_access` 和 body 上限问题；全部修复后，同一 reviewer 对最终快照给出 `FINAL PASS`，P0/P1/P2 为 `0/0/0`。完整 finding 与关闭证据见 [`final review`](agent-workspace-001-final-review-2026-07-31.md)。
 
@@ -85,5 +85,5 @@ AGENT-WORKSPACE-001 的 Local migration、live schema、真实 OAuth allow flow�
 
 - TRAE、WorkBuddy 为 `NOT RUN / NOT_VERIFIED`：当前没有客户端账号，真实 OAuth、DCR、callback 和 Member workflow 转入 005。
 - Codex、Claude、Gemini 的下载 fixture 已自动解析；001 不要求第二个真实客户端，完整多客户端目标仍由长期合同与 005 持有。
-- Preview migration/deploy、公开 MCP、真实账户、真实数据和 Production 均未执行。
-- 001 保持 active；父级 transition review 与 002–005 重新分析不能提前开始。
+- Preview migration、公开 MCP 临时验收、虚构账户工具链、撤权和清理随后已通过，见 [`Preview runtime`](agent-workspace-001-preview-runtime-2026-07-31.md)。
+- Production、真实成员与真实内容仍未执行；TRAE/WorkBuddy 继续转入 005。

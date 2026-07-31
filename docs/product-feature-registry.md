@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-07-31
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:9b54b7d4ba4ebc02d31df0d3e57498850b5be1d28ead1c936e2a44886b2d7892
+implementation_fingerprint: sha256:670d47cb29bf68187bb3f7ae643a5ab6ac46d1ad82c3519edaca3ff43fd28653
 ---
 
 # App 功能登记册
@@ -128,7 +128,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 - 在 App 内撰写和群发 Newsletter、管理退订或查看邮件营销分析；当前 App 只提供订阅入口，名单和发送由 Resend 承担。
 - App 内 Discord 账号绑定、成员同步或聊天；当前只提供外部社群入口。
 - 自动翻译文章或 Person 文案；English 与 Español 内容由人分别维护。
-- 通过 Agent 操作账户或文章；Agent Workspace 001 的 Local migration、OAuth/MCP、Member 权限与 Cursor 3.13.10 真实客户端已验证，TRAE/WorkBuddy 为 `NOT RUN / NOT_VERIFIED`，Preview 和 Production 尚未验收，现网仍不提供该能力。
+- 通过 Agent 操作 Production 账户或文章；Agent Workspace 001 已在 Local 与受保护 Preview 用虚构 `.test` Member 完成 Cursor 真实 OAuth、草稿工具链、越权和撤权验收，夹具已删除且 Preview 已恢复 SSO。TRAE/WorkBuddy 为 `NOT RUN / NOT_VERIFIED`，Production 仍不提供该能力。
 - 自动证明登记册的自然语言一定正确。机器门禁负责阻止“实现已变但登记册完全没复核”，最终语义仍由实现者和 reviewer 对照事实确认。
 
 ## 同步门禁
