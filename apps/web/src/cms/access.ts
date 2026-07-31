@@ -73,6 +73,12 @@ export const updateOwnUserOrSuperAdmin: Access = ({ req }) => {
   return { id: { equals: req.user.id } };
 };
 
+export const readOwnAgentRecordsOrSuperAdmin: Access = ({ req }) => {
+  if (!isCMSUser(req.user)) return false;
+  if (isSuperAdmin(req.user)) return true;
+  return { user: { equals: req.user.id } };
+};
+
 export const readPublicArticlesOrOwned: Access = async ({ req }) => {
   if (isCMSUser(req.user) && hasEditorialRole(req.user)) return true;
 

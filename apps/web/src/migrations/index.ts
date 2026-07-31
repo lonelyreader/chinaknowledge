@@ -10,6 +10,7 @@ import * as migration_20260728_171030_editorial_notifications_and_invites from '
 import * as migration_20260728_172626_article_translation_identity from './20260728_172626_article_translation_identity';
 import * as migration_20260729_030000_profile_localization_and_creator_workspace from './20260729_030000_profile_localization_and_creator_workspace';
 import * as migration_20260729_193000_batch_rollback_barrier from './20260729_193000_batch_rollback_barrier';
+import * as migration_20260730_181300 from './20260730_181300';
 
 export const migrations = [
   {
@@ -60,16 +61,21 @@ export const migrations = [
   {
     up: migration_20260728_172626_article_translation_identity.up,
     down: migration_20260728_172626_article_translation_identity.down,
-    name: '20260728_172626_article_translation_identity'
+    name: '20260728_172626_article_translation_identity',
   },
   {
     up: migration_20260729_030000_profile_localization_and_creator_workspace.up,
     down: migration_20260729_030000_profile_localization_and_creator_workspace.down,
-    name: '20260729_030000_profile_localization_and_creator_workspace'
+    name: '20260729_030000_profile_localization_and_creator_workspace',
   },
   {
     up: migration_20260729_193000_batch_rollback_barrier.up,
     down: migration_20260729_193000_batch_rollback_barrier.down,
-    name: '20260729_193000_batch_rollback_barrier'
+    name: '20260729_193000_batch_rollback_barrier',
+  },
+  {
+    up: migration_20260730_181300.up,
+    down: migration_20260730_181300.down,
+    name: '20260730_181300'
   },
 ];

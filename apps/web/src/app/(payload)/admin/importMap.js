@@ -2,6 +2,7 @@ import { InviteMember as InviteMember_35b0175858e203b26be928c9b71a3f28 } from '.
 import { AccessibleUploadField as AccessibleUploadField_17ecbb7a04e0876c24b77089d3b824ea } from '../../../cms/components/AccessibleUploadField'
 import { ProfileLinkRowLabel as ProfileLinkRowLabel_1b98b60a237989df169007b015908d8e } from '../../../cms/components/ProfileLinkRowLabel'
 import { ProfileActions as ProfileActions_fb26de006462dd6fc68c4cd3109e5592 } from '../../../cms/components/ProfileActions'
+import { AgentAccess as AgentAccess_36f54c9442c4d8f0bc9ac2b05ccb82d8 } from '../../../cms/components/AgentAccess'
 import { PublicUseApprovalField as PublicUseApprovalField_7cd11cb6a7c06a35008b33e3b40bbae3 } from '../../../cms/components/PublicUseApprovalField'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -43,6 +44,7 @@ export const importMap = {
   "/cms/components/AccessibleUploadField#AccessibleUploadField": AccessibleUploadField_17ecbb7a04e0876c24b77089d3b824ea,
   "/cms/components/ProfileLinkRowLabel#ProfileLinkRowLabel": ProfileLinkRowLabel_1b98b60a237989df169007b015908d8e,
   "/cms/components/ProfileActions#ProfileActions": ProfileActions_fb26de006462dd6fc68c4cd3109e5592,
+  "/cms/components/AgentAccess#AgentAccess": AgentAccess_36f54c9442c4d8f0bc9ac2b05ccb82d8,
   "/cms/components/PublicUseApprovalField#PublicUseApprovalField": PublicUseApprovalField_7cd11cb6a7c06a35008b33e3b40bbae3,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,

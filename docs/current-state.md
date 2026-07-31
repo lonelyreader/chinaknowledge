@@ -28,7 +28,7 @@ max_lines: 160
 - CMS 已上线 Member publication 与 Editorial curation 两轴、同 Article 编辑、固定原作者、个人/官方 read model、稳定 `/posts` canonical、登录态草稿与 Person 预览、My work/My profile、Person 版本历史、Editor Needs attention 收件箱、账户邀请和暂停、可重试事务通知。`ADMIN-UI-001` 已恢复 Payload 原生 Nav、Dashboard、list 与 document shell，并用受支持的 workspace widget、list slot、field condition 和 Writing/Site tabs 承载业务；自动保存、并发、离页和版本边界不变，Members 开户入口已收敛为 invite-only。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
-- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；187 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
+- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；221 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
 - Preview 与 Production 均已执行全部 12 条 CMS migration，形成 33 张表。Preview 只使用 `.test` 账户与虚构验收内容；Production 当前为 1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇同一翻译组下的 Published + Curated Article、8 条 workflow event 和 0 Place，未复制 Preview 夹具。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](roadmap/checklists/agent-workspace-member-foundation.md) 是当前 active checklist，目标是建立远程 MCP、OAuth 与 Member read/draft/preview 首个闭环。当前只完成需求与执行清单，尚未实现 Agent 产品能力；代码、依赖、schema、migration、Preview、真实账户和 Production 分别受门禁约束。
+[`AGENT-WORKSPACE-001`](roadmap/checklists/agent-workspace-member-foundation.md) 是当前 active checklist。远程 MCP、OAuth、Member read/draft/preview、Local migration、隔离数据库权限矩阵、后台 `Agent access` 与 Cursor 3.13.10 真实客户端已在本地验证；TRAE/WorkBuddy 为 `NOT RUN / NOT_VERIFIED`，Preview、公开 MCP、真实账户和 Production 尚未验证或授权，因此现网没有 Agent 产品入口。
 
 ## 当前运行边界
 

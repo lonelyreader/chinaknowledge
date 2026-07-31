@@ -204,6 +204,8 @@ member_commit_invite
 
 首切片不包含公开、撤回、策展、邀请、角色管理、CLI fallback、Production 数据或 Astria 改动。
 
+001 的真实客户端门禁只使用当前可登录的 Cursor；TRAE 与 WorkBuddy 因没有客户端账号记录为 `NOT RUN / NOT_VERIFIED`，移入 005。这个阶段边界不修改下一节的完整多客户端产品验收，也不能被解释为 TRAE/WorkBuddy 已通过。
+
 ## 10. 完整验收
 
 - 相同的 Agent Workspace 由不同角色登录时只获得各自能力。

@@ -63,19 +63,21 @@ Canonical resource：`${PAYLOAD_PUBLIC_SERVER_URL}/api/agent/mcp`。
 | `/api/agent/oauth/revoke` | 撤销单 token 或整条 connection |
 | `/api/agent/mcp` | 验证 Bearer、audience、expiry、connection 和当前 User，再进入 MCP |
 
-Metadata routes 放在现有 `apps/web/src/app/(payload)/**` 范围内，通过 route group 暴露标准 `/.well-known/**` URL；不新增公共产品页面。
+Metadata routes 放在现有 `apps/web/src/app/(payload)/**` 范围内，通过 route group 暴露标准 `/.well-known/**` URL；不新增公共产品页面。所有 metadata、MCP 与 OAuth 外部入口只有在 `AGENT_GATEWAY_ENABLED=true` 时发布；默认在进入数据库或 OAuth 逻辑前返回 `404 no-store`。后台 `Agent access` 继续允许查看历史和撤销已有连接，但关闭新配置下载。
 
 ## OAuth Policy
 
 - 只允许 `response_type=code`、`grant_type=authorization_code|refresh_token`。
 - public client 强制 PKCE `S256`；`plain`、无 challenge、无 `state` 全部拒绝。
 - authorization code 60 秒、单次使用；access token 10 分钟；refresh token 7 天。
-- refresh 每次轮换；已使用 refresh token 再次出现时撤销整个 token family。
+- refresh 每次轮换；已使用 refresh token 再次出现时撤销整个 token family。实现中的 refresh token 含服务端 HMAC 验证的 family 标识；它对客户端仍是不透明随机凭据，但允许任意历史代重放定位并撤销当前 family，伪造标识不能触发撤销。
 - token 为至少 256-bit opaque random value；数据库只保存 HMAC-SHA-256 digest，不保存可用 token。
 - token audience/resource 必须与 canonical MCP URL exact match；不接受为其他 API 签发的 token。
 - OAuth scope 固定为 `agent:member` 与可选 `offline_access`。scope 不携带 role；业务工具每次重新读取 User、account status、Person 和 owner。
+- 只有明确请求 `offline_access` 才签发、保存 refresh token 与 refresh expiry；仅 `agent:member` 的授权只有短期 access token。
 - authorize 必须显示 client name、redirect hostname 和请求能力；不能自动 consent。
 - `/revoke` 对未知 token 仍返回成功，避免 token oracle；connection revoke 立即使 access 和 refresh 都失效。
+- 未认证 token/revoke form body 上限为 8 KiB；声明长度或流式读取超限均以 `413` 失败，不进入数据库或 OAuth model。
 - Production 只接受 HTTPS；Local 可接受 loopback HTTP。
 
 ## Dynamic Client Registration
@@ -84,8 +86,8 @@ Metadata routes 放在现有 `apps/web/src/app/(payload)/**` 范围内，通过 
 
 - `token_endpoint_auth_method` 必须为 `none`。
 - `grant_types` 只能是 `authorization_code`、`refresh_token`；`response_types` 只能是 `code`。
-- redirect URI 必须 exact match；只允许 HTTPS，或 `localhost` / `127.0.0.1` / `[::1]` 的 HTTP loopback。
-- 拒绝 wildcard、userinfo、fragment、非 HTTP scheme、过长 URI 和重复 URI。
+- redirect URI 必须 exact match；允许 HTTPS，或 `localhost` / `127.0.0.1` / `[::1]` 的 HTTP loopback。Cursor 只例外允许精确的 `cursor://anysphere.cursor-mcp/oauth/callback`；其他 custom scheme 继续拒绝。
+- 拒绝 wildcard、userinfo、fragment、未列入上项的非 HTTP scheme、过长 URI 和重复 URI。
 - client name、redirect URIs、创建时间、最近使用和 client family 可保存；不保存机器名、工作区路径或 Agent 对话。
 - 未完成首次授权的注册 24 小时过期；已绑定 connection 后按 connection 生命周期保留。
 - registration endpoint 需要长度、数量、频率和总量限制；独立安全复审必须覆盖 redirect injection 与 storage exhaustion。

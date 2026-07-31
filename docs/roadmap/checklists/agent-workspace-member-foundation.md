@@ -27,7 +27,7 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 - 提供 `account_context`、`capabilities_list`、`my_articles_list`、`article_get_working_copy`、`article_create_draft`、`article_save_draft` 和 `article_preview`。
 - 文章工作副本使用受限 Markdown/结构化正文合同，并携带 Article ID、locale 和 revision。
 - 在 Payload Admin 提供最小 `Agent access`：选择客户端、连接/下载、已连接项、撤销和最近活动。
-- 建立 Cursor、TRAE、Tencent WorkBuddy 三个首要适配器；Codex、Claude、Gemini 提供配置 fixture 和协议验证。
+- 以 Cursor 完成 001 的真实客户端闭环；TRAE、Tencent WorkBuddy 因当前没有客户端账号而保留为 `NOT RUN / NOT_VERIFIED`，真实连接移入 005；Codex、Claude、Gemini 只提供无凭据配置 fixture 和解析验证。
 - 为连接、草稿写入、冲突、撤销和失败建立最小审计与读回。
 
 ## No-go
@@ -64,50 +64,50 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 
 ### Gate 1 — Contract spike
 
-- [ ] 在 reference 记录 Cursor、TRAE、WorkBuddy、Codex、Claude、Gemini 当前项目配置、Streamable HTTP 和 OAuth 能力，只保留官方证据与版本日期。
-- [ ] 用一次性 spike 验证现有 Vercel/Next 路由能承载无状态 Streamable HTTP MCP、OAuth metadata 和 callback；失败时停止，不直接拆服务。
+- [x] 在 [`client compatibility evidence`](../../reference/implementation/agent-workspace-001-client-compatibility-2026-07-31.md) 记录 Cursor、TRAE、WorkBuddy、Codex、Claude、Gemini 当前项目配置、Streamable HTTP 和 OAuth 能力；不明确的能力保留为真实测试项。
+- [x] 自动 spike 已证明现有 Next Route Handler 能承载无状态 Streamable HTTP MCP、OAuth metadata、Bearer challenge 和 callback 路由合同，不需要拆分第二个服务。
 - [x] 固定 `AgentToolResultV1`、错误码、request ID、revision、idempotency key 和 capability response；工具说明前 512 字符自足。
 - [x] 固定最小 Markdown/正文映射，证明支持的结构可往返；不支持的 Lexical 节点必须拒绝或无损保留。
 
 ### Gate 2 — Identity and connections
 
-- [ ] 实现 protected-resource metadata、authorization-server metadata、authorize、token、refresh 和 revoke。
-- [ ] 复用当前 Payload User 登录，建立 Agent connection；暂停账户、连接撤销和角色/Person 关系变化必须在后续调用中生效。
-- [ ] 建立连接与事件的最小 schema、migration 和 generated types；token 只以不可逆摘要或合适的加密材料保存。
-- [ ] `Agent access` 只展示短标签、连接状态、客户端、最近使用、Revoke 和 Add/Download 动作。
+- [x] 实现 protected-resource metadata、authorization-server metadata、authorize、token、refresh 和 revoke。
+- [x] 复用当前 Payload User 登录，建立 Agent connection；暂停账户、连接撤销和角色/Person 关系变化必须在后续调用中生效。
+- [x] 建立连接与事件的最小 schema、migration 和 generated types；token 只以不可逆摘要或合适的加密材料保存。
+- [x] `Agent access` 只展示短标签、连接状态、客户端、最近使用、Revoke 和 Add/Download 动作。
 
 ### Gate 3 — Member tools
 
-- [ ] 实现 `account_context` 与 `capabilities_list`，明确当前 User、Person、role 和本切片可用工具。
-- [ ] 实现 `my_articles_list`，只返回本人 Article 的最小字段、publication/curation 状态和 revision。
-- [ ] 实现 `article_get_working_copy`，返回受限 Markdown、locale、对象 ID、revision 和 Preview metadata。
-- [ ] 实现 `article_create_draft`，服务端固定 owner、author、translation identity 和初始状态。
-- [ ] 实现 `article_save_draft`，只更新本切片允许的写作字段，要求 revision 和 idempotency key，并读回最终 revision。
-- [ ] 实现 `article_preview`，只为当前登录 Member 的 Person/Article 返回短期或登录态 Preview 路径，不生成公开 URL。
-- [ ] 对工具标记 read/write 风险；工具结果不返回隐藏字段、密码、token、内部权限表或完整 User 记录。
+- [x] 实现 `account_context` 与 `capabilities_list`，明确当前 User、Person、role 和本切片可用工具。
+- [x] 实现 `my_articles_list`，只返回本人 Article 的最小字段、publication/curation 状态和 revision。
+- [x] 实现 `article_get_working_copy`，返回受限 Markdown、locale、对象 ID、revision 和 Preview metadata。
+- [x] 实现 `article_create_draft`，服务端固定 owner、author、translation identity 和初始状态。
+- [x] 实现 `article_save_draft`，只更新本切片允许的写作字段，要求 revision 和 idempotency key，并读回最终 revision。
+- [x] 实现 `article_preview`，只为当前登录 Member 的 Person/Article 返回短期或登录态 Preview 路径，不生成公开 URL。
+- [x] 对工具标记 read/write 风险；工具结果不返回隐藏字段、密码、token、内部权限表或完整 User 记录。
 
 ### Gate 4 — Client adapters
 
-- [ ] Cursor：项目级 MCP 配置和 OAuth 实际连接通过。
-- [ ] TRAE：项目规则/Agent 与 MCP、OAuth 实际连接通过。
-- [ ] Tencent WorkBuddy：项目级连接器与 OAuth 实际连接通过。
-- [ ] Codex、Claude、Gemini：配置 fixture 能被解析，至少选择一个作为第二协议客户端完成端到端连接。
-- [ ] 通用 Workspace 不包含凭据或角色，换账户登录后能力随服务器变化。
+- [x] Cursor 3.13.10：项目级 `.cursor/mcp.json`、DCR、浏览器同意、token/refresh、7 个工具、完整 Member workflow、跨 Member 拒绝与撤销后重新认证均用真实客户端通过；本机 `8787` 被既有 dashboard 占用，回调通过 Cursor 已注册的 `cursor://` 深链接交还，记录为环境约束。
+- [x] TRAE：`NOT RUN / NOT_VERIFIED` — 当前没有客户端账号；未验证本项目 Gateway 的 OAuth、DCR、callback 或 Member workflow。仅保留已有 transport/documentation evidence，转入 005。
+- [x] Tencent WorkBuddy：`NOT RUN / NOT_VERIFIED` — 当前没有客户端账号；未验证本项目 Gateway 的 OAuth、DCR、callback 或 Member workflow。仅保留已有 transport/documentation evidence，转入 005。
+- [x] Cursor、TRAE、WorkBuddy、Claude、Gemini 的无凭据 JSON fixture 由自动测试解析；Codex TOML fixture 由本机 Codex CLI 在隔离 `CODEX_HOME` 中真实加载；001 不再要求第二个真实客户端，完整多客户端验收仍由长期合同和 005 持有。
+- [x] 通用 Workspace 不包含凭据或角色；自动权限矩阵证明能力由服务器账户决定，Cursor 撤销后的下一次调用返回 `Unauthorized` 并要求重新连接。
 
 ### Gate 5 — Verification and closeout
 
-- [ ] 完成 anonymous、paused、Member A、Member B、Editor-with-Person、Super-Admin-with-Person 权限矩阵。
+- [x] 完成 anonymous、paused、Member A、Member B、Editor-with-Person、Super-Admin-with-Person 权限矩阵。
 - [ ] 覆盖 token 过期、refresh rotation、撤销、错误 audience、错误 PKCE、重放、重复 idempotency key、stale revision、超时后读回和文章内容 prompt injection。
 - [ ] 用桌面浏览器验证 `Agent access` 的正常、空、错误和撤销状态；人工执行 `DESIGN.md` copy gate。
-- [ ] 完成 OAuth/MCP 安全独立复审与 Member 权限独立复审，所有 BLOCK 修复后复验。
-- [ ] 更新 App 功能登记册与实现指纹；只在能力已真实验证后更新 current。
+- [x] 完成 OAuth/MCP 安全独立复审与 Member 权限独立复审；首审及窄复验发现的 Gateway 默认关闭、refresh family replay、`offline_access`、Consent 能力、请求体上限、Codex fixture、撤销审计、连接排序、范围合同和文档状态均已修复，同一 reviewer 最终复验 `PASS`，P0/P1/P2 为 `0/0/0`。
+- [x] 更新 App 功能登记册与实现指纹；只在能力已真实验证后更新 current。
 - [ ] 关闭 001 前更新父级清单并完成 transition review；基于真实证据决定 002–005 保留、拆分、合并、改序或取消，不自动启动 002。
 - [ ] Preview 部署、migration 和真实账户测试分别取得批准；本地完成不推导外部授权。
 - [ ] 全部验收通过后写 implementation evidence、必要 ADR，并把 checklist 移入 archive。
 
 ## Acceptance
 
-- Cursor、TRAE、WorkBuddy 均能发现同一远程 MCP Gateway 并完成 OAuth；至少两个不同客户端完成完整 Member 流程。
+- 001 的真实客户端验收以 Cursor 完整 Member 流程为准；TRAE、WorkBuddy 精确记录为 `NOT RUN / NOT_VERIFIED` 并转入 005。长期产品对三者的真实连接要求继续保留，不把本切片收窄解释为完整多客户端验收。
 - 同一通用配置由 Member A 与 Member B 登录时只返回各自 Person、Article 和 Preview；跨 Member ID 直接调用被服务端拒绝。
 - Member 能查询本人文章、创建草稿、取得工作副本、保存一次修改并打开登录态 Preview。
 - `article_save_draft` 的重复请求不产生重复文章或重复副作用；stale revision 不覆盖新版本。
@@ -123,7 +123,7 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 - MCP initialize、tool discovery、tool schema、read/write annotations、成功/错误 result 和超时读回测试。
 - Member A / Member B / paused / anonymous / Editor-with-Person / Super-Admin-with-Person 权限正负例。
 - Article create/get/save/preview、revision conflict、idempotency 和不支持正文节点测试。
-- Cursor、TRAE、WorkBuddy 实际连接记录；Codex、Claude、Gemini 配置解析 fixture。
+- Cursor 实际连接、回调环境约束、完整 Member workflow 与撤销记录；TRAE、WorkBuddy 的 `NOT RUN / NOT_VERIFIED` 记录；五个 JSON fixture 解析与 Codex CLI 隔离配置加载。
 - Agent access 桌面与 390px 灾难性回归、键盘、焦点、空态和必要错误。
 - `npm --prefix apps/web run test:editorial`
 - 新增 Agent 专项测试命令。
@@ -156,4 +156,4 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 - `production-deploy`：独立复审 PASS、恢复和监控就绪后单独批准。
 - `merge / push`：分别批准。
 
-当前门禁：`checklist-commit`、`product-code`、`auth-design`、`dependency-install` 与 `database-schema` 已通过；认证设计见 [`auth design evidence`](../../reference/implementation/agent-workspace-001-auth-design-2026-07-31.md)。`migration` 及全部外部动作尚未通过。
+当前门禁：`checklist-commit`、`product-code`、`auth-design`、`dependency-install`、`database-schema`、Local `migration`、Cursor Local 真实客户端与最终独立复审已通过；认证设计见 [`auth design evidence`](../../reference/implementation/agent-workspace-001-auth-design-2026-07-31.md)，本地 migration、schema、OAuth/MCP、权限与 Cursor 结果见 [`local runtime evidence`](../../reference/implementation/agent-workspace-001-local-runtime-2026-07-31.md)，复审见 [`final review`](../../reference/implementation/agent-workspace-001-final-review-2026-07-31.md)。用户已条件授权复审 PASS 后的窄提交；TRAE/WorkBuddy 为 `NOT RUN / NOT_VERIFIED`，Preview、公开 MCP、真实账户、Production、merge 与 push 均未获批准或未验证，001 继续保持 active。

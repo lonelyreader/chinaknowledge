@@ -69,6 +69,9 @@ export interface Config {
   collections: {
     users: User;
     people: Person;
+    'agent-oauth-clients': AgentOauthClient;
+    'agent-connections': AgentConnection;
+    'agent-events': AgentEvent;
     'person-revisions': PersonRevision;
     taxonomies: Taxonomy;
     media: Media;
@@ -84,6 +87,9 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     people: PeopleSelect<false> | PeopleSelect<true>;
+    'agent-oauth-clients': AgentOauthClientsSelect<false> | AgentOauthClientsSelect<true>;
+    'agent-connections': AgentConnectionsSelect<false> | AgentConnectionsSelect<true>;
+    'agent-events': AgentEventsSelect<false> | AgentEventsSelect<true>;
     'person-revisions': PersonRevisionsSelect<false> | PersonRevisionsSelect<true>;
     taxonomies: TaxonomiesSelect<false> | TaxonomiesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
@@ -236,6 +242,77 @@ export interface Taxonomy {
   dimension: 'purpose' | 'topic' | 'geography' | 'situation';
   name: string;
   slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent-oauth-clients".
+ */
+export interface AgentOauthClient {
+  id: number;
+  clientId: string;
+  clientName: string;
+  clientFamily: string;
+  redirectUris: {
+    uri: string;
+    id?: string | null;
+  }[];
+  grantTypes: ('authorization_code' | 'refresh_token')[];
+  tokenEndpointAuthMethod: 'none';
+  disabled: boolean;
+  expiresAt?: string | null;
+  lastUsedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent-connections".
+ */
+export interface AgentConnection {
+  id: number;
+  user: number | User;
+  person?: (number | null) | Person;
+  client: number | AgentOauthClient;
+  scopes: ('agent:member' | 'offline_access')[];
+  resource: string;
+  tokenFamily: string;
+  state: 'active' | 'revoked' | 'compromised';
+  authorizationCodeDigest?: string | null;
+  codeChallenge?: string | null;
+  authorizationRedirectUri?: string | null;
+  codeExpiresAt?: string | null;
+  codeConsumedAt?: string | null;
+  accessTokenDigest?: string | null;
+  accessExpiresAt?: string | null;
+  refreshTokenDigest?: string | null;
+  previousRefreshTokenDigest?: string | null;
+  refreshExpiresAt?: string | null;
+  lastUsedAt?: string | null;
+  revokedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent-events".
+ */
+export interface AgentEvent {
+  id: number;
+  user: number | User;
+  connection?: (number | null) | AgentConnection;
+  clientFamily: string;
+  tool: string;
+  objectType?: ('account' | 'article' | 'connection') | null;
+  objectId?: string | null;
+  requestId: string;
+  idempotencyDigest?: string | null;
+  inputFingerprint?: string | null;
+  result: 'pending' | 'success' | 'denied' | 'conflict' | 'failed';
+  beforeRevision?: string | null;
+  afterRevision?: string | null;
+  occurredAt: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -440,6 +517,18 @@ export interface PayloadLockedDocument {
         value: number | Person;
       } | null)
     | ({
+        relationTo: 'agent-oauth-clients';
+        value: number | AgentOauthClient;
+      } | null)
+    | ({
+        relationTo: 'agent-connections';
+        value: number | AgentConnection;
+      } | null)
+    | ({
+        relationTo: 'agent-events';
+        value: number | AgentEvent;
+      } | null)
+    | ({
         relationTo: 'person-revisions';
         value: number | PersonRevision;
       } | null)
@@ -561,6 +650,76 @@ export interface PeopleSelect<T extends boolean = true> {
   profilePublishedAt?: T;
   spotlightExcluded?: T;
   spotlightPinnedUntil?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent-oauth-clients_select".
+ */
+export interface AgentOauthClientsSelect<T extends boolean = true> {
+  clientId?: T;
+  clientName?: T;
+  clientFamily?: T;
+  redirectUris?:
+    | T
+    | {
+        uri?: T;
+        id?: T;
+      };
+  grantTypes?: T;
+  tokenEndpointAuthMethod?: T;
+  disabled?: T;
+  expiresAt?: T;
+  lastUsedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent-connections_select".
+ */
+export interface AgentConnectionsSelect<T extends boolean = true> {
+  user?: T;
+  person?: T;
+  client?: T;
+  scopes?: T;
+  resource?: T;
+  tokenFamily?: T;
+  state?: T;
+  authorizationCodeDigest?: T;
+  codeChallenge?: T;
+  authorizationRedirectUri?: T;
+  codeExpiresAt?: T;
+  codeConsumedAt?: T;
+  accessTokenDigest?: T;
+  accessExpiresAt?: T;
+  refreshTokenDigest?: T;
+  previousRefreshTokenDigest?: T;
+  refreshExpiresAt?: T;
+  lastUsedAt?: T;
+  revokedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "agent-events_select".
+ */
+export interface AgentEventsSelect<T extends boolean = true> {
+  user?: T;
+  connection?: T;
+  clientFamily?: T;
+  tool?: T;
+  objectType?: T;
+  objectId?: T;
+  requestId?: T;
+  idempotencyDigest?: T;
+  inputFingerprint?: T;
+  result?: T;
+  beforeRevision?: T;
+  afterRevision?: T;
+  occurredAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

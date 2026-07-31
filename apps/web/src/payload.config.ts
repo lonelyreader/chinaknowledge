@@ -11,6 +11,9 @@ import { buildConfig } from "payload";
 import sharp from "sharp";
 
 import { Articles } from "@/collections/Articles";
+import { AgentConnections } from "@/collections/AgentConnections";
+import { AgentEvents } from "@/collections/AgentEvents";
+import { AgentOAuthClients } from "@/collections/AgentOAuthClients";
 import { Media } from "@/collections/Media";
 import { People } from "@/collections/People";
 import { PersonRevisions } from "@/collections/PersonRevisions";
@@ -55,6 +58,9 @@ export default buildConfig({
   collections: [
     Users,
     People,
+    AgentOAuthClients,
+    AgentConnections,
+    AgentEvents,
     PersonRevisions,
     Taxonomies,
     Media,

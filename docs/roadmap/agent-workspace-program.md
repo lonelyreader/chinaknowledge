@@ -34,7 +34,7 @@ flowchart LR
 
 | ID | 当前状态 | 候选结果 | 进入条件 |
 |---|---|---|---|
-| `AGENT-WORKSPACE-001` | active | OAuth、远程 MCP、Member read/draft/preview | 已建立并进入 HEAD |
+| `AGENT-WORKSPACE-001` | active；Cursor Local real-client 与独立复审 PASS | OAuth、远程 MCP、Member read/draft/preview | 剩余 Gate 5 与外部门禁；TRAE/WorkBuddy 转 005 |
 | `AGENT-WORKSPACE-002` | provisional | Member prepare/confirm/commit，个人公开、更新、撤回与重新公开 | 001 closure + transition review 后重新定义 |
 | `AGENT-WORKSPACE-003` | provisional | Editor Needs attention、分配、分类、来源、策展、排期与复核 | 001 closure 后由 transition review 判断是否已具备工具、并发和确认基础；不预设必须等待 002 |
 | `AGENT-WORKSPACE-004` | provisional | Super Admin 明确安全子集、step-up、账户与基础对象操作 | 特权动作风险与网页保留边界重新评估后定义 |
@@ -57,7 +57,7 @@ flowchart LR
 
 001 关闭后至少回答：
 
-1. Cursor、TRAE、WorkBuddy 的真实连接差异是否仍能由轻量 adapter 吸收。
+1. Cursor 已证明的真实连接合同能否复用；TRAE、WorkBuddy 因 001 无账号而转入 005，是否需要在下一 capability 子级前增加兼容预检。
 2. OAuth、撤销、capability、revision、幂等和审计合同是否已经稳定。
 3. Member 实际更需要本地 Markdown 工作副本，还是更直接的结构化写作工具。
 4. 保存草稿的延迟、错误和冲突是否足以支持公开状态动作。
@@ -93,7 +93,7 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 ### 005 — Compatibility and release candidate
 
 - 候选目标：收口得到真实使用证明的客户端，并以 phase-release 合同完成可运营的 Production release。
-- 必须重新验证：adapter 维护成本、Workspace 分发、版本升级、监控、限流、撤销、支持流程和恢复。
+- 必须重新验证：TRAE/WorkBuddy 真实 OAuth、DCR、callback 和 Member workflow，Cursor `8787` 端口预检与无人工 callback，adapter 维护成本、Workspace 分发、版本升级、监控、限流、撤销、支持流程和恢复。
 - 发布归属：005 持有 release 编排，但 Production 部署、真实账户、真实数据和公开启用仍是相互独立的批准门禁。
 - CLI fallback 只有在非 MCP Agent 的真实需求成立时进入；编号不保证它一定实现。
 
