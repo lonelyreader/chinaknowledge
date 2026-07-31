@@ -4,7 +4,7 @@ doc_type: checklist
 authority: execution
 status: active
 scope: agent-workspace-member-publication
-last_verified: 2026-07-31
+last_verified: 2026-08-01
 max_lines: 300
 change_id: AGENT-WORKSPACE-002
 risk_tier: upgraded
@@ -81,6 +81,8 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 - `audit_boundary`：记录 actor、connection、tool、Article、prepare/commit request、目标、结果、前后 revision 和时间；不记录 confirmation 明文、token、正文、Cookie 或 Agent 对话。
 - `recovery`：无 migration；关闭两项新工具即可停止 Agent publication，网页后台仍可工作。失败写入使用事务回滚，Article versions 与 workflow events保留现有恢复能力。
 - `independent_review`：未主持实现者分别复核 confirmation/replay 安全和 Member/跨 Member/public readback；结论只能为 `PASS` 或 `BLOCK`。
+- `key_invariants`：prepare 不改变公开状态；commit 只处理当前连接所属 Member 的本人 Article，并在事务内重检账户、Person、owner、revision、confirmation 和媒体完整性；审计不保存 confirmation、token、Cookie、正文或 Agent 对话；001 工具、网页发布和 Editor curation 不得退化；Preview 夹具必须可精确删除。
+- `finding_route`：违反上述不变量、当前 diff 回归或可能导致错用户/错内容/错权限、未公开内容泄露、残留或不可恢复的问题阻断 002；Editor 跨作者工具进入 003，账户/身份高风险动作进入 004，客户端启用、callback、监控、限流、支持、恢复和 release runbook 进入 005；其他问题另建 checklist，不扩张本批。
 
 ## Work
 
@@ -115,7 +117,7 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 
 ### Gate 4 — Preview real client
 
-- [ ] 单独取得 `preview-deploy` 与 `public-mcp` 批准；无 schema 时不运行 migration。
+- [x] 用户于 2026-08-01 明确批准直接推进 002 至完成，覆盖 `preview-deploy` 与临时 `public-mcp`；无 schema，不运行 migration；Production、真实账户/数据、merge 和 push仍未授权。
 - [ ] 用虚构 `.test` Member 在 Cursor 真实执行 prepare，停下等待人工确认，再 commit 并匿名读回公共页面。
 - [ ] 验证撤回和 confirmation 过期/重放负例，随后删除全部测试记录、恢复 Preview SSO 并读回。
 
@@ -158,4 +160,4 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 
 ## Current gate
 
-Local `.test` fixture 实现、自动验证与独立复审已 PASS，证据见 [`Agent Workspace 002 — Local runtime evidence`](../../reference/implementation/agent-workspace-002-local-runtime-2026-07-31.md)。没有新增依赖、schema 或 migration。Preview deploy、公开 MCP 临时验收、真实账户、真实数据、Production、merge 和 push 均未执行或未获本 checklist 推导授权。
+Local `.test` fixture 实现、自动验证与独立复审已 PASS，证据见 [`Agent Workspace 002 — Local runtime evidence`](../../reference/implementation/agent-workspace-002-local-runtime-2026-07-31.md)。Preview deploy 与临时 public MCP 已获批准，下一步只用虚构 `.test` fixture 完成 Cursor 验收和精确清理。没有新增依赖、schema 或 migration；真实账户、真实数据、Production、merge 和 push 仍未授权。
