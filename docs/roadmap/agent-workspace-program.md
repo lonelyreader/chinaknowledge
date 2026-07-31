@@ -35,7 +35,7 @@ flowchart LR
 | ID | 当前状态 | 候选结果 | 进入条件 |
 |---|---|---|---|
 | `AGENT-WORKSPACE-001` | completed；Local + Preview Cursor real-client PASS | OAuth、远程 MCP、Member read/draft/preview | 已归档；TRAE/WorkBuddy 转 005 |
-| `AGENT-WORKSPACE-002` | active；`keep + narrow` | 在既有 Article 上验证 Member publication 的 prepare/confirm/commit/readback | checklist 基线进入 HEAD 后执行 Local；Preview 与 Production 分别批准 |
+| `AGENT-WORKSPACE-002` | active；Local + review PASS | Member publication 的 prepare/confirm/commit/readback 已通过自动 fixture与独立复审 | 另行批准 Preview Cursor 人工确认；Production 不由此开启 |
 | `AGENT-WORKSPACE-003` | provisional；`keep` | Editor Needs attention、分配、分类、来源、策展、排期与复核 | 002 先证明确认合同，再定义 Editor 跨作者工具 |
 | `AGENT-WORKSPACE-004` | provisional；`split` | 低风险站务和高风险账户/身份分开；只评估适合 Agent 的安全子集 | 删除、提权、migration、密钥和 Production 动作保持网页或专门流程 |
 | `AGENT-WORKSPACE-005` | provisional；`keep + expand` | TRAE/WorkBuddy 真实兼容、Cursor callback 预检、运营监控、限流、支持、恢复与 Production release | 002–004 范围稳定并取得目标客户端账号；CLI fallback 仍须真实需求证据 |

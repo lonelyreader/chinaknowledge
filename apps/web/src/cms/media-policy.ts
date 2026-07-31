@@ -3,7 +3,7 @@ import { APIError } from "payload";
 
 import { hasEditorialRole, isCMSUser } from "./roles";
 
-type MediaRelation = number | string | { id: number | string } | null | undefined;
+export type MediaRelation = number | string | { id: number | string } | null | undefined;
 
 export function relationID(value: MediaRelation) {
   if (value && typeof value === "object") return value.id;
@@ -35,6 +35,24 @@ export async function markMediaForMemberPublication(
   req: PayloadRequest,
   label: string,
 ) {
+  const media = await assertMediaAllowedForMemberPublication(value, req, label);
+  if (!media.memberUsePublishedAt) {
+    await req.payload.update({
+      collection: "media",
+      id: media.id,
+      context: { memberPublicationMediaSync: true },
+      data: { memberUsePublishedAt: new Date().toISOString() },
+      overrideAccess: true,
+      req,
+    });
+  }
+}
+
+export async function assertMediaAllowedForMemberPublication(
+  value: MediaRelation,
+  req: PayloadRequest,
+  label: string,
+) {
   const id = relationID(value);
   if (!id) throw new APIError(`${label} is required before publication.`, 400);
   const media = await req.payload.findByID({
@@ -53,13 +71,5 @@ export async function markMediaForMemberPublication(
   ) {
     throw new APIError(`${label} must belong to the member publishing it.`, 403);
   }
-  if (!media.memberUsePublishedAt) {
-    await req.payload.update({
-      collection: "media",
-      id,
-      context: { memberPublicationMediaSync: true },
-      data: { memberUsePublishedAt: new Date().toISOString() },
-      overrideAccess: true,
-    });
-  }
+  return media;
 }

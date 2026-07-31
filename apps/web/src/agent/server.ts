@@ -82,6 +82,44 @@ export async function createAgentMcpServer(context: McpRequestContext) {
   server.registerTool("article_create_draft", { title: "New draft", description: agentToolDescriptions.article_create_draft, inputSchema: z.object({ title: z.string().min(1).max(240), summary: z.string().max(2000).optional(), locale: z.enum(["en", "es"]), body: bodySchema, idempotencyKey: z.string() }), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.createDraft(input)));
   server.registerTool("article_save_draft", { title: "Save draft", description: agentToolDescriptions.article_save_draft, inputSchema: z.object({ id: z.number().int().positive(), title: z.string().min(1).max(240), summary: z.string().max(2000).optional(), body: bodySchema, revision: z.string(), idempotencyKey: z.string() }), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.saveDraft(input)));
   server.registerTool("article_preview", { title: "Preview", description: agentToolDescriptions.article_preview, inputSchema: z.object({ id: z.number().int().positive() }), annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async ({ id }) => result(await service.preview(id)));
+  server.registerTool(
+    "article_prepare_publication",
+    {
+      title: "Prepare publication",
+      description: agentToolDescriptions.article_prepare_publication,
+      inputSchema: z.object({
+        id: z.number().int().positive(),
+        targetStatus: z.enum(["published", "withdrawn"]),
+        revision: z.string(),
+      }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async (input) => result(await service.preparePublication(input)),
+  );
+  server.registerTool(
+    "article_commit_publication",
+    {
+      title: "Confirm publication",
+      description: agentToolDescriptions.article_commit_publication,
+      inputSchema: z.object({
+        confirmationRef: z.string().max(2_048),
+        revision: z.string(),
+        idempotencyKey: z.string(),
+      }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: false,
+      },
+    },
+    async (input) => result(await service.commitPublication(input)),
+  );
 
   return server;
 }

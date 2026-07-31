@@ -22,5 +22,6 @@ max_lines: 60
 | `ADMIN-UI-001` | Payload-native 全 Admin 桌面审计、三视口矩阵、权限负例、双重独立复审和 Production 读回均通过 | [`native baseline and closure`](admin-payload-native-baseline-2026-07-29.md) |
 | `BRAND-WORDMARK-001` | 定稿轮廓字标已接入 Header 与 Footer，桌面、移动、SVG 结构和构建验证均通过 | [`integration evidence`](brand-wordmark-site-integration-2026-07-30.md) |
 | `AGENT-WORKSPACE-001` | Local + Preview migration、Cursor 真实 OAuth/MCP、Member 草稿、越权与撤权负例 PASS；夹具已删除、SSO 已恢复，Production 未触碰；最终独立复审 P0/P1/P2=`0/0/0` | [`auth design`](agent-workspace-001-auth-design-2026-07-31.md)、[`client compatibility`](agent-workspace-001-client-compatibility-2026-07-31.md)、[`pre-migration review`](agent-workspace-001-pre-migration-review-2026-07-31.md)、[`local runtime`](agent-workspace-001-local-runtime-2026-07-31.md)、[`Preview runtime`](agent-workspace-001-preview-runtime-2026-07-31.md)、[`transition review`](agent-workspace-001-transition-review-2026-07-31.md)、[`final review`](agent-workspace-001-final-review-2026-07-31.md) |
+| `AGENT-WORKSPACE-002` | Local Member publication 与独立复审 PASS，P0/P1/P2=`0/0/0`；Preview real-client gate 尚未授权 | [`Local runtime`](agent-workspace-002-local-runtime-2026-07-31.md) |
 
 原始截图位于 `assets/`，由对应 evidence 文档解释；不要脱离测试结论单独把图片当作接受依据。

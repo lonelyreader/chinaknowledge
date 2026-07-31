@@ -16,7 +16,7 @@ Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.m
 
 当前唯一 active checklist：
 
-- [`AGENT-WORKSPACE-002`](agent-workspace-member-publication.md)：Member Article publication 的一次性 prepare/confirm/commit/readback；Local 虚构 fixture 已获启动批准，外部环境仍分别授权。
+- [`AGENT-WORKSPACE-002`](agent-workspace-member-publication.md)：Member Article publication 的 Local 实现、自动 fixture 与独立复审已 PASS；Preview Cursor 人工确认尚待另行授权，外部环境仍分别授权。
 
 已完成的 [`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md) 位于 archive。
 

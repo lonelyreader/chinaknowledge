@@ -28,7 +28,7 @@ max_lines: 160
 - CMS 已上线 Member publication 与 Editorial curation 两轴、同 Article 编辑、固定原作者、个人/官方 read model、稳定 `/posts` canonical、登录态草稿与 Person 预览、My work/My profile、Person 版本历史、Editor Needs attention 收件箱、账户邀请和暂停、可重试事务通知。`ADMIN-UI-001` 已恢复 Payload 原生 Nav、Dashboard、list 与 document shell，并用受支持的 workspace widget、list slot、field condition 和 Writing/Site tabs 承载业务；自动保存、并发、离页和版本边界不变，Members 开户入口已收敛为 invite-only。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
-- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；221 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
+- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；223 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
 - Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；001 的 `.test` User、Person、Article、连接、事件和测试 OAuth client 已精确删除，SSO 已恢复。Production 仍为 12 条 migration、33 张表、1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇同一翻译组下的 Published + Curated Article、8 条 workflow event 和 0 Place，未执行 001 migration，也未复制 Preview 夹具。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 已完成并归档；当前唯一 active checklist 是 [`AGENT-WORKSPACE-002`](roadmap/checklists/agent-workspace-member-publication.md)，只验证 Member Article publication 的一次性 `prepare → 用户确认 → commit → readback`。Local 虚构 fixture 已获启动批准，代码尚未实现；Preview 已恢复 SSO，Production 未部署，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 已完成并归档；当前唯一 active checklist 是 [`AGENT-WORKSPACE-002`](roadmap/checklists/agent-workspace-member-publication.md)。两项 Member publication 工具已在独立 Local `.test` 数据库通过 publish、update public、withdraw、republish、一次确认、幂等、冲突、越权、curation 副作用与匿名读回，独立复审 `PASS` 且 P0/P1/P2 为零；Preview real-client 门禁尚未授权。Preview 已恢复 SSO，Production 未部署，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 

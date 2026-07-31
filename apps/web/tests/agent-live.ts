@@ -2,17 +2,21 @@ import "dotenv/config";
 
 import assert from "node:assert/strict";
 import { createHash, randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 
 import config from "@payload-config";
 import type { AuthInfo } from "@modelcontextprotocol/server";
-import { getPayload, type Payload } from "payload";
+import { createLocalReq, getPayload, type Payload } from "payload";
 
 import { createAgentGateway } from "@/agent/gateway";
+import { createPublicationConfirmation, publicationConfirmationDigest } from "@/agent/confirmation";
 import { agentUrls } from "@/agent/metadata";
 import { createAgentOAuthModel } from "@/agent/oauth-model";
 import { handleAuthorizeGet, handleAuthorizePost, handleRevokePost, handleTokenPost } from "@/agent/oauth-http";
 import { AgentMemberService } from "@/agent/service";
 import { createPayloadAgentTokenVerifier, digestAgentSecret } from "@/agent/tokens";
+import { transitionArticleEndpoint } from "@/cms/article-endpoints";
 import type { AgentOauthClient, Person, User } from "@/payload-types";
 
 const password = process.env.CMS_TEST_PASSWORD;
@@ -47,6 +51,112 @@ async function account(payload: Payload, name: string, role: User["role"]) {
   return { person: people.docs[0] as Person, user };
 }
 
+async function memberImage(payload: Payload, actor: User, alt: string) {
+  const data = await readFile(path.resolve(process.cwd(), "public/images/fixtures/portrait-a-00.webp"));
+  return payload.create({
+    collection: "media",
+    data: { alt },
+    file: {
+      data,
+      mimetype: "image/webp",
+      name: `${alt.toLowerCase().replaceAll(" ", "-")}.webp`,
+      size: data.byteLength,
+    },
+    overrideAccess: false,
+    user: actor,
+  });
+}
+
+async function makeProfilePublic(
+  payload: Payload,
+  actor: Awaited<ReturnType<typeof account>>,
+  label: string,
+) {
+  const portrait = await memberImage(payload, actor.user, `${label} ${suffix}`);
+  await payload.update({
+    collection: "people",
+    id: actor.person.id,
+    data: {
+      city: "Test City",
+      identity: "Fictional member",
+      introduction: "Local Agent publication fixture.",
+      languages: ["en"],
+      name: actor.user.displayName,
+      portrait: portrait.id,
+      profileStatus: "draft",
+      slug: `${label.toLowerCase().replaceAll(" ", "-")}-${suffix}`,
+    },
+    overrideAccess: false,
+    user: actor.user,
+  });
+  return payload.update({
+    collection: "people",
+    id: actor.person.id,
+    context: { profileTransitionConfirmed: true },
+    data: { profileStatus: "public" },
+    overrideAccess: false,
+    user: actor.user,
+  });
+}
+
+async function exerciseOwnPublicationLifecycle(
+  payload: Payload,
+  actor: Awaited<ReturnType<typeof account>>,
+  service: AgentMemberService,
+  label: string,
+) {
+  const keyLabel = label.toLowerCase().replaceAll(" ", "-");
+  await makeProfilePublic(payload, actor, label);
+  const created = await service.createDraft({
+    body,
+    idempotencyKey: `${keyLabel}-create-${randomUUID()}`,
+    locale: "en",
+    title: `${label} own publication`,
+  });
+  assert.equal(created.ok, true, JSON.stringify(created));
+  const id = Number(created.data?.id);
+  let working = await service.workingCopy(id);
+  const preparedBeforePersonChange = await service.preparePublication({ id, revision: working.meta!.revision!, targetStatus: "published" });
+  assert.equal(preparedBeforePersonChange.ok, true, JSON.stringify(preparedBeforePersonChange));
+  await payload.update({
+    collection: "people",
+    id: actor.person.id,
+    context: { profileTransitionConfirmed: true },
+    data: { profileStatus: "draft" },
+    overrideAccess: false,
+    user: actor.user,
+  });
+  assert.equal((await service.commitPublication({
+    confirmationRef: preparedBeforePersonChange.data!.confirmationRef,
+    idempotencyKey: `${keyLabel}-changed-person-${randomUUID()}`,
+    revision: working.meta!.revision!,
+  })).error?.code, "VALIDATION_ERROR");
+  await payload.update({
+    collection: "people",
+    id: actor.person.id,
+    context: { profileTransitionConfirmed: true },
+    data: { profileStatus: "public" },
+    overrideAccess: false,
+    user: actor.user,
+  });
+
+  async function commit(targetStatus: "published" | "withdrawn", action: "publish" | "republish" | "update_public" | "withdraw") {
+    working = await service.workingCopy(id);
+    const prepared = await service.preparePublication({ id, revision: working.meta!.revision!, targetStatus });
+    assert.equal(prepared.data?.summary.action, action, JSON.stringify(prepared));
+    const committed = await service.commitPublication({
+      confirmationRef: prepared.data!.confirmationRef,
+      idempotencyKey: `${keyLabel}-${action}-${randomUUID()}`,
+      revision: working.meta!.revision!,
+    });
+    assert.equal(committed.ok, true, JSON.stringify(committed));
+  }
+  await commit("published", "publish");
+  await commit("published", "update_public");
+  await commit("withdrawn", "withdraw");
+  await commit("published", "republish");
+}
+
 async function client(payload: Payload, name: string) {
   return payload.create({
     collection: "agent-oauth-clients",
@@ -76,6 +186,7 @@ async function connection(payload: Payload, actor: Awaited<ReturnType<typeof acc
       resource,
       tokenFamily: randomUUID(),
       state: "active",
+      accessExpiresAt: new Date(Date.now() + 10 * 60_000).toISOString(),
     },
   });
 }
@@ -224,6 +335,8 @@ try {
   await payload.delete({ collection: "people", id: noPerson.person.id, overrideAccess: true });
   const serviceA = AgentMemberService.fromPayload(payload, auth(memberA, oauthClient, connectionA.id));
   const serviceB = AgentMemberService.fromPayload(payload, auth(memberB, oauthClient, connectionB.id));
+  const connectionASecond = await connection(payload, memberA, oauthClient);
+  const serviceASecond = AgentMemberService.fromPayload(payload, auth(memberA, oauthClient, connectionASecond.id));
 
   const key = `create-${randomUUID()}`;
   const [firstCreate, duplicateCreate] = await Promise.all([
@@ -287,9 +400,462 @@ try {
   assert.equal([saveOne, saveTwo].filter((result) => result.ok).length, 1, JSON.stringify({ saveOne, saveTwo }));
   assert.equal([saveOne, saveTwo].filter((result) => !result.ok && result.error?.code === "REVISION_CONFLICT").length, 1, JSON.stringify({ saveOne, saveTwo }));
 
+  const publicationPortrait = await memberImage(payload, memberA.user, `Agent publication ${suffix}`);
+  await payload.update({
+    collection: "media",
+    id: publicationPortrait.id,
+    data: { publicUseApprovedAt: new Date().toISOString() },
+    overrideAccess: false,
+    user: editor.user,
+  });
+  await payload.update({
+    collection: "people",
+    id: memberA.person.id,
+    data: {
+      city: "Test City",
+      identity: "Fictional member",
+      introduction: "Local Agent publication fixture.",
+      languages: ["en"],
+      name: memberA.user.displayName,
+      portrait: publicationPortrait.id,
+      profileStatus: "draft",
+      slug: `agent-publication-${suffix}`,
+    },
+    overrideAccess: false,
+    user: memberA.user,
+  });
+  const publicPerson = await payload.update({
+    collection: "people",
+    id: memberA.person.id,
+    context: { profileTransitionConfirmed: true },
+    data: { profileStatus: "public" },
+    overrideAccess: false,
+    user: memberA.user,
+  });
+  assert.equal(publicPerson.profileStatus, "public");
+
+  const publicationWorking = await serviceA.workingCopy(articleId);
+  assert.equal(publicationWorking.ok, true, JSON.stringify(publicationWorking));
+  const publicationRevision = publicationWorking.meta?.revision;
+  assert.ok(publicationRevision);
+  const beforePrepare = await payload.findByID({
+    collection: "articles",
+    id: articleId,
+    depth: 0,
+    draft: true,
+    overrideAccess: true,
+  });
+  const versionsBeforePrepare = await payload.findVersions({
+    collection: "articles",
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    where: { parent: { equals: articleId } },
+  });
+  const preparedPublish = await serviceA.preparePublication({
+    id: articleId,
+    revision: publicationRevision,
+    targetStatus: "published",
+  });
+  assert.equal(preparedPublish.ok, true, JSON.stringify(preparedPublish));
+  assert.equal(preparedPublish.data?.summary.action, "publish");
+  assert.equal(preparedPublish.data?.summary.currentStatus, "draft");
+  assert.equal(preparedPublish.data?.summary.targetStatus, "published");
+  assert.ok(preparedPublish.data?.confirmationRef);
+  const afterPrepare = await payload.findByID({
+    collection: "articles",
+    id: articleId,
+    depth: 0,
+    draft: true,
+    overrideAccess: true,
+  });
+  assert.equal(afterPrepare.updatedAt, beforePrepare.updatedAt, "Prepare must not change the Article.");
+  assert.equal(afterPrepare.publicationStatus, "draft");
+  assert.equal((await payload.findVersions({ collection: "articles", depth: 0, limit: 1, overrideAccess: true, where: { parent: { equals: articleId } } })).totalDocs, versionsBeforePrepare.totalDocs);
+
+  const editorService = AgentMemberService.fromPayload(payload, auth(editor, oauthClient, connectionEditor.id));
+  const adminService = AgentMemberService.fromPayload(payload, auth(admin, oauthClient, connectionAdmin.id));
+  assert.equal((await editorService.preparePublication({ id: articleId, revision: publicationRevision, targetStatus: "published" })).ok, false);
+  assert.equal((await adminService.preparePublication({ id: articleId, revision: publicationRevision, targetStatus: "published" })).ok, false);
+  assert.equal((await serviceB.commitPublication({
+    confirmationRef: preparedPublish.data!.confirmationRef,
+    idempotencyKey: `cross-member-${randomUUID()}`,
+    revision: publicationRevision,
+  })).error?.code, "CONFIRMATION_INVALID");
+  assert.equal((await serviceASecond.commitPublication({
+    confirmationRef: preparedPublish.data!.confirmationRef,
+    idempotencyKey: `cross-connection-${randomUUID()}`,
+    revision: publicationRevision,
+  })).error?.code, "CONFIRMATION_INVALID");
+  const tamperedRef = `${preparedPublish.data!.confirmationRef.slice(0, -1)}${preparedPublish.data!.confirmationRef.endsWith("a") ? "b" : "a"}`;
+  assert.equal((await serviceA.commitPublication({
+    confirmationRef: tamperedRef,
+    idempotencyKey: `tampered-${randomUUID()}`,
+    revision: publicationRevision,
+  })).error?.code, "CONFIRMATION_INVALID");
+
+  const publishKeyA = `publish-a-${randomUUID()}`;
+  const publishKeyB = `publish-b-${randomUUID()}`;
+  const [publishA, publishB] = await Promise.all([
+    serviceA.commitPublication({ confirmationRef: preparedPublish.data!.confirmationRef, idempotencyKey: publishKeyA, revision: publicationRevision }),
+    serviceA.commitPublication({ confirmationRef: preparedPublish.data!.confirmationRef, idempotencyKey: publishKeyB, revision: publicationRevision }),
+  ]);
+  const publishResults = [{ key: publishKeyA, result: publishA }, { key: publishKeyB, result: publishB }];
+  const successfulPublish = publishResults.find(({ result }) => result.ok);
+  const rejectedPublish = publishResults.find(({ result }) => !result.ok);
+  assert.ok(successfulPublish, JSON.stringify(publishResults));
+  assert.equal(rejectedPublish?.result.error?.code, "CONFIRMATION_USED", JSON.stringify(publishResults));
+  assert.equal(successfulPublish.result.data?.article.publicationStatus, "published");
+  const publicationEventsAfterCommit = await payload.find({
+    collection: "workflow-events",
+    depth: 0,
+    limit: 20,
+    overrideAccess: true,
+    pagination: false,
+    where: { and: [{ article: { equals: articleId } }, { axis: { equals: "publication" } }] },
+  });
+  assert.equal(publicationEventsAfterCommit.docs.some((event) => event.fromStatus === "draft" && event.toStatus === "published"), true);
+  const latestPublishedVersion = await payload.findVersions({
+    collection: "articles",
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    sort: "-updatedAt",
+    where: { and: [{ parent: { equals: articleId } }, { latest: { equals: true } }] },
+  });
+  assert.equal(latestPublishedVersion.docs[0]?.version.publicationStatus, "published");
+  const replayedPublish = await serviceA.commitPublication({
+    confirmationRef: preparedPublish.data!.confirmationRef,
+    idempotencyKey: successfulPublish.key,
+    revision: publicationRevision,
+  });
+  assert.equal(replayedPublish.ok, true, JSON.stringify(replayedPublish));
+  assert.equal(replayedPublish.data?.article.id, articleId);
+  assert.equal((await payload.find({ collection: "workflow-events", depth: 0, limit: 20, overrideAccess: true, pagination: false, where: { and: [{ article: { equals: articleId } }, { axis: { equals: "publication" } }] } })).docs.length, publicationEventsAfterCommit.docs.length);
+  const publicArticle = await payload.findByID({
+    collection: "articles",
+    id: articleId,
+    depth: 0,
+    draft: false,
+    overrideAccess: false,
+  });
+  assert.equal(publicArticle.id, articleId);
+  assert.ok(publicArticle.title);
+  const prepareAudit = await payload.findByID({
+    collection: "agent-events",
+    id: Number(preparedPublish.meta?.auditId),
+    depth: 0,
+    overrideAccess: true,
+    showHiddenFields: true,
+  });
+  assert.equal(prepareAudit.result, "success");
+  assert.match(prepareAudit.requestId, /^prep_published_/);
+
+  await payload.update({
+    collection: "articles",
+    id: articleId,
+    data: { curationStatus: "selected" },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  await payload.update({
+    collection: "articles",
+    id: articleId,
+    data: {
+      coverImage: publicationPortrait.id,
+      curationStatus: "editing",
+      format: "analysis",
+      sourceNotes: [{ label: "Agent acceptance source" }],
+      summary: "A fictional summary for Agent publication acceptance.",
+    },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const curatedArticle = await payload.update({
+    collection: "articles",
+    id: articleId,
+    data: { curationStatus: "curated" },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  assert.equal(curatedArticle.curationStatus, "curated");
+
+  const curatedWorking = await serviceA.workingCopy(articleId);
+  assert.ok(curatedWorking.meta?.revision);
+  const preparedUpdate = await serviceA.preparePublication({
+    id: articleId,
+    revision: curatedWorking.meta!.revision!,
+    targetStatus: "published",
+  });
+  assert.equal(preparedUpdate.data?.summary.action, "update_public");
+  assert.equal(preparedUpdate.data?.summary.curationAfter, "needs_recheck");
+  assert.equal((await serviceA.commitPublication({
+    confirmationRef: preparedUpdate.data!.confirmationRef,
+    idempotencyKey: successfulPublish.key,
+    revision: curatedWorking.meta!.revision!,
+  })).error?.code, "IDEMPOTENCY_CONFLICT");
+  const committedUpdate = await serviceA.commitPublication({
+    confirmationRef: preparedUpdate.data!.confirmationRef,
+    idempotencyKey: `update-public-${randomUUID()}`,
+    revision: curatedWorking.meta!.revision!,
+  });
+  assert.equal(committedUpdate.ok, true, JSON.stringify(committedUpdate));
+  assert.equal(committedUpdate.data?.article.curationStatus, "needs_recheck");
+
+  const beforeStalePrepare = await serviceA.workingCopy(articleId);
+  assert.ok(beforeStalePrepare.meta?.revision);
+  const preparedWithdraw = await serviceA.preparePublication({
+    id: articleId,
+    revision: beforeStalePrepare.meta!.revision!,
+    targetStatus: "withdrawn",
+  });
+  assert.equal(preparedWithdraw.data?.summary.action, "withdraw");
+  assert.equal((await serviceA.commitPublication({
+    confirmationRef: preparedWithdraw.data!.confirmationRef,
+    idempotencyKey: successfulPublish.key,
+    revision: beforeStalePrepare.meta!.revision!,
+  })).error?.code, "IDEMPOTENCY_CONFLICT");
+  const changedAfterPrepare = await serviceA.saveDraft({
+    body,
+    id: articleId,
+    idempotencyKey: `stale-change-${randomUUID()}`,
+    revision: beforeStalePrepare.meta!.revision!,
+    title: "Agent fixture changed after prepare",
+  });
+  assert.equal(changedAfterPrepare.ok, true, JSON.stringify(changedAfterPrepare));
+  assert.notEqual(changedAfterPrepare.meta?.revision, beforeStalePrepare.meta?.revision, "Saving after prepare must change the revision.");
+  const staleCommit = await serviceA.commitPublication({
+    confirmationRef: preparedWithdraw.data!.confirmationRef,
+    idempotencyKey: `stale-withdraw-${randomUUID()}`,
+    revision: beforeStalePrepare.meta!.revision!,
+  });
+  assert.equal(staleCommit.error?.code, "REVISION_CONFLICT", JSON.stringify(staleCommit));
+
+  const freshWithdrawWorking = await serviceA.workingCopy(articleId);
+  const freshWithdraw = await serviceA.preparePublication({
+    id: articleId,
+    revision: freshWithdrawWorking.meta!.revision!,
+    targetStatus: "withdrawn",
+  });
+  assert.equal(freshWithdraw.ok, true, JSON.stringify(freshWithdraw));
+  const withdrawn = await serviceA.commitPublication({
+    confirmationRef: freshWithdraw.data!.confirmationRef,
+    idempotencyKey: `withdraw-${randomUUID()}`,
+    revision: freshWithdrawWorking.meta!.revision!,
+  });
+  assert.equal(withdrawn.ok, true, JSON.stringify(withdrawn));
+  assert.equal(withdrawn.data?.article.publicationStatus, "withdrawn");
+  assert.equal(withdrawn.data?.article.curationStatus, "removed");
+  const historicalPublishReplay = await serviceA.commitPublication({
+    confirmationRef: preparedPublish.data!.confirmationRef,
+    idempotencyKey: successfulPublish.key,
+    revision: publicationRevision,
+  });
+  assert.equal(historicalPublishReplay.ok, true, JSON.stringify(historicalPublishReplay));
+  assert.equal(historicalPublishReplay.data?.action, "publish");
+  assert.equal(historicalPublishReplay.data?.article.publicationStatus, "published");
+  assert.equal(historicalPublishReplay.meta?.revision, successfulPublish.result.meta?.revision);
+  await assert.rejects(() => payload.findByID({
+    collection: "articles",
+    id: articleId,
+    depth: 0,
+    draft: false,
+    overrideAccess: false,
+  }));
+
+  const republishWorking = await serviceA.workingCopy(articleId);
+  const republishPrepare = await serviceA.preparePublication({
+    id: articleId,
+    revision: republishWorking.meta!.revision!,
+    targetStatus: "published",
+  });
+  assert.equal(republishPrepare.ok, true, JSON.stringify(republishPrepare));
+  assert.equal(republishPrepare.data?.summary.action, "republish");
+  const republished = await serviceA.commitPublication({
+    confirmationRef: republishPrepare.data!.confirmationRef,
+    idempotencyKey: `republish-${randomUUID()}`,
+    revision: republishWorking.meta!.revision!,
+  });
+  assert.equal(republished.ok, true, JSON.stringify(republished));
+  assert.equal((await payload.findByID({ collection: "articles", id: articleId, depth: 0, draft: false, overrideAccess: false })).id, articleId);
+
+  const mismatchedWorking = await serviceA.workingCopy(articleId);
+  const mismatchedRef = createPublicationConfirmation({
+    action: "withdraw",
+    articleId,
+    connectionId: connectionA.id,
+    exp: Date.now() + 60_000,
+    jti: randomUUID(),
+    personId: memberA.person.id,
+    revision: mismatchedWorking.meta!.revision!,
+    targetStatus: "published",
+    userId: memberA.user.id,
+    v: 1,
+  }, secret);
+  await payload.create({
+    collection: "agent-events",
+    overrideAccess: true,
+    data: {
+      user: memberA.user.id,
+      connection: connectionA.id,
+      clientFamily: oauthClient.clientFamily,
+      tool: "article_prepare_publication",
+      objectType: "article",
+      objectId: String(articleId),
+      requestId: `prep_published_${randomUUID()}`,
+      idempotencyDigest: publicationConfirmationDigest(mismatchedRef),
+      inputFingerprint: "signed-mismatch-fixture",
+      result: "pending",
+      beforeRevision: mismatchedWorking.meta!.revision!,
+      occurredAt: new Date().toISOString(),
+    },
+  });
+  const signedMismatch = await serviceA.commitPublication({
+    confirmationRef: mismatchedRef,
+    idempotencyKey: `signed-mismatch-${randomUUID()}`,
+    revision: mismatchedWorking.meta!.revision!,
+  });
+  assert.equal(signedMismatch.error?.code, "CONFIRMATION_INVALID");
+
+  const endpointWithdrawReq = await createLocalReq({ user: memberA.user }, payload);
+  endpointWithdrawReq.routeParams = { id: String(articleId) };
+  endpointWithdrawReq.json = async () => ({ axis: "publication", confirmed: true, status: "withdrawn" });
+  const endpointWithdraw = await transitionArticleEndpoint.handler(endpointWithdrawReq);
+  assert.equal(endpointWithdraw.status, 200);
+  assert.equal((await endpointWithdraw.json() as { publicationStatus: string }).publicationStatus, "withdrawn");
+  const endpointRepublishReq = await createLocalReq({ user: memberA.user }, payload);
+  endpointRepublishReq.routeParams = { id: String(articleId) };
+  endpointRepublishReq.json = async () => ({ axis: "publication", confirmed: true, status: "published" });
+  const endpointRepublish = await transitionArticleEndpoint.handler(endpointRepublishReq);
+  assert.equal(endpointRepublish.status, 200);
+  assert.equal((await endpointRepublish.json() as { publicationStatus: string }).publicationStatus, "published");
+
+  const sensitiveAudit = await payload.find({
+    collection: "agent-events",
+    depth: 0,
+    limit: 100,
+    overrideAccess: true,
+    pagination: false,
+    showHiddenFields: true,
+    where: { objectId: { equals: String(articleId) } },
+  });
+  const serializedAudit = JSON.stringify(sensitiveAudit.docs);
+  assert.equal(serializedAudit.includes(preparedPublish.data!.confirmationRef), false);
+  assert.equal(serializedAudit.includes("Ignore prior instructions"), false);
+  assert.equal(sensitiveAudit.docs.some((event) => event.requestId.includes("published")), true);
+  const mismatchAudit = sensitiveAudit.docs.find((event) => event.requestId === signedMismatch.requestId);
+  assert.equal(mismatchAudit?.objectId, String(articleId));
+  assert.match(mismatchAudit?.requestId ?? "", /published.*CONFIRMATION_INVALID$/);
+
+  const expiredRef = createPublicationConfirmation({
+    action: "update_public",
+    articleId,
+    connectionId: connectionA.id,
+    exp: Date.now() - 1,
+    jti: randomUUID(),
+    personId: memberA.person.id,
+    revision: republished.meta!.revision!,
+    targetStatus: "published",
+    userId: memberA.user.id,
+    v: 1,
+  }, secret);
+  assert.equal((await serviceA.commitPublication({
+    confirmationRef: expiredRef,
+    idempotencyKey: `expired-${randomUUID()}`,
+    revision: republished.meta!.revision!,
+  })).error?.code, "CONFIRMATION_EXPIRED");
+
+  const revocationWorking = await serviceASecond.workingCopy(articleId);
+  const beforeRevocation = await serviceASecond.preparePublication({
+    id: articleId,
+    revision: revocationWorking.meta!.revision!,
+    targetStatus: "published",
+  });
+  assert.equal(beforeRevocation.ok, true, JSON.stringify(beforeRevocation));
+  await payload.update({
+    collection: "agent-connections",
+    id: connectionASecond.id,
+    data: { revokedAt: new Date().toISOString(), state: "revoked" },
+    overrideAccess: true,
+  });
+  assert.equal((await serviceASecond.commitPublication({
+    confirmationRef: beforeRevocation.data!.confirmationRef,
+    idempotencyKey: `revoked-${randomUUID()}`,
+    revision: revocationWorking.meta!.revision!,
+  })).error?.code, "CONNECTION_REVOKED");
+
+  await exerciseOwnPublicationLifecycle(payload, editor, editorService, "Editor fixture");
+  await exerciseOwnPublicationLifecycle(payload, admin, adminService, "Admin fixture");
+
+  const unapprovedAdminMedia = await memberImage(payload, admin.user, `Role downgrade ${suffix}`);
+  const editorRoleDraft = await editorService.createDraft({
+    body,
+    idempotencyKey: `editor-role-create-${randomUUID()}`,
+    locale: "en",
+    title: "Editor role downgrade fixture",
+  });
+  await payload.update({
+    collection: "articles",
+    id: Number(editorRoleDraft.data?.id),
+    data: { coverImage: unapprovedAdminMedia.id },
+    draft: true,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const editorRoleWorking = await editorService.workingCopy(Number(editorRoleDraft.data?.id));
+  const editorRolePrepare = await editorService.preparePublication({
+    id: Number(editorRoleDraft.data?.id),
+    revision: editorRoleWorking.meta!.revision!,
+    targetStatus: "published",
+  });
+  assert.equal(editorRolePrepare.ok, true, JSON.stringify(editorRolePrepare));
+  await payload.update({ collection: "users", id: editor.user.id, data: { role: "author" }, overrideAccess: true });
+  assert.equal((await editorService.commitPublication({
+    confirmationRef: editorRolePrepare.data!.confirmationRef,
+    idempotencyKey: `editor-role-commit-${randomUUID()}`,
+    revision: editorRoleWorking.meta!.revision!,
+  })).error?.code, "FORBIDDEN");
+  await payload.update({ collection: "users", id: editor.user.id, data: { role: "editor" }, overrideAccess: true });
+
+  const connectionClientCheck = await connection(payload, memberA, oauthClient);
+  const serviceClientCheck = AgentMemberService.fromPayload(payload, auth(memberA, oauthClient, connectionClientCheck.id));
+  const clientCheckWorking = await serviceClientCheck.workingCopy(articleId);
+  const clientCheckPrepare = await serviceClientCheck.preparePublication({
+    id: articleId,
+    revision: clientCheckWorking.meta!.revision!,
+    targetStatus: "published",
+  });
+  assert.equal(clientCheckPrepare.ok, true, JSON.stringify(clientCheckPrepare));
+  await payload.update({ collection: "agent-oauth-clients", id: oauthClient.id, data: { disabled: true }, overrideAccess: true });
+  assert.equal((await serviceClientCheck.commitPublication({
+    confirmationRef: clientCheckPrepare.data!.confirmationRef,
+    idempotencyKey: `disabled-client-${randomUUID()}`,
+    revision: clientCheckWorking.meta!.revision!,
+  })).error?.code, "CONNECTION_REVOKED");
+  await payload.update({ collection: "agent-oauth-clients", id: oauthClient.id, data: { disabled: false }, overrideAccess: true });
+
+  const beforePauseWorking = await serviceA.workingCopy(articleId);
+  const beforePause = await serviceA.preparePublication({
+    id: articleId,
+    revision: beforePauseWorking.meta!.revision!,
+    targetStatus: "published",
+  });
+  assert.equal(beforePause.ok, true, JSON.stringify(beforePause));
+
   await payload.update({ collection: "users", id: memberA.user.id, overrideAccess: true, data: { accountStatus: "paused" } });
+  assert.equal((await serviceA.commitPublication({
+    confirmationRef: beforePause.data!.confirmationRef,
+    idempotencyKey: `paused-after-prepare-${randomUUID()}`,
+    revision: beforePauseWorking.meta!.revision!,
+  })).error?.code, "ACCOUNT_PAUSED");
   assert.equal(errorCode(await serviceA.accountContext()), "ACCOUNT_PAUSED");
   assert.equal(errorCode(await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).accountContext()), "NO_PERSON");
+  assert.equal((await serviceA.preparePublication({ id: articleId, revision: republished.meta!.revision!, targetStatus: "published" })).error?.code, "ACCOUNT_PAUSED");
+  assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).preparePublication({ id: articleId, revision: republished.meta!.revision!, targetStatus: "published" })).error?.code, "NO_PERSON");
   const editorCapabilities = await AgentMemberService.fromPayload(payload, auth(editor, oauthClient, connectionEditor.id)).capabilities();
   const adminCapabilities = await AgentMemberService.fromPayload(payload, auth(admin, oauthClient, connectionAdmin.id)).capabilities();
   assert.equal(editorCapabilities.ok, true);
@@ -322,7 +888,7 @@ try {
   assert.equal(toolsResponse.status, 200);
   const toolsBody = await mcpJSON(toolsResponse) as { result?: { tools?: { name: string }[] } };
   const toolNames = toolsBody.result?.tools?.map(({ name }) => name) ?? [];
-  assert.deepEqual(toolNames.sort(), ["account_context", "article_create_draft", "article_get_working_copy", "article_preview", "article_save_draft", "capabilities_list", "my_articles_list"].sort());
+  assert.deepEqual(toolNames.sort(), ["account_context", "article_commit_publication", "article_create_draft", "article_get_working_copy", "article_prepare_publication", "article_preview", "article_save_draft", "capabilities_list", "my_articles_list"].sort());
 
   const contextResponse = await gateway(mcpRequest(token.access_token, "tools/call", { name: "account_context", arguments: {} }, 2));
   assert.equal(contextResponse.status, 200);
@@ -343,7 +909,7 @@ try {
   assert.equal(crossMemberResponse.status, 200);
   const crossMemberBody = await mcpJSON(crossMemberResponse) as { result?: { structuredContent?: { error?: { code?: string }; ok?: boolean } } };
   assert.equal(crossMemberBody.result?.structuredContent?.ok, false);
-  assert.ok(["FORBIDDEN", "NOT_FOUND"].includes(crossMemberBody.result?.structuredContent?.error?.code ?? ""));
+  assert.ok(["FORBIDDEN", "NOT_FOUND"].includes(crossMemberBody.result?.structuredContent?.error?.code ?? ""), JSON.stringify(crossMemberBody));
 
   const stored = await payload.find({ collection: "agent-connections", depth: 0, limit: 1, overrideAccess: true, pagination: false, showHiddenFields: true, where: { accessTokenDigest: { equals: digestAgentSecret(token.access_token, secret) } } });
   assert.ok(stored.docs[0]);

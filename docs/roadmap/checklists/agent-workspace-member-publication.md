@@ -88,30 +88,30 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 
 - [x] 001 已归档，transition review 明确 002 为 `keep + narrow` 的下一候选。
 - [x] 用户于 2026-07-31 要求“按结论执行”，批准建立本 active checklist、提交 intake 基线，并在 Local 虚构 fixture 上实现公共状态写路径。
-- [ ] 本 checklist 进入 HEAD 后才开始产品代码；Preview、真实账户/数据和 Production 不由该批准推导。
+- [x] 本 checklist 已在产品代码前进入 HEAD；Preview、真实账户/数据和 Production 不由该批准推导。
 
 ### Gate 1 — Shared publication contract
 
-- [ ] 固定 action 推导、prepare 摘要、target status、公共路径、curation 影响和错误码。
-- [ ] 提取网页 endpoint 与 Agent 共用的最小 publication helper，不改变既有网页确认行为和权限。
-- [ ] 把媒体发布规则拆成 prepare 可调用的纯检查与 commit 才执行的使用时间写入；两者必须共享同一 owner/approval 判断。
-- [ ] 证明现有 Agent event 足以保存 pending confirmation、不可逆 digest、一次消费、前后 revision 和 commit 幂等；否则停止申请 schema 门禁。
+- [x] 固定 action 推导、prepare 摘要、target status、公共路径、curation 影响和错误码。
+- [x] 提取网页 endpoint 与 Agent 共用的最小 publication helper，不改变既有网页确认行为和权限。
+- [x] 把媒体发布规则拆成 prepare 可调用的纯检查与 commit 才执行的使用时间写入；两者共享同一 owner/approval 判断。
+- [x] 既有 Agent event 已证明可保存 pending confirmation、不可逆 digest、一次消费、前后 revision 和 commit 幂等；没有新增 schema 或 migration。
 
 ### Gate 2 — Agent tools
 
-- [ ] 注册两项工具、Zod 输入、风险 annotations 与自足说明；commit 标记为 destructive，prepare 不标记为写入 Article。
-- [ ] 为后台 Recent activity 增加两项短标签，不显示工具名、confirmation 或内部协议术语。
-- [ ] 实现 5 分钟 confirmation、actor/connection/object/action/revision 绑定与原子消费。
-- [ ] 实现 publish、update public、withdraw、republish 四条服务器推导路径和最终读回。
-- [ ] capability 列表只对有 Person 的当前后台账户增加两项工具；实际调用仍逐次校验。
+- [x] 注册两项工具、Zod 输入、风险 annotations 与自足说明；commit 标记为 destructive，prepare 不标记为 Article 写入。
+- [x] 为后台 Recent activity 增加两项短标签，不显示工具名、confirmation 或内部协议术语。
+- [x] 实现 5 分钟 confirmation、actor/connection/object/action/revision 绑定与原子消费。
+- [x] 实现 publish、update public、withdraw、republish 四条服务器推导路径和最终读回。
+- [x] capability 列表只对有 Person 的当前后台账户增加两项工具；实际调用仍逐次校验。
 
 ### Gate 3 — Local verification
 
-- [ ] 覆盖 Member owner 正例与 anonymous、paused、missing Person、other Member、Editor/Super Admin 非 owner 负例。
-- [ ] 覆盖过期、已消费、跨连接、跨用户、篡改、错误 target、stale revision、并发 commit、重复 key 和同 key 不同输入。
-- [ ] 覆盖首次公开、公开更新、撤回、重新公开、curated 后更新进入 Needs recheck、撤回进入 Removed。
-- [ ] 每个成功动作读回 Article、latest version、workflow event、agent event 与匿名公共路由；撤回后匿名路由不可见。
-- [ ] 既有网页 `POST /api/articles/:id/transition` 和完整 editorial workflow 无回归。
+- [x] 覆盖 Member owner 正例与 anonymous、paused、missing Person、other Member、Editor/Super Admin 非 owner 负例。
+- [x] 覆盖过期、已消费、跨连接、跨用户、篡改、错误 target、stale revision、并发 commit、重复 key 和同 key 不同输入。
+- [x] 覆盖首次公开、公开更新、撤回、重新公开、curated 后更新进入 Needs recheck、撤回进入 Removed。
+- [x] 成功动作已读回 Article、latest version、workflow event、agent event 与匿名公开状态；撤回后匿名读取不可见。
+- [x] 既有网页 `POST /api/articles/:id/transition` 和完整 editorial workflow 无回归。
 
 ### Gate 4 — Preview real client
 
@@ -121,7 +121,7 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 
 ### Gate 5 — Review and closeout
 
-- [ ] 完成 confirmation/replay 安全与权限/公共读回独立复审，修复到 `P0/P1/P2 = 0/0/0`。
+- [x] confirmation/replay 安全与权限/公共读回独立复审第三轮 `PASS`，`P0/P1/P2 = 0/0/0`。
 - [ ] 更新 feature registry、current、implementation evidence 和父级清单；关闭后移入 archive。
 - [ ] 根据 002 证据重新判断 003 的确认 primitive、工具范围和进入条件；不自动启动 003。
 
@@ -158,4 +158,4 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 
 ## Current gate
 
-当前只批准 intake 基线提交与 Local `.test` fixture 实现。没有新增依赖、schema 或 migration 计划；Preview deploy、公开 MCP 临时验收、真实账户、真实数据、Production、merge 和 push 均未执行或未获本 checklist 推导授权。
+Local `.test` fixture 实现、自动验证与独立复审已 PASS，证据见 [`Agent Workspace 002 — Local runtime evidence`](../../reference/implementation/agent-workspace-002-local-runtime-2026-07-31.md)。没有新增依赖、schema 或 migration。Preview deploy、公开 MCP 临时验收、真实账户、真实数据、Production、merge 和 push 均未执行或未获本 checklist 推导授权。

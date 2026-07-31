@@ -17,6 +17,8 @@ const activityLabels: Record<string, string> = {
   article_create_draft: "Draft created",
   article_save_draft: "Draft saved",
   article_preview: "Preview opened",
+  article_prepare_publication: "Publication checked",
+  article_commit_publication: "Publication changed",
   authorization_approval: "Connection",
   connection_revoke: "Connection revoked",
   oauth_revoke: "Connection revoked",

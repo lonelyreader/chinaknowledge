@@ -16,7 +16,7 @@ max_lines: 100
 
 父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。它记录 001–005 的关系和阶段转换，不授权实现。
 
-唯一 active 子级为 [`AGENT-WORKSPACE-002`](checklists/agent-workspace-member-publication.md)：只验证 Member Article publication 的 `prepare → 用户确认 → commit → readback`。Local 虚构 fixture 已获启动批准；Preview、真实数据和 Production 继续分别设门禁。
+唯一 active 子级为 [`AGENT-WORKSPACE-002`](checklists/agent-workspace-member-publication.md)：Member Article publication 的 Local 实现、自动 fixture 与独立复审已 PASS，等待另行批准的 Preview Cursor 人工确认；真实数据和 Production 继续分别设门禁。
 
 ## Deferred
 

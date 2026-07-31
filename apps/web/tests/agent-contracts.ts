@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 
 import {
   AGENT_BODY_VERSION,
@@ -17,6 +18,12 @@ import {
   UnsupportedAgentContentError,
 } from "../src/agent/content";
 import { articleRevisionMatches, createArticleRevision } from "../src/agent/revision";
+import {
+  createPublicationConfirmation,
+  PublicationConfirmationError,
+  publicationConfirmationDigest,
+  readPublicationConfirmation,
+} from "../src/agent/confirmation";
 
 const body: AgentArticleBodyV1 = {
   version: AGENT_BODY_VERSION,
@@ -90,5 +97,36 @@ for (const description of Object.values(agentToolDescriptions)) {
   assert.ok(description.length > 40);
   assert.ok(description.length <= 512);
 }
+assert.equal(Object.keys(agentToolDescriptions).length, 9);
+
+const confirmationSecret = "fixture-publication-secret-at-least-32-characters";
+const confirmationPayload = {
+  action: "publish" as const,
+  articleId: 42,
+  connectionId: 7,
+  exp: Date.now() + 60_000,
+  jti: randomUUID(),
+  personId: 8,
+  revision,
+  targetStatus: "published" as const,
+  userId: 9,
+  v: 1 as const,
+};
+const confirmation = createPublicationConfirmation(confirmationPayload, confirmationSecret);
+assert.deepEqual(readPublicationConfirmation(confirmation, { secret: confirmationSecret }), confirmationPayload);
+assert.match(publicationConfirmationDigest(confirmation), /^confirm_[A-Za-z0-9_-]{43}$/);
+assert.equal(publicationConfirmationDigest(confirmation), publicationConfirmationDigest(confirmation));
+assert.throws(
+  () => readPublicationConfirmation(`${confirmation.slice(0, -1)}x`, { secret: confirmationSecret }),
+  PublicationConfirmationError,
+);
+assert.throws(
+  () => readPublicationConfirmation(confirmation, { now: confirmationPayload.exp + 1, secret: confirmationSecret }),
+  (error: unknown) => error instanceof PublicationConfirmationError && error.reason === "expired",
+);
+assert.deepEqual(
+  readPublicationConfirmation(confirmation, { allowExpired: true, now: confirmationPayload.exp + 1, secret: confirmationSecret }),
+  confirmationPayload,
+);
 
 console.log("Agent contract tests PASS");

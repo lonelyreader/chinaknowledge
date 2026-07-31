@@ -1,6 +1,6 @@
-import { APIError, type Endpoint, type Payload, type PayloadRequest } from "payload";
+import { APIError, type Endpoint } from "payload";
 
-import type { Article } from "@/payload-types";
+import { commitMemberPublication, getLatestDraftData } from "./article-publication";
 import { hasEditorialRole, isCMSUser, isSuperAdmin } from "./roles";
 import { isCurationStatus, isPublicationStatus } from "./workflow";
 import { createEditorialNotificationEvent } from "./editorial-notifications";
@@ -21,72 +21,6 @@ function relationID(value: unknown): number | null | undefined {
   if (typeof value === "number" || value === null) return value;
   if (typeof value === "string" && /^\d+$/.test(value)) return Number(value);
   return undefined;
-}
-
-function relationIDs(values: unknown[] | null | undefined) {
-  return values?.flatMap((value) => {
-    const id = relationID(value);
-    return typeof id === "number" ? [id] : [];
-  });
-}
-
-function memberPromotableArticleData(article: Article) {
-  return {
-    body: article.body,
-    coverImage: relationID(article.coverImage),
-    summary: article.summary,
-    title: article.title,
-  };
-}
-
-function editorialPromotableArticleData(article: Article) {
-  return {
-    assignedEditor: relationID(article.assignedEditor),
-    body: article.body,
-    coverImage: relationID(article.coverImage),
-    editorComments: article.editorComments,
-    format: article.format,
-    freshnessDate: article.freshnessDate,
-    geographies: relationIDs(article.geographies),
-    homepageEndsAt: article.homepageEndsAt,
-    homepagePlacement: article.homepagePlacement,
-    homepageStartsAt: article.homepageStartsAt,
-    purposes: relationIDs(article.purposes),
-    situations: relationIDs(article.situations),
-    sourceNotes: article.sourceNotes,
-    summary: article.summary,
-    title: article.title,
-    topics: relationIDs(article.topics),
-  };
-}
-
-export async function getLatestDraftData(
-  payload: Payload,
-  id: number | string,
-  fallback: Article,
-  req?: PayloadRequest,
-  axis: "publication" | "curation" = "publication",
-) {
-  const versions = await payload.findVersions({
-    collection: "articles",
-    depth: 0,
-    limit: 1,
-    overrideAccess: true,
-    pagination: false,
-    req,
-    sort: "-updatedAt",
-    where: {
-      and: [
-        { parent: { equals: id } },
-        { latest: { equals: true } },
-        { autosave: { equals: true } },
-      ],
-    },
-  });
-  const article = versions.docs[0]?.version ?? fallback;
-  return axis === "publication"
-    ? memberPromotableArticleData(article)
-    : editorialPromotableArticleData(article);
 }
 
 export const transitionArticleEndpoint: Endpoint = {
@@ -116,30 +50,13 @@ export const transitionArticleEndpoint: Endpoint = {
 
     if (body.axis === "publication") {
       if (!isPublicationStatus(body.status)) throw new APIError("Unknown publication status.", 400);
+      if (body.status !== "published" && body.status !== "withdrawn") {
+        throw new APIError("Choose publish or withdraw.", 400);
+      }
       if (!ownerAction && !isSuperAdmin(req.user)) {
         throw new APIError("Only the member or a Super Admin can change personal publication.", 403);
       }
-      const unpublishing = current.publicationStatus === "published" && body.status !== "published";
-      const promotedData =
-        body.status === "published"
-          ? await getLatestDraftData(req.payload, id, current, req)
-          : undefined;
-      const article = await req.payload.update({
-        collection: "articles",
-        id,
-        context: {
-          memberPublicationConfirmed: body.status === "published",
-          publicationTransitionConfirmed: true,
-        },
-        data: {
-          ...promotedData,
-          publicationStatus: body.status,
-          ...(unpublishing ? { _status: "draft" as const } : {}),
-        },
-        ...(unpublishing ? {} : { draft: body.status !== "published" }),
-        overrideAccess: false,
-        req,
-      });
+      const article = await commitMemberPublication(current, body.status, req);
       return Response.json({
         id: article.id,
         publicationStatus: article.publicationStatus,

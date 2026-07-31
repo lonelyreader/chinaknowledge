@@ -7,7 +7,7 @@ import path from "node:path";
 import { createLocalReq, getPayload, type Payload } from "payload";
 
 import config from "@payload-config";
-import { getLatestDraftData } from "@/cms/article-endpoints";
+import { getLatestDraftData } from "@/cms/article-publication";
 import { buildPublicationSummary } from "@/cms/publication-summary";
 import { isCMSUser } from "@/cms/roles";
 import { inviteUserEndpoint } from "@/cms/user-endpoints";

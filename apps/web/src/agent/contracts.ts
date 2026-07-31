@@ -12,6 +12,9 @@ export const agentErrorCodes = [
   "NOT_FOUND",
   "VALIDATION_ERROR",
   "UNSUPPORTED_CONTENT",
+  "CONFIRMATION_EXPIRED",
+  "CONFIRMATION_INVALID",
+  "CONFIRMATION_USED",
   "REVISION_CONFLICT",
   "IDEMPOTENCY_CONFLICT",
   "RATE_LIMITED",
@@ -87,6 +90,10 @@ export const agentToolDescriptions = {
     "Save allowed writing fields on a private article owned by the current member. Requires the latest revision and an idempotency key; stale revisions fail without overwriting newer work.",
   article_preview:
     "Return an authenticated preview path for an article owned by the current member. This is read-only and never creates or changes a public URL or publication state.",
+  article_prepare_publication:
+    "Prepare publishing, updating the public version, withdrawing or republishing an article owned by the current member. This validates the action and returns an exact summary plus a short-lived one-time confirmation reference. It never changes the article or public page.",
+  article_commit_publication:
+    "Execute a prepared publication action only after the user explicitly confirms the exact prepare summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks ownership, account state, connection, revision and transition before changing the public page.",
 } as const;
 
 export type AgentToolName = keyof typeof agentToolDescriptions;

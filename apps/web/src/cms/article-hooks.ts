@@ -8,12 +8,13 @@ import { APIError } from "payload";
 
 import type { Article } from "@/payload-types";
 
+import {
+  assertArticleBylineOwnership,
+  assertMemberPublicationComplete,
+} from "./article-publication";
 import { hasEditorialRole, isCMSUser, isSuperAdmin } from "./roles";
 import { createEditorialNotificationEvent, notificationKindForCuration } from "./editorial-notifications";
-import {
-  assertMediaApprovedForPublicUse,
-  markMediaForMemberPublication,
-} from "./media-policy";
+import { assertMediaApprovedForPublicUse } from "./media-policy";
 import {
   assertCurationTransition,
   assertPublicationTransition,
@@ -78,50 +79,6 @@ async function findOwnPerson(
   const person = people.docs[0];
   if (!person) throw new APIError("A member profile is required before creating an article.", 400);
   return person;
-}
-
-async function assertBylineOwnership(
-  article: Partial<ArticleShape>,
-  req: Parameters<CollectionBeforeChangeHook>[0]["req"],
-) {
-  if (!isCMSUser(req.user)) throw new APIError("Authentication is required.", 401);
-  const authorID = relationID(article.author);
-  if (!authorID) throw new APIError("An author profile is required.", 400);
-  const person = await req.payload.findByID({
-    collection: "people",
-    id: authorID,
-    depth: 0,
-    overrideAccess: true,
-    req,
-  });
-  if (!person) throw new APIError("An author profile is required.", 400);
-  const ownerID = relationID(article.owner);
-  if (relationID(person.user) !== ownerID) {
-    throw new APIError("The article owner must match the original author profile.", 403);
-  }
-  return person;
-}
-
-async function assertMemberPublicationComplete(
-  article: Partial<ArticleShape>,
-  req: Parameters<CollectionBeforeChangeHook>[0]["req"],
-) {
-  if (!article.title?.trim() || !article.body) {
-    throw new APIError("Title and body are required before publication.", 400);
-  }
-  if (!article.locale || !article.slug?.trim()) {
-    throw new APIError("Language and public URL are required before publication.", 400);
-  }
-  const person = await assertBylineOwnership(article, req);
-  if (person.profileStatus !== "public" || !person.profilePublishedAt) {
-    throw new APIError("Publish your profile before publishing an article.", 400);
-  }
-  if (!person.languages?.includes(article.locale)) {
-    throw new APIError("Add this article language to your public profile before publishing.", 400);
-  }
-  if (article.coverImage) {
-    await markMediaForMemberPublication(article.coverImage, req, "Cover image");
-  }
 }
 
 async function assertCurationComplete(
@@ -257,7 +214,7 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
   if (operation === "create") {
     data.owner = req.user.id;
     data.author = (await findOwnPerson(req.user.id, req)).id;
-    await assertBylineOwnership(data, req);
+    await assertArticleBylineOwnership(data as ArticleShape, req);
     data.publicationStatus = "draft";
     data.curationStatus = "not_selected";
     data.workflowStatus = "draft";
@@ -294,7 +251,7 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
   if (!hasEditorialRole(req.user) && !ownerAction) {
     throw new APIError("Members can only update their own content.", 403);
   }
-  await assertBylineOwnership({ ...originalDoc, ...data }, req);
+  await assertArticleBylineOwnership({ ...originalDoc, ...data } as ArticleShape, req);
   assertCurationWindow({ ...originalDoc, ...data });
 
   if (nextPublication !== currentPublication) {
@@ -321,7 +278,7 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
   }
 
   if (context.memberPublicationConfirmed === true && nextPublication === "published") {
-    await assertMemberPublicationComplete({ ...originalDoc, ...data }, req);
+    await assertMemberPublicationComplete({ ...originalDoc, ...data } as ArticleShape, req, { markMedia: true });
     data.publishedAt ||= originalDoc.publishedAt ?? new Date().toISOString();
     data._status = "published";
     if (ownerAction && currentCuration === "curated") {
