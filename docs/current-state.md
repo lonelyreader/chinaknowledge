@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 已完成并归档；当前唯一 active checklist 是 [`AGENT-WORKSPACE-002`](roadmap/checklists/agent-workspace-member-publication.md)。两项 Member publication 工具已在独立 Local `.test` 数据库通过 publish、update public、withdraw、republish、一次确认、幂等、冲突、越权、curation 副作用与匿名读回，独立复审 `PASS` 且 P0/P1/P2 为零；Preview real-client 门禁尚未授权。Preview 已恢复 SSO，Production 未部署，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 与 [`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md) 已完成并归档；当前没有 implementation active checklist，003 是下一条可进入独立 intake 的候选，但尚未创建或授权。002 已在独立 Local `.test` 数据库和 Cursor Preview 真实客户端完成 publish、幂等重放、withdraw、过期确认拒绝与匿名读回；测试身份、内容、连接和本轮 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。最终独立复审 `PASS`，P0/P1/P2 均为 0。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 

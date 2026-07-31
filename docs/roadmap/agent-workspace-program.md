@@ -12,7 +12,7 @@ max_lines: 220
 
 本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001 已完成并归档；当前 active 子级是收窄后的 [`AGENT-WORKSPACE-002`](checklists/agent-workspace-member-publication.md)。
+稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–002 已完成并归档；当前没有 implementation active 子级，003 是下一条可进入 intake 的候选。
 
 ## Program Goal
 
@@ -22,8 +22,8 @@ max_lines: 220
 flowchart LR
     P["Parent checklist<br/>阶段、依赖、转换决定"] --> A1["001<br/>Member foundation"]
     A1 --> R["Transition review<br/>根据真实证据重估"]
-    R --> A2["002 active<br/>Member publication"]
-    A2 -.-> A3["003 provisional<br/>Editor curation"]
+    R --> A2["002 completed<br/>Member publication"]
+    A2 --> A3["003 next candidate<br/>Editor curation intake"]
     A3 -.-> A4["004 provisional<br/>Admin safe subsets"]
     A4 -.-> A5["005 provisional<br/>Compatibility + release"]
 ```
@@ -35,8 +35,8 @@ flowchart LR
 | ID | 当前状态 | 候选结果 | 进入条件 |
 |---|---|---|---|
 | `AGENT-WORKSPACE-001` | completed；Local + Preview Cursor real-client PASS | OAuth、远程 MCP、Member read/draft/preview | 已归档；TRAE/WorkBuddy 转 005 |
-| `AGENT-WORKSPACE-002` | active；Local + review PASS | Member publication 的 prepare/confirm/commit/readback 已通过自动 fixture与独立复审 | 另行批准 Preview Cursor 人工确认；Production 不由此开启 |
-| `AGENT-WORKSPACE-003` | provisional；`keep` | Editor Needs attention、分配、分类、来源、策展、排期与复核 | 002 先证明确认合同，再定义 Editor 跨作者工具 |
+| `AGENT-WORKSPACE-002` | completed；Local + Preview Cursor + final review PASS | Member publication 的 prepare/confirm/commit/readback、重放、撤回与过期拒绝 | 已归档；confirmation primitive 可供 003 intake 复用，Production 未开启 |
+| `AGENT-WORKSPACE-003` | next candidate；`keep + narrow first batch` | Editor 跨作者读取/保存与公共策展状态动作分级；首批只做最小端到端切片 | 另建 active checklist，固定首批对象、公共状态变化和恢复路径 |
 | `AGENT-WORKSPACE-004` | provisional；`split` | 低风险站务和高风险账户/身份分开；只评估适合 Agent 的安全子集 | 删除、提权、migration、密钥和 Production 动作保持网页或专门流程 |
 | `AGENT-WORKSPACE-005` | provisional；`keep + expand` | TRAE/WorkBuddy 真实兼容、Cursor callback 预检、运营监控、限流、支持、恢复与 Production release | 002–004 范围稳定并取得目标客户端账号；CLI fallback 仍须真实需求证据 |
 
@@ -50,7 +50,8 @@ flowchart LR
 - [x] 完成正式 transition review，以 Cursor Preview 运行和撤权证据重新估算 002–005。
 - [x] 记录决定：002 `keep + narrow`，003 `keep` 且排在 002 后，004 `split`，005 `keep + expand`。
 - [x] 只为下一条得到批准的结果创建一个 active 子级 checklist；其余继续停留在本页。
-- [ ] 每个子级关闭后更新本页的实际结果、遗留风险、可复用合同和下一阶段进入条件。
+- [x] 最终 closure 复审 PASS 后归档 002，并确认实际结果、遗留风险、可复用 confirmation 合同和 003–005 进入条件。
+- [ ] 003 及后续子级关闭后继续更新本页的实际结果、遗留风险和下一阶段进入条件。
 - [ ] 必要 capability 子级完成后，再把 005 定义为 phase-release 子级；Production 部署、真实成员接入和公开启用仍在 005 内分别批准和读回。
 
 ## Transition Review After 001
@@ -72,6 +73,12 @@ flowchart LR
 
 Transition review 的结果必须写入 implementation reference 或 accepted decision，再修改本页和创建下一子级。聊天结论不能代替写回。
 
+## Transition Review After 002
+
+正式证据见 [`Agent Workspace 002 Transition Review`](../reference/implementation/agent-workspace-002-transition-review-2026-08-01.md)。Cursor Preview 已证明 confirmation、revision、幂等、撤回、过期和匿名读回合同，也暴露了工作区 server 初次启用、callback 端口占用和长任务 re-auth 三项真实客户端问题。
+
+结论：003 保留但首批必须收窄，按普通跨作者 read/save 与需 confirmation 的公共策展动作分级；004 继续拆分且不把 confirmation 证明外推到提权、删除、migration、密钥、Production 或批量公开；005 增加 callback、token renewal、长任务恢复和失败 OAuth client 清理。CLI fallback 仍无开发依据。
+
 ## Child Draft Boundaries
 
 ### 002 — Member publication candidate
@@ -84,7 +91,7 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 
 - 候选目标：让 Editor 处理 Needs attention 到 Curated/Removed 的受约束工作流。
 - 必须重新验证：跨作者编辑、负责人、来源、分类、排期、Needs recheck、作者通知和公开署名。
-- 推荐排在 002 后；具体工具范围、是否继续拆分及实现仍须独立 checklist 和批准。
+- 下一步只允许建立 intake；首批应由一个跨作者对象、一个公共策展状态变化和一个恢复路径组成，是否继续拆分及实现仍须独立 checklist 和批准。
 
 ### 004 — Super Admin candidate
 
@@ -95,7 +102,7 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 ### 005 — Compatibility and release candidate
 
 - 候选目标：收口得到真实使用证明的客户端，并以 phase-release 合同完成可运营的 Production release。
-- 必须重新验证：TRAE/WorkBuddy 真实 OAuth、DCR、callback 和 Member workflow，Cursor `8787` 端口预检与无人工 callback，adapter 维护成本、Workspace 分发、版本升级、监控、限流、撤销、支持流程和恢复。
+- 必须重新验证：TRAE/WorkBuddy 真实 OAuth、DCR、callback 和 Member workflow，Cursor `8787` 端口预检与 deep-link 回退、access token renewal、长任务 re-auth/恢复、遗留 client 清理、adapter 维护成本、Workspace 分发、版本升级、监控、限流、撤销、支持流程和恢复。
 - 发布归属：005 持有 release 编排，但 Production 部署、真实账户、真实数据和公开启用仍是相互独立的批准门禁。
 - CLI fallback 只有在非 MCP Agent 的真实需求成立时进入；编号不保证它一定实现。
 

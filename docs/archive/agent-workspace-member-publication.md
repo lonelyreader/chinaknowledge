@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-workspace-member-publication
 last_verified: 2026-08-01
 max_lines: 300
@@ -118,14 +118,15 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 ### Gate 4 — Preview real client
 
 - [x] 用户于 2026-08-01 明确批准直接推进 002 至完成，覆盖 `preview-deploy` 与临时 `public-mcp`；无 schema，不运行 migration；Production、真实账户/数据、merge 和 push仍未授权。
-- [ ] 用虚构 `.test` Member 在 Cursor 真实执行 prepare，停下等待人工确认，再 commit 并匿名读回公共页面。
-- [ ] 验证撤回和 confirmation 过期/重放负例，随后删除全部测试记录、恢复 Preview SSO 并读回。
+- [x] 用虚构 `.test` Member 在 Cursor 真实执行 prepare，停下等待人工确认，再 commit 并匿名读回公共页面。
+- [x] 验证撤回和 confirmation 过期/重放负例，随后删除全部测试记录、恢复 Preview SSO 并读回。
 
 ### Gate 5 — Review and closeout
 
 - [x] confirmation/replay 安全与权限/公共读回独立复审第三轮 `PASS`，`P0/P1/P2 = 0/0/0`。
-- [ ] 更新 feature registry、current、implementation evidence 和父级清单；关闭后移入 archive。
-- [ ] 根据 002 证据重新判断 003 的确认 primitive、工具范围和进入条件；不自动启动 003。
+- [x] 更新 feature registry、current、implementation evidence 和父级清单；关闭后移入 archive。
+- [x] 根据 002 证据重新判断 003 的确认 primitive、工具范围和进入条件；不自动启动 003。
+- [x] 最终 closure 独立复审确认 Preview 证据、清理、关闭态与写回一致后，才标 completed 并移入 archive。
 
 ## Acceptance
 
@@ -160,4 +161,4 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 
 ## Current gate
 
-Local `.test` fixture 实现、自动验证与独立复审已 PASS，证据见 [`Agent Workspace 002 — Local runtime evidence`](../../reference/implementation/agent-workspace-002-local-runtime-2026-07-31.md)。Preview deploy 与临时 public MCP 已获批准，下一步只用虚构 `.test` fixture 完成 Cursor 验收和精确清理。没有新增依赖、schema 或 migration；真实账户、真实数据、Production、merge 和 push 仍未授权。
+关闭状态：Local 自动矩阵与 Cursor Preview 真实客户端均完成 `prepare → 人工确认 → commit → readback`，并通过幂等重放、withdraw、过期拒绝和匿名读回。虚构 fixture、connections、events 与本轮 OAuth clients 已精确删除，Preview SSO 和默认关闭的 Gateway 已恢复；最终独立复审 `PASS`，`P0/P1/P2 = 0/0/0`。没有新增依赖、schema 或 migration；Production、真实成员、真实内容、merge 和 push 均未执行。证据见 [`Local runtime`](../reference/implementation/agent-workspace-002-local-runtime-2026-07-31.md)、[`Preview runtime`](../reference/implementation/agent-workspace-002-preview-runtime-2026-08-01.md)、[`transition review`](../reference/implementation/agent-workspace-002-transition-review-2026-08-01.md) 与 [`final review`](../reference/implementation/agent-workspace-002-final-review-2026-08-01.md)。
