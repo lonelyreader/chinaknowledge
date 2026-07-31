@@ -58,6 +58,8 @@ export async function createAgentMcpServer(context: McpRequestContext) {
   const server = new McpServer({ name: "china-in-fact", version: "0.1.0" });
   if (!context.authInfo) return server;
   const service = await AgentMemberService.create(context.authInfo);
+  const role = context.authInfo.extra?.role;
+  const editorial = role === "editor" || role === "super_admin";
 
   server.registerTool("account_context", { title: "Account", description: agentToolDescriptions.account_context, inputSchema: emptyInput, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async () => result(await service.accountContext()));
 
@@ -120,6 +122,47 @@ export async function createAgentMcpServer(context: McpRequestContext) {
     },
     async (input) => result(await service.commitPublication(input)),
   );
+
+  if (editorial) {
+    server.registerTool(
+      "editorial_article_get",
+      {
+        title: "Editorial article",
+        description: agentToolDescriptions.editorial_article_get,
+        inputSchema: z.object({ id: z.number().int().positive() }),
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      },
+      async ({ id }) => result(await service.editorialArticleGet(id)),
+    );
+    server.registerTool(
+      "editorial_prepare_site_selection",
+      {
+        title: "Prepare site selection",
+        description: agentToolDescriptions.editorial_prepare_site_selection,
+        inputSchema: z.object({
+          id: z.number().int().positive(),
+          targetStatus: z.enum(["curated", "removed"]),
+          revision: z.string(),
+        }),
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+      },
+      async (input) => result(await service.prepareSiteSelection(input)),
+    );
+    server.registerTool(
+      "editorial_commit_site_selection",
+      {
+        title: "Confirm site selection",
+        description: agentToolDescriptions.editorial_commit_site_selection,
+        inputSchema: z.object({
+          confirmationRef: z.string().max(2_048),
+          revision: z.string(),
+          idempotencyKey: z.string(),
+        }),
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+      },
+      async (input) => result(await service.commitSiteSelection(input)),
+    );
+  }
 
   return server;
 }

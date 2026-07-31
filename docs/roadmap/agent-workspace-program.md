@@ -12,7 +12,7 @@ max_lines: 220
 
 本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–002 已完成并归档；当前唯一 implementation active 子级是 [`AGENT-WORKSPACE-003`](checklists/agent-workspace-editor-site-curation.md)，仅完成 intake，尚未授权产品代码。
+稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–003 已完成并归档，当前没有 implementation active 子级。004–005 仍是 provisional 候选，不构成实现授权。
 
 ## Program Goal
 
@@ -23,7 +23,7 @@ flowchart LR
     P["Parent checklist<br/>阶段、依赖、转换决定"] --> A1["001<br/>Member foundation"]
     A1 --> R["Transition review<br/>根据真实证据重估"]
     R --> A2["002 completed<br/>Member publication"]
-    A2 --> A3["003 active intake<br/>one Article site selection"]
+    A2 --> A3["003 completed<br/>Local one-Article site selection"]
     A3 -.-> A4["004 provisional<br/>Admin safe subsets"]
     A4 -.-> A5["005 provisional<br/>Compatibility + release"]
 ```
@@ -36,7 +36,7 @@ flowchart LR
 |---|---|---|---|
 | `AGENT-WORKSPACE-001` | completed；Local + Preview Cursor real-client PASS | OAuth、远程 MCP、Member read/draft/preview | 已归档；TRAE/WorkBuddy 转 005 |
 | `AGENT-WORKSPACE-002` | completed；Local + Preview Cursor + final review PASS | Member publication 的 prepare/confirm/commit/readback、重放、撤回与过期拒绝 | 已归档；confirmation primitive 可供 003 intake 复用，Production 未开启 |
-| `AGENT-WORKSPACE-003` | active intake；产品代码未授权 | 精确读取一篇跨作者 Article；确认后 Add to site，并以确认后的 Remove 恢复 | checklist 已冻结；取得产品代码批准后只做 Local `.test` fixture |
+| `AGENT-WORKSPACE-003` | completed；Local work-item + final review PASS | 精确读取一篇跨作者 Article；确认后 Add to site，并以确认后的 Remove 恢复 | 已归档；专用 fixture 已删除，Preview 未开启 |
 | `AGENT-WORKSPACE-004` | provisional；`split` | 低风险站务和高风险账户/身份分开；只评估适合 Agent 的安全子集 | 删除、提权、migration、密钥和 Production 动作保持网页或专门流程 |
 | `AGENT-WORKSPACE-005` | provisional；`keep + expand` | TRAE/WorkBuddy 真实兼容、Cursor callback 预检、运营监控、限流、支持、恢复与 Production release | 002–004 范围稳定并取得目标客户端账号；CLI fallback 仍须真实需求证据 |
 
@@ -52,7 +52,8 @@ flowchart LR
 - [x] 只为下一条得到批准的结果创建一个 active 子级 checklist；其余继续停留在本页。
 - [x] 最终 closure 复审 PASS 后归档 002，并确认实际结果、遗留风险、可复用 confirmation 合同和 003–005 进入条件。
 - [x] 建立 003 active intake，把首批收窄为一个跨作者 Article、Add to site 和对应 Remove 恢复；不含普通保存、队列或其他策展能力。
-- [ ] 003 及后续子级关闭后继续更新本页的实际结果、遗留风险和下一阶段进入条件。
+- [x] 完成 003 的 Local 实现、权限与恢复矩阵、独立复审、fixture 清理和 closure；`P0/P1/P2 = 0/0/0`，Preview 未执行。
+- [ ] 004 及后续子级关闭后继续更新本页的实际结果、遗留风险和下一阶段进入条件。
 - [ ] 必要 capability 子级完成后，再把 005 定义为 phase-release 子级；Production 部署、真实成员接入和公开启用仍在 005 内分别批准和读回。
 
 ## Transition Review After 001
@@ -88,11 +89,11 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 - 必须重新验证：公开前摘要、用户确认、对象 revision、重复 commit、公共 URL、撤回与恢复。
 - 当前不决定：是否包含翻译、媒体、Person 公开或真实成员接入。
 
-### 003 — Editor curation candidate
+### 003 — Completed Editor curation slice
 
-- 候选目标：让 Editor 处理 Needs attention 到 Curated/Removed 的受约束工作流。
-- 必须重新验证：跨作者编辑、负责人、来源、分类、排期、Needs recheck、作者通知和公开署名。
-- 下一步只允许建立 intake；首批应由一个跨作者对象、一个公共策展状态变化和一个恢复路径组成，是否继续拆分及实现仍须独立 checklist 和批准。
+- 实际结果：Editor/Super Admin 可精确读取一篇跨作者 Article，经确认加入站方公共入口，并经另一份确认移除；Member publication、canonical、owner、原作者和公开署名不变。
+- 已证明边界：服务端角色、revision、confirmation、一次消费、事务重检、幂等、审计、匿名 readback 与恢复；没有新增 schema、migration、依赖或 Preview 能力。
+- 仍未覆盖：普通保存、Needs attention 列表、负责人、分类、来源、排期、复核、通知和批量操作；如需继续必须建立新的 Editor 子级，不回开 003。
 
 ### 004 — Super Admin candidate
 

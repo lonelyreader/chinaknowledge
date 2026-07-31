@@ -4,10 +4,10 @@ doc_type: current
 authority: canonical
 status: active
 scope: implemented-app-features
-last_verified: 2026-07-31
+last_verified: 2026-08-01
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:dae1b567e0133d6ccf0f2210ea0609045a11418b7e08d91bf5b07eb30c279831
+implementation_fingerprint: sha256:35d66bcf6686901d24c4eb1ee4408e436c64e6fe0aac52df4fc3fd0cf11cc526
 ---
 
 # App 功能登记册
@@ -78,7 +78,7 @@ Editor 负责选择和组织成员已经公开的内容。若 Editor 账户同�
 | EDT-05 | 内容分类 | 设置 Guide、Reporting、Analysis、First person、Update，并关联 Purpose、Topic、Geography、Situation | Article 的 Site 模式 |
 | EDT-06 | 来源与时效 | 记录来源、核对说明、Freshness 日期和编辑意见 | Article 的 Site 模式；核对说明不对匿名读者公开 |
 | EDT-07 | 媒体公开确认 | 核对封面、图片说明和媒体公开使用状态 | Article/Images；未获站方确认的媒体不能进入站方策展入口 |
-| EDT-08 | 站方选择流程 | Select、Editing、Add to site、Remove from site，并在正式加入网站前查看标题、作者、栏目、语言、URL、封面、来源、分类和时效检查 | Article 的 Site curation |
+| EDT-08 | 站方选择流程 | Select、Editing、Add to site、Remove from site，并在正式加入网站前查看标题、作者、栏目、语言、URL、封面、来源、分类和时效检查；Local Agent 可对一篇明确的跨作者 Article 读取、确认 Add 并确认 Remove | 网页 Article Site curation；Agent 只开放 exact read 与确认后的站方收录，不开放普通保存、队列或批量能力 |
 | EDT-09 | 首页排期 | 设置 Lead/Selected 位置及开始、结束时间；没有人工排期时由合格内容自动回退 | Article 的 Site 模式和首页 |
 | EDT-10 | 更新复核 | Member 修改已被选择的文章后，文章自动进入 Needs recheck 并暂离官方入口；Editor 可重新确认 | Needs attention 与 Article |
 | EDT-11 | 作者通知 | 从文章向原作者发送策展相关事务通知；失败会被记录且可重试 | Article 的 Notify author |
@@ -128,7 +128,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 - 在 App 内撰写和群发 Newsletter、管理退订或查看邮件营销分析；当前 App 只提供订阅入口，名单和发送由 Resend 承担。
 - App 内 Discord 账号绑定、成员同步或聊天；当前只提供外部社群入口。
 - 自动翻译文章或 Person 文案；English 与 Español 内容由人分别维护。
-- 通过 Agent 操作 Production 账户或文章；Agent Workspace 001–002 已完成 Local 与受控 Preview 的 Cursor OAuth、草稿、越权、撤权及人工确认后的公开、幂等重放、撤回和过期拒绝。验收结束后 Preview 测试数据与公开 MCP 已关闭，TRAE/WorkBuddy 仍为 `NOT RUN / NOT_VERIFIED`，Production 不提供该能力。
+- 通过 Agent 操作 Production 账户或文章；Agent Workspace 001–002 已完成 Local 与受控 Preview 的 Member OAuth、草稿和确认式 publication，003 仅完成 Local 的单 Article Editor exact read、确认 Add 和 Remove。Preview 测试数据与公开 MCP 仍关闭，TRAE/WorkBuddy 仍为 `NOT RUN / NOT_VERIFIED`，Production 不提供该能力。
 - 自动证明登记册的自然语言一定正确。机器门禁负责阻止“实现已变但登记册完全没复核”，最终语义仍由实现者和 reviewer 对照事实确认。
 
 ## 同步门禁

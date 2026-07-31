@@ -28,7 +28,7 @@ max_lines: 160
 - CMS 已上线 Member publication 与 Editorial curation 两轴、同 Article 编辑、固定原作者、个人/官方 read model、稳定 `/posts` canonical、登录态草稿与 Person 预览、My work/My profile、Person 版本历史、Editor Needs attention 收件箱、账户邀请和暂停、可重试事务通知。`ADMIN-UI-001` 已恢复 Payload 原生 Nav、Dashboard、list 与 document shell，并用受支持的 workspace widget、list slot、field condition 和 Writing/Site tabs 承载业务；自动保存、并发、离页和版本边界不变，Members 开户入口已收敛为 invite-only。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
-- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；223 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
+- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；224 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
 - Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；001 的 `.test` User、Person、Article、连接、事件和测试 OAuth client 已精确删除，SSO 已恢复。Production 仍为 12 条 migration、33 张表、1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇同一翻译组下的 Published + Curated Article、8 条 workflow event 和 0 Place，未执行 001 migration，也未复制 Preview 夹具。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 与 [`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-003`](roadmap/checklists/agent-workspace-editor-site-curation.md)。003 只完成 intake，首批固定为精确读取一篇跨作者 Member-public Article、确认后 Add to site 和对应 Remove 恢复；产品代码尚未授权。002 已在独立 Local `.test` 数据库和 Cursor Preview 真实客户端完成 publish、幂等重放、withdraw、过期确认拒绝与匿名读回；测试身份、内容、连接和本轮 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。最终独立复审 `PASS`，P0/P1/P2 均为 0。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md) 与 [`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 已完成并归档，当前没有 implementation active checklist。003 已在独立 Local 数据库完成单篇跨作者 Article 的 exact read、确认后 Add to site、幂等重放、另一 Editor 确认 Remove、权限负例、匿名 readback、精确清理和独立复审，`P0/P1/P2 = 0/0/0`；Preview 未授权。002 的 Preview 测试身份、内容、连接和 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 

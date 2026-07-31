@@ -10,7 +10,12 @@ import type { AuthInfo } from "@modelcontextprotocol/server";
 import { createLocalReq, getPayload, type Payload } from "payload";
 
 import { createAgentGateway } from "@/agent/gateway";
-import { createPublicationConfirmation, publicationConfirmationDigest } from "@/agent/confirmation";
+import {
+  createPublicationConfirmation,
+  createSiteSelectionConfirmation,
+  publicationConfirmationDigest,
+  siteSelectionConfirmationDigest,
+} from "@/agent/confirmation";
 import { agentUrls } from "@/agent/metadata";
 import { createAgentOAuthModel } from "@/agent/oauth-model";
 import { handleAuthorizeGet, handleAuthorizePost, handleRevokePost, handleTokenPost } from "@/agent/oauth-http";
@@ -323,6 +328,7 @@ try {
   const memberA = await account(payload, "Agent Member A", "author");
   const memberB = await account(payload, "Agent Member B", "author");
   const editor = await account(payload, "Agent Editor", "editor");
+  const editorB = await account(payload, "Agent Editor B", "editor");
   const admin = await account(payload, "Agent Admin", "super_admin");
   const noPerson = await account(payload, "Agent No Person", "author");
 
@@ -330,6 +336,7 @@ try {
   const connectionA = await connection(payload, memberA, oauthClient);
   const connectionB = await connection(payload, memberB, oauthClient);
   const connectionEditor = await connection(payload, editor, oauthClient);
+  const connectionEditorB = await connection(payload, editorB, oauthClient);
   const connectionAdmin = await connection(payload, admin, oauthClient);
   const connectionNoPerson = await connection(payload, noPerson, oauthClient);
   await payload.delete({ collection: "people", id: noPerson.person.id, overrideAccess: true });
@@ -337,6 +344,7 @@ try {
   const serviceB = AgentMemberService.fromPayload(payload, auth(memberB, oauthClient, connectionB.id));
   const connectionASecond = await connection(payload, memberA, oauthClient);
   const serviceASecond = AgentMemberService.fromPayload(payload, auth(memberA, oauthClient, connectionASecond.id));
+  const editorBService = AgentMemberService.fromPayload(payload, auth(editorB, oauthClient, connectionEditorB.id));
 
   const key = `create-${randomUUID()}`;
   const [firstCreate, duplicateCreate] = await Promise.all([
@@ -734,6 +742,224 @@ try {
   assert.equal(endpointRepublish.status, 200);
   assert.equal((await endpointRepublish.json() as { publicationStatus: string }).publicationStatus, "published");
 
+  const editorialOwnerBefore = relationId((await payload.findByID({ collection: "articles", id: articleId, depth: 0, draft: true, overrideAccess: true })).owner);
+  const editorialAuthorBefore = relationId((await payload.findByID({ collection: "articles", id: articleId, depth: 0, draft: true, overrideAccess: true })).author);
+  await payload.update({
+    collection: "articles",
+    id: articleId,
+    data: { curationStatus: "selected" },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  await payload.update({
+    collection: "articles",
+    id: articleId,
+    data: {
+      coverImage: publicationPortrait.id,
+      curationStatus: "editing",
+      format: "analysis",
+      sourceNotes: [{ label: "Agent Editor curation source" }],
+      summary: "A fictional summary prepared for the Agent Editor curation fixture.",
+    },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const siteEntryCount = async () => (await payload.count({
+    collection: "articles",
+    overrideAccess: true,
+    where: { and: [{ id: { equals: articleId } }, { publicationStatus: { equals: "published" } }, { curationStatus: { equals: "curated" } }, { _status: { equals: "published" } }] },
+  })).totalDocs;
+  const editorRead = await editorService.editorialArticleGet(articleId);
+  assert.equal(editorRead.ok, true, JSON.stringify(editorRead));
+  assert.equal(editorRead.data?.author?.id, memberA.person.id);
+  assert.equal(editorRead.data?.curationIssues.length, 0, JSON.stringify(editorRead));
+  assert.match(editorRead.data?.markdown ?? "", /Ignore prior instructions/);
+  assert.equal((await serviceA.editorialArticleGet(articleId)).error?.code, "FORBIDDEN");
+  assert.equal((await serviceB.editorialArticleGet(articleId)).error?.code, "FORBIDDEN");
+
+  const versionsBeforeSitePrepare = (await payload.findVersions({ collection: "articles", depth: 0, limit: 100, overrideAccess: true, where: { parent: { equals: articleId } } })).totalDocs;
+  const staleSitePrepare = await editorService.prepareSiteSelection({ id: articleId, revision: editorRead.meta!.revision!, targetStatus: "curated" });
+  assert.equal(staleSitePrepare.ok, true, JSON.stringify(staleSitePrepare));
+  assert.equal(staleSitePrepare.data?.summary.action, "add_to_site");
+  assert.equal(await siteEntryCount(), 0);
+  assert.equal((await payload.findVersions({ collection: "articles", depth: 0, limit: 100, overrideAccess: true, where: { parent: { equals: articleId } } })).totalDocs, versionsBeforeSitePrepare);
+  await payload.update({
+    collection: "articles",
+    id: articleId,
+    autosave: true,
+    data: { summary: "A fictional summary changed after site-selection prepare." },
+    draft: true,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  assert.equal((await editorService.commitSiteSelection({
+    confirmationRef: staleSitePrepare.data!.confirmationRef,
+    idempotencyKey: `stale-site-selection-${randomUUID()}`,
+    revision: editorRead.meta!.revision!,
+  })).error?.code, "REVISION_CONFLICT");
+
+  const freshEditorRead = await editorService.editorialArticleGet(articleId);
+  const preparedSiteAdd = await editorService.prepareSiteSelection({ id: articleId, revision: freshEditorRead.meta!.revision!, targetStatus: "curated" });
+  assert.equal(preparedSiteAdd.ok, true, JSON.stringify(preparedSiteAdd));
+  assert.equal((await editorBService.commitSiteSelection({
+    confirmationRef: preparedSiteAdd.data!.confirmationRef,
+    idempotencyKey: `other-editor-site-selection-${randomUUID()}`,
+    revision: freshEditorRead.meta!.revision!,
+  })).error?.code, "CONFIRMATION_INVALID");
+  assert.equal((await adminService.commitSiteSelection({
+    confirmationRef: preparedSiteAdd.data!.confirmationRef,
+    idempotencyKey: `admin-cross-site-selection-${randomUUID()}`,
+    revision: freshEditorRead.meta!.revision!,
+  })).error?.code, "CONFIRMATION_INVALID");
+  const tamperedSiteRef = `${preparedSiteAdd.data!.confirmationRef.slice(0, -1)}${preparedSiteAdd.data!.confirmationRef.endsWith("a") ? "b" : "a"}`;
+  assert.equal((await editorService.commitSiteSelection({
+    confirmationRef: tamperedSiteRef,
+    idempotencyKey: `tampered-site-selection-${randomUUID()}`,
+    revision: freshEditorRead.meta!.revision!,
+  })).error?.code, "CONFIRMATION_INVALID");
+
+  const addSiteKeyA = `add-site-a-${randomUUID()}`;
+  const addSiteKeyB = `add-site-b-${randomUUID()}`;
+  const [addSiteA, addSiteB] = await Promise.all([
+    editorService.commitSiteSelection({ confirmationRef: preparedSiteAdd.data!.confirmationRef, idempotencyKey: addSiteKeyA, revision: freshEditorRead.meta!.revision! }),
+    editorService.commitSiteSelection({ confirmationRef: preparedSiteAdd.data!.confirmationRef, idempotencyKey: addSiteKeyB, revision: freshEditorRead.meta!.revision! }),
+  ]);
+  const addSiteResults = [{ key: addSiteKeyA, result: addSiteA }, { key: addSiteKeyB, result: addSiteB }];
+  const successfulSiteAdd = addSiteResults.find(({ result }) => result.ok);
+  assert.ok(successfulSiteAdd, JSON.stringify(addSiteResults));
+  assert.equal(addSiteResults.filter(({ result }) => result.error?.code === "CONFIRMATION_USED").length, 1, JSON.stringify(addSiteResults));
+  assert.equal(successfulSiteAdd.result.data?.siteSelected, true);
+  assert.equal(await siteEntryCount(), 1);
+  const replayedSiteAdd = await editorService.commitSiteSelection({
+    confirmationRef: preparedSiteAdd.data!.confirmationRef,
+    idempotencyKey: successfulSiteAdd.key,
+    revision: freshEditorRead.meta!.revision!,
+  });
+  assert.equal(replayedSiteAdd.ok, true, JSON.stringify(replayedSiteAdd));
+  assert.equal(replayedSiteAdd.meta?.revision, successfulSiteAdd.result.meta?.revision);
+  const idempotencyConflictRead = await editorService.editorialArticleGet(articleId);
+  const idempotencyConflictRemove = await editorService.prepareSiteSelection({ id: articleId, revision: idempotencyConflictRead.meta!.revision!, targetStatus: "removed" });
+  assert.equal((await editorService.commitSiteSelection({
+    confirmationRef: idempotencyConflictRemove.data!.confirmationRef,
+    idempotencyKey: successfulSiteAdd.key,
+    revision: idempotencyConflictRead.meta!.revision!,
+  })).error?.code, "IDEMPOTENCY_CONFLICT");
+  assert.equal(await siteEntryCount(), 1);
+
+  const editorBRead = await editorBService.editorialArticleGet(articleId);
+  const pausedSiteRemove = await editorBService.prepareSiteSelection({ id: articleId, revision: editorBRead.meta!.revision!, targetStatus: "removed" });
+  await payload.update({ collection: "users", id: editorB.user.id, data: { accountStatus: "paused" }, overrideAccess: true });
+  assert.equal((await editorBService.commitSiteSelection({
+    confirmationRef: pausedSiteRemove.data!.confirmationRef,
+    idempotencyKey: `paused-site-remove-${randomUUID()}`,
+    revision: editorBRead.meta!.revision!,
+  })).error?.code, "ACCOUNT_PAUSED");
+  await payload.update({ collection: "users", id: editorB.user.id, data: { accountStatus: "active" }, overrideAccess: true });
+  const downgradedSiteRemove = await editorBService.prepareSiteSelection({ id: articleId, revision: editorBRead.meta!.revision!, targetStatus: "removed" });
+  await payload.update({ collection: "users", id: editorB.user.id, data: { role: "author" }, overrideAccess: true });
+  assert.equal((await editorBService.commitSiteSelection({
+    confirmationRef: downgradedSiteRemove.data!.confirmationRef,
+    idempotencyKey: `downgraded-site-remove-${randomUUID()}`,
+    revision: editorBRead.meta!.revision!,
+  })).error?.code, "FORBIDDEN");
+  await payload.update({ collection: "users", id: editorB.user.id, data: { role: "editor" }, overrideAccess: true });
+  const preparedSiteRemove = await editorBService.prepareSiteSelection({ id: articleId, revision: editorBRead.meta!.revision!, targetStatus: "removed" });
+  assert.equal(preparedSiteRemove.ok, true, JSON.stringify(preparedSiteRemove));
+  assert.equal((await adminService.commitSiteSelection({
+    confirmationRef: preparedSiteRemove.data!.confirmationRef,
+    idempotencyKey: `admin-cross-remove-${randomUUID()}`,
+    revision: editorBRead.meta!.revision!,
+  })).error?.code, "CONFIRMATION_INVALID");
+  const removedByEditorB = await editorBService.commitSiteSelection({
+    confirmationRef: preparedSiteRemove.data!.confirmationRef,
+    idempotencyKey: `remove-site-${randomUUID()}`,
+    revision: editorBRead.meta!.revision!,
+  });
+  assert.equal(removedByEditorB.ok, true, JSON.stringify(removedByEditorB));
+  assert.equal(removedByEditorB.data?.siteSelected, false);
+  assert.equal(await siteEntryCount(), 0);
+  const canonicalAfterRemove = await payload.findByID({ collection: "articles", id: articleId, depth: 0, draft: false, overrideAccess: false });
+  assert.equal(canonicalAfterRemove.id, articleId);
+  const internalAfterRemove = await payload.findByID({ collection: "articles", id: articleId, depth: 0, draft: false, overrideAccess: true });
+  assert.equal(internalAfterRemove.publicationStatus, "published");
+  assert.equal(relationId(internalAfterRemove.owner), editorialOwnerBefore);
+  assert.equal(relationId(internalAfterRemove.author), editorialAuthorBefore);
+
+  await payload.update({ collection: "articles", id: articleId, data: { curationStatus: "selected" }, draft: false, overrideAccess: false, user: editor.user });
+  const adminRead = await adminService.editorialArticleGet(articleId);
+  assert.equal(adminRead.ok, true, JSON.stringify(adminRead));
+  const revocationConnection = await connection(payload, editorB, oauthClient);
+  const revocationService = AgentMemberService.fromPayload(payload, auth(editorB, oauthClient, revocationConnection.id));
+  const revocationPrepare = await revocationService.prepareSiteSelection({ id: articleId, revision: adminRead.meta!.revision!, targetStatus: "curated" });
+  assert.equal(revocationPrepare.ok, true, JSON.stringify(revocationPrepare));
+  await payload.update({ collection: "agent-connections", id: revocationConnection.id, data: { state: "revoked", revokedAt: new Date().toISOString() }, overrideAccess: true });
+  assert.equal((await revocationService.commitSiteSelection({
+    confirmationRef: revocationPrepare.data!.confirmationRef,
+    idempotencyKey: `revoked-site-selection-${randomUUID()}`,
+    revision: adminRead.meta!.revision!,
+  })).error?.code, "CONNECTION_REVOKED");
+  const expiredSiteRef = createSiteSelectionConfirmation({
+    action: "add_to_site",
+    articleId,
+    connectionId: connectionAdmin.id,
+    exp: Date.now() - 1,
+    jti: randomUUID(),
+    personId: admin.person.id,
+    revision: adminRead.meta!.revision!,
+    targetStatus: "curated",
+    userId: admin.user.id,
+    v: 1,
+  }, secret);
+  await payload.create({
+    collection: "agent-events",
+    overrideAccess: true,
+    data: {
+      user: admin.user.id,
+      connection: connectionAdmin.id,
+      clientFamily: oauthClient.clientFamily,
+      tool: "editorial_prepare_site_selection",
+      objectType: "article",
+      objectId: String(articleId),
+      requestId: `prep_site_curated_${randomUUID()}`,
+      idempotencyDigest: siteSelectionConfirmationDigest(expiredSiteRef),
+      inputFingerprint: "expired-site-selection-fixture",
+      result: "pending",
+      beforeRevision: adminRead.meta!.revision!,
+      occurredAt: new Date().toISOString(),
+    },
+  });
+  assert.equal((await adminService.commitSiteSelection({
+    confirmationRef: expiredSiteRef,
+    idempotencyKey: `expired-site-selection-${randomUUID()}`,
+    revision: adminRead.meta!.revision!,
+  })).error?.code, "CONFIRMATION_EXPIRED");
+  const disabledClientPrepare = await adminService.prepareSiteSelection({ id: articleId, revision: adminRead.meta!.revision!, targetStatus: "curated" });
+  await payload.update({ collection: "agent-oauth-clients", id: oauthClient.id, data: { disabled: true }, overrideAccess: true });
+  assert.equal((await adminService.commitSiteSelection({
+    confirmationRef: disabledClientPrepare.data!.confirmationRef,
+    idempotencyKey: `disabled-client-site-selection-${randomUUID()}`,
+    revision: adminRead.meta!.revision!,
+  })).error?.code, "CONNECTION_REVOKED");
+  await payload.update({ collection: "agent-oauth-clients", id: oauthClient.id, data: { disabled: false }, overrideAccess: true });
+  const adminPrepareAdd = await adminService.prepareSiteSelection({ id: articleId, revision: adminRead.meta!.revision!, targetStatus: "curated" });
+  const adminAdd = await adminService.commitSiteSelection({
+    confirmationRef: adminPrepareAdd.data!.confirmationRef,
+    idempotencyKey: `admin-add-site-${randomUUID()}`,
+    revision: adminRead.meta!.revision!,
+  });
+  assert.equal(adminAdd.ok, true, JSON.stringify(adminAdd));
+  const adminCuratedRead = await adminService.editorialArticleGet(articleId);
+  const adminPrepareRemove = await adminService.prepareSiteSelection({ id: articleId, revision: adminCuratedRead.meta!.revision!, targetStatus: "removed" });
+  const adminRemove = await adminService.commitSiteSelection({
+    confirmationRef: adminPrepareRemove.data!.confirmationRef,
+    idempotencyKey: `admin-remove-site-${randomUUID()}`,
+    revision: adminCuratedRead.meta!.revision!,
+  });
+  assert.equal(adminRemove.ok, true, JSON.stringify(adminRemove));
+  assert.equal(await siteEntryCount(), 0);
+
   const sensitiveAudit = await payload.find({
     collection: "agent-events",
     depth: 0,
@@ -745,8 +971,14 @@ try {
   });
   const serializedAudit = JSON.stringify(sensitiveAudit.docs);
   assert.equal(serializedAudit.includes(preparedPublish.data!.confirmationRef), false);
+  assert.equal(serializedAudit.includes(preparedSiteAdd.data!.confirmationRef), false);
   assert.equal(serializedAudit.includes("Ignore prior instructions"), false);
+  assert.equal(serializedAudit.includes("Agent Editor curation source"), false);
   assert.equal(sensitiveAudit.docs.some((event) => event.requestId.includes("published")), true);
+  assert.equal(sensitiveAudit.docs.some((event) => event.tool === "editorial_commit_site_selection" && event.result === "success"), true);
+  const curationWorkflowEvents = await payload.find({ collection: "workflow-events", depth: 0, limit: 100, overrideAccess: true, pagination: false, where: { and: [{ article: { equals: articleId } }, { axis: { equals: "curation" } }] } });
+  assert.equal(curationWorkflowEvents.docs.some((event) => event.fromStatus === "editing" && event.toStatus === "curated"), true);
+  assert.equal(curationWorkflowEvents.docs.some((event) => event.fromStatus === "curated" && event.toStatus === "removed"), true);
   const mismatchAudit = sensitiveAudit.docs.find((event) => event.requestId === signedMismatch.requestId);
   assert.equal(mismatchAudit?.objectId, String(articleId));
   assert.match(mismatchAudit?.requestId ?? "", /published.*CONFIRMATION_INVALID$/);
@@ -856,11 +1088,18 @@ try {
   assert.equal(errorCode(await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).accountContext()), "NO_PERSON");
   assert.equal((await serviceA.preparePublication({ id: articleId, revision: republished.meta!.revision!, targetStatus: "published" })).error?.code, "ACCOUNT_PAUSED");
   assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).preparePublication({ id: articleId, revision: republished.meta!.revision!, targetStatus: "published" })).error?.code, "NO_PERSON");
+  assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).prepareSiteSelection({ id: articleId, revision: republished.meta!.revision!, targetStatus: "curated" })).error?.code, "NO_PERSON");
   const editorCapabilities = await AgentMemberService.fromPayload(payload, auth(editor, oauthClient, connectionEditor.id)).capabilities();
   const adminCapabilities = await AgentMemberService.fromPayload(payload, auth(admin, oauthClient, connectionAdmin.id)).capabilities();
+  const memberCapabilities = await serviceB.capabilities();
   assert.equal(editorCapabilities.ok, true);
   assert.equal(adminCapabilities.ok, true);
+  assert.equal(memberCapabilities.ok, true);
   assert.deepEqual(editorCapabilities.data?.tools, adminCapabilities.data?.tools);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_article_get"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_prepare_site_selection"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_commit_site_selection"), true);
+  assert.equal(memberCapabilities.data?.tools.includes("editorial_article_get"), false);
   assert.equal(editorCapabilities.data?.role, "editor");
   assert.equal(adminCapabilities.data?.role, "super_admin");
 
@@ -889,6 +1128,15 @@ try {
   const toolsBody = await mcpJSON(toolsResponse) as { result?: { tools?: { name: string }[] } };
   const toolNames = toolsBody.result?.tools?.map(({ name }) => name) ?? [];
   assert.deepEqual(toolNames.sort(), ["account_context", "article_commit_publication", "article_create_draft", "article_get_working_copy", "article_prepare_publication", "article_preview", "article_save_draft", "capabilities_list", "my_articles_list"].sort());
+
+  const editorToolToken = await exchangeCode(payload, editor, oauthFixtureClient, "editor-tools", "agent:member");
+  const editorToolsResponse = await gateway(mcpRequest(editorToolToken.access_token, "tools/list", {}, 11));
+  assert.equal(editorToolsResponse.status, 200);
+  const editorToolsBody = await mcpJSON(editorToolsResponse) as { result?: { tools?: { name: string }[] } };
+  const editorToolNames = editorToolsBody.result?.tools?.map(({ name }) => name) ?? [];
+  assert.equal(editorToolNames.includes("editorial_article_get"), true);
+  assert.equal(editorToolNames.includes("editorial_prepare_site_selection"), true);
+  assert.equal(editorToolNames.includes("editorial_commit_site_selection"), true);
 
   const contextResponse = await gateway(mcpRequest(token.access_token, "tools/call", { name: "account_context", arguments: {} }, 2));
   assert.equal(contextResponse.status, 200);
@@ -1001,3 +1249,5 @@ try {
 } finally {
   await payload.destroy();
 }
+
+process.exit(0);

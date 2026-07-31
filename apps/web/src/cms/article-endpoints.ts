@@ -1,6 +1,7 @@
 import { APIError, type Endpoint } from "payload";
 
-import { commitMemberPublication, getLatestDraftData } from "./article-publication";
+import { commitEditorialSiteSelection } from "./article-curation";
+import { commitMemberPublication } from "./article-publication";
 import { hasEditorialRole, isCMSUser, isSuperAdmin } from "./roles";
 import { isCurationStatus, isPublicationStatus } from "./workflow";
 import { createEditorialNotificationEvent } from "./editorial-notifications";
@@ -66,22 +67,16 @@ export const transitionArticleEndpoint: Endpoint = {
 
     if (!hasEditorialRole(req.user)) throw new APIError("Editor access is required.", 403);
     if (!isCurationStatus(body.status)) throw new APIError("Unknown curation status.", 400);
-    const promotedData =
-      body.status === "curated"
-        ? await getLatestDraftData(req.payload, id, current, req, "curation")
-        : undefined;
-    const article = await req.payload.update({
-      collection: "articles",
-      id,
-      context: { curationConfirmed: body.status === "curated" },
-      data: {
-        ...promotedData,
-        curationStatus: body.status,
-      },
-      draft: false,
-      overrideAccess: false,
-      req,
-    });
+    const article = body.status === "curated" || body.status === "removed"
+      ? await commitEditorialSiteSelection(current, body.status, req)
+      : await req.payload.update({
+          collection: "articles",
+          id,
+          data: { curationStatus: body.status },
+          draft: false,
+          overrideAccess: false,
+          req,
+        });
     return Response.json({
       id: article.id,
       publicationStatus: article.publicationStatus,

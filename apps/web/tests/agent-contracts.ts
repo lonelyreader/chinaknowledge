@@ -20,9 +20,12 @@ import {
 import { articleRevisionMatches, createArticleRevision } from "../src/agent/revision";
 import {
   createPublicationConfirmation,
+  createSiteSelectionConfirmation,
   PublicationConfirmationError,
   publicationConfirmationDigest,
   readPublicationConfirmation,
+  readSiteSelectionConfirmation,
+  siteSelectionConfirmationDigest,
 } from "../src/agent/confirmation";
 
 const body: AgentArticleBodyV1 = {
@@ -97,7 +100,7 @@ for (const description of Object.values(agentToolDescriptions)) {
   assert.ok(description.length > 40);
   assert.ok(description.length <= 512);
 }
-assert.equal(Object.keys(agentToolDescriptions).length, 9);
+assert.equal(Object.keys(agentToolDescriptions).length, 12);
 
 const confirmationSecret = "fixture-publication-secret-at-least-32-characters";
 const confirmationPayload = {
@@ -127,6 +130,30 @@ assert.throws(
 assert.deepEqual(
   readPublicationConfirmation(confirmation, { allowExpired: true, now: confirmationPayload.exp + 1, secret: confirmationSecret }),
   confirmationPayload,
+);
+
+const siteSelectionPayload = {
+  action: "add_to_site" as const,
+  articleId: 42,
+  connectionId: 7,
+  exp: Date.now() + 60_000,
+  jti: randomUUID(),
+  personId: 8,
+  revision,
+  targetStatus: "curated" as const,
+  userId: 9,
+  v: 1 as const,
+};
+const siteSelectionConfirmation = createSiteSelectionConfirmation(siteSelectionPayload, confirmationSecret);
+assert.deepEqual(readSiteSelectionConfirmation(siteSelectionConfirmation, { secret: confirmationSecret }), siteSelectionPayload);
+assert.match(siteSelectionConfirmationDigest(siteSelectionConfirmation), /^site_confirm_[A-Za-z0-9_-]{43}$/);
+assert.throws(
+  () => readSiteSelectionConfirmation(`${siteSelectionConfirmation.slice(0, -1)}x`, { secret: confirmationSecret }),
+  PublicationConfirmationError,
+);
+assert.throws(
+  () => readSiteSelectionConfirmation(siteSelectionConfirmation, { now: siteSelectionPayload.exp + 1, secret: confirmationSecret }),
+  (error: unknown) => error instanceof PublicationConfirmationError && error.reason === "expired",
 );
 
 console.log("Agent contract tests PASS");

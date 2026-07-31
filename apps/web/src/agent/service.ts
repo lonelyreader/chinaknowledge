@@ -16,11 +16,19 @@ import {
 
 import type { AgentEvent, Article, User } from "@/payload-types";
 import {
+  commitEditorialSiteSelection,
+  editorialCurationIssue,
+  prepareEditorialSiteSelection,
+  type EditorialSiteSelectionAction,
+  type EditorialSiteSelectionTarget,
+} from "@/cms/article-curation";
+import {
   articleRelationID,
   commitMemberPublication,
   getLatestDraftArticle,
   prepareMemberPublication,
 } from "@/cms/article-publication";
+import { hasEditorialRole } from "@/cms/roles";
 
 import {
   agentBodyToLexical,
@@ -30,10 +38,14 @@ import {
 } from "./content";
 import {
   createPublicationConfirmation,
+  createSiteSelectionConfirmation,
   PublicationConfirmationError,
   publicationConfirmationDigest,
+  readSiteSelectionConfirmation,
   readPublicationConfirmation,
+  siteSelectionConfirmationDigest,
   type PublicationConfirmationPayload,
+  type SiteSelectionConfirmationPayload,
 } from "./confirmation";
 import {
   agentFailure,
@@ -58,7 +70,7 @@ type Actor = {
 
 type WriteContext = {
   idempotencyKey: string;
-  tool: "article_commit_publication" | "article_create_draft" | "article_save_draft";
+  tool: "article_commit_publication" | "article_create_draft" | "article_save_draft" | "editorial_commit_site_selection";
 };
 
 class AgentServiceError extends Error {
@@ -136,6 +148,34 @@ function readStoredPublicationFingerprint(value: string | null | undefined) {
   if (!fingerprint || !encoded || rest.length) return null;
   try {
     const result = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as PublicationResult;
+    if (!result || typeof result !== "object" || !result.article || typeof result.article.id !== "number") return null;
+    return { fingerprint, result };
+  } catch {
+    return null;
+  }
+}
+
+function siteSelectionSummary(article: Article, action: EditorialSiteSelectionAction) {
+  return {
+    action,
+    article: articleSummary(article),
+    publicPath: `/${article.locale}/posts/${article.slug}`,
+    siteSelected: article.curationStatus === "curated",
+  };
+}
+
+type SiteSelectionResult = ReturnType<typeof siteSelectionSummary>;
+
+function storedSiteSelectionFingerprint(fingerprint: string, result: SiteSelectionResult) {
+  return `cur1.${fingerprint}.${Buffer.from(JSON.stringify(result), "utf8").toString("base64url")}`;
+}
+
+function readStoredSiteSelectionFingerprint(value: string | null | undefined) {
+  if (!value?.startsWith("cur1.")) return null;
+  const [, fingerprint, encoded, ...rest] = value.split(".");
+  if (!fingerprint || !encoded || rest.length) return null;
+  try {
+    const result = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as SiteSelectionResult;
     if (!result || typeof result !== "object" || !result.article || typeof result.article.id !== "number") return null;
     return { fingerprint, result };
   } catch {
@@ -254,6 +294,25 @@ export class AgentMemberService {
     return article;
   }
 
+  private async editorialArticle(id: number, user: User, req?: PayloadRequest) {
+    if (!hasEditorialRole(user)) {
+      throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+    }
+    try {
+      return await this.payload.findByID({
+        collection: "articles",
+        id,
+        depth: 0,
+        draft: true,
+        overrideAccess: false,
+        req,
+        user,
+      }) as Article;
+    } catch {
+      throw new AgentServiceError("NOT_FOUND", "Article not found.");
+    }
+  }
+
   private async latestArticleRevision(article: Article, req?: PayloadRequest) {
     const latestDraft = await getLatestDraftArticle(this.payload, article.id, article, req);
     return revision(latestDraft);
@@ -276,8 +335,12 @@ export class AgentMemberService {
     try {
       const user = await this.currentUser();
       await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "capabilities_list" });
+      const tools: AgentToolName[] = ["account_context", "capabilities_list", "my_articles_list", "article_get_working_copy", "article_create_draft", "article_save_draft", "article_preview", "article_prepare_publication", "article_commit_publication"];
+      if (hasEditorialRole(user)) {
+        tools.push("editorial_article_get", "editorial_prepare_site_selection", "editorial_commit_site_selection");
+      }
       return agentSuccess({
-        tools: ["account_context", "capabilities_list", "my_articles_list", "article_get_working_copy", "article_create_draft", "article_save_draft", "article_preview", "article_prepare_publication", "article_commit_publication"],
+        tools,
         role: user.role,
       }, { requestId });
     } catch (error) {
@@ -309,6 +372,63 @@ export class AgentMemberService {
       return agentSuccess({ ...articleSummary(article), revision: currentRevision, summary: article.summary ?? null, body, markdown: agentBodyToMarkdown(body) }, { requestId, meta: { objectId: String(article.id), revision: currentRevision } });
     } catch (error) {
       await this.auditReadFailure("article_get_working_copy", requestId, error, String(id));
+      return failure(error, requestId);
+    }
+  }
+
+  async editorialArticleGet(id: number) {
+    const requestId = createAgentRequestId();
+    try {
+      const user = await this.currentUser();
+      const article = await this.editorialArticle(id, user);
+      const latest = await getLatestDraftArticle(this.payload, article.id, article);
+      const currentRevision = revision(latest);
+      const req = await createLocalReq({ user }, this.payload);
+      const authorId = articleRelationID(latest.author);
+      const author = typeof authorId === "number"
+        ? await this.payload.findByID({ collection: "people", id: authorId, depth: 0, overrideAccess: false, req, user })
+        : null;
+      const taxonomyIds = [latest.purposes, latest.topics, latest.geographies, latest.situations]
+        .flatMap((values) => (values ?? []).map(articleRelationID))
+        .filter((value): value is number => typeof value === "number");
+      const taxonomies = taxonomyIds.length
+        ? await this.payload.find({ collection: "taxonomies", depth: 0, limit: taxonomyIds.length, overrideAccess: false, pagination: false, req, user, where: { id: { in: taxonomyIds } } })
+        : { docs: [] };
+      const taxonomyName = new Map(taxonomies.docs.map((taxonomy) => [String(taxonomy.id), taxonomy.name]));
+      const names = (values: Article["purposes"]) => (values ?? []).flatMap((value) => {
+        const id = articleRelationID(value);
+        const name = id == null ? null : taxonomyName.get(String(id));
+        return name ? [name] : [];
+      });
+      const coverId = articleRelationID(latest.coverImage);
+      const cover = typeof coverId === "number"
+        ? await this.payload.findByID({ collection: "media", id: coverId, depth: 0, overrideAccess: false, req, user })
+        : null;
+      const body = lexicalToAgentBody(latest.body.root);
+      const curationIssue = await editorialCurationIssue(latest, req);
+      await this.auditAttempt({ objectId: String(latest.id), objectType: "article", requestId, result: "success", tool: "editorial_article_get" });
+      return agentSuccess({
+        ...articleSummary(latest),
+        revision: currentRevision,
+        author: author ? { id: author.id, name: author.name, slug: author.slug } : null,
+        body,
+        markdown: agentBodyToMarkdown(body),
+        summary: latest.summary ?? null,
+        format: latest.format ?? null,
+        cover: cover ? { id: cover.id, approved: Boolean(cover.publicUseApprovedAt) } : null,
+        classifications: {
+          purposes: names(latest.purposes),
+          topics: names(latest.topics),
+          geographies: names(latest.geographies),
+          situations: names(latest.situations),
+        },
+        sources: (latest.sourceNotes ?? []).map(({ label, url }) => ({ label, url: url ?? null })),
+        freshnessDate: latest.freshnessDate ?? null,
+        publicPath: `/${latest.locale}/posts/${latest.slug}`,
+        curationIssues: curationIssue ? [curationIssue] : [],
+      }, { requestId, meta: { objectId: String(latest.id), revision: currentRevision } });
+    } catch (error) {
+      await this.auditReadFailure("editorial_article_get", requestId, error, String(id));
       return failure(error, requestId);
     }
   }
@@ -350,6 +470,19 @@ export class AgentMemberService {
     if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The publication media transaction is unavailable.");
     const result = await db.execute(sql`SELECT id FROM media WHERE id = ${id} FOR UPDATE`);
     if (!result.rows?.[0]) throw new AgentServiceError("VALIDATION_ERROR", "The publication cover image no longer exists.");
+  }
+
+  private async lockSiteSelectionMedia(req: PayloadRequest, article: Article) {
+    const ids = new Set<number>();
+    const coverId = articleRelationID(article.coverImage);
+    if (typeof coverId === "number") ids.add(coverId);
+    const authorId = articleRelationID(article.author);
+    if (typeof authorId === "number") {
+      const author = await this.payload.findByID({ collection: "people", id: authorId, depth: 0, overrideAccess: true, req });
+      const portraitId = articleRelationID(author.portrait);
+      if (typeof portraitId === "number") ids.add(portraitId);
+    }
+    for (const id of ids) await this.lockMedia(req, id);
   }
 
   private async lockAgentEvent(req: PayloadRequest, id: number) {
@@ -483,6 +616,33 @@ export class AgentMemberService {
     }
   }
 
+  private assertSiteSelectionActor(payload: SiteSelectionConfirmationPayload) {
+    if (
+      payload.userId !== this.actor.userId
+      || payload.personId !== this.actor.personId
+      || payload.connectionId !== this.actor.connectionId
+    ) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The site selection confirmation belongs to a different connection.");
+    }
+  }
+
+  private assertSiteSelectionEvent(event: AgentEvent | undefined, payload: SiteSelectionConfirmationPayload) {
+    if (!event
+      || event.tool !== "editorial_prepare_site_selection"
+      || event.objectId !== String(payload.articleId)
+      || articleRelationID(event.user) !== payload.userId
+      || articleRelationID(event.connection) !== payload.connectionId
+    ) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The site selection confirmation is invalid.");
+    }
+    if (event.result !== "pending") {
+      throw new AgentServiceError("CONFIRMATION_USED", "The site selection confirmation was already used. Prepare the action again.");
+    }
+    if (event.beforeRevision !== payload.revision) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The site selection confirmation revision is invalid.");
+    }
+  }
+
   private async reserveWrite(input: { fingerprint: string; idempotencyDigest?: string; requestId: string; tool: AgentToolName }, req: PayloadRequest) {
     try {
       return await this.payload.create({
@@ -549,6 +709,27 @@ export class AgentMemberService {
     await this.ownedArticle(Number(prior.objectId), user);
     if (stored.result.article.revision !== prior.afterRevision) {
       throw new AgentServiceError("TEMPORARY_FAILURE", "The stored publication result is inconsistent.");
+    }
+    return stored.result;
+  }
+
+  private async replayedSiteSelection(idempotencyDigest: string, fingerprint: string, user: User) {
+    const prior = await this.priorWrite(idempotencyDigest);
+    if (!prior) return null;
+    const stored = readStoredSiteSelectionFingerprint(prior.inputFingerprint);
+    const priorFingerprint = stored?.fingerprint ?? prior.inputFingerprint;
+    if (priorFingerprint !== fingerprint) {
+      throw new AgentServiceError("IDEMPOTENCY_CONFLICT", "The idempotency key was already used with different input.");
+    }
+    if (prior.result === "conflict") {
+      throw new AgentServiceError("REVISION_CONFLICT", "The article changed after this site selection action was prepared.", { latestRevision: prior.beforeRevision });
+    }
+    if (prior.result !== "success" || !prior.objectId || !prior.afterRevision || !stored) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The previous site selection has no readable result.");
+    }
+    await this.editorialArticle(Number(prior.objectId), user);
+    if (stored.result.article.revision !== prior.afterRevision) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The stored site selection result is inconsistent.");
     }
     return stored.result;
   }
@@ -888,6 +1069,209 @@ export class AgentMemberService {
       ].includes(error.code))) {
         const failureRequestId = auditedFailureRequestId(requestId, error);
         await this.auditAttempt({ objectId: confirmation ? String(confirmation.articleId) : undefined, objectType: "article", requestId: failureRequestId, result: "failed", tool: "article_commit_publication" });
+        return failure(error, failureRequestId);
+      }
+      return failure(error, requestId);
+    }
+  }
+
+  async prepareSiteSelection(input: { id: number; revision: string; targetStatus: EditorialSiteSelectionTarget }) {
+    const requestId = `prep_site_${input.targetStatus}_${randomUUID()}`;
+    try {
+      requireRevision(input.revision);
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      const article = await this.editorialArticle(input.id, user);
+      const latest = await getLatestDraftArticle(this.payload, article.id, article);
+      const currentRevision = revision(latest);
+      if (input.revision !== currentRevision) {
+        throw new AgentServiceError(
+          "REVISION_CONFLICT",
+          "The article changed after this editorial copy was loaded.",
+          { latestRevision: currentRevision },
+        );
+      }
+      const req = await createLocalReq({ user }, this.payload);
+      const prepared = await prepareEditorialSiteSelection(latest, input.targetStatus, req);
+      const expiresAt = Date.now() + (5 * 60 * 1_000);
+      const confirmationRef = createSiteSelectionConfirmation({
+        action: prepared.action,
+        articleId: latest.id,
+        connectionId: this.actor.connectionId,
+        exp: expiresAt,
+        jti: randomUUID(),
+        personId: this.actor.personId,
+        revision: currentRevision,
+        targetStatus: input.targetStatus,
+        userId: this.actor.userId,
+        v: 1,
+      });
+      const event = await this.payload.create({
+        collection: "agent-events",
+        overrideAccess: true,
+        data: {
+          user: this.actor.userId,
+          connection: this.actor.connectionId,
+          clientFamily: this.actor.clientFamily,
+          tool: "editorial_prepare_site_selection",
+          objectType: "article",
+          objectId: String(latest.id),
+          requestId,
+          idempotencyDigest: siteSelectionConfirmationDigest(confirmationRef),
+          inputFingerprint: inputFingerprint({
+            action: prepared.action,
+            articleId: latest.id,
+            revision: currentRevision,
+            targetStatus: input.targetStatus,
+          }),
+          result: "pending",
+          beforeRevision: currentRevision,
+          occurredAt: new Date().toISOString(),
+        },
+      });
+      return agentSuccess({
+        article: { ...articleSummary(latest), revision: currentRevision },
+        confirmationRef,
+        expiresAt: new Date(expiresAt).toISOString(),
+        summary: prepared,
+      }, {
+        requestId,
+        meta: { auditId: String(event.id), objectId: String(latest.id), revision: currentRevision },
+      });
+    } catch (error) {
+      const failureRequestId = auditedFailureRequestId(requestId, error);
+      await this.auditReadFailure("editorial_prepare_site_selection", failureRequestId, error, String(input.id));
+      return failure(error, failureRequestId);
+    }
+  }
+
+  async commitSiteSelection(input: { confirmationRef: string; idempotencyKey: string; revision: string }) {
+    let requestId = createAgentRequestId();
+    let idempotencyDigest: string | undefined;
+    let confirmation: SiteSelectionConfirmationPayload | undefined;
+    try {
+      requireRevision(input.revision);
+      const parsedConfirmation = readSiteSelectionConfirmation(input.confirmationRef, { allowExpired: true });
+      confirmation = parsedConfirmation;
+      this.assertSiteSelectionActor(parsedConfirmation);
+      idempotencyDigest = idempotentRequestId(this.actor, {
+        idempotencyKey: input.idempotencyKey,
+        tool: "editorial_commit_site_selection",
+      });
+      requestId = `${idempotencyDigest}_${parsedConfirmation.targetStatus}`;
+      if (input.revision !== parsedConfirmation.revision) {
+        throw new AgentServiceError("CONFIRMATION_INVALID", "The site selection confirmation revision does not match this request.");
+      }
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      const fingerprint = inputFingerprint({
+        confirmationDigest: siteSelectionConfirmationDigest(input.confirmationRef),
+        revision: input.revision,
+      });
+      const prior = await this.replayedSiteSelection(idempotencyDigest, fingerprint, user);
+      if (prior) {
+        return agentSuccess(prior, {
+          requestId,
+          meta: {
+            idempotencyKey: input.idempotencyKey,
+            objectId: String(prior.article.id),
+            readAfterWrite: true,
+            revision: prior.article.revision,
+          },
+        });
+      }
+      let outcome:
+        | { article: Article; auditId: string; kind: "committed" }
+        | { kind: "conflict"; revision: string };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          if (!hasEditorialRole(lockedUser)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+          if (parsedConfirmation.exp < Date.now()) {
+            throw new PublicationConfirmationError("expired", "The site selection confirmation expired. Prepare the action again.");
+          }
+          const commitEvent = await this.reserveWrite({
+            fingerprint,
+            idempotencyDigest,
+            requestId,
+            tool: "editorial_commit_site_selection",
+          }, req);
+          const digest = siteSelectionConfirmationDigest(input.confirmationRef);
+          const locatedConfirmation = await this.confirmationEvent(digest, req);
+          if (!locatedConfirmation) {
+            throw new AgentServiceError("CONFIRMATION_INVALID", "The site selection confirmation is invalid.");
+          }
+          await this.lockAgentEvent(req, Number(locatedConfirmation.id));
+          const confirmationEvent = await this.confirmationEvent(digest, req);
+          this.assertSiteSelectionEvent(confirmationEvent, parsedConfirmation);
+
+          await this.lockArticle(req, parsedConfirmation.articleId);
+          const article = await this.editorialArticle(parsedConfirmation.articleId, lockedUser, req);
+          const latest = await getLatestDraftArticle(this.payload, article.id, article, req);
+          const beforeRevision = revision(latest);
+          if (parsedConfirmation.targetStatus === "curated") await this.lockSiteSelectionMedia(req, latest);
+          if (parsedConfirmation.exp < Date.now()) {
+            throw new PublicationConfirmationError("expired", "The site selection confirmation expired. Prepare the action again.");
+          }
+          if (beforeRevision !== parsedConfirmation.revision) {
+            await this.finishWrite(commitEvent.id, { beforeRevision, objectId: String(article.id), result: "conflict" }, req);
+            await this.finishWrite(confirmationEvent!.id, { beforeRevision, objectId: String(article.id), result: "conflict" }, req);
+            return { kind: "conflict" as const, revision: beforeRevision };
+          }
+
+          const prepared = await prepareEditorialSiteSelection(latest, parsedConfirmation.targetStatus, req);
+          if (prepared.action !== parsedConfirmation.action) {
+            throw new AgentServiceError("CONFIRMATION_INVALID", "The prepared site selection action is no longer valid.");
+          }
+          const committed = await commitEditorialSiteSelection(latest, parsedConfirmation.targetStatus, req, { strictAgentSlice: true });
+          const committedVersion = await getLatestDraftArticle(this.payload, committed.id, committed, req);
+          const afterRevision = revision(committedVersion);
+          const result = siteSelectionSummary(committedVersion, parsedConfirmation.action);
+          await this.finishWrite(confirmationEvent!.id, { afterRevision, beforeRevision, objectId: String(committed.id), result: "success" }, req);
+          await this.finishWrite(commitEvent.id, {
+            afterRevision,
+            beforeRevision,
+            inputFingerprint: storedSiteSelectionFingerprint(fingerprint, result),
+            objectId: String(committed.id),
+            result: "success",
+          }, req);
+          return { article: committedVersion, auditId: String(commitEvent.id), kind: "committed" as const };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedSiteSelection(idempotencyDigest, fingerprint, user);
+        if (!replay) throw error.original;
+        return agentSuccess(replay, {
+          requestId,
+          meta: {
+            idempotencyKey: input.idempotencyKey,
+            objectId: String(replay.article.id),
+            readAfterWrite: true,
+            revision: replay.article.revision,
+          },
+        });
+      }
+      if (outcome.kind === "conflict") {
+        throw new AgentServiceError(
+          "REVISION_CONFLICT",
+          "The article changed after this site selection action was prepared.",
+          { latestRevision: outcome.revision },
+        );
+      }
+      return agentSuccess(siteSelectionSummary(outcome.article, parsedConfirmation.action), {
+        requestId,
+        meta: {
+          auditId: outcome.auditId,
+          idempotencyKey: input.idempotencyKey,
+          objectId: String(outcome.article.id),
+          readAfterWrite: true,
+          revision: revision(outcome.article),
+        },
+      });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && ["IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT"].includes(error.code))) {
+        const failureRequestId = auditedFailureRequestId(requestId, error);
+        await this.auditAttempt({ objectId: confirmation ? String(confirmation.articleId) : undefined, objectType: "article", requestId: failureRequestId, result: "failed", tool: "editorial_commit_site_selection" });
         return failure(error, failureRequestId);
       }
       return failure(error, requestId);

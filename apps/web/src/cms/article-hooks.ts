@@ -32,7 +32,7 @@ type ArticleShape = {
   format?: "guide" | "reporting" | "analysis" | "first_person" | "update" | null;
   freshnessDate?: string | null;
   homepageEndsAt?: string | null;
-  homepagePlacement?: "none" | "lead" | "selected";
+  homepagePlacement?: "none" | "lead" | "selected" | null;
   homepageStartsAt?: string | null;
   id: number | string;
   locale?: "en" | "es";
@@ -45,7 +45,7 @@ type ArticleShape = {
   title?: string;
   translationGroup?: string;
   workflowStatus?: "draft" | "submitted" | "in_review" | "changes_requested" | "approved" | "public" | "archived";
-  _status?: "draft" | "published";
+  _status?: "draft" | "published" | null;
 };
 
 function relationID(value: number | string | { id: number | string } | null | undefined) {
@@ -81,7 +81,7 @@ async function findOwnPerson(
   return person;
 }
 
-async function assertCurationComplete(
+export async function assertCurationComplete(
   article: Partial<ArticleShape>,
   req: Parameters<CollectionBeforeChangeHook>[0]["req"],
 ) {

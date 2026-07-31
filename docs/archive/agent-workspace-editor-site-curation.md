@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-workspace-editor-site-curation
 last_verified: 2026-08-01
 max_lines: 320
@@ -123,30 +123,30 @@ flowchart LR
 
 ### Gate 1 — Shared curation contract
 
-- [ ] 提取网页 endpoint 与 Agent 共用的最小 `article-curation.ts` helper，不改变现有网页状态机或确认 UI。
-- [ ] 固定 latest draft、完整性、action/target、server summary、公共影响和错误码。
-- [ ] 保持原作者、owner、署名、Member publication 与 canonical URL 不变量。
+- [x] 提取网页 endpoint 与 Agent 共用的最小 `article-curation.ts` helper，不改变现有网页状态机或确认 UI。
+- [x] 固定 latest draft、完整性、action/target、server summary、公共影响和错误码。
+- [x] 保持原作者、owner、署名、Member publication 与 canonical URL 不变量。
 
 ### Gate 2 — Editor tools
 
-- [ ] 注册精确读取、prepare、commit 三项工具；capability 只按当前服务端角色返回，实际调用仍逐次校验。
-- [ ] 扩展 002 confirmation primitive，保持现有 Member confirmation token 与重放行为兼容。
-- [ ] 实现 revision conflict、5 分钟一次 confirmation、跨 actor/connection/object/target 拒绝和 commit 幂等。
-- [ ] Agent access 只增加三项短活动标签，不增加说明性 UI。
+- [x] 注册精确读取、prepare、commit 三项工具；capability 只按当前服务端角色返回，实际调用仍逐次校验。
+- [x] 扩展 002 confirmation primitive，保持现有 Member confirmation token 与重放行为兼容。
+- [x] 实现 revision conflict、5 分钟一次 confirmation、跨 actor/connection/object/target 拒绝和 commit 幂等。
+- [x] Agent access 只增加三项短活动标签，不增加说明性 UI。
 
 ### Gate 3 — Local verification
 
-- [ ] 用一个虚构 Member Article 完成 Editor 精确读取、Add to site、同 key 重放、匿名站方入口读回、确认后的 Remove 和个人 canonical 保留。
-- [ ] 覆盖 Member/原作者、paused、missing Person、降权、撤销连接、disabled client、其他 actor confirmation、stale revision、过期、篡改、重复 key、错误状态和不完整 Article 负例。
-- [ ] 覆盖另一 Editor 与 Super Admin 可独立 prepare/commit，但不能消费首位 Editor confirmation。
-- [ ] 读回 Article/latest version、Workflow Event、Agent event、原作者/owner/byline、Member publication 和 anonymous curated query。
-- [ ] 现有 001–002 Agent tests、网页 editorial workflow、typecheck、lint 和 build 无回归。
+- [x] 用一个虚构 Member Article 完成 Editor 精确读取、Add to site、同 key 重放、匿名站方入口读回、确认后的 Remove 和个人 canonical 保留。
+- [x] 覆盖 Member/原作者、paused、missing Person、降权、撤销连接、disabled client、其他 actor confirmation、stale revision、过期、篡改、重复 key、错误状态和不完整 Article 负例。
+- [x] 覆盖另一 Editor 与 Super Admin 可独立 prepare/commit，但不能消费首位 Editor confirmation。
+- [x] 读回 Article/latest version、Workflow Event、Agent event、原作者/owner/byline、Member publication 和 anonymous curated query。
+- [x] 现有 001–002 Agent tests、网页 editorial workflow、typecheck、lint 和 build 无回归。
 
 ### Gate 4 — Review and closeout
 
-- [ ] 更新 feature registry、current、父级计划与 Local implementation evidence。
-- [ ] 未主持实现的 reviewer 完成只读独立复审并给出 `PASS`；`BLOCK` 只按冻结合同和开发治理边界提出。
-- [ ] 只有 PASS 后才标 completed、移入 archive 并提交 closure；Preview 如有必要须另行批准并增加独立证据，不由 Local PASS 自动获得授权。
+- [x] 更新 feature registry、current、父级计划与 Local implementation evidence。
+- [x] 未主持实现的 reviewer 完成只读独立复审并给出 `PASS`；`BLOCK` 只按冻结合同和开发治理边界提出。
+- [x] 只有 PASS 后才标 completed、移入 archive 并提交 closure；Preview 如有必要须另行批准并增加独立证据，不由 Local PASS 自动获得授权。
 
 ## Acceptance
 
@@ -181,4 +181,4 @@ flowchart LR
 
 ## Current gate
 
-Intake 基线已冻结；只授权文档与本地 checklist 提交。下一步等待产品代码批准后进入 Gate 1。Preview、真实账号、真实数据、公共状态写入、Production、schema、migration、merge 和 push均未授权。
+关闭状态：Local 单篇跨作者 Article exact read、确认后 Add、幂等重放、确认后 Remove、权限负例、匿名 readback 和测试恢复全部 PASS；未主持实现者最终复审 `PASS`，`P0/P1/P2 = 0/0/0`。专用数据库已精确删除，本轮 Local PostgreSQL 已停止。Preview、真实账号、真实数据、公共状态写入、Production、schema、migration、merge 和 push均未执行；证据见 [`Local runtime`](../reference/implementation/agent-workspace-003-local-runtime-2026-08-01.md) 与 [`independent review`](../reference/implementation/agent-workspace-003-independent-review-2026-08-01.md)。

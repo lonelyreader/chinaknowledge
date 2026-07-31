@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: archive-index
-last_verified: 2026-07-30
+last_verified: 2026-08-01
 max_lines: 80
 ---
 
@@ -26,6 +26,7 @@ max_lines: 80
 | `BRAND-WORDMARK-001` | 定稿轮廓字标已接入公共 Header 与 Footer，SVG、构建、桌面和移动视觉验证通过 | [`brand-wordmark-site-integration.md`](brand-wordmark-site-integration.md) |
 | `AGENT-WORKSPACE-001` | 远程 OAuth/MCP、Member read/draft/preview、Local/Preview migration、Cursor 真实工具链、越权与撤权负例和独立复审均通过 | [`agent-workspace-member-foundation.md`](agent-workspace-member-foundation.md) |
 | `AGENT-WORKSPACE-002` | Member publication 的 Local/Preview Cursor prepare、人工确认、commit、重放、撤回、过期拒绝、匿名读回、精确清理和最终独立复审均通过 | [`agent-workspace-member-publication.md`](agent-workspace-member-publication.md) |
+| `AGENT-WORKSPACE-003` | Editor 单篇跨作者 Article exact read、确认后 Add/Remove、权限负例、匿名读回、Local 清理和最终独立复审均通过；Preview 未执行 | [`agent-workspace-editor-site-curation.md`](agent-workspace-editor-site-curation.md) |
 | `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
 
 规则：

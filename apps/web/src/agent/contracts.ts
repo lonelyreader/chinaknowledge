@@ -94,6 +94,12 @@ export const agentToolDescriptions = {
     "Prepare publishing, updating the public version, withdrawing or republishing an article owned by the current member. This validates the action and returns an exact summary plus a short-lived one-time confirmation reference. It never changes the article or public page.",
   article_commit_publication:
     "Execute a prepared publication action only after the user explicitly confirms the exact prepare summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks ownership, account state, connection, revision and transition before changing the public page.",
+  editorial_article_get:
+    "Return one exact article for a current Editor or Super Admin to assess for site selection. It includes the latest revision and only the content and curation fields needed for this decision. It never grants Member publication control or changes the article.",
+  editorial_prepare_site_selection:
+    "Prepare adding one member-public article to the site's editorial selection, or removing that same selected article as recovery. It returns a server-generated impact summary and short-lived one-time confirmation reference without changing the article or public entry.",
+  editorial_commit_site_selection:
+    "Execute a prepared site-selection action only after the user explicitly confirms the server summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks the current role, connection, article, transition, revision and curation requirements before changing the site entry.",
 } as const;
 
 export type AgentToolName = keyof typeof agentToolDescriptions;
