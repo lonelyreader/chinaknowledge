@@ -4,7 +4,7 @@ doc_type: contract
 authority: canonical
 status: active
 scope: development-governance
-last_verified: 2026-07-26
+last_verified: 2026-08-01
 max_lines: 240
 ---
 
@@ -87,7 +87,7 @@ approval_gates: 仍需单独批准的动作
 - Newsletter 邮箱、外部链接审核和安全边界。
 - shared code、跨域改动、生产、历史事故复发面。
 
-除 Base 字段外，还必须明确：
+本规则生效后新建的 upgraded checklist，或现有 checklist 开启新的实现、Preview、migration 或 release 批次前，除 Base 字段外还必须明确：
 
 - `data_truth`：数据真相及目标环境。
 - `read_path` / `write_path`：读写路径。
@@ -95,8 +95,26 @@ approval_gates: 仍需单独批准的动作
 - `audit_boundary`：应记录什么。
 - `recovery`：失败后的恢复方式。
 - `independent_review`：由未主持实现的人给出 PASS 或 BLOCK。
+- `key_invariants`：本批不能破坏的身份、内容、权限、公开状态、数据和恢复条件。
+- `finding_route`：不属于本批阻断条件的相邻问题进入哪个已有 checklist；没有入口时如何建立后续工作项。
 
 测试、typecheck 或 build 通过不能单独证明作者、编辑或读者的真实任务可用。
+
+### 冻结批次合同与独立复审阻断边界
+
+实现开始前，checklist 中的目标、`allowed_paths`、`no_go`、`acceptance`、`key_invariants` 和 `finding_route` 共同冻结本批合同。Reviewer 可以追踪调用链和发现相邻风险，但只有以下问题可以把当前批次判为 `BLOCK`：
+
+1. 当前实现不满足冻结合同中的目标、关键不变量或验收条件。
+2. 当前 diff 新引入或重新暴露了回归；不能用“原清单没有写”豁免本批造成的故障。
+3. 问题能直接导致认错用户、写错内容或权限、泄露未公开内容、丢失数据、留下无法安全清理的残留，或者使失败后无法恢复或回滚。
+
+相邻系统缺口、长期平台能力和不影响本批安全关闭的改进项必须进入 `finding_route` 指向的 checklist。没有合适入口时建立后续工作项；它们不能自动扩大当前实现，也不能要求本批顺手建设通用平台。生产紧急问题进入独立事故或发布入口。
+
+每条 `BLOCK` finding 必须给出违反的合同条款、可复现的失败路径、与当前 diff 的直接因果关系，以及关闭该 finding 所需的最小条件。严重度可以帮助排序，但不能替代上述阻断证据。
+
+实现者不能为 upgraded 工作给出最终 `PASS`；复审失败、超时或没有真实启动都不等于通过。`PASS` 只表示当前批次满足冻结合同并可进入下一道门，不表示相邻系统没有问题，也不自动批准 Preview、migration、Production、真实数据或内容公开。
+
+如果连续三轮仍为 `BLOCK`，先逐条校准范围。仍然违反同一冻结合同的问题继续修复；已经超出冻结合同的问题进入 `finding_route`，当前批次停止扩项。范围校准不能降低安全标准，也不能把当前 diff 造成的回归后移。
 
 ## 验证层级
 

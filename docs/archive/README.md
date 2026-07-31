@@ -25,6 +25,7 @@ max_lines: 80
 | `ADMIN-UI-001` | 全部自定义 Admin UI 已按 Payload `3.86.0` 原生能力重构，桌面视觉与技术/权限独立复审通过并部署 Production | [`admin-payload-native-ui-reconstruction.md`](admin-payload-native-ui-reconstruction.md) |
 | `BRAND-WORDMARK-001` | 定稿轮廓字标已接入公共 Header 与 Footer，SVG、构建、桌面和移动视觉验证通过 | [`brand-wordmark-site-integration.md`](brand-wordmark-site-integration.md) |
 | `AGENT-WORKSPACE-001` | 远程 OAuth/MCP、Member read/draft/preview、Local/Preview migration、Cursor 真实工具链、越权与撤权负例和独立复审均通过 | [`agent-workspace-member-foundation.md`](agent-workspace-member-foundation.md) |
+| `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
 
 规则：
 

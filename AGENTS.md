@@ -23,6 +23,7 @@
 
 - 新需求、bug 和优化进入唯一 active checklist；已有覆盖时不重复建。
 - Checklist 必须声明范围、禁止项、风险、验收、验证、写回和审批门禁。
+- Upgraded 工作在实现前冻结批次合同；独立复审只用合同违约、当前 diff 回归或直接安全失败阻断本批，其他 finding 路由后续；连续三轮 BLOCK 先校准范围。规则见开发治理合同。
 - 验证只选 `slice`、`work_item` 或 `phase_release` 中一层，再补 changed-path 检查。
 - 事实写 current，规则写 architecture，执行写 roadmap，决定写 decisions，证据写 reference，历史写 archive。
 - 改动完成后运行 `npm run governance:check` 和 `git diff --check`。

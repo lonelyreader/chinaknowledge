@@ -14,11 +14,10 @@ max_lines: 80
 
 Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.md) 记录；父级不授权实现。
 
-当前 active checklist：
+当前唯一 active checklist：
 
 - [`AGENT-WORKSPACE-002`](agent-workspace-member-publication.md)：Member Article publication 的 Local 实现、自动 fixture 与独立复审已 PASS；Preview Cursor 人工确认尚待另行授权，外部环境仍分别授权。
-- [`GOV-INDEPENDENT-REVIEW-001`](independent-review-boundary-governance.md)：冻结 upgraded 批次合同、独立复审阻断边界与相邻 finding 路由；仅修改治理文档。
 
-已完成的 [`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md) 位于 archive。
+已完成的 [`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md) 与 [`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 位于 archive。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`。

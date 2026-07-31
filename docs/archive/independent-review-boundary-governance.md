@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: independent-review-boundary-governance
 last_verified: 2026-08-01
 max_lines: 120
@@ -54,6 +54,13 @@ approval_gates: merge, push
 
 ## Work
 
-- [ ] Intake baseline 进入 HEAD。
-- [ ] 更新开发治理合同和根路由。
-- [ ] 完成验证并归档本清单。
+- [x] Intake baseline 已于 `0ed0f83` 进入 HEAD。
+- [x] 更新开发治理合同和根路由。
+- [x] 完成验证并归档本清单。
+
+## Closure
+
+- Upgraded checklist 的批次合同新增 `key_invariants` 与 `finding_route`，并固定三类 BLOCK 条件。
+- BLOCK finding 必须包含合同条款、复现路径、diff 因果和最小关闭条件；连续三轮 BLOCK 后必须校准范围。
+- `PASS` 只开放下一道门，不替代 Preview、migration、Production、真实数据或内容公开授权。
+- 干净临时 worktree 中完整治理、文档治理、功能登记、change intake 与 diff check 均通过；没有修改 002、代码、schema、运行环境或 `outputs/**`。
