@@ -97,8 +97,8 @@ approval_gates: checklist-commit, auth-design, product-code, dependency-install,
 ### Gate 5 — Verification and closeout
 
 - [x] 完成 anonymous、paused、Member A、Member B、Editor-with-Person、Super-Admin-with-Person 权限矩阵。
-- [ ] 覆盖 token 过期、refresh rotation、撤销、错误 audience、错误 PKCE、重放、重复 idempotency key、stale revision、超时后读回和文章内容 prompt injection。
-- [ ] 用桌面浏览器验证 `Agent access` 的正常、空、错误和撤销状态；人工执行 `DESIGN.md` copy gate。
+- [x] 覆盖 token 过期、refresh rotation、撤销、错误 audience、错误 PKCE、重放、重复 idempotency key、stale revision、超时后读回和文章内容 prompt injection。
+- [x] 用桌面浏览器验证 `Agent access` 的正常、空、错误和撤销状态；桌面与 390px 均无横向溢出，人工 `DESIGN.md` copy gate 通过。
 - [x] 完成 OAuth/MCP 安全独立复审与 Member 权限独立复审；首审及窄复验发现的 Gateway 默认关闭、refresh family replay、`offline_access`、Consent 能力、请求体上限、Codex fixture、撤销审计、连接排序、范围合同和文档状态均已修复，同一 reviewer 最终复验 `PASS`，P0/P1/P2 为 `0/0/0`。
 - [x] 更新 App 功能登记册与实现指纹；只在能力已真实验证后更新 current。
 - [ ] 关闭 001 前更新父级清单并完成 transition review；基于真实证据决定 002–005 保留、拆分、合并、改序或取消，不自动启动 002。

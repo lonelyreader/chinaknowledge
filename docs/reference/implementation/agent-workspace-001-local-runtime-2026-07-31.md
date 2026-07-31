@@ -59,6 +59,7 @@ AGENT-WORKSPACE-001 的 Local migration、live schema、真实 OAuth allow flow�
 | Member A / Member B | 本人列表、工作副本和 Preview 隔离；跨 Member ID 拒绝 |
 | Editor / Super Admin with Person | 只得到与 Member 相同的 7 个工具，不增加策展或账户动作 |
 | Concurrent create | 同 idempotency key 只产生一篇 Article |
+| Timeout recovery | 假定首个成功响应丢失后以同 key 重试；返回同一 Article、同一 revision，读回成功且总数仍为一篇 |
 | Same key, different input | `IDEMPOTENCY_CONFLICT`，失败事件沿用响应 request ID |
 | Concurrent save | 一个成功，一个 `REVISION_CONFLICT`，不静默覆盖 |
 | Article content | prompt-injection 样本文本只作为正文往返 |
@@ -71,11 +72,11 @@ AGENT-WORKSPACE-001 的 Local migration、live schema、真实 OAuth allow flow�
 - OAuth 客户端发起 revoke 也写入同一最小审计；未知 token 仍统一成功且不产生 token oracle。
 - 真实 Cursor 连接名称不再因 Member 无权展开内部 OAuth client 而退化为 `Agent`；服务端只返回安全的 `clientName`。连接按实际 `lastUsedAt` 排序，避免空时间排在正在使用的连接之前。
 - 可见文案人工 copy gate 通过：只有对象名、短标签、动作、状态和必要错误；未加入安装说明或内部协议术语。
-- API 不可用错误态尚未以浏览器故障注入验证，所以 checklist 对应复合项保持未完成。
+- 通过浏览器网络故障注入阻断 `/api/agent/access`，页面保留后台结构并显示必要错误 `Agent access unavailable.`；恢复网络后正常读回。
 
 ## Regression evidence
 
-- `test:agent`（含全部外部路由默认关闭、Consent 能力、8 KiB token/revoke 负例、五个 JSON fixture 与 Codex CLI 隔离加载）、`test:agent:live`（含仅 access-token 授权、四代 refresh 与第一代 replay）、`test:editorial`、`test:environment`、`test:newsletter`、`test:preview-config`：PASS。
+- `test:agent`（含全部外部路由默认关闭、Consent 能力、8 KiB token/revoke 负例、五个 JSON fixture 与 Codex CLI 隔离加载）、`test:agent:live`（含仅 access-token 授权、四代 refresh、第一代 replay 与成功响应丢失后的幂等读回）、`test:editorial`、`test:environment`、`test:newsletter`、`test:preview-config`：PASS。
 - `typecheck`、`build`：PASS；构建识别全部 Agent metadata、OAuth、access 与 MCP routes。
 - `lint`：0 errors；40 条既有 migration unused-parameter warnings。
 - Production dependency audit：0 high、0 critical；5 条 moderate 来自既有 Payload/Drizzle/esbuild 链。

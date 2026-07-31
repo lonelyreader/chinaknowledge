@@ -236,6 +236,21 @@ try {
   assert.equal(articleId, Number(duplicateCreate.data?.id));
   const owned = await payload.count({ collection: "articles", overrideAccess: true, where: { and: [{ owner: { equals: memberA.user.id } }, { title: { equals: "Agent fixture" } }] } });
   assert.equal(owned.totalDocs, 1);
+
+  const timeoutKey = `timeout-create-${randomUUID()}`;
+  const completedBeforeTimeout = await serviceA.createDraft({ body, idempotencyKey: timeoutKey, locale: "en", title: "Agent timeout recovery" });
+  assert.equal(completedBeforeTimeout.ok, true, JSON.stringify(completedBeforeTimeout));
+  const recoveredAfterTimeout = await serviceA.createDraft({ body, idempotencyKey: timeoutKey, locale: "en", title: "Agent timeout recovery" });
+  assert.equal(recoveredAfterTimeout.ok, true, JSON.stringify(recoveredAfterTimeout));
+  assert.equal(recoveredAfterTimeout.data?.id, completedBeforeTimeout.data?.id);
+  assert.equal(recoveredAfterTimeout.meta?.revision, completedBeforeTimeout.meta?.revision);
+  assert.equal(recoveredAfterTimeout.meta?.readAfterWrite, true);
+  const recoveredWorkingCopy = await serviceA.workingCopy(Number(recoveredAfterTimeout.data?.id));
+  assert.equal(recoveredWorkingCopy.ok, true, JSON.stringify(recoveredWorkingCopy));
+  assert.equal(recoveredWorkingCopy.data?.title, "Agent timeout recovery");
+  const recoveredCount = await payload.count({ collection: "articles", overrideAccess: true, where: { and: [{ owner: { equals: memberA.user.id } }, { title: { equals: "Agent timeout recovery" } }] } });
+  assert.equal(recoveredCount.totalDocs, 1);
+
   const createdArticle = await payload.findByID({ collection: "articles", id: articleId, depth: 0, draft: true, overrideAccess: true });
   assert.equal(relationId(createdArticle.owner), memberA.user.id);
   assert.equal(relationId(createdArticle.author), memberA.person.id);
