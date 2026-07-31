@@ -9,7 +9,7 @@ max_lines: 300
 change_id: AGENT-WORKSPACE-002
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: apps/web/src/agent/**, apps/web/src/cms/article-endpoints.ts, apps/web/src/cms/article-hooks.ts, apps/web/src/cms/article-publication.ts, apps/web/src/cms/media-policy.ts, apps/web/src/cms/workflow.ts, apps/web/tests/**, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-member-publication.md, docs/reference/implementation/**, docs/archive/README.md, docs/archive/agent-workspace-member-publication.md
+allowed_paths: apps/web/src/agent/**, apps/web/src/cms/article-endpoints.ts, apps/web/src/cms/article-hooks.ts, apps/web/src/cms/article-publication.ts, apps/web/src/cms/components/AgentAccess.tsx, apps/web/src/cms/media-policy.ts, apps/web/src/cms/workflow.ts, apps/web/tests/**, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-member-publication.md, docs/reference/implementation/**, docs/archive/README.md, docs/archive/agent-workspace-member-publication.md
 approval_gates: checklist-commit, product-code, public-state-write, database-schema, migration, preview-deploy, public-mcp, real-account, real-data, production-deploy, merge, push
 ---
 
@@ -100,6 +100,7 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 ### Gate 2 — Agent tools
 
 - [ ] 注册两项工具、Zod 输入、风险 annotations 与自足说明；commit 标记为 destructive，prepare 不标记为写入 Article。
+- [ ] 为后台 Recent activity 增加两项短标签，不显示工具名、confirmation 或内部协议术语。
 - [ ] 实现 5 分钟 confirmation、actor/connection/object/action/revision 绑定与原子消费。
 - [ ] 实现 publish、update public、withdraw、republish 四条服务器推导路径和最终读回。
 - [ ] capability 列表只对有 Person 的当前后台账户增加两项工具；实际调用仍逐次校验。
