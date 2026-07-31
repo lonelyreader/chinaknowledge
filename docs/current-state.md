@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-07-31
+last_verified: 2026-08-01
 max_lines: 160
 ---
 
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 与 [`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md) 已完成并归档；当前没有 implementation active checklist，003 是下一条可进入独立 intake 的候选，但尚未创建或授权。002 已在独立 Local `.test` 数据库和 Cursor Preview 真实客户端完成 publish、幂等重放、withdraw、过期确认拒绝与匿名读回；测试身份、内容、连接和本轮 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。最终独立复审 `PASS`，P0/P1/P2 均为 0。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 与 [`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-003`](roadmap/checklists/agent-workspace-editor-site-curation.md)。003 只完成 intake，首批固定为精确读取一篇跨作者 Member-public Article、确认后 Add to site 和对应 Remove 恢复；产品代码尚未授权。002 已在独立 Local `.test` 数据库和 Cursor Preview 真实客户端完成 publish、幂等重放、withdraw、过期确认拒绝与匿名读回；测试身份、内容、连接和本轮 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。最终独立复审 `PASS`，P0/P1/P2 均为 0。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 

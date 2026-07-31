@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-07-31
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:405b165efd0effffcec0e0579a086237b16e7899dd87ab317e2c6ed9a790314b
+implementation_fingerprint: sha256:dae1b567e0133d6ccf0f2210ea0609045a11418b7e08d91bf5b07eb30c279831
 ---
 
 # App 功能登记册
