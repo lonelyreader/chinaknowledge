@@ -9,7 +9,7 @@ max_lines: 300
 change_id: AGENT-WORKSPACE-002
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: apps/web/src/agent/**, apps/web/src/cms/article-endpoints.ts, apps/web/src/cms/article-hooks.ts, apps/web/src/cms/article-publication.ts, apps/web/src/cms/workflow.ts, apps/web/tests/**, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-member-publication.md, docs/reference/implementation/**, docs/archive/README.md, docs/archive/agent-workspace-member-publication.md
+allowed_paths: apps/web/src/agent/**, apps/web/src/cms/article-endpoints.ts, apps/web/src/cms/article-hooks.ts, apps/web/src/cms/article-publication.ts, apps/web/src/cms/media-policy.ts, apps/web/src/cms/workflow.ts, apps/web/tests/**, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-member-publication.md, docs/reference/implementation/**, docs/archive/README.md, docs/archive/agent-workspace-member-publication.md
 approval_gates: checklist-commit, product-code, public-state-write, database-schema, migration, preview-deploy, public-mcp, real-account, real-data, production-deploy, merge, push
 ---
 
@@ -94,6 +94,7 @@ Commit 在同一事务中锁定 confirmation 与 Article，重新检查账户、
 
 - [ ] 固定 action 推导、prepare 摘要、target status、公共路径、curation 影响和错误码。
 - [ ] 提取网页 endpoint 与 Agent 共用的最小 publication helper，不改变既有网页确认行为和权限。
+- [ ] 把媒体发布规则拆成 prepare 可调用的纯检查与 commit 才执行的使用时间写入；两者必须共享同一 owner/approval 判断。
 - [ ] 证明现有 Agent event 足以保存 pending confirmation、不可逆 digest、一次消费、前后 revision 和 commit 幂等；否则停止申请 schema 门禁。
 
 ### Gate 2 — Agent tools
