@@ -12,7 +12,7 @@ max_lines: 220
 
 本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001 已完成并归档；当前没有 active 子级，下一候选是经单独批准后建立收窄版 002。
+稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001 已完成并归档；当前 active 子级是收窄后的 [`AGENT-WORKSPACE-002`](checklists/agent-workspace-member-publication.md)。
 
 ## Program Goal
 
@@ -22,7 +22,7 @@ max_lines: 220
 flowchart LR
     P["Parent checklist<br/>阶段、依赖、转换决定"] --> A1["001<br/>Member foundation"]
     A1 --> R["Transition review<br/>根据真实证据重估"]
-    R --> A2["002 next candidate<br/>Member publication"]
+    R --> A2["002 active<br/>Member publication"]
     A2 -.-> A3["003 provisional<br/>Editor curation"]
     A3 -.-> A4["004 provisional<br/>Admin safe subsets"]
     A4 -.-> A5["005 provisional<br/>Compatibility + release"]
@@ -35,7 +35,7 @@ flowchart LR
 | ID | 当前状态 | 候选结果 | 进入条件 |
 |---|---|---|---|
 | `AGENT-WORKSPACE-001` | completed；Local + Preview Cursor real-client PASS | OAuth、远程 MCP、Member read/draft/preview | 已归档；TRAE/WorkBuddy 转 005 |
-| `AGENT-WORKSPACE-002` | next candidate；`keep + narrow` | 在既有 Article 上验证 Member publication 的 prepare/confirm/commit/readback | 单独建立 active checklist 并批准公开状态写路径 |
+| `AGENT-WORKSPACE-002` | active；`keep + narrow` | 在既有 Article 上验证 Member publication 的 prepare/confirm/commit/readback | checklist 基线进入 HEAD 后执行 Local；Preview 与 Production 分别批准 |
 | `AGENT-WORKSPACE-003` | provisional；`keep` | Editor Needs attention、分配、分类、来源、策展、排期与复核 | 002 先证明确认合同，再定义 Editor 跨作者工具 |
 | `AGENT-WORKSPACE-004` | provisional；`split` | 低风险站务和高风险账户/身份分开；只评估适合 Agent 的安全子集 | 删除、提权、migration、密钥和 Production 动作保持网页或专门流程 |
 | `AGENT-WORKSPACE-005` | provisional；`keep + expand` | TRAE/WorkBuddy 真实兼容、Cursor callback 预检、运营监控、限流、支持、恢复与 Production release | 002–004 范围稳定并取得目标客户端账号；CLI fallback 仍须真实需求证据 |
@@ -49,7 +49,7 @@ flowchart LR
 - [x] 完成 001 的实现、Local/Preview 验证、独立复审、证据写回与 closure。
 - [x] 完成正式 transition review，以 Cursor Preview 运行和撤权证据重新估算 002–005。
 - [x] 记录决定：002 `keep + narrow`，003 `keep` 且排在 002 后，004 `split`，005 `keep + expand`。
-- [ ] 只为下一条得到批准的结果创建一个 active 子级 checklist；其余继续停留在本页。
+- [x] 只为下一条得到批准的结果创建一个 active 子级 checklist；其余继续停留在本页。
 - [ ] 每个子级关闭后更新本页的实际结果、遗留风险、可复用合同和下一阶段进入条件。
 - [ ] 必要 capability 子级完成后，再把 005 定义为 phase-release 子级；Production 部署、真实成员接入和公开启用仍在 005 内分别批准和读回。
 

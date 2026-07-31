@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 已完成并归档，当前没有 active checklist。远程 MCP、OAuth、Member read/draft/preview、Local/Preview migration、后台 `Agent access`、Cursor 3.13.10 真实客户端、跨成员拒绝与撤权立即失效均已通过；Preview 虚构夹具已删除并恢复 SSO，Production 未部署，现网没有 Agent 产品入口。父级 transition review 推荐收窄版 002 为下一候选，但尚未建立或授权。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md) 已完成并归档；当前唯一 active checklist 是 [`AGENT-WORKSPACE-002`](roadmap/checklists/agent-workspace-member-publication.md)，只验证 Member Article publication 的一次性 `prepare → 用户确认 → commit → readback`。Local 虚构 fixture 已获启动批准，代码尚未实现；Preview 已恢复 SSO，Production 未部署，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 
