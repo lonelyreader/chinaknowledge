@@ -147,10 +147,10 @@ flowchart LR
 
 ### Gate 4 — Preview release rehearsal
 
-- [ ] 在关闭态部署上验证 health/public site/Admin/OAuth/MCP 404、migration status、env/project/region 与 provider rules。
-- [ ] 在批准的临时开启态完成 metadata、401 challenge、真实客户端 smoke、日志/429/readback 和关闭恢复。
-- [ ] fixture、DCR clients、connections、events、env、SSO 与 aliases 精确清理；Preview 回到已声明状态。
-- [ ] 独立 reviewer 给出 Preview release `PASS/BLOCK`。
+- [x] 在关闭态 deployment `dpl_2NFvyEXSH52bsUDhFRPX7viRYvY6` 验证 public/Admin/health/metadata/MCP、13 migrations、39 tables、env/SSO/alias 与 provider rules。
+- [x] 在批准的临时开启态完成真实公网 DCR + PKCE OAuth、9 tools、`account_context`、跨作者拒绝、revoke failure-close、request logs、DCR `429` 与关闭恢复；没有内容写入。
+- [x] 精确删除虚构 User/Person、DCR client、revoked connection、4 条 Agent event、临时 env 与临时凭据；恢复 stable alias 和 SSO，Preview 回到 `36/32/6/32/150/0/0/0/13`。
+- [x] 未主持执行者完成 deployments、alias、SSO/env、Gateway/WAF、request logs、DCR 429 算术、changed paths 与清理证据只读复审；结论 `PASS`，`P0/P1/P2 = 0/0/0`。
 
 ### Gate 5 — Production migration and staged release
 
@@ -189,4 +189,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 3 已由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`：5 条 exact-path WAF rule 已经过 log-first、阈值 `429`、60 秒恢复、disabled Gateway、provider disable/enable rollback、无付费观测和 SSO 精确恢复验证。最终无 pending draft，Newsletter rule 未变化，Gateway 关闭，Preview SSO 为 `all_except_custom_domains`，没有 client、connection、Agent event 或内容 fixture。当前进入 Gate 4 Preview release rehearsal。
+Gate 4 已由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`：关闭态与临时开启态、真实公网 OAuth/MCP smoke、跨作者权限负例、revoke、request logs、DCR `429` 和精确恢复均已验证。stable alias 回指 `dpl_2NFvyEXSH52bsUDhFRPX7viRYvY6`，SSO 为 `all_except_custom_domains`，临时 env 为空，数据库为 `36/32/6/32/150/0/0/0/13`。当前进入 Gate 5，先冻结备份工作流适配合同再触碰 workflow 或 Production。

@@ -16,7 +16,7 @@ max_lines: 100
 
 父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。它记录 001–005 的关系和阶段转换，不授权实现。
 
-当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。Gate 3 的 5 条 exact-path Vercel WAF、最小观测与恢复演练已独立复审 `PASS`，当前执行 Gate 4 Preview release rehearsal；TRAE 不在当前适配范围。
+当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。Gate 4 独立复审 `PASS`，当前进入 Gate 5；先冻结备份工作流适配合同，再执行新备份、既有 migration 与 Gateway-off staged release。TRAE 不在当前适配范围。
 
 ## Deferred
 

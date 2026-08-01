@@ -12,7 +12,7 @@ max_lines: 220
 
 本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–004 已完成并归档；当前唯一 implementation active 子级是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。005 Gate 3 独立复审 `PASS`，当前执行 Gate 4 Preview release rehearsal；后续仍按冻结顺序逐门读回。
+稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–004 已完成并归档；当前唯一 implementation active 子级是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。005 Gate 4 独立复审 `PASS`，当前进入 Gate 5 备份合同与 staged Production release；后续仍按冻结顺序逐门读回。
 
 ## Program Goal
 
@@ -38,7 +38,7 @@ flowchart LR
 | `AGENT-WORKSPACE-002` | completed；Local + Preview Cursor + final review PASS | Member publication 的 prepare/confirm/commit/readback、重放、撤回与过期拒绝 | 已归档；confirmation primitive 可供 003 intake 复用，Production 未开启 |
 | `AGENT-WORKSPACE-003` | completed；Local work-item + final review PASS | 精确读取一篇跨作者 Article；确认后 Add to site，并以确认后的 Remove 恢复 | 已归档；专用 fixture 已删除，Preview 未开启 |
 | `AGENT-WORKSPACE-004` | completed；Local work-item + independent review PASS | Super Admin-only 最近 20 条 Article workflow activity 最小读取 | 已归档；专用 fixture 已删除，Preview 未执行；高风险账户/身份动作保持网页或新 checklist |
-| `AGENT-WORKSPACE-005` | active；Gate 4 in progress | WorkBuddy/Cursor 真实兼容、运营保护、恢复与 Production release | Gate 3 review PASS；当前 Preview 演练，TRAE 不在范围 |
+| `AGENT-WORKSPACE-005` | active；Gate 5 contract | WorkBuddy/Cursor 真实兼容、运营保护、恢复与 Production release | Gate 4 review PASS；先冻结备份适配，TRAE 不在范围 |
 
 `provisional` 只保留问题和候选结果，不是仓库通用 checklist 状态，也不构成实现授权。子级真正开始时只能使用仓库允许的 `active` 状态。
 
@@ -108,7 +108,7 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 
 - 当前目标：收口得到真实使用证明的客户端，并以 phase-release 合同完成可运营的 Production release；docs-only intake 与 Gate 1 只读预检已经完成。
 - 当前门：WorkBuddy 5.3.5 已完成真实 OAuth、9 tools、私有 draft、跨作者拒绝、re-auth、撤销和 publication prepare 确认呈现；Cursor 3.13.25 已完成 callback、授权、9 tools discovery 和 `account_context + capabilities_list` 实际调用。没有 commit 或公共状态变化，Preview 已恢复。
-- 首个执行门：Gate 2 客户端证据完整且独立复审 `PASS`；Gate 3 Operational amendment C 独立复审 `PASS`，当前执行 Gate 4 Preview release rehearsal。
+- 首个执行门：Gate 2 客户端、Gate 3 运营保护与 Gate 4 Preview rehearsal 均独立复审 `PASS`；当前先冻结 Gate 5 备份工作流适配合同。
 - 后续门：Agent endpoint 限流、最小可观测性、支持/恢复、现有第 13 条 Agent migration 与 Production release 均在各自批准后执行。TRAE 不再构成 005 gate 或父级 closure 条件。
 - 发布归属：005 持有 release 编排，但 Production 部署、真实账户、真实数据和公开启用仍是相互独立的批准门禁。
 - CLI fallback 只有在非 MCP Agent 的真实需求成立时进入；编号不保证它一定实现。

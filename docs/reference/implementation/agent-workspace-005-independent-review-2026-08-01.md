@@ -71,3 +71,20 @@ Severity：`P0/P1/P2 = 0/0/0`
 - 8 个非 `outputs/**` changed paths 均由 HEAD allowed paths 覆盖；`git diff --check`、docs governance 与 feature registry PASS。完整 intake 只被明确排除的用户 `outputs/**` 阻断。
 
 历史 dashboard 的 `Logged 5 / Allowed 178` 与逐请求 429 序列不能由 CLI 回放，只保存在本门 evidence；当前 live rules、发布时序和证据算术一致，不构成 finding。Gate 3 可以关闭并进入 Gate 4。
+
+## Gate 4 Preview release rehearsal
+
+Verdict：`PASS`
+
+Severity：`P0/P1/P2 = 0/0/0`
+
+复审者未主持 Gate 4 执行，并保持只读；用户 `outputs/**` 明确排除。
+
+- Closed baseline `dpl_2NFvyEXSH52bsUDhFRPX7viRYvY6` 与 rehearsal `dpl_25Sd4JrMTBo27v5KaLBo3mwNsZSx` 均为 Preview / `READY`；stable alias 已精确回指 closed baseline。
+- Preview SSO 为 `all_except_custom_domains`，临时 `AGENT_GATEWAY_ENABLED` / `PAYLOAD_PUBLIC_SERVER_URL` 均不存在。匿名 public/Admin/health/metadata/MCP 均 `302`；保护绕过只读 health `200`、MCP `404`，符合 Gateway 关闭态。
+- WAF 6 条 live rule 均启用，5 条 Agent 阈值未变化，draft/diff 为空。Rehearsal request logs 独立读回 DCR `1x201 + 9x400`、authorize `200/302`、token `200`、MCP `3x200` 与撤销链 `401`、revoke `200`。
+- 同窗 `1` 次有效 DCR 与 `9` 次应用层 `400` 占满 `10` 次允许量，后续 `2x429` 在 WAF 层终止且不进入 function logs；执行证据与独立日志算术一致。
+- 8 个非 `outputs/**` changed paths 均在 HEAD allowed paths 内；没有产品代码、schema、migration 或依赖 diff。
+- 按禁止 env pull/secret 的审计边界，reviewer 没有重新连接 Preview DB；最终 `36/32/6/32/150/0/0/0/13`、39 tables 依赖执行者的 exact locator、删除前断言、删除顺序和最终聚合证据。当前 env、SSO、alias、Gateway/WAF 无残留，与该清理结论一致，不构成 finding。
+
+Gate 4 可以关闭并进入 Gate 5。

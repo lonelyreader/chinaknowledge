@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。Gate 2 真实客户端与 Gate 3 运营保护均已独立复审 `PASS`；5 条 exact-path Vercel WAF rate-limit rule 保持 live，Preview 已恢复 SSO 与 Gateway 关闭态。当前执行 Gate 4 Preview release rehearsal；Production 仍未执行 Agent migration，现网 Agent Gateway 仍关闭。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。Gate 2 真实客户端、Gate 3 运营保护与 Gate 4 Preview release rehearsal 均已独立复审 `PASS`；5 条 WAF rule 保持 live，Preview SSO、Gateway、alias、env 与数据库均回到基线。当前进入 Gate 5，先冻结备份适配合同；Production 仍未执行 Agent migration，现网 Agent Gateway 仍关闭。
 
 ## 当前运行边界
 

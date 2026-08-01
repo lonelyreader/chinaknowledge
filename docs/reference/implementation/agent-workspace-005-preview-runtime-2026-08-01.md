@@ -118,3 +118,14 @@ Gate 2 保持 open。下一次只需补两项：在已验证可公开的虚构 P
 ## Gate 2 handoff
 
 Gate 2 所需真实客户端证据与恢复读回已完整，未主持执行者按当前 phase-release 合同完成只读独立复审并给出 `PASS`。该结论不批准 Gate 3、migration 或 Production。
+
+## Gate 4 release rehearsal
+
+- Closed baseline：stable alias `china-in-fact-agent005-fa84692.vercel.app` 指向 `READY` deployment `dpl_2NFvyEXSH52bsUDhFRPX7viRYvY6`；SSO 为 `all_except_custom_domains`，匿名 public/Admin/health/metadata/MCP 均 `302`。Preview 为 39 张表、13 条 migration，User/Person/Media/Article/workflow/client/connection/Agent event 为 `36/32/6/32/150/0/0/0`。
+- Opening：只临时增加 Preview `AGENT_GATEWAY_ENABLED` 与 `PAYLOAD_PUBLIC_SERVER_URL`，redeploy 为 `dpl_25Sd4JrMTBo27v5KaLBo3mwNsZSx`，待 `READY` 后移动 stable alias，并临时关闭 SSO。public 为 `307`、Admin/health/metadata 为 `200`，匿名 MCP GET/POST 为 `401`。
+- Fixture：通过 Payload Local API 创建虚构 `.test` author User `46` 与 Person `41`，没有 Media、Article、workflow event 或公共状态变化；密码只存在权限为 `0600` 的临时文件，没有输出或写入仓库。
+- Protocol smoke：真实公网 DCR `201`，随后以 PKCE S256 完成 login、consent、authorization code exchange。`tools/list` 精确读回 9 个 Member tools；`account_context` 成功且 actor 绑定 User `46`；读取既有其他 Member Article `32` 返回 `FORBIDDEN`；revoke 后 connection `26` 为 `revoked`，旧 access token 再调用为 `401`。
+- Audit/log：域审计精确为 `authorization_approval/success`、`account_context/success`、`article_get_working_copy/denied`、`oauth_revoke/success` 四条。Vercel request logs 以 deployment/path/method/status 读回 DCR `201`、authorize `200/302`、token `200`、三次 MCP `200`、revoke `200` 和 revoke 后 MCP `401`，没有读取 message、token、cookie、正文或对话。
+- Provider：同一 fixed window 已有 1 次有效 DCR 后，11 次无效 probe 得到 `9x400 + 2x429`，证明 Gate 3 live rule 作用于本次 deployment；WAF 最终无 pending draft。
+- Cleanup：Payload API 在删除前断言 exact email、role、account status、Person owner、client name/id、revoked connection 与四条 event；随后删除 4 events、1 connection、1 client、Person `41` 和 User `46`。最终计数回到 `36/32/6/32/150/0/0/0`，39 张表、13 条 migration 未变化。
+- Closed restore：先恢复 SSO `all_except_custom_domains`，stable alias 回指 `dpl_2NFvyEXSH52bsUDhFRPX7viRYvY6`，再删除两个临时 Preview env；匿名 public/Admin/health/metadata/MCP 全部回到 `302`。临时凭据、env pull、smoke state 和辅助脚本已精确删除；新 deployment 保留为受 SSO 保护的不可变演练证据。
