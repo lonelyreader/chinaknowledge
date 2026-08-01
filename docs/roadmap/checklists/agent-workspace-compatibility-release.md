@@ -9,7 +9,7 @@ max_lines: 320
 change_id: AGENT-WORKSPACE-005
 risk_tier: upgraded
 validation_profile: phase_release
-allowed_paths: apps/web/src/agent/access-route.ts, apps/web/tests/agent-http.ts, docs/agent-workspace-requirements.md, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-compatibility-release.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-005-intake-2026-08-01.md, docs/reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md, docs/reference/implementation/agent-workspace-005-operational-readiness-2026-08-01.md, docs/reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-production-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-independent-review-2026-08-01.md, docs/archive/README.md, docs/archive/agent-workspace-compatibility-release.md
+allowed_paths: apps/web/src/agent/access-route.ts, apps/web/src/agent/oauth-http.ts, apps/web/tests/agent-http.ts, docs/agent-workspace-requirements.md, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-compatibility-release.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-005-intake-2026-08-01.md, docs/reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md, docs/reference/implementation/agent-workspace-005-operational-readiness-2026-08-01.md, docs/reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-production-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-independent-review-2026-08-01.md, docs/archive/README.md, docs/archive/agent-workspace-compatibility-release.md
 approval_gates: product-code, real-client-login, preview-read, preview-deploy, public-mcp, preview-fixture, provider-config, firewall-rate-limit, database-backup, migration, real-account, real-data, production-deploy, production-public-enable, merge, push
 ---
 
@@ -17,7 +17,7 @@ approval_gates: product-code, real-client-login, preview-read, preview-deploy, p
 
 目标：用真实客户端和可运营保护把 001–004 已完成的 Agent capability 收口为可恢复的 Production release。005 不新增 Member、Editor 或 Super Admin 业务动作；它验证客户端、连接寿命、callback、分发、限流、可观测性、支持、migration 与 staged release。
 
-当前 `allowed_paths` 除 intake、证据与 release 文档外，只增加 Gate 1 已定位的 adapter 下载实现和对应测试。任何其他代码、配置、workflow 或 provider 修复都要先把最小路径和验收 amendment 提交到 HEAD，再请求相应授权；本 checklist 不能用宽目录提前授权未知修复。
+当前 `allowed_paths` 除 intake、证据与 release 文档外，只包含 Gate 1 的 adapter 下载实现、Gate 2 定位的 callback validator 和共同 Agent HTTP 测试。任何其他代码、配置、workflow 或 provider 修复都要先把最小路径和验收 amendment 提交到 HEAD，再请求相应授权；本 checklist 不能用宽目录提前授权未知修复。
 
 ## Scope
 
@@ -96,11 +96,23 @@ flowchart LR
 
 ### Gate 2 — Protected Preview compatibility
 
-- [ ] 分别取得 Preview deploy、public MCP、虚构 fixture 与真实客户端授权；先备份/计数，再临时开放。
+- [x] 用户于 2026-08-01 批准 Preview deploy、public MCP、虚构 fixture 与真实客户端；已先备份/计数再临时开放。
 - [ ] WorkBuddy 完成 DCR/PKCE/consent/tools、私有 Member create/get/save/preview、prepare stop、跨 10 分钟 renewal/reconnect 和 revoke failure。
 - [ ] Cursor 完成 `type:http`、8787 preflight、deep-link/re-auth、tools 与 capability regression；不停止端口占用者。
-- [ ] 精确删除 User/Person/Article/version/workflow/connection/event/client，恢复 SSO/env/Gateway，并逐项读回 0 或原值。
+- [x] WorkBuddy 在 DCR callback 校验处 `400`，未进入 OAuth；已精确删除 fixture 与 4 条无关联旧 client，恢复 SSO/env/Gateway/客户端配置并读回关闭态与最终计数。
 - [ ] 独立 reviewer 对客户端批次给出 `PASS/BLOCK`；PASS 不自动进入 provider 或 Production。
+
+### Product amendment B — WorkBuddy exact redirect callback
+
+- `scope`：在 `validRedirectUri` 只增加精确 literal `workbuddy://workbuddy/mcp/custom-mcp%3Achina-in-fact/oauth/callback`；不放宽任意 WorkBuddy scheme、host、server key、query、hash 或 userinfo。
+- `allowed_paths`：产品代码仅 `apps/web/src/agent/oauth-http.ts` 与 `apps/web/tests/agent-http.ts`；文档仍限本 checklist 已列路径。不改 registration、工具、权限、schema、migration、依赖或环境。
+- `risk`：callback allowlist 扩张可能把 authorization code 交给非预期应用；因此只接受完整规范化后仍与固定 literal 相等的 URI。
+- `acceptance`：精确 WorkBuddy callback 为 true；不同 host、不同编码 server key、额外 query/hash/userinfo 和任意其他 `workbuddy:` 路径均为 false；Cursor 精确 callback、HTTPS 与 HTTP loopback 保持原行为；匹配 WorkBuddy metadata 的 DCR 返回 `201` 且 `client_family=workbuddy`。
+- `validation`：Agent HTTP/注册测试、`test:agent`、typecheck、lint、Local build、feature registry、治理检查与 `git diff --check`；实现者不得用真实 Preview 代替 Local 负例。
+- `idempotency/audit`：本改动只影响 DCR 输入校验，不写 confirmation 或领域 audit；重复相同合法注册仍沿用现有独立 client 行语义，Preview 清理由精确 client ID 完成。
+- `recovery`：回退单一实现提交即可恢复旧 allowlist；无数据库、schema、env 或 provider 状态需要恢复。
+- `independent_review`：未主持实现者核对 exact allowlist、spoof negatives、Cursor/HTTPS/loopback 回归、changed paths 与无敏感日志；只有 `PASS` 才可重试 Gate 2。
+- `approval`：等待用户单独批准 `product-code`；此前不修改上述两个产品路径。
 
 ### Gate 3 — Operational protection
 
@@ -154,4 +166,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 1 只读预检与 Product amendment A 本地实现、验证和独立复审均已 `PASS`，证据见 [`client compatibility`](../../reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md)。当前等待 Gate 2 的 Preview deploy、public MCP、虚构 fixture 与真实客户端分别授权；provider 配置、migration、真实账户/数据、Production、merge 和 push 仍未授权。
+Gate 2 已按批准范围临时开放 Preview 并运行 WorkBuddy；真实 DCR 在精确 WorkBuddy callback 校验处 `400`，尚未进入 OAuth，证据见 [`Preview runtime`](../../reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md)。fixture、旧残留 clients、WorkBuddy 配置、Preview env、Gateway 与 SSO 已精确清理或恢复；Cursor 未在首客户端阻断后继续运行。当前等待 Product amendment B 的 `product-code` 批准；provider、migration、真实账户/数据、Production、merge 和 push 仍未授权。

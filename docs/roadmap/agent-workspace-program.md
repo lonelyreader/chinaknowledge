@@ -12,7 +12,7 @@ max_lines: 220
 
 本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–004 已完成并归档；当前唯一 implementation active 子级是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。005 已由用户批准进入 docs-only phase-release intake，任何产品代码、真实客户端登录、Preview、provider 修改、migration 或 Production 仍分别授权。
+稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–004 已完成并归档；当前唯一 implementation active 子级是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。005 已完成 intake、Gate 1 与一次获批的 Gate 2 WorkBuddy 尝试；真实 DCR 暴露精确 callback allowlist 缺口，Preview 已恢复。当前只等待 Product amendment B 的产品代码授权，provider、migration 或 Production 仍分别授权。
 
 ## Program Goal
 
@@ -38,7 +38,7 @@ flowchart LR
 | `AGENT-WORKSPACE-002` | completed；Local + Preview Cursor + final review PASS | Member publication 的 prepare/confirm/commit/readback、重放、撤回与过期拒绝 | 已归档；confirmation primitive 可供 003 intake 复用，Production 未开启 |
 | `AGENT-WORKSPACE-003` | completed；Local work-item + final review PASS | 精确读取一篇跨作者 Article；确认后 Add to site，并以确认后的 Remove 恢复 | 已归档；专用 fixture 已删除，Preview 未开启 |
 | `AGENT-WORKSPACE-004` | completed；Local work-item + independent review PASS | Super Admin-only 最近 20 条 Article workflow activity 最小读取 | 已归档；专用 fixture 已删除，Preview 未执行；高风险账户/身份动作保持网页或新 checklist |
-| `AGENT-WORKSPACE-005` | active；Gate 1 + Local amendment independent PASS | WorkBuddy/Cursor 真实兼容、运营保护、恢复与 Production release | 等待 Gate 2 分项授权；每个外部环境、provider、migration、真实身份/数据与公开启用分别批准；TRAE 不在范围 |
+| `AGENT-WORKSPACE-005` | active；Gate 2 WorkBuddy DCR blocked，Preview restored | WorkBuddy/Cursor 真实兼容、运营保护、恢复与 Production release | 等待 Product amendment B；provider、migration、真实身份/数据与 Production 分别批准；TRAE 不在范围 |
 
 `provisional` 只保留问题和候选结果，不是仓库通用 checklist 状态，也不构成实现授权。子级真正开始时只能使用仓库允许的 `active` 状态。
 
@@ -107,7 +107,7 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 ### 005 — Active compatibility and release
 
 - 当前目标：收口得到真实使用证明的客户端，并以 phase-release 合同完成可运营的 Production release；docs-only intake 与 Gate 1 只读预检已经完成。
-- 当前门：最小 adapter 下载修复已完成 Local 验证与独立复审，移除 TRAE 并为 Cursor/WorkBuddy 固定 `type: http`；当前申请 Gate 2 的 Preview deploy、public MCP、fixture 与真实客户端分项授权。
+- 当前门：Gate 2 已获批并运行真实 WorkBuddy；metadata/challenge 正常，DCR 因精确 callback 未进入 allowlist 而 `400`，Preview 和 fixture 已恢复清理。Product amendment B 已冻结为 exact literal 修复，等待产品代码授权。
 - 首个执行门：本机 WorkBuddy 5.3.5 在受保护 Preview 完成 DCR、OAuth、10 分钟 token renewal/自动重连、私有 Member draft workflow、prepare 停止、撤销和清理；Cursor 3.13.25 做配置、callback 与能力回归。
 - 后续门：Agent endpoint 限流、最小可观测性、支持/恢复、现有第 13 条 Agent migration 与 Production release 均在各自批准后执行。TRAE 不再构成 005 gate 或父级 closure 条件。
 - 发布归属：005 持有 release 编排，但 Production 部署、真实账户、真实数据和公开启用仍是相互独立的批准门禁。
