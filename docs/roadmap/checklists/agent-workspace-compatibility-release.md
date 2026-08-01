@@ -127,11 +127,23 @@ flowchart LR
 
 ### Gate 3 — Operational protection
 
+- [x] 用户于 2026-08-01 以“批准剩余，开始推进”批准本 checklist 剩余 Gate 3–6 已冻结门禁；批准不扩大业务能力、schema、依赖、真实内容写入或 checklist 外路径。
 - [ ] 用 Preview 流量证据确定 DCR、authorize、token、revoke、MCP 的限流位置、key、window、threshold、429、绕过条件和恢复；provider rule 与代码分开批准。
 - [ ] 定义并验证最小运行事件、查询/告警、支持定位和隐私负例；domain audit 与 HTTP observability 不混为一张表。
 - [ ] 完成 connection/client cleanup、token replay、disabled Gateway、provider failure 和 rollback drill；不泄露凭据或内容。
 - [ ] 如需产品代码，先 amendment exact paths、测试和回退并进入 HEAD，再请求 `product-code`。
 - [ ] 独立 reviewer 给出运营门 `PASS/BLOCK`。
+
+### Operational amendment C — Vercel WAF and support evidence
+
+- `scope`：只在既有 Vercel project 添加 5 条 exact-path WAF rate-limit rule，覆盖 `preview + production`；不修改应用代码、schema、migration、依赖、公共页面或 CMS。
+- `rules`：DCR `POST /api/agent/oauth/register = 10/60s/IP`；authorize `/api/agent/oauth/authorize = 30/60s/IP`；token `POST /api/agent/oauth/token = 20/60s/IP`；revoke `POST /api/agent/oauth/revoke = 20/60s/IP`；MCP `/api/agent/mcp = 60/60s/IP`。均为 fixed window，超限返回 `429`，无持久封禁。
+- `rollout`：先以同路径/环境的 `log` action 发布并用受保护 Preview 合成流量验证匹配，再编辑为 rate-limit；每次 publish 前后读回 diff/rule JSON，不覆盖 Newsletter 既有规则。
+- `observability`：HTTP 层只用 Vercel logs/metrics/firewall event 的 environment、path/route、method、status、request/deployment ID 和时间；客户端家族、工具、result 与 object 只从既有 `agent_events` 读。不得记录或查询 token、code、cookie、email、正文、confirmation、数据库 URL 或 Agent 对话。
+- `support`：固定 5xx/429、route/status、deployment/request ID 查询；沿用项目 default error/critical alert 与 Firewall alerts，不新增收件人、Webhook、付费集成或 Log Drain。
+- `validation`：规则 JSON/readback、Preview 正常请求不过早限流、每条规则阈值后 `429`、窗口恢复、非 Agent 路由不命中、Vercel metrics/log query、Agent audit correlation、disabled Gateway、token replay、client/connection cleanup 与 provider rule disable/enable rollback。
+- `recovery`：逐条 disable 或 remove 并 publish 即可回到执行前唯一 Newsletter 规则；无代码或数据库回退。最终 release 保留通过验证的 5 条规则。
+- `approval`：用户已明确批准 provider/firewall 和剩余 Gate；任何规则外路径、持久封禁、账户 allowlist、应用代码或新 provider 仍需 amendment。
 
 ### Gate 4 — Preview release rehearsal
 
