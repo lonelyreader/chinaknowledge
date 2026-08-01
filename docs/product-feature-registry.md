@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-01
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:fab1d3f608f974864356c9bb3b91d5b9fef3b409af3a6f396ff51af704876135
+implementation_fingerprint: sha256:b7532b2c5d0628537accc4aed6744375a9862b0b5ded094011c9d99ed215babe
 ---
 
 # App 功能登记册
@@ -128,7 +128,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 - 在 App 内撰写和群发 Newsletter、管理退订或查看邮件营销分析；当前 App 只提供订阅入口，名单和发送由 Resend 承担。
 - App 内 Discord 账号绑定、成员同步或聊天；当前只提供外部社群入口。
 - 自动翻译文章或 Person 文案；English 与 Español 内容由人分别维护。
-- 通过 Agent 操作 Production 账户或文章；Agent Workspace 001–002 已完成 Local 与受控 Preview 的 Member OAuth、草稿和确认式 publication，003 完成 Local 的单 Article Editor exact read、确认 Add 和 Remove，004 完成 Local 的 Super Admin-only 最近 20 条 workflow activity 最小读取。005 本地 adapter 只保留 Cursor、WorkBuddy、Codex、Claude、Gemini，Cursor/WorkBuddy 下载使用显式 HTTP MCP 配置；Preview 测试数据与公开 MCP 仍关闭，WorkBuddy 项目 OAuth 仍为 `NOT RUN / NOT_VERIFIED`，Production 不提供该能力。
+- 通过 Agent 操作 Production 账户或文章；Agent Workspace 001–002 已完成 Local 与受控 Preview 的 Member OAuth、草稿和确认式 publication，003 完成 Local 的单 Article Editor exact read、确认 Add 和 Remove，004 完成 Local 的 Super Admin-only 最近 20 条 workflow activity 最小读取。005 adapter 只保留 Cursor、WorkBuddy、Codex、Claude、Gemini，Cursor/WorkBuddy 使用显式 HTTP MCP 配置；WorkBuddy Preview OAuth、私有 draft、跨作者拒绝、re-auth 与 revoke 已实测，Cursor 完成 callback/授权/9 tools discovery，但 Gate 2 仍缺 prepare confirmation 和 Cursor capability call。Preview 测试数据与公开 MCP 已关闭，Production 不提供该能力。
 - 自动证明登记册的自然语言一定正确。机器门禁负责阻止“实现已变但登记册完全没复核”，最终语义仍由实现者和 reviewer 对照事实确认。
 
 ## 同步门禁

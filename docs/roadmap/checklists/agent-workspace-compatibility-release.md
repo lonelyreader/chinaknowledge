@@ -97,9 +97,13 @@ flowchart LR
 ### Gate 2 — Protected Preview compatibility
 
 - [x] 用户于 2026-08-01 批准 Preview deploy、public MCP、虚构 fixture 与真实客户端；已先备份/计数再临时开放。
-- [ ] WorkBuddy 完成 DCR/PKCE/consent/tools、私有 Member create/get/save/preview、prepare stop、跨 10 分钟 renewal/reconnect 和 revoke failure。
-- [ ] Cursor 完成 `type:http`、8787 preflight、deep-link/re-auth、tools 与 capability regression；不停止端口占用者。
+- [x] WorkBuddy 完成 DCR/PKCE/consent/9 tools、私有 Member create/get/save/readback/preview、跨作者拒绝和匿名 404；prepare 在未公开 Person 前置条件处失败，没有生成 confirmation 或调用 commit。
+- [x] WorkBuddy 的 599 秒 access token 过期后进入 Unauthorized 并发起新 consent，人工重新授权成功；客户端只请求 `agent:member`，没有 refresh token，因此证明的是 re-auth/reconnect，不宣称 silent renewal。
+- [x] WorkBuddy connection 经 Member access endpoint 撤销并写 `connection_revoke` 审计；随后客户端看不到该 MCP 工具，未自动重新授权。
+- [x] Cursor 完成 `type:http`、8787 callback、deep-link/re-auth 与 9 tools discovery；不停止端口占用者。
+- [ ] Cursor 的 `account_context + capabilities_list` 实际调用没有形成服务端 tool event；Cursor Agents task 直接归档，只证明 authorization approval，不能把 discovery 算作 capability call PASS。
 - [x] WorkBuddy 在 DCR callback 校验处 `400`，未进入 OAuth；已精确删除 fixture 与 4 条无关联旧 client，恢复 SSO/env/Gateway/客户端配置并读回关闭态与最终计数。
+- [x] amendment B 后的重试也已精确删除 Article/User/Person、10 个 DCR client、8 个 connection 与 18 个 Agent event，恢复 WorkBuddy/Cursor 配置、SSO、env、Gateway 和 stable alias；最终数据库计数回到重试前基线。
 - [ ] 独立 reviewer 对客户端批次给出 `PASS/BLOCK`；PASS 不自动进入 provider 或 Production。
 
 ### Product amendment B — WorkBuddy exact redirect callback
@@ -170,4 +174,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 2 首次真实 WorkBuddy DCR 在 OAuth 前定位到 callback allowlist 缺口，fixture、旧残留 clients、WorkBuddy 配置、Preview env、Gateway 与 SSO 已精确清理或恢复，证据见 [`Preview runtime`](../../reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md)。Product amendment B 已完成 Local 实现、验证与独立复审，结论 `PASS`、`P0/P1/P2 = 0/0/0`；当前按既有授权重试 Gate 2 的 WorkBuddy OAuth/MCP 与 Cursor 回归。provider、migration、真实账户/数据、Production、merge 和 push 仍未授权。
+Gate 2 重试已证明 WorkBuddy 的真实 DCR/OAuth、9 tools、私有 draft workflow、跨作者拒绝、10 分钟后 re-auth/reconnect 与 revoke failure；没有公开任何内容。当前仍有两个未满足项：未公开 fixture Person 使 publication prepare 在 confirmation 前按现有业务规则失败，Cursor 只完成授权与 9 tools discovery，没有形成实际 capability tool event。Preview 数据、client 凭据、env、SSO、Gateway 与 alias 已精确恢复，证据见 [`Preview runtime`](../../reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md)。因此 Gate 2 保持 open，不启动独立复审或 Gate 3；provider、migration、真实账户/数据、Production、merge 和 push 仍未授权。
