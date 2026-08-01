@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md) 与 [`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 已完成并归档，当前没有 implementation active checklist。003 已在独立 Local 数据库完成单篇跨作者 Article 的 exact read、确认后 Add to site、幂等重放、另一 Editor 确认 Remove、权限负例、匿名 readback、精确清理和独立复审，`P0/P1/P2 = 0/0/0`；Preview 未授权。002 的 Preview 测试身份、内容、连接和 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md) 与 [`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-004`](roadmap/checklists/agent-workspace-super-admin-activity-read.md)。004 首批 intake 只定义 Super Admin 最近 20 条 Article workflow activity 的最小只读工具，邀请、角色、暂停/恢复和其他账户/身份动作未进入；产品代码与 Preview 尚未授权。002 的 Preview 测试身份、内容、连接和 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 
