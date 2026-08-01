@@ -12,7 +12,7 @@ max_lines: 220
 
 本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–004 已完成并归档；当前唯一 implementation active 子级是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。005 Gate 2 已完成大部分 WorkBuddy 真实工作流和 Cursor 连接层回归，仍缺 prepare confirmation 与 Cursor capability call；Preview 已恢复，provider、migration 或 Production 仍分别授权。
+稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–004 已完成并归档；当前唯一 implementation active 子级是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。005 Gate 2 已完成大部分 WorkBuddy 真实工作流和 Cursor 连接层回归；公开虚构 Person 重试排除了 profile 前置条件，但客户端认证交互仍使 prepare confirmation 与 Cursor capability call 缺证据。Preview 已恢复，provider、migration 或 Production 仍分别授权。
 
 ## Program Goal
 
@@ -107,8 +107,8 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 ### 005 — Active compatibility and release
 
 - 当前目标：收口得到真实使用证明的客户端，并以 phase-release 合同完成可运营的 Production release；docs-only intake 与 Gate 1 只读预检已经完成。
-- 当前门：WorkBuddy 5.3.5 已完成真实 OAuth、9 tools、私有 draft、跨作者拒绝、10 分钟后 re-auth 与撤销；Cursor 3.13.25 已完成 8787 callback、授权和 9 tools discovery。prepare confirmation 与 Cursor capability call 仍 open，Preview 已恢复。
-- 首个执行门：用不改变公共状态的 fixture 到达 WorkBuddy prepare confirmation 呈现，并让 Cursor 实际调用 `account_context + capabilities_list`；两项完成后才进入客户端批次独立复审。
+- 当前门：WorkBuddy 5.3.5 已完成真实 OAuth、9 tools、私有 draft、跨作者拒绝、10 分钟后 re-auth 与撤销；Cursor 3.13.25 已完成 8787 callback、授权和 9 tools discovery。公开虚构 Person 重试证明剩余阻断位于两端客户端认证交互，prepare confirmation 与 Cursor capability call 仍 open，Preview 已恢复。
+- 首个执行门：恢复 WorkBuddy custom connector 的确定性 OAuth 入口并到达 prepare confirmation 呈现，让 Cursor 认证确认明确进入 Authenticate 后实际调用 `account_context + capabilities_list`；两项完成后才进入客户端批次独立复审。
 - 后续门：Agent endpoint 限流、最小可观测性、支持/恢复、现有第 13 条 Agent migration 与 Production release 均在各自批准后执行。TRAE 不再构成 005 gate 或父级 closure 条件。
 - 发布归属：005 持有 release 编排，但 Production 部署、真实账户、真实数据和公开启用仍是相互独立的批准门禁。
 - CLI fallback 只有在非 MCP Agent 的真实需求成立时进入；编号不保证它一定实现。

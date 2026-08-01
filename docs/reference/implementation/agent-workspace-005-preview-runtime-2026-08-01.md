@@ -14,7 +14,7 @@ max_lines: 180
 
 `GATE 2 PARTIAL / PREVIEW RESTORED`
 
-用户于 2026-08-01 批准本门的 Preview deploy、temporary public MCP、虚构 Preview fixture 与真实 WorkBuddy/Cursor client test。首次执行在 WorkBuddy DCR callback allowlist 处停止并完成清理；Product amendment B 通过后复用同一外部授权重试。重试证明了 WorkBuddy 的真实 OAuth/MCP 私有工作流、重新授权和撤销，也证明 Cursor 的 8787 callback、授权与工具发现；WorkBuddy prepare confirmation 和 Cursor 实际 capability call 仍缺证据，因此本门不判 PASS。
+用户于 2026-08-01 批准本门的 Preview deploy、temporary public MCP、虚构 Preview fixture 与真实 WorkBuddy/Cursor client test。首次执行在 WorkBuddy DCR callback allowlist 处停止并完成清理；Product amendment B 通过后复用同一外部授权重试。重试证明了 WorkBuddy 的真实 OAuth/MCP 私有工作流、重新授权和撤销，也证明 Cursor 的 8787 callback、授权与工具发现。用户随后明确批准公开虚构 Person 的第三次窄重试和 Cursor capability call；两端都在客户端认证交互处提前阻塞，仍未补齐 WorkBuddy prepare confirmation 或 Cursor 实际 capability call，因此本门不判 PASS。
 
 ## Frozen scope
 
@@ -91,4 +91,15 @@ max_lines: 180
 
 ## Gate decision
 
-Gate 2 保持 open。下一次只需补两项：在不突破公共状态授权的 fixture 设计下到达 WorkBuddy prepare confirmation 呈现，以及让 Cursor 实际产生 `account_context + capabilities_list` 服务端事件。两项补齐前不启动客户端批次独立复审，也不进入 Gate 3。
+Gate 2 保持 open。下一次只需补两项：在已验证可公开的虚构 Person 下先恢复 WorkBuddy custom connector 的确定性 OAuth 入口，再到达 publication prepare confirmation 呈现；让 Cursor 的 connector 认证确认可以明确选择 Authenticate，并实际产生 `account_context + capabilities_list` 服务端事件。两项补齐前不启动客户端批次独立复审，也不进入 Gate 3。
+
+## Explicitly authorized public-Person retry
+
+- 本轮基线 dump SHA-256 为 `7adf059e6fa73bfbcbb081243c95a276d492a27d844632cb114e99f47039477`；计数为 User `36`、Person/Article `32/32`、workflow event `150`、OAuth client/connection/Agent event `0`、migration `13`。
+- 临时开启部署 `dpl_3aSUpW2V7YRH9gRymaaCHJgXZa6H` 运行提交 `fa84692`。只临时设置 Gateway/public server URL、关闭 Preview SSO，并创建 User `44`、公开 Person `39` 与 Media `14`；没有创建 Article。
+- WorkBuddy 5.3.5 能识别 `china-in-fact` custom connector 和精确 DCR client family，但既有客户端状态停在 `需要认证 / 授权中`。清除 connector enable state 并正常重启后回到 `Unauthorized`，仍未出现可完成的新 OAuth 入口；因此没有 tools、prepare、confirmation 或 commit。
+- Cursor 3.13.25 两次 Agent 窗口在 MCP 调用前返回 unexpected error；IDE Agent 到达真实 `Connect with china-in-fact / Waiting for Approval` 认证卡。默认键盘动作明确跳过认证，另一次 browser continuation 在 callback 前过期；没有 `account_context`、`capabilities_list` 或其他服务端 tool event。
+- 清理脚本在删除前断言 User/Person/Article、client family、connection 与 event 边界；最终删除 1 User、1 Person、1 Media 和 4 个 DCR client，没有 Article、workflow event、connection 或 Agent event。最终计数精确回到 `36/32/32/150/0/0/0/13`。
+- WorkBuddy MCP/credentials 与 Cursor MCP 配置均与执行前备份逐字一致，WorkBuddy connector enable list 回到空；两个客户端均已退出。没有 publication commit、真实数据、Production、migration、provider、merge 或 push。
+- 两个临时 Preview env 已删除，SSO 恢复为 `all_except_custom_domains`。关闭态部署 `dpl_2NFvyEXSH52bsUDhFRPX7viRYvY6` 为 `READY`，stable alias 已回指该部署；匿名 health/MCP GET 为 `302`、匿名 MCP POST 为 `401`，经 Vercel 授权 health 为 `200`、Gateway-off MCP 为 `404`。
+- 临时环境、fixture/OAuth 凭据和辅助脚本已整体移至可恢复的 `/Users/gexu/.Trash/chinainfact-agent005-gate2-final-20260801-1726/`，没有进入仓库。
