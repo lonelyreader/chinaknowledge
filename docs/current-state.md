@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。005 intake 与 Gate 1 只读预检已完成：WorkBuddy 5.3.5 已登录且自定义 MCP 入口可用，Cursor 3.13.25 的 8787 fallback 端口仍被既有服务占用；受保护 Preview 保持 SSO、Gateway 默认关闭、13 migrations，Agent connection/event 均为 0，但有 4 条既有 Cursor DCR client。当前等待批准最小 adapter 下载修复；Preview/public MCP/fixture、provider、migration 与 Production 分别设门。TRAE 已从当前适配和验收范围删除。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。005 intake 与 Gate 1 只读预检已完成：WorkBuddy 5.3.5 已登录且自定义 MCP 入口可用，Cursor 3.13.25 的 8787 fallback 端口仍被既有服务占用；受保护 Preview 保持 SSO、Gateway 默认关闭、13 migrations，Agent connection/event 均为 0，但有 4 条既有 Cursor DCR client。Product amendment A 已在 Local 移除 TRAE adapter/download，并为 Cursor/WorkBuddy 固定显式 HTTP MCP 配置，独立复审 `PASS`、`P0/P1/P2 = 0/0/0`；Preview/public MCP/fixture、provider、migration 与 Production 分别设门。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 

@@ -7,7 +7,7 @@ import type { AgentConnection, AgentEvent, AgentOauthClient } from "@/payload-ty
 
 import { agentGatewayEnabled } from "./availability";
 
-const adapters = ["Cursor", "TRAE", "WorkBuddy", "Codex", "Claude", "Gemini"] as const;
+const adapters = ["Cursor", "WorkBuddy", "Codex", "Claude", "Gemini"] as const;
 
 function configFile(adapter: string, origin: string) {
   const url = new URL("/api/agent/mcp", origin).href;
@@ -18,7 +18,7 @@ function configFile(adapter: string, origin: string) {
   if (key === "gemini") {
     return { body: JSON.stringify({ mcpServers: { "china-in-fact": { httpUrl: url } } }, null, 2), filename: "china-in-fact-gemini.json", type: "application/json" };
   }
-  const server = key === "claude" ? { type: "http", url } : { url };
+  const server = { type: "http", url };
   return { body: JSON.stringify({ mcpServers: { "china-in-fact": server } }, null, 2), filename: `china-in-fact-${key}.json`, type: "application/json" };
 }
 
@@ -36,11 +36,12 @@ export async function handleAgentAccessGet(
   const user = await currentUser(request, payload);
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const download = new URL(request.url).searchParams.get("download");
-  if (download && !gatewayEnabled) {
-    return Response.json({ error: "Not found" }, { headers: { "Cache-Control": "no-store" }, status: 404 });
-  }
-  if (download && adapters.some((adapter) => adapter.toLowerCase() === download.toLowerCase())) {
-    const file = configFile(download, origin);
+  if (download) {
+    const adapter = adapters.find((candidate) => candidate.toLowerCase() === download.toLowerCase());
+    if (!gatewayEnabled || !adapter) {
+      return Response.json({ error: "Not found" }, { headers: { "Cache-Control": "no-store" }, status: 404 });
+    }
+    const file = configFile(adapter, origin);
     return new Response(file.body, { headers: { "Cache-Control": "no-store", "Content-Disposition": `attachment; filename="${file.filename}"`, "Content-Type": `${file.type}; charset=utf-8` } });
   }
 

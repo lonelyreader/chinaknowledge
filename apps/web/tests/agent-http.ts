@@ -240,15 +240,23 @@ const accessReadPayload = {
   },
 } as unknown as Payload;
 const accessRead = await handleAgentAccessGet(new Request(`${origin}/api/agent/access`), accessReadPayload, origin, true);
-const accessReadData = await accessRead.json() as { connections: Array<{ client: string; id: number }> };
+const accessReadData = await accessRead.json() as { adapters: string[]; connections: Array<{ client: string; id: number }> };
+assert.deepEqual(accessReadData.adapters, ["Cursor", "WorkBuddy", "Codex", "Claude", "Gemini"]);
 assert.equal(accessReadData.connections[0]?.client, "Cursor");
 assert.equal(accessReadData.connections[0]?.id, 10);
-for (const adapter of ["cursor", "trae", "workbuddy", "claude", "gemini"]) {
+for (const adapter of ["cursor", "workbuddy", "claude", "gemini"]) {
   const fixture = await handleAgentAccessGet(new Request(`${origin}/api/agent/access?download=${adapter}`), accessReadPayload, origin, true);
   assert.equal(fixture.status, 200);
-  const parsed = JSON.parse(await fixture.text()) as { mcpServers: Record<string, unknown> };
-  assert.ok(parsed.mcpServers["china-in-fact"]);
+  const parsed = JSON.parse(await fixture.text()) as { mcpServers: Record<string, Record<string, unknown>> };
+  const server = parsed.mcpServers["china-in-fact"];
+  if (adapter === "gemini") {
+    assert.deepEqual(server, { httpUrl: `${origin}/api/agent/mcp` });
+  } else {
+    assert.deepEqual(server, { type: "http", url: `${origin}/api/agent/mcp` });
+  }
 }
+const removedTraeFixture = await handleAgentAccessGet(new Request(`${origin}/api/agent/access?download=trae`), accessReadPayload, origin, true);
+assert.equal(removedTraeFixture.status, 404);
 const codexFixture = await handleAgentAccessGet(new Request(`${origin}/api/agent/access?download=codex`), accessReadPayload, origin, true);
 const codexFixtureText = await codexFixture.text();
 assert.match(codexFixtureText, /mcp_servers\.china-in-fact/);

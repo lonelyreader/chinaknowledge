@@ -12,7 +12,7 @@ max_lines: 180
 
 ## Decision
 
-`GATE 1 PREFLIGHT PASS / PRODUCT AMENDMENT REQUIRED / EXTERNAL WRITES CLOSED`
+`GATE 1 PREFLIGHT PASS / PRODUCT AMENDMENT INDEPENDENT PASS / EXTERNAL WRITES CLOSED`
 
 用户于 2026-08-01 以“继续推进”批准 checklist 当前等待的 `real-client-login + preview-read`。本门只读取本机客户端、受保护 Preview、Vercel 配置名和数据库聚合计数；没有保存客户端配置、创建 OAuth grant、部署、开放 MCP、修改 env/provider、创建 fixture、执行 migration 或触碰 Production。
 
@@ -47,9 +47,13 @@ max_lines: 180
 
 ## Product amendment A
 
-当前 `apps/web/src/agent/access-route.ts` 仍把 TRAE 放在 adapter 列表并允许下载；Cursor/WorkBuddy 下载 JSON 只有 `url`。在开放 Preview 前，最小修复只需要：
+预检发现 `apps/web/src/agent/access-route.ts` 仍把 TRAE 放在 adapter 列表并允许下载，Cursor/WorkBuddy 下载 JSON 只有 `url`。用户批准 `product-code` 后已完成最小修复：
 
-- `apps/web/src/agent/access-route.ts`：移除 TRAE；Cursor/WorkBuddy 显式输出 `type: "http"`。
-- `apps/web/tests/agent-http.ts`：断言 adapter 列表、TRAE 404、Cursor/WorkBuddy 精确配置和其他 adapter 回归。
+- `apps/web/src/agent/access-route.ts`：adapter 收窄为 Cursor、WorkBuddy、Codex、Claude、Gemini；未知下载和 TRAE 均返回 no-store 404；Cursor/WorkBuddy/Claude 显式输出 `type: "http"`。
+- `apps/web/tests/agent-http.ts`：精确断言 adapter 列表、TRAE 404、Cursor/WorkBuddy/Claude `{ type, url }`、Gemini `httpUrl`、Codex TOML 和关闭态 404。
 
-不需要修改 WorkBuddy 应用、registration family 的历史识别、OAuth、Gateway、CMS UI、schema、migration 或依赖。该 amendment 已进入 HEAD 合同路径，但产品代码仍等待单独批准。
+不需要修改 WorkBuddy 应用、registration family 的历史识别、OAuth、Gateway、CMS UI、schema、migration 或依赖。`npm run test:agent`、typecheck、lint 与 Local build 已通过；lint 为 0 error、40 条既有 migration warning，build 为 75 条静态/动态路由成功。Preview、public MCP、fixture 和客户端项目 OAuth 均未运行。
+
+## Independent review
+
+未参与实现的 reviewer 对当前代码与 10 个任务路径完成只读复审。首轮仅发现 feature registry 指纹和 checklist 门状态两项文档同步 P2；修正后复跑 Agent tests、typecheck、lint、docs governance、feature registry、任务路径覆盖和 `git diff --check`，第二轮 `PASS`，`P0/P1/P2 = 0/0/0`。用户自有 `outputs/**` 明确排除且保持原状。

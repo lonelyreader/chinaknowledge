@@ -86,9 +86,13 @@ flowchart LR
 - `scope`：从 Agent access adapter/download 移除 TRAE；Cursor 与 WorkBuddy 下载配置固定为顶层 `mcpServers` 下的 `{ type: "http", url }`。
 - `allowed_paths`：仅 `apps/web/src/agent/access-route.ts` 与 `apps/web/tests/agent-http.ts`；不改注册、OAuth、Gateway、UI、schema、migration 或依赖。
 - `acceptance`：开启态 adapter 列表不含 TRAE，`download=trae` 返回 404；Cursor/WorkBuddy fixture 精确断言 `type=http`、正确 URL 且无 header/token；其他四个 adapter 和关闭态 404 不回归。
-- `validation`：`npm --prefix apps/web run test:agent:http`、`npm --prefix apps/web run typecheck`、`npm --prefix apps/web run lint`、feature registry、治理检查与 `git diff --check`。
+- `validation`：`npm --prefix apps/web run test:agent`（包含 `tests/agent-http.ts`）、`npm --prefix apps/web run typecheck`、`npm --prefix apps/web run lint`、feature registry、治理检查与 `git diff --check`。
 - `recovery`：回退该单一实现提交即可恢复旧下载形状；本 amendment 不写数据库或外部环境。
-- `approval`：只有得到 `product-code` 批准后才能实现；实现 PASS 也不自动批准 Preview/public MCP/fixture。
+- `approval`：用户于 2026-08-01 批准 `product-code`；实现 PASS 也不自动批准 Preview/public MCP/fixture。
+- [x] adapter 列表和下载入口已移除 TRAE，未知 `download` 在开启态也返回 no-store 404。
+- [x] Cursor、WorkBuddy 与 Claude JSON 已显式固定 `type: "http" + url`；Gemini/Codex 格式和 Gateway 关闭态不变。
+- [x] Agent 聚合测试、typecheck、lint 与 Local build 已通过；lint 为 0 error、40 条既有 migration warning。
+- [x] 未参与实现者完成只读独立复审；第二轮关闭两项文档同步 P2 后结论为 `PASS`，`P0/P1/P2 = 0/0/0`。
 
 ### Gate 2 — Protected Preview compatibility
 
@@ -150,4 +154,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 1 只读预检已完成，证据见 [`client compatibility`](../../reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md)。当前等待 `product-code` 批准 Product amendment A；Preview deploy/public MCP/fixture、provider 配置、migration、真实账户/数据、Production、merge 和 push仍未授权。
+Gate 1 只读预检与 Product amendment A 本地实现、验证和独立复审均已 `PASS`，证据见 [`client compatibility`](../../reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md)。当前等待 Gate 2 的 Preview deploy、public MCP、虚构 fixture 与真实客户端分别授权；provider 配置、migration、真实账户/数据、Production、merge 和 push 仍未授权。
