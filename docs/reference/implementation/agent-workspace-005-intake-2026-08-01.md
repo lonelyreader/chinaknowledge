@@ -24,9 +24,8 @@ max_lines: 180
 |---|---|---|
 | Cursor 3.13.25 | 本机已安装；001–002 在较早 3.13.10 build 完成 Local/Preview OAuth、refresh、工具、撤销和 publication | 作为 regression；预检 `localhost:8787`，不停止端口占用者，验证 `type: http`、deep-link 回退和重新认证 |
 | WorkBuddy 5.3.5 | 本机已安装；官方 4.9.1 changelog 已声明 MCP OAuth 主动 token 刷新与自动重连，官方 connector 支持自定义 MCP；本项目尚未登录或实测 | 首个新客户端；在受保护 Preview 用虚构 `.test` Member 完成真实 DCR/OAuth/MCP、10 分钟 renewal、私有 draft、prepare 停止、撤销和清理 |
-| TRAE SOLO 0.1.3 | 本机已安装；旧 001 证据为未实测。官方 2026-04 新版 TRAE IDE 公告称 MCP OAuth 完整链路，但不能证明 SOLO 0.1.3 | 先核对产品线、版本、账号和 remote MCP 入口；不满足时保持 `NOT_VERIFIED`，不降级 API key 或开发 CLI |
 
-官方参考：[`WorkBuddy changelog`](https://www.codebuddy.cn/docs/workbuddy/Changelog)、[`WorkBuddy connectors`](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Connector)、[`TRAE MCP OAuth update`](https://forum.trae.cn/t/topic/13259)。宣传或配置可见性都不能替代本项目真实连接。
+官方参考：[`WorkBuddy changelog`](https://www.codebuddy.cn/docs/workbuddy/Changelog)、[`WorkBuddy connectors`](https://www.codebuddy.cn/docs/workbuddy/From-Beginner-to-Expert-Guide/Function-Description/Connector)。宣传或配置可见性都不能替代本项目真实连接。TRAE 已按用户决定从当前适配和验收范围删除；001 的旧记录只保留历史事实。
 
 ## Current server and release facts
 
@@ -55,7 +54,7 @@ max_lines: 180
 
 | Risk | Current gap | Gate |
 |---|---|---|
-| 客户端宣传与真实协议不一致 | WorkBuddy/TRAE 未连接本项目 | 当前版本真实 DCR/OAuth/MCP/tool/refresh/revoke；不能用 config parse 代替 |
+| 客户端宣传与真实协议不一致 | WorkBuddy 未连接本项目 | 当前版本真实 DCR/OAuth/MCP/tool/refresh/revoke；不能用 config parse 代替 |
 | callback 被占用或丢失 | Cursor 曾遇到 `8787` 占用 | 只读端口预检、记录占用者、deep-link 回退；不杀进程、不改其他服务 |
 | 长任务 token 过期 | Cursor 002 曾 `Unauthorized` | 跨 10 分钟 renewal；重连后重新 prepare，不跨 connection 搬 confirmation |
 | DCR/OAuth/MCP 被公网滥用 | 只有 DCR 数据库总量阈值 | Production 前单独批准 provider/rate-limit 设计、阈值、429 readback 与恢复 |

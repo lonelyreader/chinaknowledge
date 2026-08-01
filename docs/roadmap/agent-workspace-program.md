@@ -34,11 +34,11 @@ flowchart LR
 
 | ID | 当前状态 | 候选结果 | 进入条件 |
 |---|---|---|---|
-| `AGENT-WORKSPACE-001` | completed；Local + Preview Cursor real-client PASS | OAuth、远程 MCP、Member read/draft/preview | 已归档；TRAE/WorkBuddy 转 005 |
+| `AGENT-WORKSPACE-001` | completed；Local + Preview Cursor real-client PASS | OAuth、远程 MCP、Member read/draft/preview | 已归档；WorkBuddy 转 005；TRAE 后续从适配目标删除 |
 | `AGENT-WORKSPACE-002` | completed；Local + Preview Cursor + final review PASS | Member publication 的 prepare/confirm/commit/readback、重放、撤回与过期拒绝 | 已归档；confirmation primitive 可供 003 intake 复用，Production 未开启 |
 | `AGENT-WORKSPACE-003` | completed；Local work-item + final review PASS | 精确读取一篇跨作者 Article；确认后 Add to site，并以确认后的 Remove 恢复 | 已归档；专用 fixture 已删除，Preview 未开启 |
 | `AGENT-WORKSPACE-004` | completed；Local work-item + independent review PASS | Super Admin-only 最近 20 条 Article workflow activity 最小读取 | 已归档；专用 fixture 已删除，Preview 未执行；高风险账户/身份动作保持网页或新 checklist |
-| `AGENT-WORKSPACE-005` | active intake；phase-release | WorkBuddy/Cursor 真实兼容、TRAE 版本门、运营保护、恢复与 Production release | 当前 docs-only；每个外部环境、provider、migration、真实身份/数据与公开启用分别批准 |
+| `AGENT-WORKSPACE-005` | active intake；phase-release | WorkBuddy/Cursor 真实兼容、运营保护、恢复与 Production release | 当前 docs-only；每个外部环境、provider、migration、真实身份/数据与公开启用分别批准；TRAE 不在范围 |
 
 `provisional` 只保留问题和候选结果，不是仓库通用 checklist 状态，也不构成实现授权。子级真正开始时只能使用仓库允许的 `active` 状态。
 
@@ -55,7 +55,7 @@ flowchart LR
 - [x] 完成 003 的 Local 实现、权限与恢复矩阵、独立复审、fixture 清理和 closure；`P0/P1/P2 = 0/0/0`，Preview 未执行。
 - [x] 建立 004 active intake，把首批收窄为 Super Admin-only 的 Article workflow activity 只读工具；不含账户、身份、邀请或写动作。
 - [x] 完成 004 Local 实现、权限与字段隔离矩阵、领域不变读回、Agent 审计、001–003 回归、独立复审、fixture 清理和 closure；`P0/P1/P2 = 0/0/0`，Preview 未执行。
-- [x] 建立 005 active phase-release intake，把首个执行门收窄为 WorkBuddy 真实兼容与 Cursor 回归，并把 TRAE、运营保护、migration 和 Production 分立设门。
+- [x] 建立 005 active phase-release intake，把首个执行门收窄为 WorkBuddy 真实兼容与 Cursor 回归，并把运营保护、migration 和 Production 分立设门；TRAE 已从当前适配要求删除。
 - [ ] 后续子级关闭后继续更新本页的实际结果、遗留风险和下一阶段进入条件。
 - [ ] 必要 capability 子级完成后，再把 005 定义为 phase-release 子级；Production 部署、真实成员接入和公开启用仍在 005 内分别批准和读回。
 
@@ -65,7 +65,7 @@ flowchart LR
 
 001 关闭后至少回答：
 
-1. Cursor 已证明的真实连接合同能否复用；TRAE、WorkBuddy 因 001 无账号而转入 005，是否需要在下一 capability 子级前增加兼容预检。
+1. Cursor 已证明的真实连接合同能否复用；WorkBuddy 因 001 无账号而转入 005，是否需要在下一 capability 子级前增加兼容预检。TRAE 的 001 未验证记录保留为历史，但不再是当前支持目标。
 2. OAuth、撤销、capability、revision、幂等和审计合同是否已经稳定。
 3. Member 实际更需要本地 Markdown 工作副本，还是更直接的结构化写作工具。
 4. 保存草稿的延迟、错误和冲突是否足以支持公开状态动作。
@@ -108,7 +108,7 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 
 - 当前目标：收口得到真实使用证明的客户端，并以 phase-release 合同完成可运营的 Production release；当前只完成 docs-only intake。
 - 首个执行门：本机 WorkBuddy 5.3.5 在受保护 Preview 完成 DCR、OAuth、10 分钟 token renewal/自动重连、私有 Member draft workflow、prepare 停止、撤销和清理；Cursor 3.13.25 做配置、callback 与能力回归。
-- 后续门：TRAE SOLO 0.1.3 不能用新版 TRAE IDE 的 OAuth 宣传代替实测；Agent endpoint 限流、最小可观测性、支持/恢复、现有第 13 条 Agent migration 与 Production release 均在各自批准后执行。
+- 后续门：Agent endpoint 限流、最小可观测性、支持/恢复、现有第 13 条 Agent migration 与 Production release 均在各自批准后执行。TRAE 不再构成 005 gate 或父级 closure 条件。
 - 发布归属：005 持有 release 编排，但 Production 部署、真实账户、真实数据和公开启用仍是相互独立的批准门禁。
 - CLI fallback 只有在非 MCP Agent 的真实需求成立时进入；编号不保证它一定实现。
 

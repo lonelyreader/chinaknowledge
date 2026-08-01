@@ -4,7 +4,7 @@ doc_type: product
 authority: canonical
 status: active
 scope: permissioned-agent-workspace
-last_verified: 2026-07-31
+last_verified: 2026-08-01
 max_lines: 260
 ---
 
@@ -42,7 +42,7 @@ max_lines: 260
 - Revoke。
 - Recent activity。
 
-首批适配对象为 Cursor、TRAE、Tencent WorkBuddy、Codex、Claude 和 Gemini。用户不被要求安装其中任何指定产品；新 Agent 只要支持兼容的工具协议即可增加适配器。
+首批适配对象为 Cursor、Tencent WorkBuddy、Codex、Claude 和 Gemini。用户不被要求安装其中任何指定产品；新 Agent 只要支持兼容的工具协议即可增加适配器。
 
 ### 3.2 首次连接
 
@@ -204,12 +204,12 @@ member_commit_invite
 
 首切片不包含公开、撤回、策展、邀请、角色管理、CLI fallback、Production 数据或 Astria 改动。
 
-001 的真实客户端门禁只使用当前可登录的 Cursor；TRAE 与 WorkBuddy 因没有客户端账号记录为 `NOT RUN / NOT_VERIFIED`，移入 005。这个阶段边界不修改下一节的完整多客户端产品验收，也不能被解释为 TRAE/WorkBuddy 已通过。
+001 的真实客户端门禁只使用当前可登录的 Cursor；WorkBuddy 因没有客户端账号记录为 `NOT RUN / NOT_VERIFIED`，移入 005。TRAE 已于 2026-08-01 从当前适配范围删除，001 archive/reference 中的相关记录只保留当时事实，不构成后续验收要求。
 
 ## 10. 完整验收
 
 - 相同的 Agent Workspace 由不同角色登录时只获得各自能力。
-- Cursor、TRAE、WorkBuddy 至少各完成一次真实 MCP 连接；其他适配器通过配置和协议验证。
+- Cursor、WorkBuddy 至少各完成一次真实 MCP 连接；其他适配器通过配置和协议验证。
 - Member、Editor、Super Admin 的正例和越权负例均由服务器证明。
 - 所有公开、外部和特权动作具备 prepare、确认、commit、读回和 audit ID。
 - 暂停、降权、对象变更、连接撤销、token 过期和重复请求均安全处理。

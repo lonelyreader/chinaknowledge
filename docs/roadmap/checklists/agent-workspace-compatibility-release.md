@@ -22,7 +22,7 @@ approval_gates: product-code, real-client-login, preview-read, preview-deploy, p
 ## Scope
 
 - 首个新客户端只验证本机 WorkBuddy 5.3.5；Cursor 3.13.25 作为已知客户端 regression。
-- TRAE SOLO 0.1.3 与新版 TRAE IDE 分开判定；先核对产品线、账号与 remote MCP/OAuth 实际入口，不能以官方新版公告代替 SOLO 实测。
+- TRAE 不在当前适配、验收或 release 范围；001 archive/reference 中的 `NOT RUN / NOT_VERIFIED` 只保留历史事实。
 - 客户端门使用受保护 Preview、虚构 `.test` Member 和私有 draft；publication prepare 只验证停止和确认呈现，不 commit，不改变公共状态。
 - 运营门覆盖 Agent metadata/DCR/authorize/token/revoke/MCP 的最低限流、结构化无敏感日志、告警/支持、撤权、清理和关闭态恢复。
 - release 门只应用既有第 13 条 Agent migration，不新增 schema；先 staged Production、Gateway off readback，再单独批准 public enable 与真实成员接入。
@@ -54,12 +54,12 @@ flowchart LR
 - `recovery`：客户端门撤销 connection、删除精确 fixture/client/event、恢复 SSO/Gateway；运营保护可回退 provider rule 或代码提交；Production 先 staged deployment，Gateway flag 可立即关闭，代码可 rollback。Agent migration 默认保留空兼容表，不对有数据 Production 执行 down。
 - `independent_review`：未主持实现者在每个 upgraded 外部批次后只读判定 `PASS/BLOCK`；最终 reviewer 必须核对真实 client evidence、rate-limit/log privacy、migration/recovery、关闭/开启态、公共站回归和清理。
 - `key_invariants`：不新增业务工具；不跨 connection 复用 confirmation；不把配置加载或产品宣传算作真实兼容；不在仓库存 token/secret/个人数据；不让 deployment 隐式 migration；不因 Gateway 开启削弱公共站、CMS、SSO、Payload 权限或默认关闭恢复。
-- `finding_route`：客户端特有格式/callback 问题留在 005 compatibility；通用 server 修复先做合同 amendment；新业务 capability 回到独立 006+ checklist；账户/身份高风险动作回到独立 Super Admin checklist；provider incident 进入独立 incident；Astria、CLI 和大陆网络不进入 005。
+- `finding_route`：WorkBuddy/Cursor 特有格式或 callback 问题留在 005 compatibility；通用 server 修复先做合同 amendment；新业务 capability 回到独立 006+ checklist；账户/身份高风险动作回到独立 Super Admin checklist；provider incident 进入独立 incident；TRAE、Astria、CLI 和大陆网络不进入 005。
 
 ## No-go
 
 - 不新增或扩张 Member、Editor、Super Admin 工具，不做邀请、角色、暂停/恢复、删除、批量公开或任意 CRUD/SQL/CLI。
-- 不把 TRAE IDE 新版能力归到 TRAE SOLO 0.1.3，不为缺 MCP/OAuth 的客户端降级静态 API key。
+- 不重新引入 TRAE 适配，不为缺 MCP/OAuth 的客户端降级静态 API key。
 - 不使用 Production 真实内容做兼容 fixture，不发送真实邮件，不复制 Preview/Production token、Cookie、secret、dump 或个人数据。
 - 不在没有 durable/provider 证据时实现 serverless 内存限流；不把 DCR 总量阈值宣称为完整公网防护。
 - 不新增 schema/migration/依赖；若运营保护必须新增依赖或数据结构，停止并另报门禁。
@@ -71,14 +71,14 @@ flowchart LR
 ### Gate 0 — Intake baseline
 
 - [x] 001–004 已完成归档；Preview SSO 恢复，Gateway 默认关闭，Production 没有 Agent schema 或入口。
-- [x] 核对当前 Cursor 3.13.25、WorkBuddy 5.3.5、TRAE SOLO 0.1.3 与官方兼容资料；版本与产品线不混用。
+- [x] 核对当前 Cursor 3.13.25、WorkBuddy 5.3.5 与官方兼容资料；TRAE 已从当前适配要求删除。
 - [x] 核对 Gateway、DCR、OAuth lifetime/rotation、audit、默认关闭、现有 rate/monitor gap 与 Production 第 13 条 migration门。
 - [x] 用户于 2026-08-01 批准启动 005 intake；当前授权只覆盖 docs-only baseline 与窄提交。
 
 ### Gate 1 — Real-client preflight
 
-- [ ] 得到 `real-client-login + preview-read` 批准后，只读核对 WorkBuddy/TRAE 当前登录可用性、Preview project/SSO/Gateway/env、数据库与 callback 端口；不改变状态。
-- [ ] 固定 WorkBuddy/ Cursor 实际配置格式、callback、DCR client family 和清理 locator；TRAE 不可用时记录明确 blocker。
+- [ ] 得到 `real-client-login + preview-read` 批准后，只读核对 WorkBuddy 当前登录可用性、Preview project/SSO/Gateway/env、数据库与 callback 端口；不改变状态。
+- [ ] 固定 WorkBuddy/Cursor 实际配置格式、callback、DCR client family 和清理 locator。
 - [ ] 若发现 server incompatibility，只写诊断和精确 amendment；不在本门改代码。
 
 ### Gate 2 — Protected Preview compatibility
@@ -118,7 +118,7 @@ flowchart LR
 
 ## Acceptance
 
-- WorkBuddy 与 Cursor 在当前版本真实完成标准 OAuth/MCP、token renewal/re-auth、既有工具和撤销；TRAE 达成真实证明或明确保持未支持，不能虚假标绿。
+- WorkBuddy 与 Cursor 在当前版本真实完成标准 OAuth/MCP、token renewal/re-auth、既有工具和撤销；TRAE 不构成验收或 closure 条件。
 - 公网 Agent endpoints 有可读回、可恢复的限流与最小无敏感 observability；支持人员能按 correlation 定位，不接触 token、正文或对话。
 - Production 只应用既有 Agent migration，备份/恢复、空表读回、staged deployment、Gateway off/on 与 rollback 全部有证据。
 - 001–004 权限、confirmation、revision、idempotency、audit 和公共 readback 不回归；没有新增通用能力或平行真相。
