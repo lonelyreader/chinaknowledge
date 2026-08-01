@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-workspace-super-admin-activity-read
 last_verified: 2026-08-01
 max_lines: 300
@@ -107,29 +107,29 @@ flowchart LR
 
 ### Gate 1 — Read contract
 
-- [ ] 固定 latest 20、排序、`asOf`、关系缺失行为和显式返回字段。
-- [ ] 使用当前 Super Admin、connection、Person、client 与 collection access；不依赖客户端 role 或 capability。
-- [ ] 固定 Agent read audit 字段，不记录返回内容或个人资料。
+- [x] 固定 latest 20、排序、`asOf`、关系缺失行为和显式返回字段。
+- [x] 使用当前 Super Admin、connection、Person、client 与 collection access；不依赖客户端 role 或 capability。
+- [x] 固定 Agent read audit 字段，不记录返回内容或个人资料。
 
 ### Gate 2 — Tool
 
-- [ ] 注册一项只读 `admin_recent_activity`；只对 server-verified Super Admin 发现。
-- [ ] 实现 direct service permission、depth-0 relation lookup、字段白名单和稳定错误码。
-- [ ] Agent access 只增加一项短活动标签，不增加说明性 UI。
+- [x] 注册一项只读 `admin_recent_activity`；只对 server-verified Super Admin 发现。
+- [x] 实现 direct service permission、depth-0 relation lookup、字段白名单和稳定错误码。
+- [x] Agent access 只增加一项短活动标签，不增加说明性 UI。
 
 ### Gate 3 — Local verification
 
-- [ ] 用独立 Local fixture 建立一篇 Article 及 publication、curation、notification workflow events，验证最新 20 条顺序和最小 readback。
-- [ ] 覆盖 Member、Editor、降权、paused、missing Person、revoked connection、disabled client 和不存在关系负例。
-- [ ] 验证输出与 Agent audit 均不含 email、notification recipient/key/error、正文、source、owner、token、connection secret 或 Agent 对话。
-- [ ] 验证调用前后 workflow event、Article、User、Person 与 notification 状态不变，仅新增最小 Agent read audit。
-- [ ] 现有 001–003 Agent tests、editorial workflow、typecheck、lint 和 build 无回归。
+- [x] 用独立 Local fixture 建立一篇 Article 及 publication、curation、notification workflow events，验证最新 20 条顺序和最小 readback。
+- [x] 覆盖 Member、Editor、降权、paused、missing Person、revoked connection、disabled client 和不存在关系负例。
+- [x] 验证输出与 Agent audit 均不含 email、notification recipient/key/error、正文、source、owner、token、connection secret 或 Agent 对话。
+- [x] 验证调用前后 workflow event、Article、User、Person 与 notification 状态不变，仅新增最小 Agent read audit。
+- [x] 现有 001–003 Agent tests、editorial workflow、typecheck、lint 和 build 无回归。
 
 ### Gate 4 — Review and closeout
 
-- [ ] 更新 ADM-09、current、父级计划与 Local implementation evidence。
-- [ ] 未主持实现的 reviewer 完成只读独立复审并给出 `PASS`。
-- [ ] 只有 PASS 后才标 completed、清理专用 fixture、移入 archive 并提交 closure；Preview 如有必要须另行批准。
+- [x] 更新 ADM-09、current、父级计划与 Local implementation evidence。
+- [x] 未主持实现的 reviewer 完成只读独立复审并给出 `PASS`。
+- [x] PASS 后标 completed、清理专用 fixture并移入 archive；Preview 未执行。
 
 ## Acceptance
 
@@ -161,4 +161,4 @@ flowchart LR
 
 ## Current gate
 
-Intake 基线已冻结；只授权文档与本地 checklist 提交。下一步等待产品代码批准后进入 Gate 1。Preview、真实账户、真实数据、真实邮件、Production、schema、migration、merge 和 push均未授权。
+`PASS — P0/P1/P2 = 0/0/0`。Local 实现、work-item 验证、独立复审、专用 fixture 清理和归档均完成。Preview、真实账户、真实数据、真实邮件、Production、schema、migration、merge 和 push均未执行。

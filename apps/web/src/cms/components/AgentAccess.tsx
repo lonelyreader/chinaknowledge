@@ -22,6 +22,7 @@ const activityLabels: Record<string, string> = {
   editorial_article_get: "Article reviewed",
   editorial_prepare_site_selection: "Site selection checked",
   editorial_commit_site_selection: "Site selection changed",
+  admin_recent_activity: "Activity reviewed",
   authorization_approval: "Connection",
   connection_revoke: "Connection revoked",
   oauth_revoke: "Connection revoked",

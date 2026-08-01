@@ -100,7 +100,7 @@ for (const description of Object.values(agentToolDescriptions)) {
   assert.ok(description.length > 40);
   assert.ok(description.length <= 512);
 }
-assert.equal(Object.keys(agentToolDescriptions).length, 12);
+assert.equal(Object.keys(agentToolDescriptions).length, 13);
 
 const confirmationSecret = "fixture-publication-secret-at-least-32-characters";
 const confirmationPayload = {

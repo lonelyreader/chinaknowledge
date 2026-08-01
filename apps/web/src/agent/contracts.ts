@@ -100,6 +100,8 @@ export const agentToolDescriptions = {
     "Prepare adding one member-public article to the site's editorial selection, or removing that same selected article as recovery. It returns a server-generated impact summary and short-lived one-time confirmation reference without changing the article or public entry.",
   editorial_commit_site_selection:
     "Execute a prepared site-selection action only after the user explicitly confirms the server summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks the current role, connection, article, transition, revision and curation requirements before changing the site entry.",
+  admin_recent_activity:
+    "Return the latest 20 Article workflow activity items for a current Super Admin. This is read-only and exposes only minimal Article, actor, status, notification state and time fields.",
 } as const;
 
 export type AgentToolName = keyof typeof agentToolDescriptions;

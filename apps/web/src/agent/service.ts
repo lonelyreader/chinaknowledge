@@ -14,7 +14,7 @@ import {
   type PayloadRequest,
 } from "payload";
 
-import type { AgentEvent, Article, User } from "@/payload-types";
+import type { AgentEvent, Article, User, WorkflowEvent } from "@/payload-types";
 import {
   commitEditorialSiteSelection,
   editorialCurationIssue,
@@ -28,7 +28,7 @@ import {
   getLatestDraftArticle,
   prepareMemberPublication,
 } from "@/cms/article-publication";
-import { hasEditorialRole } from "@/cms/roles";
+import { hasEditorialRole, isSuperAdmin } from "@/cms/roles";
 
 import {
   agentBodyToLexical,
@@ -283,6 +283,58 @@ export class AgentMemberService {
     return user as User;
   }
 
+  private async currentSuperAdmin() {
+    const user = await this.currentUser();
+    if (!isSuperAdmin(user)) throw new AgentServiceError("FORBIDDEN", "Super Admin access is required.");
+
+    let connection;
+    try {
+      connection = await this.payload.findByID({
+        collection: "agent-connections",
+        id: this.actor.connectionId,
+        depth: 0,
+        overrideAccess: true,
+      });
+    } catch {
+      throw new AgentServiceError("CONNECTION_REVOKED", "This Agent connection is no longer active.");
+    }
+    const accessExpiresAt = connection.accessExpiresAt == null
+      ? Number.NaN
+      : new Date(connection.accessExpiresAt).getTime();
+    if (
+      connection.state !== "active"
+      || articleRelationID(connection.user) !== this.actor.userId
+      || articleRelationID(connection.person) !== this.actor.personId
+      || connection.resource !== this.actor.resource
+      || !connection.scopes.includes("agent:member")
+      || !Number.isFinite(accessExpiresAt)
+      || accessExpiresAt <= Date.now()
+    ) {
+      throw new AgentServiceError("CONNECTION_REVOKED", "This Agent connection is no longer active.");
+    }
+
+    const clientId = articleRelationID(connection.client);
+    if (typeof clientId !== "number") {
+      throw new AgentServiceError("CONNECTION_REVOKED", "This Agent client is no longer active.");
+    }
+    let client;
+    try {
+      client = await this.payload.findByID({
+        collection: "agent-oauth-clients",
+        id: clientId,
+        depth: 0,
+        overrideAccess: true,
+      });
+    } catch {
+      throw new AgentServiceError("CONNECTION_REVOKED", "This Agent client is no longer active.");
+    }
+    const clientExpiresAt = client.expiresAt == null ? null : new Date(client.expiresAt).getTime();
+    if (client.disabled || (clientExpiresAt != null && (!Number.isFinite(clientExpiresAt) || clientExpiresAt <= Date.now()))) {
+      throw new AgentServiceError("CONNECTION_REVOKED", "This Agent client is no longer active.");
+    }
+    return user;
+  }
+
   private async ownedArticle(id: number, user: User, req?: PayloadRequest) {
     let article: Article;
     try {
@@ -339,12 +391,73 @@ export class AgentMemberService {
       if (hasEditorialRole(user)) {
         tools.push("editorial_article_get", "editorial_prepare_site_selection", "editorial_commit_site_selection");
       }
+      if (isSuperAdmin(user)) tools.push("admin_recent_activity");
       return agentSuccess({
         tools,
         role: user.role,
       }, { requestId });
     } catch (error) {
       await this.auditReadFailure("capabilities_list", requestId, error);
+      return failure(error, requestId);
+    }
+  }
+
+  async adminRecentActivity() {
+    const requestId = createAgentRequestId();
+    try {
+      const user = await this.currentSuperAdmin();
+      const req = await createLocalReq({ user }, this.payload);
+      const asOf = new Date().toISOString();
+      const result = await this.payload.find({
+        collection: "workflow-events",
+        depth: 0,
+        limit: 20,
+        overrideAccess: false,
+        pagination: false,
+        req,
+        sort: "-occurredAt",
+        user,
+        where: { occurredAt: { less_than_equal: asOf } },
+      });
+      const events = result.docs as WorkflowEvent[];
+      const articleIds = [...new Set(events.map((event) => articleRelationID(event.article)).filter((id): id is number => typeof id === "number"))];
+      const actorIds = [...new Set(events.map((event) => articleRelationID(event.actor)).filter((id): id is number => typeof id === "number"))];
+      const [articles, actors] = await Promise.all([
+        articleIds.length
+          ? this.payload.find({ collection: "articles", depth: 0, draft: true, limit: articleIds.length, overrideAccess: false, pagination: false, req, user, where: { id: { in: articleIds } } })
+          : Promise.resolve({ docs: [] as Article[] }),
+        actorIds.length
+          ? this.payload.find({ collection: "users", depth: 0, limit: actorIds.length, overrideAccess: false, pagination: false, req, user, where: { id: { in: actorIds } } })
+          : Promise.resolve({ docs: [] as User[] }),
+      ]);
+      const articleById = new Map(articles.docs.map((article) => [String(article.id), article]));
+      const actorById = new Map(actors.docs.map((actor) => [String(actor.id), actor]));
+      const items = events.map((event) => {
+        const articleId = articleRelationID(event.article);
+        const article = articleId == null ? null : articleById.get(String(articleId));
+        const actorId = articleRelationID(event.actor);
+        const actor = actorId == null ? null : actorById.get(String(actorId));
+        return {
+          id: event.id,
+          article: articleId == null ? null : {
+            id: articleId,
+            title: article?.title ?? null,
+            locale: article?.locale ?? null,
+            publicPath: article ? `/${article.locale}/posts/${article.slug}` : null,
+          },
+          actor: actorId == null ? null : { id: actorId, displayName: actor?.displayName ?? null },
+          axis: event.axis ?? null,
+          fromStatus: event.fromStatus ?? null,
+          toStatus: event.toStatus,
+          notificationKind: event.notificationKind ?? null,
+          notificationStatus: event.notificationStatus ?? null,
+          occurredAt: event.occurredAt,
+        };
+      });
+      await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "admin_recent_activity" });
+      return agentSuccess({ asOf, count: items.length, items }, { requestId });
+    } catch (error) {
+      await this.auditReadFailure("admin_recent_activity", requestId, error);
       return failure(error, requestId);
     }
   }
@@ -758,7 +871,8 @@ export class AgentMemberService {
 
   private async auditReadFailure(tool: AgentToolName, requestId: string, error: unknown, objectId?: string) {
     const denied = error instanceof AgentServiceError && ["ACCOUNT_PAUSED", "CONNECTION_REVOKED", "FORBIDDEN", "NO_PERSON", "NOT_FOUND", "UNAUTHENTICATED"].includes(error.code);
-    await this.auditAttempt({ objectId, objectType: tool === "account_context" || tool === "capabilities_list" ? "account" : "article", requestId, result: denied ? "denied" : "failed", tool });
+    const objectType = tool === "account_context" || tool === "capabilities_list" || tool === "admin_recent_activity" ? "account" : "article";
+    await this.auditAttempt({ objectId, objectType, requestId, result: denied ? "denied" : "failed", tool });
   }
 
   async createDraft(input: { body: AgentArticleBodyV1; idempotencyKey: string; locale: "en" | "es"; summary?: string; title: string }) {

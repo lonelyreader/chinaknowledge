@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-01
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:9d20176e0f3591f54837b8bead804fb921e4ce2a289b08c9e114334588a4ca89
+implementation_fingerprint: sha256:773c23af89cc0e0af844e70b9bbc511528ab2d33adad82852eb987de476e9468
 ---
 
 # App 功能登记册
@@ -98,7 +98,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | ADM-06 | Categories 管理 | 维护 Purpose、Topic、Geography、Situation 等分类及英西名称、slug | Categories |
 | ADM-07 | Places 管理 | 维护地点名称、摘要、封面、所属 Geography、英西 slug 与公开状态 | Places；地点页自动聚合相关人物和文章 |
 | ADM-08 | Images 管理 | 查看和管理图片、上传者、图片说明和公开使用状态 | Images；创建、读取、修改和删除均受角色权限控制 |
-| ADM-09 | Activity 审计 | 查看文章发布、策展、通知等工作流事件及操作者、前后状态和时间 | Activity；记录只读，不允许后台改写 |
+| ADM-09 | Activity 审计 | 查看文章发布、策展、通知等工作流事件及操作者、前后状态和时间 | Activity 记录只读；Agent 的 Super Admin-only 最近 20 条最小读取已完成 Local 验证与独立复审，Preview/Production 未开启 |
 | ADM-10 | 全量内容管理 | 访问全部 Articles、People、Images、Categories、Places 和 Members | 后台主导航；权限仍由服务端执行 |
 
 ## 运营与维护
@@ -128,7 +128,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 - 在 App 内撰写和群发 Newsletter、管理退订或查看邮件营销分析；当前 App 只提供订阅入口，名单和发送由 Resend 承担。
 - App 内 Discord 账号绑定、成员同步或聊天；当前只提供外部社群入口。
 - 自动翻译文章或 Person 文案；English 与 Español 内容由人分别维护。
-- 通过 Agent 操作 Production 账户或文章；Agent Workspace 001–002 已完成 Local 与受控 Preview 的 Member OAuth、草稿和确认式 publication，003 仅完成 Local 的单 Article Editor exact read、确认 Add 和 Remove。Preview 测试数据与公开 MCP 仍关闭，TRAE/WorkBuddy 仍为 `NOT RUN / NOT_VERIFIED`，Production 不提供该能力。
+- 通过 Agent 操作 Production 账户或文章；Agent Workspace 001–002 已完成 Local 与受控 Preview 的 Member OAuth、草稿和确认式 publication，003 完成 Local 的单 Article Editor exact read、确认 Add 和 Remove，004 完成 Local 的 Super Admin-only 最近 20 条 workflow activity 最小读取。003–004 均已通过独立复审但未执行 Preview，Preview 测试数据与公开 MCP 仍关闭，TRAE/WorkBuddy 仍为 `NOT RUN / NOT_VERIFIED`，Production 不提供该能力。
 - 自动证明登记册的自然语言一定正确。机器门禁负责阻止“实现已变但登记册完全没复核”，最终语义仍由实现者和 reviewer 对照事实确认。
 
 ## 同步门禁

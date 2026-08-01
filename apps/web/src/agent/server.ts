@@ -60,6 +60,7 @@ export async function createAgentMcpServer(context: McpRequestContext) {
   const service = await AgentMemberService.create(context.authInfo);
   const role = context.authInfo.extra?.role;
   const editorial = role === "editor" || role === "super_admin";
+  const admin = role === "super_admin";
 
   server.registerTool("account_context", { title: "Account", description: agentToolDescriptions.account_context, inputSchema: emptyInput, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async () => result(await service.accountContext()));
 
@@ -161,6 +162,19 @@ export async function createAgentMcpServer(context: McpRequestContext) {
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
       },
       async (input) => result(await service.commitSiteSelection(input)),
+    );
+  }
+
+  if (admin) {
+    server.registerTool(
+      "admin_recent_activity",
+      {
+        title: "Recent activity",
+        description: agentToolDescriptions.admin_recent_activity,
+        inputSchema: emptyInput,
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      },
+      async () => result(await service.adminRecentActivity()),
     );
   }
 

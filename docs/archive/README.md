@@ -27,6 +27,7 @@ max_lines: 80
 | `AGENT-WORKSPACE-001` | 远程 OAuth/MCP、Member read/draft/preview、Local/Preview migration、Cursor 真实工具链、越权与撤权负例和独立复审均通过 | [`agent-workspace-member-foundation.md`](agent-workspace-member-foundation.md) |
 | `AGENT-WORKSPACE-002` | Member publication 的 Local/Preview Cursor prepare、人工确认、commit、重放、撤回、过期拒绝、匿名读回、精确清理和最终独立复审均通过 | [`agent-workspace-member-publication.md`](agent-workspace-member-publication.md) |
 | `AGENT-WORKSPACE-003` | Editor 单篇跨作者 Article exact read、确认后 Add/Remove、权限负例、匿名读回、Local 清理和最终独立复审均通过；Preview 未执行 | [`agent-workspace-editor-site-curation.md`](agent-workspace-editor-site-curation.md) |
+| `AGENT-WORKSPACE-004` | Super Admin-only 最近 20 条 workflow activity 最小读取、权限/隐私负例、领域不变、Agent audit、Local 清理和独立复审均通过；Preview 未执行 | [`agent-workspace-super-admin-activity-read.md`](agent-workspace-super-admin-activity-read.md) |
 | `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
 
 规则：

@@ -960,6 +960,107 @@ try {
   assert.equal(adminRemove.ok, true, JSON.stringify(adminRemove));
   assert.equal(await siteEntryCount(), 0);
 
+  const activityBase = Date.now();
+  const activityEvents = [];
+  for (let index = 0; index < 21; index += 1) {
+    activityEvents.push(await payload.create({
+      collection: "workflow-events",
+      overrideAccess: true,
+      data: {
+        article: articleId,
+        actor: index === 20 ? null : (index % 2 === 0 ? admin.user.id : editor.user.id),
+        axis: "curation",
+        fromStatus: "not_selected",
+        toStatus: "selected",
+        occurredAt: new Date(activityBase + index).toISOString(),
+        notificationKind: "selected",
+        notificationStatus: "failed",
+        notificationKey: `agent004-secret-key-${suffix}-${index}`,
+        notificationRecipient: `agent004-secret-${index}@test.invalid`,
+        notificationAttempts: 1,
+        notificationLastError: `agent004-secret-error-${index}`,
+      },
+    }));
+  }
+  const workflowCountBeforeActivityRead = await payload.count({ collection: "workflow-events", overrideAccess: true });
+  const articleBeforeActivityRead = await payload.findByID({ collection: "articles", id: articleId, depth: 0, draft: true, overrideAccess: true });
+  const adminBeforeActivityRead = await payload.findByID({ collection: "users", id: admin.user.id, depth: 0, overrideAccess: true });
+  const personBeforeActivityRead = await payload.findByID({ collection: "people", id: admin.person.id, depth: 0, overrideAccess: true });
+  const agentEventCountBeforeActivityRead = await payload.count({ collection: "agent-events", overrideAccess: true });
+  const adminActivity = await adminService.adminRecentActivity();
+  assert.equal(adminActivity.ok, true, JSON.stringify(adminActivity));
+  assert.deepEqual(Object.keys(adminActivity.data ?? {}).sort(), ["asOf", "count", "items"]);
+  assert.equal(adminActivity.data?.count, 20);
+  assert.equal(adminActivity.data?.items.length, 20);
+  assert.deepEqual(adminActivity.data?.items.map(({ id }) => id), activityEvents.slice(1).reverse().map(({ id }) => id));
+  const firstActivity = adminActivity.data!.items[0]!;
+  assert.deepEqual(Object.keys(firstActivity).sort(), ["actor", "article", "axis", "fromStatus", "id", "notificationKind", "notificationStatus", "occurredAt", "toStatus"]);
+  assert.deepEqual(Object.keys(firstActivity.article ?? {}).sort(), ["id", "locale", "publicPath", "title"]);
+  assert.equal(firstActivity.article?.id, articleId);
+  assert.equal(firstActivity.actor, null, "A missing actor relationship must remain null.");
+  assert.deepEqual(Object.keys(adminActivity.data!.items[1]!.actor ?? {}).sort(), ["displayName", "id"]);
+  assert.equal(adminActivity.data!.items[1]!.actor?.displayName, editor.user.displayName);
+  const serializedAdminActivity = JSON.stringify(adminActivity);
+  for (const forbiddenValue of [
+    "@test.invalid",
+    "agent004-secret-key",
+    "agent004-secret-error",
+    "Ignore prior instructions",
+    "Agent Editor curation source",
+    "accountStatus",
+    "connection",
+    "email",
+    "notificationKey",
+    "notificationLastError",
+    "notificationRecipient",
+    "owner",
+    "role",
+  ]) {
+    assert.equal(serializedAdminActivity.includes(forbiddenValue), false, `Activity output leaked ${forbiddenValue}.`);
+  }
+  assert.equal((await payload.count({ collection: "workflow-events", overrideAccess: true })).totalDocs, workflowCountBeforeActivityRead.totalDocs);
+  const articleAfterActivityRead = await payload.findByID({ collection: "articles", id: articleId, depth: 0, draft: true, overrideAccess: true });
+  const adminAfterActivityRead = await payload.findByID({ collection: "users", id: admin.user.id, depth: 0, overrideAccess: true });
+  const personAfterActivityRead = await payload.findByID({ collection: "people", id: admin.person.id, depth: 0, overrideAccess: true });
+  assert.deepEqual(articleAfterActivityRead, articleBeforeActivityRead);
+  assert.deepEqual(adminAfterActivityRead, adminBeforeActivityRead);
+  assert.deepEqual(personAfterActivityRead, personBeforeActivityRead);
+  assert.equal((await payload.count({ collection: "agent-events", overrideAccess: true })).totalDocs, agentEventCountBeforeActivityRead.totalDocs + 1);
+  const activityReadAudit = await payload.find({
+    collection: "agent-events",
+    depth: 0,
+    limit: 1,
+    overrideAccess: true,
+    pagination: false,
+    showHiddenFields: true,
+    where: { requestId: { equals: adminActivity.requestId } },
+  });
+  assert.equal(activityReadAudit.docs[0]?.tool, "admin_recent_activity");
+  assert.equal(activityReadAudit.docs[0]?.objectType, "account");
+  assert.equal(activityReadAudit.docs[0]?.result, "success");
+  assert.equal(activityReadAudit.docs[0]?.objectId, null);
+  assert.equal(activityReadAudit.docs[0]?.inputFingerprint, null);
+  assert.equal(JSON.stringify(activityReadAudit.docs).includes("agent004-secret"), false);
+
+  assert.equal((await editorService.adminRecentActivity()).error?.code, "FORBIDDEN");
+  assert.equal((await serviceB.adminRecentActivity()).error?.code, "FORBIDDEN");
+  await payload.update({ collection: "users", id: admin.user.id, data: { role: "editor" }, overrideAccess: true });
+  assert.equal((await adminService.adminRecentActivity()).error?.code, "FORBIDDEN");
+  await payload.update({ collection: "users", id: admin.user.id, data: { role: "super_admin" }, overrideAccess: true });
+  await payload.update({ collection: "users", id: admin.user.id, data: { accountStatus: "paused" }, overrideAccess: true });
+  assert.equal((await adminService.adminRecentActivity()).error?.code, "ACCOUNT_PAUSED");
+  await payload.update({ collection: "users", id: admin.user.id, data: { accountStatus: "active" }, overrideAccess: true });
+  await payload.update({ collection: "users", id: noPerson.user.id, data: { role: "super_admin" }, overrideAccess: true });
+  assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).adminRecentActivity()).error?.code, "NO_PERSON");
+  await payload.update({ collection: "users", id: noPerson.user.id, data: { role: "author" }, overrideAccess: true });
+  const revokedActivityConnection = await connection(payload, admin, oauthClient);
+  const revokedActivityService = AgentMemberService.fromPayload(payload, auth(admin, oauthClient, revokedActivityConnection.id));
+  await payload.update({ collection: "agent-connections", id: revokedActivityConnection.id, data: { state: "revoked", revokedAt: new Date().toISOString() }, overrideAccess: true });
+  assert.equal((await revokedActivityService.adminRecentActivity()).error?.code, "CONNECTION_REVOKED");
+  await payload.update({ collection: "agent-oauth-clients", id: oauthClient.id, data: { disabled: true }, overrideAccess: true });
+  assert.equal((await adminService.adminRecentActivity()).error?.code, "CONNECTION_REVOKED");
+  await payload.update({ collection: "agent-oauth-clients", id: oauthClient.id, data: { disabled: false }, overrideAccess: true });
+
   const sensitiveAudit = await payload.find({
     collection: "agent-events",
     depth: 0,
@@ -1095,11 +1196,14 @@ try {
   assert.equal(editorCapabilities.ok, true);
   assert.equal(adminCapabilities.ok, true);
   assert.equal(memberCapabilities.ok, true);
-  assert.deepEqual(editorCapabilities.data?.tools, adminCapabilities.data?.tools);
+  assert.deepEqual(adminCapabilities.data?.tools, [...(editorCapabilities.data?.tools ?? []), "admin_recent_activity"]);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_article_get"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_prepare_site_selection"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_commit_site_selection"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("admin_recent_activity"), false);
+  assert.equal(adminCapabilities.data?.tools.includes("admin_recent_activity"), true);
   assert.equal(memberCapabilities.data?.tools.includes("editorial_article_get"), false);
+  assert.equal(memberCapabilities.data?.tools.includes("admin_recent_activity"), false);
   assert.equal(editorCapabilities.data?.role, "editor");
   assert.equal(adminCapabilities.data?.role, "super_admin");
 
@@ -1137,6 +1241,19 @@ try {
   assert.equal(editorToolNames.includes("editorial_article_get"), true);
   assert.equal(editorToolNames.includes("editorial_prepare_site_selection"), true);
   assert.equal(editorToolNames.includes("editorial_commit_site_selection"), true);
+  assert.equal(editorToolNames.includes("admin_recent_activity"), false);
+
+  const adminToolToken = await exchangeCode(payload, admin, oauthFixtureClient, "admin-tools", "agent:member");
+  const adminToolsResponse = await gateway(mcpRequest(adminToolToken.access_token, "tools/list", {}, 12));
+  assert.equal(adminToolsResponse.status, 200);
+  const adminToolsBody = await mcpJSON(adminToolsResponse) as { result?: { tools?: { name: string }[] } };
+  const adminToolNames = adminToolsBody.result?.tools?.map(({ name }) => name) ?? [];
+  assert.equal(adminToolNames.includes("admin_recent_activity"), true);
+  const adminActivityResponse = await gateway(mcpRequest(adminToolToken.access_token, "tools/call", { name: "admin_recent_activity", arguments: {} }, 13));
+  assert.equal(adminActivityResponse.status, 200);
+  const adminActivityBody = await mcpJSON(adminActivityResponse) as { result?: { structuredContent?: { data?: { count?: number }; ok?: boolean } } };
+  assert.equal(adminActivityBody.result?.structuredContent?.ok, true, JSON.stringify(adminActivityBody));
+  assert.equal(adminActivityBody.result?.structuredContent?.data?.count, 20);
 
   const contextResponse = await gateway(mcpRequest(token.access_token, "tools/call", { name: "account_context", arguments: {} }, 2));
   assert.equal(contextResponse.status, 200);
