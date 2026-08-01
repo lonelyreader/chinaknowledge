@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前没有 implementation active checklist。004 已在独立 Local fixture 完成 Super Admin 最近 20 条 Article workflow activity 的最小只读工具，角色、账户、Person、connection、client、字段隔离、领域不变和 Agent 审计测试及独立复审均通过，专用 fixture 已删除；邀请、角色、暂停/恢复和其他账户/身份动作未进入，Preview 未执行。002 的 Preview 测试身份、内容、连接和 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。005 已启动 docs-only phase-release intake，第一道外部执行门收窄为受保护 Preview 上的 WorkBuddy 真实 OAuth/MCP 与 Cursor 回归；TRAE SOLO 版本/产品线差异、Agent endpoint 限流、最小可观测性、现有第 13 条 Agent migration 和 Production release 分别设门。当前没有授权产品代码、真实客户端登录、Preview、public MCP、provider 修改、migration 或 Production。002 的 Preview 测试身份、内容、连接和 OAuth client 已删除，Preview SSO 已恢复且 Gateway 回到默认关闭。Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 

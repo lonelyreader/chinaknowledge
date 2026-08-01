@@ -16,13 +16,13 @@ max_lines: 100
 
 父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。它记录 001–005 的关系和阶段转换，不授权实现。
 
-当前没有 implementation active checklist。[`AGENT-WORKSPACE-004`](../archive/agent-workspace-super-admin-activity-read.md) 的 Super Admin 最近 20 条 Article workflow activity 最小只读工具已完成 Local 实现、权限/隐私/不变性回归、独立复审和 fixture 清理；邀请、角色、暂停/恢复、Person、基础对象和其他写动作继续保留在网页后台。Preview/Production 未执行。
+当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。它以 phase-release 合同收口真实客户端兼容、运营保护、Preview rehearsal 与最终 Production release；当前只授权 docs-only intake。首个外部门是 WorkBuddy 真实兼容与 Cursor 回归，TRAE、限流/监控、Preview、migration、Production 和真实账户/数据仍分别批准。
 
 ## Deferred
 
 | 工作项 | 进入条件 |
 |---|---|
-| Agent Workspace 005 | 001–004 已关闭；005 的客户端兼容、监控、限流、恢复和 release 仍需用户批准并建立新的 active checklist |
+| 004 后的高风险账户动作 | 邀请、角色、暂停/恢复、Person、删除或批量动作出现独立需求后另建 upgraded capability checklist；不并入 005 release |
 | P3 平台深化 | 有真实访问、订阅和作者运营数据 |
 
 P0 Stitch 设计原型、P1 可运行公共产品切片、P1 编辑 CMS 基础、P2 Preview release candidate、Production launch 与 Payload-native Admin 重构已经完成，历史与交接见 [`archive`](../archive/README.md)。
