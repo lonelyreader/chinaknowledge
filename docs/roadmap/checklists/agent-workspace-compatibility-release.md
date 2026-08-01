@@ -154,9 +154,9 @@ flowchart LR
 
 ### Gate 5 — Production migration and staged release
 
-- [ ] 分别取得 database backup、migration 与 production deploy 批准；先备份/SHA/restore smoke，再 apply 既有 `20260730_181300`，读回 13 migrations 与 Agent tables 空基线。
-- [ ] 以 Gateway off 的 staged Production 验证公共站、CMS、health、metadata/MCP 404、日志、provider rules 和 rollback target；不绑定公开启用。
-- [ ] 独立 reviewer 给出 staged release `PASS/BLOCK`。
+- [x] Pre-migration backup run `30708739270` 完成 dump/SHA/readback 与 `33,12,12,8` restore；只应用既有 `20260730_181300`，读回 39 tables、13 migrations、6 Agent tables 与 `0/0/0` Agent 主表空基线；post-migration run `30708854966` 以新断言恢复 PASS。
+- [x] Gateway-off Production deployment `dpl_EcWc4j6xvHohk9JciWkhCr31CGQZ` 验证 public/CMS/health、全部 Agent 入口 `404`、request logs、live provider rules、数据库不变和旧 deployment rollback target；未绑定公开启用。
+- [x] 未主持执行者完成两个 backup run、schema evidence、Production deployments/aliases、关闭态 routes/logs、env/WAF、rollback、changed paths 与治理复审；结论 `PASS`，`P0/P1/P2 = 0/0/0`。
 
 ### Recovery amendment D — post-migration backup assertion
 
@@ -200,4 +200,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 4 已由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`：关闭态与临时开启态、真实公网 OAuth/MCP smoke、跨作者权限负例、revoke、request logs、DCR `429` 和精确恢复均已验证。stable alias 回指 `dpl_2NFvyEXSH52bsUDhFRPX7viRYvY6`，SSO 为 `all_except_custom_domains`，临时 env 为空，数据库为 `36/32/6/32/150/0/0/0/13`。当前进入 Gate 5，先冻结备份工作流适配合同再触碰 workflow 或 Production。
+Gate 5 已由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`：migration 前后 recovery point、既有 `20260730_181300`、空 Agent 主表、业务不变与 Gateway-off staged deployment 均已验证。当前进入 Gate 6 public enable；只使用当前已登录 Super Admin 做 OAuth/MCP 只读 smoke，不修改真实内容。

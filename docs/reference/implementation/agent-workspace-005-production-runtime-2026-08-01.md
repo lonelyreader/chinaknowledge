@@ -31,4 +31,22 @@ Gate 5 只应用仓库既有 migration `20260730_181300`，并以 Agent Gateway 
 
 ## Pending execution
 
-Recovery amendment D 已由未主持实现者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`。提交/push workflow 后按顺序执行：default branch 新 backup PASS → apply 既有 migration → 空 Agent tables readback → 本分支更新 workflow backup PASS → Gateway-off staged deployment。每一步失败即停止，不进入 Gate 6。
+Recovery amendment D 已由未主持实现者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`。
+
+## Backup and migration
+
+- 分支在 `451dcfd` 推送后，先从 default branch 触发 pre-migration backup run `30708739270`：dump 与 SHA readback PASS，isolated restore `33,12,12,8`，业务计数 `2/2/3/2/10`，media manifest/object readback PASS。Recovery point 时间为 `2026-08-01T16-43-17Z`。
+- Production migration status 再次读回只有 `20260730_181300` 未执行。首次 migration 命令受 env pull 中 Vercel 运行标记影响，进程 `0` 退出但没有 migration log；立即数据库读回仍为 `33/12` 且无 Agent table，证明没有半迁移。
+- 隔离进程只携带 Production `DATABASE_URL` 与 Local migration 所需最小配置，随后精确执行 `20260730_181300`，migration log 为 `Migrated (600ms)`。
+- 执行后读回 39 张 public table、13 条 migration、最后一条 `20260730_181300`、6 张 Agent table；`agent_oauth_clients/agent_connections/agent_events = 0/0/0`。业务计数仍为 `2/2/2/3/10`，没有改写既有真实对象。
+- 本分支更新 workflow 的 post-migration backup run `30708854966` PASS：dump/SHA readback、isolated restore `39,13,13,11`、业务计数 `2/2/3/2/10` 与 media readback 全部通过。Recovery point 时间为 `2026-08-01T16-46-26Z`。
+
+## Gateway-off staged release
+
+- Production env 没有 `AGENT_GATEWAY_ENABLED`，因此保持默认关闭；没有新增或改动 env。`PAYLOAD_PUBLIC_SERVER_URL` 继续使用既有 Production 值。
+- `npx vercel --prod --yes` 完成 environment check、Next build、typecheck 与 75 routes，deployment `dpl_EcWc4j6xvHohk9JciWkhCr31CGQZ` 为 Production / `READY`，并接管 `chinainfact.com`、`www` 与既有 Vercel aliases。
+- 关闭态 smoke：`/` 为 `307 → /en`，`/en`、`/en/stories`、Admin、health 为 `200`；protected-resource metadata、authorization-server metadata、authorize、DCR/token/revoke POST 与 MCP GET/POST 均 `404`。
+- Request logs 以 deployment/path/method/status 读回公共站/Admin/health 成功与 Agent 关闭态 `404`；没有读取 message、token、cookie、账号、正文或对话。5 条 Agent WAF rule 保持 live，threshold 未变，provider 无 pending draft。
+- Deployment 不隐式 migration：发布后数据库仍为 `39/13/0/0/0`，业务计数 `2/2/2/3/10`。旧 Production deployment `dpl_AtoZhpk3PudBrkZPq9NZfzDgxYbG` 仍为 `READY`，是明确代码 rollback target；schema 保留向后兼容的空 Agent tables，不执行 down migration。
+
+当前等待未主持执行者 Gate 5 staged release 独立复审；`PASS` 前不进入 public enable。

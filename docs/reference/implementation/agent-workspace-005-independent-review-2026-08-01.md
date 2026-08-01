@@ -5,7 +5,7 @@ authority: evidence
 status: active
 scope: agent-workspace-005-independent-review
 last_verified: 2026-08-01
-max_lines: 120
+max_lines: 160
 ---
 
 # Agent Workspace 005 Independent Review
@@ -104,3 +104,20 @@ Severity：`P0/P1/P2 = 0/0/0`
 - 顺序和恢复合同成立：migration 前先用 default branch 旧断言取得新 backup PASS；migration 后不得单独回退旧断言或执行 down migration，必须用本分支新断言完成恢复演练。
 
 Recovery amendment D 可以提交并按冻结顺序推进。
+
+## Gate 5 staged Production release
+
+Verdict：`PASS`
+
+Severity：`P0/P1/P2 = 0/0/0`
+
+复审者未主持 Gate 5 执行，并保持只读；用户 `outputs/**` 明确排除。
+
+- Pre-migration run `30708739270` 为 main / `6d89ee1` / success：dump SHA `OK`、restore `33,12,12,8`、业务 `2/2/3/2/10` 与 media readback PASS。
+- Post-migration run `30708854966` 为当前分支 / `451dcfd` / success：dump SHA `OK`、restore `39,13,13,11`、相同业务计数与 media readback PASS。
+- 新 Production deployment `dpl_EcWc4j6xvHohk9JciWkhCr31CGQZ` 为 `READY`，当前 Production aliases 均指向它；旧 `dpl_AtoZhpk3PudBrkZPq9NZfzDgxYbG` 仍为 `READY` rollback target。
+- Production env 不存在 `AGENT_GATEWAY_ENABLED`。公网 public/Admin/health 正常，metadata、authorize、DCR/token/revoke POST 与 MCP GET/POST 均 `404`；request logs 独立读回相同状态。
+- 5 条 Agent WAF rule live、threshold 不变，provider 无 draft/pending diff。Docs governance、feature registry、`git diff --check` 与 changed paths PASS。
+- Reviewer 按禁止 secret/DB 合同不重连 Production；migration 证据链为首次 no-log 后立即仍 `33/12/无 Agent table`，隔离进程明确只执行 `20260730_181300`，随后 `39/13/6 tables/0/0/0` 且业务 `2/2/2/3/10` 不变。前后两个外部 restore 进一步交叉验证，不构成证据缺口。
+
+Gate 5 可以关闭并进入 Gate 6 public enable。
