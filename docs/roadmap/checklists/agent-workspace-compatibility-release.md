@@ -128,11 +128,11 @@ flowchart LR
 ### Gate 3 — Operational protection
 
 - [x] 用户于 2026-08-01 以“批准剩余，开始推进”批准本 checklist 剩余 Gate 3–6 已冻结门禁；批准不扩大业务能力、schema、依赖、真实内容写入或 checklist 外路径。
-- [ ] 用 Preview 流量证据确定 DCR、authorize、token、revoke、MCP 的限流位置、key、window、threshold、429、绕过条件和恢复；provider rule 与代码分开批准。
-- [ ] 定义并验证最小运行事件、查询/告警、支持定位和隐私负例；domain audit 与 HTTP observability 不混为一张表。
-- [ ] 完成 connection/client cleanup、token replay、disabled Gateway、provider failure 和 rollback drill；不泄露凭据或内容。
-- [ ] 如需产品代码，先 amendment exact paths、测试和回退并进入 HEAD，再请求 `product-code`。
-- [ ] 独立 reviewer 给出运营门 `PASS/BLOCK`。
+- [x] 用 Preview 流量证据确定 DCR、authorize、token、revoke、MCP 的限流位置、key、window、threshold、429、绕过条件和恢复；5 条 provider rule 均为 exact path、Preview/Production、fixed-window/IP，且与代码分离。
+- [x] 定义并验证最小运行事件、查询/告警、支持定位和隐私负例；Firewall/request 层与既有 `agent_events` domain audit 分开，未启用付费 Metrics、Webhook、Log Drain 或新收件人。
+- [x] 完成 token replay、disabled Gateway、provider failure 和 disable/enable rollback drill；本门没有创建 connection/client/内容 fixture，未泄露凭据或内容。
+- [x] 本门不需要产品代码；5 条 WAF rule 与既有 Newsletter rule 均已读回 live，无 pending draft。
+- [x] 未主持执行者完成 live WAF、provider activity、SSO/Gateway、token replay、隐私、changed paths 与治理只读复审；结论 `PASS`，`P0/P1/P2 = 0/0/0`。
 
 ### Operational amendment C — Vercel WAF and support evidence
 
@@ -189,4 +189,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 2 已完成并由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`：WorkBuddy 完成真实 DCR/OAuth、9 tools、私有 draft workflow、跨作者拒绝、re-auth/reconnect、revoke failure，并在单一 Article publication prepare 呈现服务器确认后停止；Cursor 真实调用 `account_context + capabilities_list` 并形成两条成功服务端事件。没有 publication commit 或公共状态变化。Preview 数据、client 凭据、SSO、Gateway、alias 与两端本地配置均已精确恢复，证据见 [`Preview runtime`](../../reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md) 和 [`independent review`](../../reference/implementation/agent-workspace-005-independent-review-2026-08-01.md)。当前停在 Gate 3 前，provider、migration、真实账户/数据、Production、merge 和 push 仍未授权。
+Gate 3 已由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`：5 条 exact-path WAF rule 已经过 log-first、阈值 `429`、60 秒恢复、disabled Gateway、provider disable/enable rollback、无付费观测和 SSO 精确恢复验证。最终无 pending draft，Newsletter rule 未变化，Gateway 关闭，Preview SSO 为 `all_except_custom_domains`，没有 client、connection、Agent event 或内容 fixture。当前进入 Gate 4 Preview release rehearsal。

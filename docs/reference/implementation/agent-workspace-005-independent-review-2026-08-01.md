@@ -54,3 +54,20 @@ Severity：`P0/P1/P2 = 0/0/0`
 - 独立复跑 docs governance、feature registry 与 `git diff --check` 均 PASS；完整 intake 只因明确排除的用户 `outputs/**` 失败。
 
 Gate 2 客户端批次可以关闭。该结论不批准 Gate 3、provider、firewall、migration、Production、真实账户或真实数据。
+
+## Gate 3 operational protection
+
+Verdict：`PASS`
+
+Severity：`P0/P1/P2 = 0/0/0`
+
+复审者未主持 Gate 3 provider 执行，并保持只读；用户 `outputs/**` 明确排除。
+
+- Live WAF 有 5 条与 Operational amendment C 一致的 exact-path rule：均覆盖 Preview + Production，以 IP 为 key、fixed window、无持久封禁；DCR/token/revoke 限定 `POST`，authorize/MCP 保留协议所需 method。
+- 阈值分别为 `10/30/20/20/60` 每 60 秒；既有 Newsletter rule 保持 Production `POST /api/newsletter`、`5/600s/IP`。Firewall 开启、Attack Mode 关闭、IP block/system bypass 为空，draft 和 pending diff 为空。
+- Provider activity 的 log-first 与 rate-limit publish 相隔约 10 分 55 秒，并记录 disable/publish、enable/publish 与 SSO disable/restore，和执行证据时间线一致。
+- Preview SSO 当前为 `all_except_custom_domains`；匿名 public/Admin/health/metadata/MCP 均 `302`，保护绕过只读请求为 health `200`、Gateway-off MCP `404`。
+- Local token replay、connection compromised、后续 token 失效与专用数据库 cleanup 有测试断言；观测合同把 Firewall/request metadata 与 `agent_events` 分开，未引入付费 Metrics、Webhook、Log Drain、收件人或敏感字段。
+- 8 个非 `outputs/**` changed paths 均由 HEAD allowed paths 覆盖；`git diff --check`、docs governance 与 feature registry PASS。完整 intake 只被明确排除的用户 `outputs/**` 阻断。
+
+历史 dashboard 的 `Logged 5 / Allowed 178` 与逐请求 429 序列不能由 CLI 回放，只保存在本门 evidence；当前 live rules、发布时序和证据算术一致，不构成 finding。Gate 3 可以关闭并进入 Gate 4。
