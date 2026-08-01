@@ -98,15 +98,16 @@ flowchart LR
 
 - [x] 用户于 2026-08-01 批准 Preview deploy、public MCP、虚构 fixture 与真实客户端；已先备份/计数再临时开放。
 - [x] WorkBuddy 完成 DCR/PKCE/consent/9 tools、私有 Member create/get/save/readback/preview、跨作者拒绝和匿名 404；prepare 在未公开 Person 前置条件处失败，没有生成 confirmation 或调用 commit。
-- [ ] WorkBuddy 尚未呈现 publication prepare confirmation。用户明确批准公开虚构 Person 后的第三次重试已排除 profile 前置条件，但 WorkBuddy 停在本地 custom connector 重新认证状态，未重新取得 tools；没有创建 Article、调用 prepare 或调用 commit。
+- [x] WorkBuddy 在最终窄重试中对单一 Article `49` 真实调用 working-copy read 与 publication prepare，呈现服务器影响摘要和确认提示后明确停止；Article 保持 draft，`published_at` 为空，commit event 为 `0`。
 - [x] WorkBuddy 的 599 秒 access token 过期后进入 Unauthorized 并发起新 consent，人工重新授权成功；客户端只请求 `agent:member`，没有 refresh token，因此证明的是 re-auth/reconnect，不宣称 silent renewal。
 - [x] WorkBuddy connection 经 Member access endpoint 撤销并写 `connection_revoke` 审计；随后客户端看不到该 MCP 工具，未自动重新授权。
 - [x] Cursor 完成 `type:http`、8787 callback、deep-link/re-auth 与 9 tools discovery；不停止端口占用者。
-- [ ] Cursor 的 `account_context + capabilities_list` 实际调用没有形成服务端 tool event；Cursor Agents task 直接归档，只证明 authorization approval，不能把 discovery 算作 capability call PASS。
+- [x] Cursor 3.13.25 随附的官方 Agent CLI 经用户明确批准登录和 MCP OAuth 后，真实调用 `account_context + capabilities_list`；服务端分别形成 `success` tool event，未执行写工具。
 - [x] WorkBuddy 在 DCR callback 校验处 `400`，未进入 OAuth；已精确删除 fixture 与 4 条无关联旧 client，恢复 SSO/env/Gateway/客户端配置并读回关闭态与最终计数。
 - [x] amendment B 后的重试也已精确删除 Article/User/Person、10 个 DCR client、8 个 connection 与 18 个 Agent event，恢复 WorkBuddy/Cursor 配置、SSO、env、Gateway 和 stable alias；最终数据库计数回到重试前基线。
 - [x] 第三次重试精确删除 User `44`、公开 Person `39`、Media `14` 与 4 个临时 DCR client；没有 Article、workflow event、connection 或 Agent event。WorkBuddy/Cursor 配置逐字恢复，connector 禁用，Preview env/SSO/Gateway/alias 恢复，最终计数回到 `36/32/32/150/0/0/0/13`。
-- [ ] 独立 reviewer 对客户端批次给出 `PASS/BLOCK`；PASS 不自动进入 provider 或 Production。
+- [x] 最终窄重试精确删除单一 fixture、workflow/Agent events、connections 与 DCR clients；数据库回到 User/Person/Media/Article/workflow/OAuth client/connection/Agent event/migration `36/32/6/32/150/0/0/0/13`。WorkBuddy 已退出，Cursor CLI 已登出，两端配置逐字恢复；SSO 精确恢复 `all_except_custom_domains`，stable alias 回指关闭态部署，匿名 health/MCP 均为 `302`。
+- [x] 未主持本轮执行的独立 reviewer 给出 `PASS`，`P0/P1/P2 = 0/0/0`；结论不自动进入 Gate 3、provider 或 Production。
 
 ### Product amendment B — WorkBuddy exact redirect callback
 
@@ -176,4 +177,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 2 已证明 WorkBuddy 的真实 DCR/OAuth、9 tools、私有 draft workflow、跨作者拒绝、10 分钟后 re-auth/reconnect 与 revoke failure；没有提交任何公共状态动作。第三次明确授权的公开虚构 Person 重试排除了 prepare 的 profile 前置条件，但 WorkBuddy 停在客户端重新认证状态，未重新取得 tools；Cursor 到达真实 connector 认证确认卡，但没有形成实际 capability tool event。Preview 数据、client 凭据、env、SSO、Gateway、alias 与两端本地配置均已精确恢复，证据见 [`Preview runtime`](../../reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md)。因此 prepare confirmation 与 Cursor capability call 仍 open，不启动独立复审或 Gate 3；provider、migration、真实账户/数据、Production、merge 和 push 仍未授权。
+Gate 2 已完成并由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`：WorkBuddy 完成真实 DCR/OAuth、9 tools、私有 draft workflow、跨作者拒绝、re-auth/reconnect、revoke failure，并在单一 Article publication prepare 呈现服务器确认后停止；Cursor 真实调用 `account_context + capabilities_list` 并形成两条成功服务端事件。没有 publication commit 或公共状态变化。Preview 数据、client 凭据、SSO、Gateway、alias 与两端本地配置均已精确恢复，证据见 [`Preview runtime`](../../reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md) 和 [`independent review`](../../reference/implementation/agent-workspace-005-independent-review-2026-08-01.md)。当前停在 Gate 3 前，provider、migration、真实账户/数据、Production、merge 和 push 仍未授权。

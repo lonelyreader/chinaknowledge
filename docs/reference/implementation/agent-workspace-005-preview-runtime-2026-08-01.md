@@ -12,9 +12,9 @@ max_lines: 180
 
 ## Verdict
 
-`GATE 2 PARTIAL / PREVIEW RESTORED`
+`GATE 2 PASS / PREVIEW RESTORED`
 
-用户于 2026-08-01 批准本门的 Preview deploy、temporary public MCP、虚构 Preview fixture 与真实 WorkBuddy/Cursor client test。首次执行在 WorkBuddy DCR callback allowlist 处停止并完成清理；Product amendment B 通过后复用同一外部授权重试。重试证明了 WorkBuddy 的真实 OAuth/MCP 私有工作流、重新授权和撤销，也证明 Cursor 的 8787 callback、授权与工具发现。用户随后明确批准公开虚构 Person 的第三次窄重试和 Cursor capability call；两端都在客户端认证交互处提前阻塞，仍未补齐 WorkBuddy prepare confirmation 或 Cursor 实际 capability call，因此本门不判 PASS。
+用户于 2026-08-01 分别批准本门的 Preview deploy、temporary public MCP、虚构 Preview fixture、真实 WorkBuddy/Cursor client test，以及最终临时 OAuth 和 Cursor CLI 登录。早期三轮暴露并关闭了 WorkBuddy callback 与两端客户端交互问题；最终窄重试补齐 WorkBuddy publication prepare 确认呈现和 Cursor 实际 capability call。所有临时外部与本地状态已精确恢复，未主持本轮执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`。
 
 ## Frozen scope
 
@@ -103,3 +103,18 @@ Gate 2 保持 open。下一次只需补两项：在已验证可公开的虚构 P
 - WorkBuddy MCP/credentials 与 Cursor MCP 配置均与执行前备份逐字一致，WorkBuddy connector enable list 回到空；两个客户端均已退出。没有 publication commit、真实数据、Production、migration、provider、merge 或 push。
 - 两个临时 Preview env 已删除，SSO 恢复为 `all_except_custom_domains`。关闭态部署 `dpl_2NFvyEXSH52bsUDhFRPX7viRYvY6` 为 `READY`，stable alias 已回指该部署；匿名 health/MCP GET 为 `302`、匿名 MCP POST 为 `401`，经 Vercel 授权 health 为 `200`、Gateway-off MCP 为 `404`。
 - 临时环境、fixture/OAuth 凭据和辅助脚本已整体移至可恢复的 `/Users/gexu/.Trash/chinainfact-agent005-gate2-final-20260801-1726/`，没有进入仓库。
+
+## Final authorized client closure
+
+- 最终重试只处理一个虚构 Member、公开 Person/Media 和 Article `49`。WorkBuddy 5.3.5 完成 DCR、PKCE、浏览器 consent、custom-scheme callback 和 9 tools discovery。
+- WorkBuddy 真实调用 `article_get_working_copy`，随后以当前 revision 调用 `article_prepare_publication(targetStatus=published)`；服务器返回影响摘要和确认提示，客户端呈现后按任务要求停止。没有调用 `article_commit_publication` 或其他写工具。
+- 服务端事件读回为 WorkBuddy working-copy `success`、publication prepare `pending`；Article `49` 仍为 `_status=draft`、`published_at=NULL`，publication commit event 数量为 `0`。prepare 只创建待确认审计，不改变领域或公共状态。
+- Cursor 证据来自 Cursor 3.13.25 随附的官方 Cursor Agent CLI。用户明确批准 CLI 登录和 MCP OAuth；连接读回 9 tools 后，以只读 ask mode 实际调用 `account_context` 与 `capabilities_list`，服务端形成两条 `cursor / success` tool event。没有执行写工具。
+- WorkBuddy 已正常退出；Cursor CLI 已登出。WorkBuddy MCP、凭据、connector state 与 Cursor MCP 配置均和执行前备份逐字一致。
+- 清理按精确 fixture/client locator 删除 Article、Person、Media、User、workflow/Agent events、connections 与 OAuth clients。最终 User/Person/Media/Article/workflow/OAuth client/connection/Agent event/migration 为 `36/32/6/32/150/0/0/0/13`，与执行前基线一致。
+- stable alias 已回指关闭态部署；SSO 精确恢复 `all_except_custom_domains`，Gateway 保持默认关闭。匿名 health 与 MCP GET 均为 SSO `302`。没有新增 Preview env、deployment、schema、migration 或依赖。
+- 没有访问或修改 Production、真实账号、真实内容、provider/firewall、merge 或 push；code、token、state、client secret、fixture credential 与 confirmation reference 均未写入仓库。
+
+## Gate 2 handoff
+
+Gate 2 所需真实客户端证据与恢复读回已完整，未主持执行者按当前 phase-release 合同完成只读独立复审并给出 `PASS`。该结论不批准 Gate 3、migration 或 Production。

@@ -29,7 +29,7 @@ max_lines: 160
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；224 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
-- Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；005 Gate 2 三次临时开放后均已恢复原 SSO、删除临时 env 并回到 Gateway 默认关闭。重试用虚构 User/Person/Media/Article、DCR client、connection 与 Agent event 已精确删除；当前 User `36`、Person/Article `32/32`、workflow event `150`、OAuth client/connection/Agent event `0`。Production 仍为 12 条 migration、33 张表、1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇同一翻译组下的 Published + Curated Article、8 条 workflow event 和 0 Place，未执行 001 migration，也未复制 Preview 夹具。
+- Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；005 Gate 2 临时开放均已恢复原 SSO 并回到 Gateway 默认关闭。重试用虚构 User/Person/Media/Article、DCR client、connection、workflow 与 Agent event 已精确删除；当前 User/Person/Media/Article/workflow event 为 `36/32/6/32/150`，OAuth client/connection/Agent event 为 `0/0/0`。Production 仍为 12 条 migration、33 张表、1 名 Super Admin、1 个公开 Person、2 条已批准 Media、2 篇同一翻译组下的 Published + Curated Article、8 条 workflow event 和 0 Place，未执行 001 migration，也未复制 Preview 夹具。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
 ## 当前真相源
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。005 Gate 2 已证明 WorkBuddy 真实 OAuth、9 tools、私有 draft workflow、跨作者拒绝、10 分钟后重新授权和撤销失败关闭，也证明 Cursor 8787 callback、授权与 9 tools discovery。公开虚构 Person 重试已排除 prepare 的 profile 前置条件，但 WorkBuddy 停在客户端重新认证状态；Cursor 到达认证确认卡但没有实际 capability tool event，因此 Gate 2 仍 open。Preview 和客户端均已精确恢复，provider、migration、Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。005 Gate 2 已补齐真实客户端证据：WorkBuddy 完成 OAuth、9 tools、私有 draft workflow、跨作者拒绝、重新授权、撤销失败关闭，并在 publication prepare 呈现服务器确认后停止；Cursor 实际调用 `account_context + capabilities_list` 并形成成功服务端事件。没有 publication commit 或公共状态变化。Preview、客户端和数据库均已精确恢复，独立复审 `PASS`、`P0/P1/P2 = 0/0/0`；当前停在 Gate 3 前，provider、migration、Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 

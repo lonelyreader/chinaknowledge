@@ -38,3 +38,19 @@ Severity：`P0/P1/P2 = 0/0/0`
 - `git diff --check` 与 `git diff --cached --check`：PASS。
 
 Product amendment B 可以提交并进入已获授权的 Gate 2 重试。该结论不批准 provider、migration、Production、真实账户/数据、merge 或 push。
+
+## Gate 2 client batch
+
+Verdict：`PASS`
+
+Severity：`P0/P1/P2 = 0/0/0`
+
+复审者未主持本轮 WorkBuddy/Cursor 执行，并保持只读；用户 `outputs/**` 明确排除。
+
+- WorkBuddy 最终重试严格限于 Article `49` 的 working-copy 与 publication prepare；服务器确认已呈现，commit event 为 `0`，Article 仍为 draft，公共状态未改变。
+- Cursor 证据准确限定为 Cursor 3.13.25 随附的官方 Agent CLI；`account_context` 与 `capabilities_list` 均形成服务端 `success` event，没有把 GUI discovery 写成实际调用。
+- 数据库计数、SSO、Gateway、alias、WorkBuddy/Cursor 本地配置及 Cursor CLI 登录状态均有精确恢复读回。
+- 任务 changed paths 全部属于 `AGENT-WORKSPACE-005` allowed paths；未发现 secret、PII、越界产品代码或 Gate 3/Production 暗示授权。
+- 独立复跑 docs governance、feature registry 与 `git diff --check` 均 PASS；完整 intake 只因明确排除的用户 `outputs/**` 失败。
+
+Gate 2 客户端批次可以关闭。该结论不批准 Gate 3、provider、firewall、migration、Production、真实账户或真实数据。

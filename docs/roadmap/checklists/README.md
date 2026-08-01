@@ -14,7 +14,7 @@ max_lines: 80
 
 Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.md) 记录；父级不授权实现。
 
-当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](agent-workspace-compatibility-release.md)：Gate 2 已部分通过 WorkBuddy OAuth/MCP、re-auth/revoke 与 Cursor callback/discovery，仍缺 WorkBuddy prepare confirmation 和 Cursor capability call；Preview 已精确恢复。TRAE 不在范围，provider、migration、Production 和真实数据仍分别设门。
+当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](agent-workspace-compatibility-release.md)：Gate 2 已补齐 WorkBuddy publication prepare 确认呈现与 Cursor capability 实际调用，没有 commit 或公共状态变化；Preview、客户端和数据库已精确恢复，独立复审 `PASS`、`P0/P1/P2 = 0/0/0`。当前停在 Gate 3 前；TRAE 不在范围，provider、migration、Production 和真实数据仍分别设门。
 
 已完成的 [`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](../../archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](../../archive/agent-workspace-editor-site-curation.md)、[`AGENT-WORKSPACE-004`](../../archive/agent-workspace-super-admin-activity-read.md) 与 [`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 位于 archive。
 
