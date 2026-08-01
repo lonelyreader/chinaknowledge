@@ -9,7 +9,7 @@ max_lines: 320
 change_id: AGENT-WORKSPACE-005
 risk_tier: upgraded
 validation_profile: phase_release
-allowed_paths: apps/web/src/agent/access-route.ts, apps/web/src/agent/oauth-http.ts, apps/web/tests/agent-http.ts, docs/agent-workspace-requirements.md, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-compatibility-release.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-005-intake-2026-08-01.md, docs/reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md, docs/reference/implementation/agent-workspace-005-operational-readiness-2026-08-01.md, docs/reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-production-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-independent-review-2026-08-01.md, docs/archive/README.md, docs/archive/agent-workspace-compatibility-release.md
+allowed_paths: .github/workflows/production-backup.yml, apps/web/src/agent/access-route.ts, apps/web/src/agent/oauth-http.ts, apps/web/tests/agent-http.ts, docs/agent-workspace-requirements.md, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-compatibility-release.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-005-intake-2026-08-01.md, docs/reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md, docs/reference/implementation/agent-workspace-005-operational-readiness-2026-08-01.md, docs/reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-production-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-independent-review-2026-08-01.md, docs/archive/README.md, docs/archive/agent-workspace-compatibility-release.md
 approval_gates: product-code, real-client-login, preview-read, preview-deploy, public-mcp, preview-fixture, provider-config, firewall-rate-limit, database-backup, migration, real-account, real-data, production-deploy, production-public-enable, merge, push
 ---
 
@@ -157,6 +157,15 @@ flowchart LR
 - [ ] 分别取得 database backup、migration 与 production deploy 批准；先备份/SHA/restore smoke，再 apply 既有 `20260730_181300`，读回 13 migrations 与 Agent tables 空基线。
 - [ ] 以 Gateway off 的 staged Production 验证公共站、CMS、health、metadata/MCP 404、日志、provider rules 和 rollback target；不绑定公开启用。
 - [ ] 独立 reviewer 给出 staged release `PASS/BLOCK`。
+
+### Recovery amendment D — post-migration backup assertion
+
+- `scope/allowed_path`：只修改 `.github/workflows/production-backup.yml` 的 isolated restore schema assertion；不改 schedule、backup/export/upload、R2/Blob、secret/vars、media verification、migration 文件、应用代码或依赖。
+- `why`：当前 workflow 固定断言 Production 为 `33 tables / 12 migrations / 12 named migrations / 8 critical tables`；应用既有 `20260730_181300` 后会新增 6 张 Agent 表并登记第 13 条 migration，若不先适配，下一次恢复演练会把正确的新 schema 误报为失败。
+- `exact_change`：named migration 加 `20260730_181300`；critical table allowlist 只加 `agent_oauth_clients`、`agent_connections`、`agent_events`；accepted tuple 精确改为 `39,13,13,11`。三个关系子表参与 39 总表计数，但不扩大 critical business-table allowlist。
+- `sequence`：migration 前先在 default branch 运行现有 `33,12,12,8` workflow 并取得新 recovery point/SHA/restore PASS；workflow amendment 独立复审后推送本分支。migration 读回空 Agent 表后，在本分支运行更新后的 `39,13,13,11` workflow 并 PASS，之后才允许 closure/merge。
+- `risk/recovery`：风险是错误表数造成假绿或假红。用本地 isolated 12→13 migration fixture、YAML 解析、exact diff 和 GitHub isolated restore 验收；migration 前可回退单一 workflow commit，migration 后不得单独退回旧断言，也不执行 down migration。
+- `approval/review`：用户“批准剩余，开始推进”覆盖此 Gate 5 必要恢复适配；任何 backup destination、credential、retention、schedule、migration 内容或额外表均需新 amendment。未主持实现者 `PASS` 后才 push/运行更新 workflow。
 
 ### Gate 6 — Public enable and closure
 

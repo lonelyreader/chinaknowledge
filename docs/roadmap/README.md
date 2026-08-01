@@ -16,7 +16,7 @@ max_lines: 100
 
 父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。它记录 001–005 的关系和阶段转换，不授权实现。
 
-当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。Gate 4 独立复审 `PASS`，当前进入 Gate 5；先冻结备份工作流适配合同，再执行新备份、既有 migration 与 Gateway-off staged release。TRAE 不在当前适配范围。
+当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。Gate 4 独立复审 `PASS`；Gate 5 Recovery amendment D 已冻结，只允许适配 Production backup isolated restore 的 `39/13/13/11` schema assertion。TRAE 不在当前适配范围。
 
 ## Deferred
 
