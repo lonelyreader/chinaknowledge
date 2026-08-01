@@ -112,7 +112,11 @@ flowchart LR
 - `idempotency/audit`：本改动只影响 DCR 输入校验，不写 confirmation 或领域 audit；重复相同合法注册仍沿用现有独立 client 行语义，Preview 清理由精确 client ID 完成。
 - `recovery`：回退单一实现提交即可恢复旧 allowlist；无数据库、schema、env 或 provider 状态需要恢复。
 - `independent_review`：未主持实现者核对 exact allowlist、spoof negatives、Cursor/HTTPS/loopback 回归、changed paths 与无敏感日志；只有 `PASS` 才可重试 Gate 2。
-- `approval`：等待用户单独批准 `product-code`；此前不修改上述两个产品路径。
+- `approval`：用户于 2026-08-01 明确批准 `product-code`；不扩大到 Preview、provider、migration、Production 或其他产品路径。
+- [x] `validRedirectUri` 只增加 Cursor 与 WorkBuddy 两个精确 custom-scheme literal；WorkBuddy host、server key、query、hash、userinfo 与任意路径负例均拒绝。
+- [x] WorkBuddy 真实 DCR metadata fixture 返回 `201`，创建数据读回 `clientFamily=workbuddy` 与原样 callback；Cursor、HTTPS 和 loopback 回归通过。
+- [x] Agent 聚合测试、typecheck、lint 与 Local build 通过；lint 为 `0 error / 40` 条既有 migration warning，功能登记册指纹已同步。
+- [x] 未主持实现者完成 exact allowlist、spoof negatives、回归、changed paths 与无敏感日志独立复审；结论 `PASS`，`P0/P1/P2 = 0/0/0`。
 
 ### Gate 3 — Operational protection
 
@@ -166,4 +170,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 2 已按批准范围临时开放 Preview 并运行 WorkBuddy；真实 DCR 在精确 WorkBuddy callback 校验处 `400`，尚未进入 OAuth，证据见 [`Preview runtime`](../../reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md)。fixture、旧残留 clients、WorkBuddy 配置、Preview env、Gateway 与 SSO 已精确清理或恢复；Cursor 未在首客户端阻断后继续运行。当前等待 Product amendment B 的 `product-code` 批准；provider、migration、真实账户/数据、Production、merge 和 push 仍未授权。
+Gate 2 首次真实 WorkBuddy DCR 在 OAuth 前定位到 callback allowlist 缺口，fixture、旧残留 clients、WorkBuddy 配置、Preview env、Gateway 与 SSO 已精确清理或恢复，证据见 [`Preview runtime`](../../reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md)。Product amendment B 已完成 Local 实现、验证与独立复审，结论 `PASS`、`P0/P1/P2 = 0/0/0`；当前按既有授权重试 Gate 2 的 WorkBuddy OAuth/MCP 与 Cursor 回归。provider、migration、真实账户/数据、Production、merge 和 push 仍未授权。

@@ -92,6 +92,14 @@ assert.equal(validRedirectUri("https://agent.example/callback"), true);
 assert.equal(validRedirectUri("http://localhost:4321/callback"), true);
 assert.equal(validRedirectUri("cursor://anysphere.cursor-mcp/oauth/callback"), true);
 assert.equal(validRedirectUri("cursor://other/callback"), false);
+const workbuddyRedirectUri = "workbuddy://workbuddy/mcp/custom-mcp%3Achina-in-fact/oauth/callback";
+assert.equal(validRedirectUri(workbuddyRedirectUri), true);
+assert.equal(validRedirectUri("workbuddy://other/mcp/custom-mcp%3Achina-in-fact/oauth/callback"), false);
+assert.equal(validRedirectUri("workbuddy://workbuddy/mcp/custom-mcp%3Aother/oauth/callback"), false);
+assert.equal(validRedirectUri(`${workbuddyRedirectUri}?next=other`), false);
+assert.equal(validRedirectUri(`${workbuddyRedirectUri}#other`), false);
+assert.equal(validRedirectUri("workbuddy://user@workbuddy/mcp/custom-mcp%3Achina-in-fact/oauth/callback"), false);
+assert.equal(validRedirectUri("workbuddy://workbuddy/oauth/callback"), false);
 assert.equal(validRedirectUri("https://user:pass@agent.example/callback"), false);
 assert.equal(validAuthorizePostOrigin(new Headers({ origin }), origin), true);
 assert.equal(validAuthorizePostOrigin(new Headers({ origin: "https://attacker.example" }), origin), false);
@@ -140,11 +148,13 @@ const oversizedRevoke = await handleRevokePost(new Request(`${origin}/api/agent/
 assert.equal(oversizedRevoke.status, 413);
 
 let expiredClientDeleted = false;
+let createdRegistrationData: Record<string, unknown> | undefined;
 const registrationPayload = {
   async count({ collection }: { collection: string }) {
     return { totalDocs: collection === "agent-connections" ? 0 : 0 };
   },
   async create({ data }: { data: Record<string, unknown> }) {
+    createdRegistrationData = data;
     return { id: 2, createdAt: new Date().toISOString(), ...data };
   },
   async delete() {
@@ -161,6 +171,21 @@ const registered = await handleRegistrationPost(new Request(`${origin}/api/agent
 }), registrationPayload);
 assert.equal(registered.status, 201);
 assert.equal(expiredClientDeleted, true);
+
+const workbuddyRegistered = await handleRegistrationPost(new Request(`${origin}/api/agent/oauth/register`, {
+  method: "POST",
+  headers: { "content-type": "application/json" },
+  body: JSON.stringify({
+    client_name: "WorkBuddy Connector (custom-mcp:china-in-fact)",
+    grant_types: ["authorization_code", "refresh_token"],
+    redirect_uris: [workbuddyRedirectUri],
+    response_types: ["code"],
+    token_endpoint_auth_method: "none",
+  }),
+}), registrationPayload);
+assert.equal(workbuddyRegistered.status, 201);
+assert.equal(createdRegistrationData?.clientFamily, "workbuddy");
+assert.deepEqual(createdRegistrationData?.redirectUris, [{ uri: workbuddyRedirectUri }]);
 
 function authorizeUrl() {
   return `${urls.authorization.href}?${authorize.toString()}`;

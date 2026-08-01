@@ -439,11 +439,16 @@ export async function handleRevokePost(request: Request, payload: Payload, secre
   }
 }
 
+const supportedCustomRedirectUris = new Set([
+  "cursor://anysphere.cursor-mcp/oauth/callback",
+  "workbuddy://workbuddy/mcp/custom-mcp%3Achina-in-fact/oauth/callback",
+]);
+
 export function validRedirectUri(value: string) {
   try {
     const url = new URL(value);
     if (url.username || url.password || url.hash || value.length > 2048) return false;
-    if (url.href === "cursor://anysphere.cursor-mcp/oauth/callback") return true;
+    if (supportedCustomRedirectUris.has(url.href)) return true;
     if (url.protocol === "https:") return true;
     return url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
   } catch {

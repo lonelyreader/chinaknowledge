@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。005 Gate 2 已在受保护 Preview 运行真实 WorkBuddy 5.3.5：metadata 与 MCP challenge 正常，DCR 因精确 `workbuddy:` callback 未进入服务器 allowlist 而 `400`，未进入 OAuth、token、connection 或工具调用，Cursor 随即停止。Product amendment B 已冻结为两个产品路径的 exact allowlist 修复，等待 `product-code`；Preview、fixture、旧 clients 与 WorkBuddy 配置均已恢复或清理。provider、migration、Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。005 Gate 2 首次真实 WorkBuddy DCR 在 OAuth 前定位到精确 callback allowlist 缺口；Product amendment B 已用两个产品路径完成 exact literal 修复、Local 负例和独立复审，结论 `PASS`、`P0/P1/P2 = 0/0/0`。Preview、fixture、旧 clients 与 WorkBuddy 配置均已恢复或清理，当前按既有授权重试 WorkBuddy/Cursor；provider、migration、Production、真实成员和真实内容均未触碰，现网仍没有 Agent 产品入口。
 
 ## 当前运行边界
 

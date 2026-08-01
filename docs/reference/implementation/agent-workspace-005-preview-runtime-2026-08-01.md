@@ -56,4 +56,6 @@ max_lines: 180
 
 ## Root cause and next gate
 
-最小修复是只允许上面的 WorkBuddy 精确 callback literal，并保留 Cursor、HTTPS 与 loopback 现有行为。扩大任意 `workbuddy:` scheme 会把 authorization code 交给非预期客户端，因此 amendment 必须有相似 URI 拒绝测试。产品代码尚未获该 amendment 授权；Gate 2 保持 blocked，等待 `product-code` 批准后先做 Local 实现、负例与独立复审，再复用已批准的 Gate 2 外部验收范围。
+最小修复是只允许上面的 WorkBuddy 精确 callback literal，并保留 Cursor、HTTPS 与 loopback 现有行为。扩大任意 `workbuddy:` scheme 会把 authorization code 交给非预期客户端，因此 amendment 必须有相似 URI 拒绝测试。
+
+用户已于 2026-08-01 明确批准 Product amendment B 的 `product-code`。Local 实现只修改 `oauth-http.ts` 与 `agent-http.ts`：WorkBuddy 精确 callback 和真实 DCR metadata fixture 通过，其他 host、server key、query、hash、userinfo 与任意 WorkBuddy 路径均拒绝；Cursor、HTTPS 与 loopback 不回归。`test:agent`、typecheck、lint 和 build 已通过，lint 为 `0 error / 40` 条既有 migration warning。未主持实现者独立复审 `PASS`、`P0/P1/P2 = 0/0/0`；可以复用已批准的 Gate 2 外部验收范围。

@@ -16,7 +16,7 @@ max_lines: 100
 
 父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。它记录 001–005 的关系和阶段转换，不授权实现。
 
-当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。Gate 2 已按批准范围运行真实 WorkBuddy，DCR 在精确 `workbuddy:` callback 校验处停止，未进入 OAuth；Preview、fixture、旧 clients 与客户端配置已恢复或清理。当前 Product amendment B 只允许两个产品路径做 exact allowlist 修复，等待 `product-code`；Cursor 重试、限流/监控、migration、Production 和真实账户/数据仍按既定门禁推进。TRAE 不在当前适配范围。
+当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](checklists/agent-workspace-compatibility-release.md)。Gate 2 首次真实 WorkBuddy DCR 定位到精确 callback allowlist 缺口；Product amendment B 已在两个产品路径完成 Local 修复、负例与独立复审，`PASS`、`P0/P1/P2 = 0/0/0`。当前按既有授权重试 WorkBuddy/Cursor；限流/监控、migration、Production 和真实账户/数据仍按既定门禁推进。TRAE 不在当前适配范围。
 
 ## Deferred
 
