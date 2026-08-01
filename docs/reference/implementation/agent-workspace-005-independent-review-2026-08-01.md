@@ -88,3 +88,19 @@ Severity：`P0/P1/P2 = 0/0/0`
 - 按禁止 env pull/secret 的审计边界，reviewer 没有重新连接 Preview DB；最终 `36/32/6/32/150/0/0/0/13`、39 tables 依赖执行者的 exact locator、删除前断言、删除顺序和最终聚合证据。当前 env、SSO、alias、Gateway/WAF 无残留，与该清理结论一致，不构成 finding。
 
 Gate 4 可以关闭并进入 Gate 5。
+
+## Gate 5 Recovery amendment D
+
+Verdict：`PASS`
+
+Severity：`P0/P1/P2 = 0/0/0`
+
+复审者未参与 workflow 实现，并保持只读；用户 `outputs/**` 明确排除。
+
+- 唯一实现路径为 `.github/workflows/production-backup.yml`，由 HEAD `6bc2815` 精确授权。
+- Workflow diff 只增加 named migration `20260730_181300`、三个 Agent 主表，并把 accepted tuple 从 `33,12,12,8` 改为 `39,13,13,11`；schedule、export/upload、R2/Blob、secret/vars、media verification、migration、应用代码和依赖均未变化。
+- migration 源码创建 3 张主表与 3 张关系子表，因此 public tables 为 `33 + 6 = 39`；migration、named migration、critical tables 分别为 `12 + 1 = 13`、`12 + 1 = 13`、`8 + 3 = 11`。
+- Local 13-migration fixture 的 `39,13,13,11` 写回与源码和 workflow SQL 一致；Ruby YAML parse、`git diff --check`、docs governance、feature registry 与 changed-path coverage PASS。
+- 顺序和恢复合同成立：migration 前先用 default branch 旧断言取得新 backup PASS；migration 后不得单独回退旧断言或执行 down migration，必须用本分支新断言完成恢复演练。
+
+Recovery amendment D 可以提交并按冻结顺序推进。

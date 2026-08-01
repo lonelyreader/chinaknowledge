@@ -166,6 +166,8 @@ flowchart LR
 - `sequence`：migration 前先在 default branch 运行现有 `33,12,12,8` workflow 并取得新 recovery point/SHA/restore PASS；workflow amendment 独立复审后推送本分支。migration 读回空 Agent 表后，在本分支运行更新后的 `39,13,13,11` workflow 并 PASS，之后才允许 closure/merge。
 - `risk/recovery`：风险是错误表数造成假绿或假红。用本地 isolated 12→13 migration fixture、YAML 解析、exact diff 和 GitHub isolated restore 验收；migration 前可回退单一 workflow commit，migration 后不得单独退回旧断言，也不执行 down migration。
 - `approval/review`：用户“批准剩余，开始推进”覆盖此 Gate 5 必要恢复适配；任何 backup destination、credential、retention、schedule、migration 内容或额外表均需新 amendment。未主持实现者 `PASS` 后才 push/运行更新 workflow。
+- [x] Workflow exact diff、YAML parse、13 条 migration 专用 Local fixture 与 `39,13,13,11` exact SQL 通过；fixture 已删除，Local PostgreSQL 已停止。
+- [x] 未主持实现者完成 Recovery amendment D changed-path、schema assertion、回退与本地证据独立复审；结论 `PASS`，`P0/P1/P2 = 0/0/0`，可以提交/push workflow。
 
 ### Gate 6 — Public enable and closure
 
