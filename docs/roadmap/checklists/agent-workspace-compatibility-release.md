@@ -9,7 +9,7 @@ max_lines: 320
 change_id: AGENT-WORKSPACE-005
 risk_tier: upgraded
 validation_profile: phase_release
-allowed_paths: docs/agent-workspace-requirements.md, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-compatibility-release.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-005-intake-2026-08-01.md, docs/reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md, docs/reference/implementation/agent-workspace-005-operational-readiness-2026-08-01.md, docs/reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-production-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-independent-review-2026-08-01.md, docs/archive/README.md, docs/archive/agent-workspace-compatibility-release.md
+allowed_paths: apps/web/src/agent/access-route.ts, apps/web/tests/agent-http.ts, docs/agent-workspace-requirements.md, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-compatibility-release.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-005-intake-2026-08-01.md, docs/reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md, docs/reference/implementation/agent-workspace-005-operational-readiness-2026-08-01.md, docs/reference/implementation/agent-workspace-005-preview-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-production-runtime-2026-08-01.md, docs/reference/implementation/agent-workspace-005-independent-review-2026-08-01.md, docs/archive/README.md, docs/archive/agent-workspace-compatibility-release.md
 approval_gates: product-code, real-client-login, preview-read, preview-deploy, public-mcp, preview-fixture, provider-config, firewall-rate-limit, database-backup, migration, real-account, real-data, production-deploy, production-public-enable, merge, push
 ---
 
@@ -17,7 +17,7 @@ approval_gates: product-code, real-client-login, preview-read, preview-deploy, p
 
 目标：用真实客户端和可运营保护把 001–004 已完成的 Agent capability 收口为可恢复的 Production release。005 不新增 Member、Editor 或 Super Admin 业务动作；它验证客户端、连接寿命、callback、分发、限流、可观测性、支持、migration 与 staged release。
 
-当前 `allowed_paths` 只允许 intake、证据与 release 文档。若真实兼容或运营预检发现必须修改代码、配置、workflow 或 provider，先把最小路径和验收 amendment 提交到 HEAD，再请求相应授权；本 checklist 不能用宽目录提前授权未知修复。
+当前 `allowed_paths` 除 intake、证据与 release 文档外，只增加 Gate 1 已定位的 adapter 下载实现和对应测试。任何其他代码、配置、workflow 或 provider 修复都要先把最小路径和验收 amendment 提交到 HEAD，再请求相应授权；本 checklist 不能用宽目录提前授权未知修复。
 
 ## Scope
 
@@ -77,9 +77,18 @@ flowchart LR
 
 ### Gate 1 — Real-client preflight
 
-- [ ] 得到 `real-client-login + preview-read` 批准后，只读核对 WorkBuddy 当前登录可用性、Preview project/SSO/Gateway/env、数据库与 callback 端口；不改变状态。
-- [ ] 固定 WorkBuddy/Cursor 实际配置格式、callback、DCR client family 和清理 locator。
-- [ ] 若发现 server incompatibility，只写诊断和精确 amendment；不在本门改代码。
+- [x] 用户以“继续推进”批准 `real-client-login + preview-read`；只读核对 WorkBuddy 当前登录可用性、Preview project/SSO/Gateway/env、数据库与 callback，没有改变外部状态。
+- [x] 固定 WorkBuddy/Cursor 实际配置格式、callback、DCR client family 和清理 locator；发现 Preview 有 4 条无 connection/event 的既有 Cursor DCR client，保持原状并登记为下一门精确清理候选。
+- [x] 发现 adapter 下载实现仍暴露 TRAE，且 Cursor/WorkBuddy JSON 未显式声明 `type: "http"`；已写诊断和以下精确 product amendment，本门不改代码。
+
+### Product amendment A — Client config correction
+
+- `scope`：从 Agent access adapter/download 移除 TRAE；Cursor 与 WorkBuddy 下载配置固定为顶层 `mcpServers` 下的 `{ type: "http", url }`。
+- `allowed_paths`：仅 `apps/web/src/agent/access-route.ts` 与 `apps/web/tests/agent-http.ts`；不改注册、OAuth、Gateway、UI、schema、migration 或依赖。
+- `acceptance`：开启态 adapter 列表不含 TRAE，`download=trae` 返回 404；Cursor/WorkBuddy fixture 精确断言 `type=http`、正确 URL 且无 header/token；其他四个 adapter 和关闭态 404 不回归。
+- `validation`：`npm --prefix apps/web run test:agent:http`、`npm --prefix apps/web run typecheck`、`npm --prefix apps/web run lint`、feature registry、治理检查与 `git diff --check`。
+- `recovery`：回退该单一实现提交即可恢复旧下载形状；本 amendment 不写数据库或外部环境。
+- `approval`：只有得到 `product-code` 批准后才能实现；实现 PASS 也不自动批准 Preview/public MCP/fixture。
 
 ### Gate 2 — Protected Preview compatibility
 
@@ -141,4 +150,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 0 intake 已完成，等待用户决定是否批准 Gate 1 的 `real-client-login + preview-read` 只读预检。当前 checklist 不授权产品代码、客户端登录、Preview/Production 写入、public MCP、provider 配置、migration、真实账户/数据、merge 或 push。
+Gate 1 只读预检已完成，证据见 [`client compatibility`](../../reference/implementation/agent-workspace-005-client-compatibility-2026-08-01.md)。当前等待 `product-code` 批准 Product amendment A；Preview deploy/public MCP/fixture、provider 配置、migration、真实账户/数据、Production、merge 和 push仍未授权。
