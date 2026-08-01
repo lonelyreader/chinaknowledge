@@ -2,9 +2,9 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-workspace-compatibility-release
-last_verified: 2026-08-01
+last_verified: 2026-08-02
 max_lines: 320
 change_id: AGENT-WORKSPACE-005
 risk_tier: upgraded
@@ -171,9 +171,9 @@ flowchart LR
 
 ### Gate 6 — Public enable and closure
 
-- [ ] 单独取得 `production-public-enable` 和必要真实账户批准；先最小 allowlist/rollout，再验证 OAuth、tools、permission negative、revoke、rate-limit、logs 与 support。
-- [ ] 任何真实 Member 接入、真实内容修改或公开状态动作另行确认；005 release 本身不授权。
-- [ ] 更新 current、feature registry、parent、evidence 与 runbook；最终独立复审 PASS 后归档并提交 closure。
+- [x] 用户明确批准 `production-public-enable`、现有真实 Super Admin 登录和冻结的只读 smoke；Production Gateway 已公开启用，现有账号完成 DCR + PKCE、13 tools、`account_context`、`capabilities_list`、`admin_recent_activity`、危险 commit 负例、revoke 和旧 token `401`。
+- [x] 真实 Member 接入、真实内容修改和公开状态动作均未执行；Article、User、Person、Media 与 workflow 读回不变。临时 client、revoked connection、6 条 Agent event、回调、token 和本地脚本已精确清理。
+- [x] Current、feature registry、parent、evidence 与 routers 已写回；未主持执行者最终独立复审 `PASS`，`P0/P1/P2 = 0/0/0`，可以归档并提交 closure。
 
 ## Acceptance
 
@@ -200,4 +200,4 @@ flowchart LR
 
 ## Current gate
 
-Gate 5 已由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`：migration 前后 recovery point、既有 `20260730_181300`、空 Agent 主表、业务不变与 Gateway-off staged deployment 均已验证。当前进入 Gate 6 public enable；只使用当前已登录 Super Admin 做 OAuth/MCP 只读 smoke，不修改真实内容。
+Gate 6 最终独立复审 `PASS`，`P0/P1/P2 = 0/0/0`。Production deployment 为 `dpl_2praoBzrH9hhuAMMmJYR3nCexQB4 / READY / production`，Gateway 公开启用；数据库为 `39/13`、Agent `0/0/0`、业务 `2/2/2/3/10`，真实内容、账号和角色未改写。005 已完成并归档。

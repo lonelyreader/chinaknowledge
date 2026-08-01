@@ -4,10 +4,10 @@ doc_type: current
 authority: canonical
 status: active
 scope: implemented-app-features
-last_verified: 2026-08-01
+last_verified: 2026-08-02
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:d71a7290d30255b55c47b54f18264df03ee4fef89e9f4d0be28515543e5353a1
+implementation_fingerprint: sha256:7bff03c551ef5bdf992f0017877da4e5a0afbb9be6907e4b8d3c52770fbcf25f
 ---
 
 # App 功能登记册
@@ -78,7 +78,7 @@ Editor 负责选择和组织成员已经公开的内容。若 Editor 账户同�
 | EDT-05 | 内容分类 | 设置 Guide、Reporting、Analysis、First person、Update，并关联 Purpose、Topic、Geography、Situation | Article 的 Site 模式 |
 | EDT-06 | 来源与时效 | 记录来源、核对说明、Freshness 日期和编辑意见 | Article 的 Site 模式；核对说明不对匿名读者公开 |
 | EDT-07 | 媒体公开确认 | 核对封面、图片说明和媒体公开使用状态 | Article/Images；未获站方确认的媒体不能进入站方策展入口 |
-| EDT-08 | 站方选择流程 | Select、Editing、Add to site、Remove from site，并在正式加入网站前查看标题、作者、栏目、语言、URL、封面、来源、分类和时效检查；Local Agent 可对一篇明确的跨作者 Article 读取、确认 Add 并确认 Remove | 网页 Article Site curation；Agent 只开放 exact read 与确认后的站方收录，不开放普通保存、队列或批量能力 |
+| EDT-08 | 站方选择流程 | Select、Editing、Add to site、Remove from site，并在正式加入网站前查看标题、作者、栏目、语言、URL、封面、来源、分类和时效检查；Agent 可对一篇明确的跨作者 Article 读取、确认 Add 并确认 Remove | 网页 Article Site curation；Production Agent Gateway 已启用，仍只开放 exact read 与确认后的站方收录，不开放普通保存、队列或批量能力 |
 | EDT-09 | 首页排期 | 设置 Lead/Selected 位置及开始、结束时间；没有人工排期时由合格内容自动回退 | Article 的 Site 模式和首页 |
 | EDT-10 | 更新复核 | Member 修改已被选择的文章后，文章自动进入 Needs recheck 并暂离官方入口；Editor 可重新确认 | Needs attention 与 Article |
 | EDT-11 | 作者通知 | 从文章向原作者发送策展相关事务通知；失败会被记录且可重试 | Article 的 Notify author |
@@ -98,7 +98,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | ADM-06 | Categories 管理 | 维护 Purpose、Topic、Geography、Situation 等分类及英西名称、slug | Categories |
 | ADM-07 | Places 管理 | 维护地点名称、摘要、封面、所属 Geography、英西 slug 与公开状态 | Places；地点页自动聚合相关人物和文章 |
 | ADM-08 | Images 管理 | 查看和管理图片、上传者、图片说明和公开使用状态 | Images；创建、读取、修改和删除均受角色权限控制 |
-| ADM-09 | Activity 审计 | 查看文章发布、策展、通知等工作流事件及操作者、前后状态和时间 | Activity 记录只读；Agent 的 Super Admin-only 最近 20 条最小读取已完成 Local 验证与独立复审，Preview/Production 未开启 |
+| ADM-09 | Activity 审计 | 查看文章发布、策展、通知等工作流事件及操作者、前后状态和时间 | Activity 记录只读；Agent 的 Super Admin-only 最近 20 条最小读取已在 Production 完成真实 OAuth 只读 smoke，不返回输入或私密字段 |
 | ADM-10 | 全量内容管理 | 访问全部 Articles、People、Images、Categories、Places 和 Members | 后台主导航；权限仍由服务端执行 |
 
 ## 运营与维护
@@ -119,6 +119,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-10 | 批量账户准备 | 从受控 JSON 预检或建立 Member/Editor；限制字段、批量规模和冲突 | `cms:provision-accounts`，默认 dry-run |
 | OPS-11 | 搜索索引开关 | 只有明确启用的 Production 可索引；Preview 和预览内容保持 noindex | 环境变量、robots、页面 metadata |
 | OPS-12 | 自动质量门禁 | PR 自动运行治理、功能登记同步、环境、migration、编辑权限、Newsletter、lint、typecheck、依赖审计、build 和公共路由 smoke | GitHub Preview checks |
+| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、发布、策展和最小审计工具，并随时撤销连接 | Production `/api/agent/*`；WorkBuddy 与 Cursor 已完成真实客户端兼容验收，Codex、Claude、Gemini 目前只提供配置 adapter；不支持 TRAE 或静态 API key。公共动作继续要求服务器确认、revision、幂等、审计与 readback |
 
 ## 当前明确不提供
 
@@ -128,7 +129,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 - 在 App 内撰写和群发 Newsletter、管理退订或查看邮件营销分析；当前 App 只提供订阅入口，名单和发送由 Resend 承担。
 - App 内 Discord 账号绑定、成员同步或聊天；当前只提供外部社群入口。
 - 自动翻译文章或 Person 文案；English 与 Español 内容由人分别维护。
-- 通过 Agent 操作 Production 账户或文章；Agent Workspace 001–002 已完成 Local 与受控 Preview 的 Member OAuth、草稿和确认式 publication，003 完成 Local 的单 Article Editor exact read、确认 Add 和 Remove，004 完成 Local 的 Super Admin-only 最近 20 条 workflow activity 最小读取。005 adapter 只保留 Cursor、WorkBuddy、Codex、Claude、Gemini，Cursor/WorkBuddy 使用显式 HTTP MCP 配置；WorkBuddy Preview OAuth、私有 draft、跨作者拒绝、re-auth 与 revoke 已实测，Cursor 完成 callback/授权/9 tools discovery，但 Gate 2 仍缺 prepare confirmation 和 Cursor capability call。Preview 测试数据与公开 MCP 已关闭，Production 不提供该能力。
+- 通过 Agent 执行账户邀请、角色调整、暂停/恢复、Person 管理、删除、批量动作、任意 Payload CRUD、SQL 或 CLI fallback。Production Gateway 已开放 001–004 的窄工具，但 005 只用现有 Super Admin 完成只读 smoke 和危险动作负例，没有修改真实文章、账号、角色或公开状态。
 - 自动证明登记册的自然语言一定正确。机器门禁负责阻止“实现已变但登记册完全没复核”，最终语义仍由实现者和 reviewer 对照事实确认。
 
 ## 同步门禁

@@ -4,7 +4,7 @@ doc_type: reference
 authority: evidence
 status: active
 scope: agent-workspace-005-production-runtime
-last_verified: 2026-08-01
+last_verified: 2026-08-02
 max_lines: 220
 ---
 
@@ -49,4 +49,15 @@ Recovery amendment D 已由未主持实现者独立复审 `PASS`，`P0/P1/P2 = 0
 - Request logs 以 deployment/path/method/status 读回公共站/Admin/health 成功与 Agent 关闭态 `404`；没有读取 message、token、cookie、账号、正文或对话。5 条 Agent WAF rule 保持 live，threshold 未变，provider 无 pending draft。
 - Deployment 不隐式 migration：发布后数据库仍为 `39/13/0/0/0`，业务计数 `2/2/2/3/10`。旧 Production deployment `dpl_AtoZhpk3PudBrkZPq9NZfzDgxYbG` 仍为 `READY`，是明确代码 rollback target；schema 保留向后兼容的空 Agent tables，不执行 down migration。
 
-当前等待未主持执行者 Gate 5 staged release 独立复审；`PASS` 前不进入 public enable。
+Gate 5 staged release 已由未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`。
+
+## Gate 6 public enable
+
+- Production 环境新增 `AGENT_GATEWAY_ENABLED=true` 后，从 Gate 5 构建重新部署为 `dpl_2praoBzrH9hhuAMMmJYR3nCexQB4`；状态为 `READY / production`，`chinainfact.com`、`www` 与既有 Vercel aliases 均指向该 deployment。
+- 公开读回为 `/ → 307`，`/en`、`/en/stories`、Admin、health、两条 OAuth metadata 均 `200`；匿名 MCP GET/POST 均 `401`。公开站、CMS 和健康检查未回归。
+- 当前已登录 Super Admin 只用于一次受控 smoke：DCR `201`、PKCE S256、授权确认、token exchange、13 tools discovery、`account_context=super_admin`、`capabilities_list` 和 `admin_recent_activity` 成功。带虚构 confirmation/revision 的 `article_commit_publication` 以 `VALIDATION_ERROR` 失败，没有领域写入；revoke 后旧 token MCP 为 `401`。
+- 审计读回精确为 `authorization_approval/account_context/capabilities_list/admin_recent_activity/oauth_revoke = success` 与 `article_commit_publication = failed`。执行前后 Article 状态均为 2 条 `published + curated + public + published`、1 条 `draft + not_selected + draft + draft`；User/Person/Media/Article/workflow 保持 `2/2/2/3/10`。
+- DCR fixed-window/IP rule 的并发无效请求为 `10x400 + 1x429`；窗口恢复后请求回到应用层 `400`。5 条 Agent rule 与既有 Newsletter rule 均 active，Attack Mode 关闭、无 bypass、无 provider draft。
+- Vercel request logs 只读回 deployment、environment、path、method、status、request ID 与 source，覆盖 authorize `200/302`、token `200`、MCP `200`、revoke `200` 和撤销后 MCP `401`；没有读取或保存 message、token、code、cookie、账号字段、内容或对话。
+- cleanup 先断言 Production 只有本轮 `1 client / 1 revoked connection / 6 events`，再通过 Payload Local API 按 event → connection → client 删除；外部数据库最终读回 `39 tables / 13 migrations / 0/0/0 Agent`，业务计数和 Article 状态不变。临时 client、callback、token、env pull 与三个本地运行脚本均已精确删除。
+- Gateway 保持公开启用；旧 Gate 5 deployment 仍为代码 rollback target，紧急恢复可移除 Production flag 并重新部署关闭态。Gate 6 未主持执行者独立复审 `PASS`，`P0/P1/P2 = 0/0/0`。

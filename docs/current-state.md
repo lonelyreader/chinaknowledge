@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-08-01
+last_verified: 2026-08-02
 max_lines: 160
 ---
 
@@ -29,7 +29,7 @@ max_lines: 160
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；224 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
-- Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；005 临时开放均已恢复原 SSO 并回到 Gateway 默认关闭。重试用虚构 User/Person/Media/Article、DCR client、connection、workflow 与 Agent event 已精确删除；当前 User/Person/Media/Article/workflow event 为 `36/32/6/32/150`，OAuth client/connection/Agent event 为 `0/0/0`。Production 已在新 backup/restore PASS 后只执行既有 `20260730_181300`，当前为 13 条 migration、39 张表与 6 张空 Agent 表；User/Person/Media/Article/workflow 仍为 `2/2/2/3/10`，Agent client/connection/event 为 `0/0/0`。既有真实对象未被改写，不属于 005 清理范围。
+- Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；005 临时开放均已恢复原 SSO 并回到 Gateway 默认关闭。重试用虚构 User/Person/Media/Article、DCR client、connection、workflow 与 Agent event 已精确删除；当前 User/Person/Media/Article/workflow event 为 `36/32/6/32/150`，OAuth client/connection/Agent event 为 `0/0/0`。Production 已完成前后 backup/restore、既有 `20260730_181300`、Gateway-off staged release 和公开启用；当前为 13 条 migration、39 张表，Gateway 公开开启。Super Admin 只读 smoke 与危险动作负例、撤销、限流、日志和精确 cleanup 已通过；User/Person/Media/Article/workflow 仍为 `2/2/2/3/10`，Agent client/connection/event 为 `0/0/0`，真实内容、账号和角色未改写。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
 ## 当前真相源
@@ -45,15 +45,15 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md) 与 [`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 已完成并归档；当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-005`](roadmap/checklists/agent-workspace-compatibility-release.md)。Gate 2–5 均已独立复审 `PASS`；Production deployment 为 `dpl_EcWc4j6xvHohk9JciWkhCr31CGQZ`，Gateway 仍关闭。当前进入 Gate 6 public enable，只做现有 Super Admin 的 OAuth/MCP 只读 smoke，不修改真实内容。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md)、[`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 与 [`AGENT-WORKSPACE-005`](archive/agent-workspace-compatibility-release.md) 均已完成并归档，当前没有 implementation active checklist。005 Gate 2–6 均独立复审 `PASS`；Production deployment 为 `dpl_2praoBzrH9hhuAMMmJYR3nCexQB4`，Gateway 公开启用，临时数据与凭据已清理，真实内容、账号和角色未改写。
 
 ## 当前运行边界
 
 - 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
 - `PUB-CURATION-001` 使用独立临时 PostgreSQL 完成 12 条 migration apply、clean rollback/reapply、populated fail-closed 和虚构权限/状态矩阵；最终集中运行 typecheck、lint、build、editorial、migration recovery 与 diff check，全部 PASS。
-- Production Neon 当前为 33/12。Person `gexu` 已公开，地点为杭州和墨西哥 Mérida，身份为 Educator and entrepreneur；西语身份、地点和简介分别为 Educador y emprendedor、Hangzhou y Mérida, México、Coherentista；外链为 `https://lonelyreader.com`。英西 Article 保持原 ID、slug、translation group、owner、author、正文和媒体并原地映射为 Published + Curated；重复 locale、混合 owner/author、owner/byline mismatch 和缺失 owner/author 均为 0。
+- Production Neon 当前为 39 张表、13 条 migration，6 张 Agent 表在 smoke cleanup 后为空。Person `gexu` 已公开，地点为杭州和墨西哥 Mérida，身份为 Educator and entrepreneur；西语身份、地点和简介分别为 Educador y emprendedor、Hangzhou y Mérida, México、Coherentista；外链为 `https://lonelyreader.com`。英西 Article 保持原 ID、slug、translation group、owner、author、正文和媒体并原地映射为 Published + Curated；重复 locale、混合 owner/author、owner/byline mismatch 和缺失 owner/author均为 0。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容；Production 没有复制这些数据。
-- 正式 Vercel Production deployment [`dpl_AtoZhpk3PudBrkZPq9NZfzDgxYbG`](https://china-in-fact-ol4maw7wz-lonelyreader-c40e168c.vercel.app) 为 `READY / target: production / iad1`，使用 Node 22、`cms + blob + indexable=true`，已 promote 到 `chinainfact.com`。本轮先以 Preview `dpl_512krg6eXjSvLe5Grv8bZNb8Aiss` 验证，再以无域名 Production 候选完成 health、Admin 与 login 只读检查；正式域名 health、Admin、login、Home、robots 均为 200，error/warning 日志为 0。上一正式部署 `dpl_BXJNsTa28fwmMqcxt9k22VbCJoWb` 保留为回滚目标。
+- 正式 Vercel Production deployment `dpl_2praoBzrH9hhuAMMmJYR3nCexQB4` 为 `READY / target: production`，已绑定 `chinainfact.com`、`www` 与既有 Vercel aliases；公共站、Admin、health、OAuth metadata 与匿名 MCP failure-close 均已读回。Gate 5 关闭态 deployment `dpl_EcWc4j6xvHohk9JciWkhCr31CGQZ` 与更早的 `dpl_AtoZhpk3PudBrkZPq9NZfzDgxYbG` 保留为代码回滚目标；schema 保留向后兼容的空 Agent 表。
 - 最终恢复 run [`30395828366`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30395828366) 在提交 `31f38c9` 上完成数据库与媒体导出、Cloudflare R2 不可变上传、SHA 读回和隔离恢复，断言 33 张表、12 条 ledger migration、12 个 migration 文件和 8 条 workflow event。
 - 2026-07-28 公共产品彻查后的修复已提交为 `4125230`；人物规模复审进一步形成 `31a7988 / 5964da7 / 3be99c6`，补齐 25 人分页、筛选、相邻周互斥轮换和跨年连续周边界。Production staged deployment 首轮 accessibility 发现空首页无 `h1` 与次级文字 4.39:1 对比度，提交 `d95e2b1` 修复后复验为唯一 `h1`、可见文字零 contrast failure、逻辑 tab order、3px focus-visible、桌面/移动无溢出或应用错误；Production 邮件适配器告警与 5xx 均为零。最终独立复审 `PASS`，P0/P1/P2 均为 0。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
 

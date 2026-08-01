@@ -4,7 +4,7 @@ doc_type: reference
 authority: evidence
 status: active
 scope: agent-workspace-005-independent-review
-last_verified: 2026-08-01
+last_verified: 2026-08-02
 max_lines: 160
 ---
 
@@ -121,3 +121,19 @@ Severity：`P0/P1/P2 = 0/0/0`
 - Reviewer 按禁止 secret/DB 合同不重连 Production；migration 证据链为首次 no-log 后立即仍 `33/12/无 Agent table`，隔离进程明确只执行 `20260730_181300`，随后 `39/13/6 tables/0/0/0` 且业务 `2/2/2/3/10` 不变。前后两个外部 restore 进一步交叉验证，不构成证据缺口。
 
 Gate 5 可以关闭并进入 Gate 6 public enable。
+
+## Gate 6 public enable and closure
+
+Verdict：`PASS`
+
+Severity：`P0/P1/P2 = 0/0/0`
+
+复审者未主持 Gate 6 Production 执行，并保持只读；没有读取 env、secret、token、cookie、数据库或真实内容，用户 `outputs/**` 明确排除。
+
+- Production deployment `dpl_2praoBzrH9hhuAMMmJYR3nCexQB4` 为 `READY / production`，正式 aliases 均指向它；公共站、Admin、health 与两条 OAuth metadata 正常，匿名 MCP GET/POST 为 `401`。
+- 5 条 Agent WAF 与既有 Newsletter rule 均 active，阈值不变，Attack Mode 关闭、bypass 为 0，draft/pending 为空。安全字段日志确认 authorize `200/302`、token `200`、MCP `200`、revoke `200` 与撤销后 MCP `401`。
+- Super Admin smoke 只调用 account/capability/activity read，危险 commit 用虚构 confirmation/revision 失败；cleanup 前精确定位 `1 client / 1 revoked connection / 6 events`，按 event → connection → client 删除，最终证据为 `39/13`、Agent `0/0/0`、业务与 Article 状态不变。
+- 非 `outputs/**` diff 只含 8 个 checklist 已授权文档路径，没有产品代码、schema、migration、依赖或 workflow diff。Docs governance、feature registry 与 `git diff --check` PASS；完整 intake 只因用户 `outputs/**` 失败，不构成本批 finding。
+- 首轮复审发现功能登记册把 Codex/Claude/Gemini adapter 误写为真实兼容支持的 P2；窄修后已明确 WorkBuddy/Cursor 完成真实客户端验收，Codex/Claude/Gemini 仅提供配置 adapter，TRAE 与静态 API key 不支持。同一 reviewer 复核后关闭该 finding。
+
+Gate 6 可以归档并提交 closure。
