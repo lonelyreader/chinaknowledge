@@ -14,7 +14,7 @@ max_lines: 80
 
 Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.md) 记录；父级不授权实现。
 
-当前没有 implementation active checklist。
+当前唯一 active checklist 是 [`REPO-CONSOLIDATION-001`](repository-main-consolidation.md)：保留根工作树用户内容，把已完成历史收敛为唯一 clean `main`；不改产品代码或运行环境。
 
 已完成的 [`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](../../archive/agent-workspace-codex-member-compatibility.md) 与 [`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 位于 archive。
 
