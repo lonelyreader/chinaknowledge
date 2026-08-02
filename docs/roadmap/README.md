@@ -16,7 +16,7 @@ max_lines: 100
 
 父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。它记录 001–005 的关系和阶段转换，不授权实现。
 
-当前没有 implementation active checklist。`AGENT-WORKSPACE-001`–`005` 均已完成并归档；005 已完成 Production public enable、单一现有 Super Admin 的 OAuth/MCP 只读 smoke、权限负例、撤销、精确 cleanup 与最终独立复审，真实内容未修改。历史见 [`archive`](../archive/README.md)。TRAE 不在当前适配范围。
+当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-006`](checklists/agent-workspace-codex-member-compatibility.md)。本批只用本机 Codex CLI 和一个现有 Member 做 Production OAuth/MCP 只读兼容验收、角色隔离、撤销和精确 cleanup；不调用写工具，不修改真实内容、账号或产品代码。原工作树的共享研究提案与 `outputs/**` 不属于本批。
 
 ## Deferred
 

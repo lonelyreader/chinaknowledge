@@ -12,7 +12,7 @@ max_lines: 220
 
 本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–005 已完成并归档，当前没有 implementation active 子级。005 已完成 Production public enable、真实 Super Admin 只读 smoke、权限负例、撤销、清理和最终独立复审；真实内容未被修改。
+稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–005 已完成并归档；当前唯一 implementation active 子级是 [`AGENT-WORKSPACE-006`](checklists/agent-workspace-codex-member-compatibility.md)，只验证 Codex CLI 的真实 Member 只读兼容、撤销和精确清理。
 
 ## Program Goal
 
@@ -26,6 +26,7 @@ flowchart LR
     A2 --> A3["003 completed<br/>Local one-Article site selection"]
     A3 --> A4["004 completed<br/>Super Admin activity read"]
     A4 --> A5["005 completed<br/>Production enabled"]
+    A5 --> A6["006 active<br/>Codex Member compatibility"]
 ```
 
 实线表示 transition review 推荐的下一步，仍不构成执行授权；虚线表示后续候选关系。
@@ -39,6 +40,7 @@ flowchart LR
 | `AGENT-WORKSPACE-003` | completed；Local work-item + final review PASS | 精确读取一篇跨作者 Article；确认后 Add to site，并以确认后的 Remove 恢复 | 已归档；专用 fixture 已删除，Preview 未开启 |
 | `AGENT-WORKSPACE-004` | completed；Local work-item + independent review PASS | Super Admin-only 最近 20 条 Article workflow activity 最小读取 | 已归档；专用 fixture 已删除，Preview 未执行；高风险账户/身份动作保持网页或新 checklist |
 | `AGENT-WORKSPACE-005` | completed；Gate 2–6 independent review PASS | WorkBuddy/Cursor 真实兼容、运营保护、恢复与 Production release | 已归档；Gateway 公开启用，smoke + cleanup 完成，TRAE 不在范围 |
+| `AGENT-WORKSPACE-006` | active；intake | Codex CLI Member 只读真实兼容、角色隔离、撤销与清理 | intake commit 后执行；不含写工具、产品代码或真实内容改动 |
 
 `provisional` 只保留问题和候选结果，不是仓库通用 checklist 状态，也不构成实现授权。子级真正开始时只能使用仓库允许的 `active` 状态。
 
@@ -58,6 +60,7 @@ flowchart LR
 - [x] 建立 005 active phase-release intake，把首个执行门收窄为 WorkBuddy 真实兼容与 Cursor 回归，并把运营保护、migration 和 Production 分立设门；TRAE 已从当前适配要求删除。
 - [x] 005 最终独立复审 PASS 后，更新实际结果、遗留风险和下一阶段进入条件并归档。
 - [x] 005 以 phase-release 子级完成客户端兼容、运营保护、恢复、Production migration/staged deployment、公开启用和单账号只读 smoke；真实内容写入未执行。
+- [ ] 完成 006 的 Codex CLI Member 只读真实兼容、权限负例、撤销、精确清理和独立复审；没有 PASS 前功能登记册继续标记 Codex 仅提供 adapter。
 
 ## Transition Review After 001
 
@@ -112,6 +115,12 @@ Transition review 的结果必须写入 implementation reference 或 accepted de
 - closure：Gate 6 未主持执行者最终复审 `PASS`，Production Gateway 保持公开启用，临时 client/connection/event、凭据和运行脚本已清理；TRAE 不构成 005 gate 或父级 closure 条件。
 - 发布归属：005 持有 release 编排，但 Production 部署、真实账户、真实数据和公开启用仍是相互独立的批准门禁。
 - CLI fallback 只有在非 MCP Agent 的真实需求成立时进入；编号不保证它一定实现。
+
+### 006 — Active Codex Member compatibility
+
+- 目标：用本机 Codex CLI 对 Production Gateway 完成单一现有 Member 的 OAuth、9-tool discovery、三项只读调用、隐藏高角色工具、撤销和精确清理。
+- 边界：不调用任何写工具，不读取或记录内容字段，不创建或修改账号，不改产品代码、schema、env、WAF 或 deployment。
+- 完成门：旧凭据失败关闭、Production 领域不变、临时 client/connection/event 与本机 MCP 无残留、独立 reviewer `PASS` 后才更新 Codex 兼容状态并归档。
 
 ## Program Rules
 
