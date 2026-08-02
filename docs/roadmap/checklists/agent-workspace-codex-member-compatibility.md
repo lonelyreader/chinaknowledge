@@ -41,7 +41,7 @@ approval_gates: intake-commit, local-client-config, production-mcp, real-member-
 - `data_truth`：Production 只读取当前 Member 的服务器角色、capability 与本人 Article 列表元数据；正式证据不保存任何业务字段值。执行前后核对 User/Person/Media/Article/workflow 聚合与 Article 状态分布不变。
 - `read_path`：Codex config → protected-resource metadata → DCR → PKCE browser consent → token → current connection/User/Person/client → Member tool discovery → 三项只读调用。
 - `write_path`：仅 OAuth DCR client、authorization connection、最小 Agent events 与 Codex 本机临时配置/凭据；没有领域对象写路径。
-- `permission_boundary`：服务器必须返回 `role=member`；Member discovery 只含 9 个 Member 工具，不含三个 Editor 工具和 `admin_recent_activity`。Super Admin/Editor 会话不能替代本批验收。
+- `permission_boundary`：服务器原始角色必须返回 `role=author`，其产品标签为 Member；Member discovery 只含 9 个 Member 工具，不含三个 Editor 工具和 `admin_recent_activity`。Super Admin/Editor 会话不能替代本批验收，不接受客户端自行声称角色。
 - `audit_boundary`：只读回本轮 authorization、三次工具调用和 revoke 结果；不读取或记录 event input、request body、token、code、Cookie、标题、正文或对话。
 - `recovery`：后台 revoke → 旧 Codex credential 调用失败 → `codex mcp logout` → `codex mcp remove` → Payload API 精确删除本轮 event/connection/client → 聚合读回；任一步不能精确定位时停止扩大删除。
 - `independent_review`：未主持执行者只读核对 Codex CLI 证据、Production 安全字段日志、权限矩阵、撤销、清理、changed paths 与治理；不读取 env、数据库、账号或业务内容。只有 `PASS` 才可登记 Codex 真实兼容并归档。
@@ -52,7 +52,7 @@ approval_gates: intake-commit, local-client-config, production-mcp, real-member-
 
 - [ ] Intake 已进入 HEAD，changed paths 全部受 006 覆盖；原工作树用户改动未进入本批。
 - [ ] `codex mcp add` 与 `codex mcp login` 通过 DCR + PKCE 完成，Codex `/mcp` 或 CLI 状态确认 server 可用。
-- [ ] `account_context`、`capabilities_list`、`my_articles_list` 真实调用成功，服务器角色为 Member；只记录本人文章数量，不记录字段值。
+- [ ] `account_context`、`capabilities_list`、`my_articles_list` 真实调用成功，服务器原始角色为 `author`（产品标签 Member）；只记录本人文章数量，不记录字段值。
 - [ ] discovery 精确为 9 个 Member 工具，且不含 `editorial_article_get`、`editorial_prepare_site_selection`、`editorial_commit_site_selection`、`admin_recent_activity`。
 - [ ] 没有调用任何写工具；Production 领域聚合、Article 状态与 workflow 前后不变。
 - [ ] Member 从 Agent access 撤销本轮 connection 后，旧 Codex credential 下一次调用失败关闭；本机 logout/remove 完成。
