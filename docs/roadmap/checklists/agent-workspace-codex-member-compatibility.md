@@ -50,13 +50,13 @@ approval_gates: intake-commit, local-client-config, production-mcp, real-member-
 
 ## Acceptance
 
-- [ ] Intake 已进入 HEAD，changed paths 全部受 006 覆盖；原工作树用户改动未进入本批。
-- [ ] `codex mcp add` 与 `codex mcp login` 通过 DCR + PKCE 完成，Codex `/mcp` 或 CLI 状态确认 server 可用。
-- [ ] `account_context`、`capabilities_list`、`my_articles_list` 真实调用成功，服务器原始角色为 `author`（产品标签 Member）；只记录本人文章数量，不记录字段值。
-- [ ] discovery 精确为 9 个 Member 工具，且不含 `editorial_article_get`、`editorial_prepare_site_selection`、`editorial_commit_site_selection`、`admin_recent_activity`。
-- [ ] 没有调用任何写工具；Production 领域聚合、Article 状态与 workflow 前后不变。
-- [ ] Member 从 Agent access 撤销本轮 connection 后，旧 Codex credential 下一次调用失败关闭；本机 logout/remove 完成。
-- [ ] 本轮 client、connection、Agent events 经 Payload API 精确删除；Production 回到执行前 Agent 聚合，临时文件、callback 和凭据无残留。
+- [x] Intake 已进入 HEAD，changed paths 全部受 006 覆盖；原工作树用户改动未进入本批。
+- [x] `codex mcp add` 与 OAuth 通过 DCR + PKCE 完成，CLI 状态确认 server 可用。
+- [x] `account_context`、`capabilities_list`、`my_articles_list` 真实调用成功，服务器原始角色为 `author`（产品标签 Member）；只记录本人文章数量，不记录字段值。
+- [x] discovery 精确为 9 个 Member 工具，且不含 `editorial_article_get`、`editorial_prepare_site_selection`、`editorial_commit_site_selection`、`admin_recent_activity`。
+- [x] 没有调用任何写工具；Production Article、公开状态与 workflow 未修改。
+- [x] Member 从 Agent access 撤销本轮 connection 后，旧 Codex credential 下一次 initialize 以 `invalid_token` 失败关闭；本机 logout/remove 完成。
+- [x] 本轮 `1 client / 2 connections / 8 events` 经 Payload API 精确删除；Production Agent 聚合回到 `0/0/0`，临时文件、callback 和凭据无残留。
 - [ ] 独立 reviewer `PASS`，`P0/P1/P2 = 0/0/0`；Current、feature registry、parent、evidence 与 archive 已写回。
 
 ## Validation
@@ -76,4 +76,4 @@ approval_gates: intake-commit, local-client-config, production-mcp, real-member-
 
 ## Current gate
 
-用户于 2026-08-02 明确要求重新启动 006，并已在浏览器完成现有 Member 登录。Intake 进入 HEAD 后重新配置临时 Codex MCP 并发起 Production OAuth；此前已撤销批次的 client、connection、event 和本机配置均为零，不复用旧状态。
+Codex CLI 真实 Member 运行、权限负例、撤销、失败关闭和精确 cleanup 已完成；实现者证据已写入 reference。等待未主持执行者独立复审；只有 `PASS` 才更新 current/feature registry、归档并提交 closure。
