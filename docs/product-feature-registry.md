@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-02
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:7bff03c551ef5bdf992f0017877da4e5a0afbb9be6907e4b8d3c52770fbcf25f
+implementation_fingerprint: sha256:793dfbafc7798175d6a080f8c17bb3841ea6e8ca0aece649ddeb869bf581dc1b
 ---
 
 # App 功能登记册
@@ -119,7 +119,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-10 | 批量账户准备 | 从受控 JSON 预检或建立 Member/Editor；限制字段、批量规模和冲突 | `cms:provision-accounts`，默认 dry-run |
 | OPS-11 | 搜索索引开关 | 只有明确启用的 Production 可索引；Preview 和预览内容保持 noindex | 环境变量、robots、页面 metadata |
 | OPS-12 | 自动质量门禁 | PR 自动运行治理、功能登记同步、环境、migration、编辑权限、Newsletter、lint、typecheck、依赖审计、build 和公共路由 smoke | GitHub Preview checks |
-| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、发布、策展和最小审计工具，并随时撤销连接 | Production `/api/agent/*`；WorkBuddy 与 Cursor 已完成真实客户端兼容验收，Codex、Claude、Gemini 目前只提供配置 adapter；不支持 TRAE 或静态 API key。公共动作继续要求服务器确认、revision、幂等、审计与 readback |
+| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、发布、策展和最小审计工具，并随时撤销连接 | Production `/api/agent/*`；WorkBuddy、Cursor 与 Codex 已完成真实客户端兼容验收，Claude、Gemini 目前只提供配置 adapter；不支持 TRAE 或静态 API key。公共动作继续要求服务器确认、revision、幂等、审计与 readback |
 
 ## 当前明确不提供
 

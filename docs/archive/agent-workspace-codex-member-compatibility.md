@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-workspace-codex-member-compatibility
 last_verified: 2026-08-02
 max_lines: 260
@@ -57,7 +57,7 @@ approval_gates: intake-commit, local-client-config, production-mcp, real-member-
 - [x] 没有调用任何写工具；Production Article、公开状态与 workflow 未修改。
 - [x] Member 从 Agent access 撤销本轮 connection 后，旧 Codex credential 下一次 initialize 以 `invalid_token` 失败关闭；本机 logout/remove 完成。
 - [x] 本轮 `1 client / 2 connections / 8 events` 经 Payload API 精确删除；Production Agent 聚合回到 `0/0/0`，临时文件、callback 和凭据无残留。
-- [ ] 独立 reviewer `PASS`，`P0/P1/P2 = 0/0/0`；Current、feature registry、parent、evidence 与 archive 已写回。
+- [x] 独立 reviewer `PASS`，`P0/P1/P2 = 0/0/0`；Current、feature registry、parent、evidence 与 archive 已写回。
 
 ## Validation
 
@@ -76,4 +76,4 @@ approval_gates: intake-commit, local-client-config, production-mcp, real-member-
 
 ## Current gate
 
-Codex CLI 真实 Member 运行、权限负例、撤销、失败关闭和精确 cleanup 已完成；实现者证据已写入 reference。等待未主持执行者独立复审；只有 `PASS` 才更新 current/feature registry、归档并提交 closure。
+Codex CLI Production Member 只读实测、权限隔离、撤销失败关闭、精确 cleanup 和独立复审均 `PASS`，`P0/P1/P2 = 0/0/0`。Current、feature registry、parent、reference 与 archive 已写回，本 checklist 完成并归档。

@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: reference
 authority: evidence
-status: active
+status: completed
 scope: agent-workspace-codex-member-compatibility
 last_verified: 2026-08-02
 max_lines: 220
@@ -10,7 +10,7 @@ max_lines: 220
 
 # Agent Workspace 006 Codex Member Compatibility
 
-结论：实现者运行验收 `PASS`，独立复审待执行。本机 Codex CLI 已通过 Production DCR + PKCE，以现有 active Member 完成角色、9-tool capability、本人 Article 空列表、撤销失败关闭和精确清理；没有调用 Agent 写工具，没有记录个人资料或文章字段。
+结论：实现者运行验收与独立复审均 `PASS`，`P0/P1/P2 = 0/0/0`。本机 Codex CLI 已通过 Production DCR + PKCE，以现有 active Member 完成角色、9-tool capability、本人 Article 空列表、撤销失败关闭和精确清理；没有调用 Agent 写工具，没有记录个人资料或文章字段。
 
 ## Frozen runtime
 
@@ -56,4 +56,4 @@ max_lines: 220
 
 ## Review handoff
 
-Reviewer 只读核对：HEAD active contract、当前 diff、Codex 三项结果、raw `invalid_token`、双 connection 的同-client 证据、`1/2/8 → 0/0/0` cleanup、本机 MCP absence、changed paths 与治理。Reviewer 不读取 env、账号、数据库、token、个人资料或文章字段。
+未主持执行的 reviewer 已按上述边界完成只读核对并给出 `PASS`；证据见 [`independent review`](agent-workspace-006-independent-review-2026-08-02.md)。

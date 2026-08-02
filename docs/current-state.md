@@ -29,7 +29,7 @@ max_lines: 160
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
 - Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；224 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
-- Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；005 临时开放均已恢复原 SSO 并回到 Gateway 默认关闭。重试用虚构 User/Person/Media/Article、DCR client、connection、workflow 与 Agent event 已精确删除；当前 User/Person/Media/Article/workflow event 为 `36/32/6/32/150`，OAuth client/connection/Agent event 为 `0/0/0`。Production 已完成前后 backup/restore、既有 `20260730_181300`、Gateway-off staged release 和公开启用；当前为 13 条 migration、39 张表，Gateway 公开开启。Super Admin 只读 smoke 与危险动作负例、撤销、限流、日志和精确 cleanup 已通过；User/Person/Media/Article/workflow 仍为 `2/2/2/3/10`，Agent client/connection/event 为 `0/0/0`，真实内容、账号和角色未改写。
+- Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；005 临时开放均已恢复原 SSO 并回到 Gateway 默认关闭。重试用虚构 User/Person/Media/Article、DCR client、connection、workflow 与 Agent event 已精确删除；当前 User/Person/Media/Article/workflow event 为 `36/32/6/32/150`，OAuth client/connection/Agent event 为 `0/0/0`。Production 已完成前后 backup/restore、既有 `20260730_181300`、Gateway-off staged release 和公开启用；当前为 13 条 migration、39 张表，Gateway 公开开启。WorkBuddy、Cursor 与 Codex 已完成真实客户端兼容验收；Codex 用现有 Member 完成三项只读调用、隐藏高角色工具、撤销失败关闭与精确 cleanup。User/Person/Media/Article/workflow 仍为 `2/2/2/3/10`，Agent client/connection/event 为 `0/0/0`，真实内容、账号和角色未改写。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
 ## 当前真相源
@@ -45,7 +45,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)、[`AGENT-WORKSPACE-002`](archive/agent-workspace-member-publication.md)、[`AGENT-WORKSPACE-003`](archive/agent-workspace-editor-site-curation.md)、[`AGENT-WORKSPACE-004`](archive/agent-workspace-super-admin-activity-read.md) 与 [`AGENT-WORKSPACE-005`](archive/agent-workspace-compatibility-release.md) 均已完成并归档，当前没有 implementation active checklist。005 Gate 2–6 均独立复审 `PASS`；Production deployment 为 `dpl_2praoBzrH9hhuAMMmJYR3nCexQB4`，Gateway 公开启用，临时数据与凭据已清理，真实内容、账号和角色未改写。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md) 均已完成并归档，当前没有 implementation active checklist。006 的 Codex CLI Production Member 只读兼容、撤销失败关闭、精确 cleanup 与独立复审全部 `PASS`，`P0/P1/P2 = 0/0/0`；Production Gateway 保持公开启用，Agent client/connection/event 为 `0/0/0`，真实内容、账号和角色未改写。
 
 ## 当前运行边界
 

@@ -29,6 +29,7 @@ max_lines: 80
 | `AGENT-WORKSPACE-003` | Editor 单篇跨作者 Article exact read、确认后 Add/Remove、权限负例、匿名读回、Local 清理和最终独立复审均通过；Preview 未执行 | [`agent-workspace-editor-site-curation.md`](agent-workspace-editor-site-curation.md) |
 | `AGENT-WORKSPACE-004` | Super Admin-only 最近 20 条 workflow activity 最小读取、权限/隐私负例、领域不变、Agent audit、Local 清理和独立复审均通过；Preview 未执行 | [`agent-workspace-super-admin-activity-read.md`](agent-workspace-super-admin-activity-read.md) |
 | `AGENT-WORKSPACE-005` | WorkBuddy/Cursor 兼容、运营保护、恢复、Production migration/staged release/public enable、只读 smoke、精确清理和 Gate 2–6 独立复审均通过 | [`agent-workspace-compatibility-release.md`](agent-workspace-compatibility-release.md) |
+| `AGENT-WORKSPACE-006` | Codex CLI Production Member 只读兼容、权限隔离、撤销失败关闭、精确 cleanup 和独立复审均通过 | [`agent-workspace-codex-member-compatibility.md`](agent-workspace-codex-member-compatibility.md) |
 | `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
 
 规则：

@@ -14,9 +14,7 @@ max_lines: 100
 
 ## Active
 
-父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。它记录 001–005 的关系和阶段转换，不授权实现。
-
-当前唯一 implementation active checklist 是 [`AGENT-WORKSPACE-006`](checklists/agent-workspace-codex-member-compatibility.md)。本批只用本机 Codex CLI 和一个现有 Member 做 Production OAuth/MCP 只读兼容验收、角色隔离、撤销和精确 cleanup；不调用写工具，不修改真实内容、账号或产品代码。原工作树的共享研究提案与 `outputs/**` 不属于本批。
+父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。001–006 均已完成并归档，当前没有 implementation active checklist。新工作开始前必须建立唯一 active checklist。
 
 ## Deferred
 
