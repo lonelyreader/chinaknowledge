@@ -14,7 +14,7 @@ max_lines: 100
 
 ## Active
 
-父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。001–006 均已完成并归档。当前唯一 active checklist 是 [`REPO-CONSOLIDATION-001`](checklists/repository-main-consolidation.md)，只保留用户文件并收敛 Git 工作树/分支，不授权产品实现。
+父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。001–006 与仓库收敛均已完成并归档，当前没有 active checklist。
 
 ## Deferred
 

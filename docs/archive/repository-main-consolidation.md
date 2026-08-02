@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: repository-main-consolidation
 last_verified: 2026-08-03
 max_lines: 200
@@ -51,19 +51,19 @@ approval_gates: preserve-user-files, discard-superseded-worktree, fast-forward-m
 
 ## Acceptance
 
-- [ ] 54 个根工作树用户路径全部保留到最终历史；文本校准项有精确 diff，二进制与输出源有哈希/路径读回。
-- [ ] 共享研究审查与 roadmap 兼容 006 closure；没有新 active 产品工作或产品实现授权。
-- [ ] 文档治理、feature registry、change intake、`git diff --check` 与独立 reviewer 全部 PASS。
-- [ ] 本地和远端 `main` 包含 001–006 与用户内容 closure；push 为 fast-forward，无 force。
-- [ ] detached Gate 1 和 006 临时 worktree 已删除；所有历史本地分支和远端 005 已在 containment 后删除。
-- [ ] 最终只有 `/Volumes/External/chinaknowledge` 一个 worktree，本地/远端各只有 `main`，`git status --short --branch` clean。
+- [x] 54 个根工作树用户路径全部保留到最终历史；文本校准项有精确 diff，二进制与输出源有哈希/路径读回。
+- [x] 共享研究审查与 roadmap 兼容 006 closure；没有新 active 产品工作或产品实现授权。
+- [x] 文档治理、feature registry、change intake、`git diff --check` 与独立 reviewer 全部 PASS。
+- [x] 本地和远端 `main` 包含 001–006 与用户内容 closure；push 为 fast-forward，无 force。
+- [x] detached Gate 1 和 006 临时 worktree 已删除；所有历史本地分支和远端 005 已在 containment 后删除。
+- [x] 最终只有 `/Volumes/External/chinaknowledge` 一个 worktree，本地/远端各只有 `main`，`git status --short --branch` clean。
 
 ## Validation
 
 - Git：`worktree list --porcelain`、`branch --merged main`、`rev-list --left-right --count`、`ls-remote --heads origin`、逐分支 containment。
 - 内容：源/目标路径清单、`git hash-object`/blob readback、tracked/untracked 精确状态、Logo/草稿/审查文档存在性。
 - 仓库：`npm run governance:check`、`git diff --check`、最终 clean status。
-- 独立复审：未主持整合者只读核对 changed paths、用户内容保存、旧 worktree supersession、fast-forward 和删除前提。
+- 独立复审：未主持整合者只读核对 changed paths、用户内容保存、旧 worktree supersession、fast-forward 和删除前提；结果 `PASS`，`P0/P1/P2 = 0/0/0`。
 
 ## Writeback
 
@@ -74,4 +74,4 @@ approval_gates: preserve-user-files, discard-superseded-worktree, fast-forward-m
 
 ## Current gate
 
-Active intake 已建立。下一步只把根工作树用户内容复制到 006 后的受控路径并校准两处阶段文字；通过哈希、治理和独立复审前，不清理任何源文件、worktree、分支或远端 ref。
+`aa5d6ac` 建立 intake，`b832a86` 保全 54 个用户路径：52 项 blob 与源文件完全一致，roadmap 与共享研究审查只有声明的阶段校准。独立复审、治理和 diff 均 PASS；根用户文件随后按精确目标清理，可从 `b832a86` 恢复。`main` 已纯快进并读回该保全点，旧 worktree、本地历史分支和远端 005 均在 containment 后删除；本 checklist 完成并归档。

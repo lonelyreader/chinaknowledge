@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: archive-index
-last_verified: 2026-08-02
+last_verified: 2026-08-03
 max_lines: 80
 ---
 
@@ -31,6 +31,7 @@ max_lines: 80
 | `AGENT-WORKSPACE-005` | WorkBuddy/Cursor 兼容、运营保护、恢复、Production migration/staged release/public enable、只读 smoke、精确清理和 Gate 2–6 独立复审均通过 | [`agent-workspace-compatibility-release.md`](agent-workspace-compatibility-release.md) |
 | `AGENT-WORKSPACE-006` | Codex CLI Production Member 只读兼容、权限隔离、撤销失败关闭、精确 cleanup 和独立复审均通过 | [`agent-workspace-codex-member-compatibility.md`](agent-workspace-codex-member-compatibility.md) |
 | `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
+| `REPO-CONSOLIDATION-001` | 54 个用户路径已保全，001–006 历史与 Git refs/worktrees 已收敛到唯一 clean `main` | [`repository-main-consolidation.md`](repository-main-consolidation.md) |
 
 规则：
 
