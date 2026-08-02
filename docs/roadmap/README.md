@@ -21,6 +21,7 @@ max_lines: 100
 | 工作项 | 进入条件 |
 |---|---|
 | 004 后的高风险账户动作 | 邀请、角色、暂停/恢复、Person、删除或批量动作出现独立需求后另建 upgraded capability checklist；不并入 005 release |
+| 共享研究素材层 | 当前审查建议 [`revise`](../reference/shared-research-layer-proposal-review-2026-08-02.md)；修订提案被接受后，先建立 summary-only 运营验证 checklist |
 | P3 平台深化 | 有真实访问、订阅和作者运营数据 |
 
 P0 Stitch 设计原型、P1 可运行公共产品切片、P1 编辑 CMS 基础、P2 Preview release candidate、Production launch 与 Payload-native Admin 重构已经完成，历史与交接见 [`archive`](../archive/README.md)。

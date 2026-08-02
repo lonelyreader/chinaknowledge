@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="China, in Fact">
+  <title>China, in Fact — Comma and i form 人</title>
+  <style>
+    @font-face { font-family: Satoshi; src: url('/fonts/satoshi-500.woff2') format('woff2'); font-weight: 500; }
+  </style>
+  <rect width="1200" height="420" fill="#fbfaf7"/>
+  <g fill="#171714" stroke="#171714" stroke-linecap="round" stroke-linejoin="round">
+    <text x="94" y="267" font-family="Satoshi, Avenir Next, sans-serif" font-size="142" font-weight="500" letter-spacing="-7" stroke="none">China</text>
+    <path d="M506 185c15 0 25 11 25 27 0 14-5 25-16 35l-29 31c11-24 14-40 8-50-8-7-12-14-12-23 0-12 9-20 24-20z" stroke="none"/>
+    <circle cx="566" cy="172" r="10" stroke="none"/>
+    <path d="M548 207l39 63" fill="none" stroke-width="16"/>
+    <text x="602" y="267" font-family="Satoshi, Avenir Next, sans-serif" font-size="142" font-weight="500" letter-spacing="-7" stroke="none">n Fact</text>
+  </g>
+</svg>

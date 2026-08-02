@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="China, in Fact">
+  <title>China, in Fact — in Fact found inside China</title>
+  <style>
+    @font-face { font-family: Satoshi; src: url('/fonts/satoshi-700.woff2') format('woff2'); font-weight: 700; }
+  </style>
+  <rect width="1200" height="420" fill="#fbfaf7"/>
+  <g fill="#171714">
+    <text x="208" y="178" font-family="New York, Georgia, serif" font-size="142" letter-spacing="-6">Ch</text>
+    <text x="378" y="174" font-family="Satoshi, Avenir Next, sans-serif" font-size="112" font-weight="700" letter-spacing="-8">in</text>
+    <text x="472" y="178" font-family="New York, Georgia, serif" font-size="142" letter-spacing="-5">a,</text>
+    <text x="378" y="322" font-family="Satoshi, Avenir Next, sans-serif" font-size="112" font-weight="700" letter-spacing="-8">in</text>
+    <text x="479" y="326" font-family="New York, Georgia, serif" font-size="142" letter-spacing="-5">Fact</text>
+  </g>
+</svg>

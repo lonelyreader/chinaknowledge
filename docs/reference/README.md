@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: reference-index
-last_verified: 2026-07-28
+last_verified: 2026-08-02
 max_lines: 80
 ---
 
@@ -17,6 +17,7 @@ max_lines: 80
 | 技术栈建议 | Web 基础栈已由 ADR-0005 决定，其余候选 deferred | [`technical-stack-proposal.md`](technical-stack-proposal.md) |
 | 设计与信息架构证据 | 按子目录标注 | [`design/README.md`](design/README.md) |
 | 实现、Production 与当前架构审计证据 | P1/P2/Production 已验证；成员发布与站方策展差距已完成审计 | [`implementation/README.md`](implementation/README.md) |
+| 共享研究素材层提案审查 | `revise`；只建议先做 summary-only 运营验证 | [`shared-research-layer-proposal-review-2026-08-02.md`](shared-research-layer-proposal-review-2026-08-02.md) |
 
 规则：
 

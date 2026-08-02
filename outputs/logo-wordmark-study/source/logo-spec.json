@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "title": "China, in Fact — Wordmark Studies",
+    "stage": "Vector visual review",
+    "anchor": "China, in Fact",
+    "summary": "Six black-and-white wordmark studies. These are selection proofs, not final outlined production logos.",
+    "run_id": "china-in-fact-wordmark-study-02"
+  },
+  "constraints": {
+    "preserve": [
+      "Exact public name: China, in Fact",
+      "The comma remains part of the name",
+      "Global readability without Chinese knowledge",
+      "A usable wordmark before any standalone symbol"
+    ],
+    "avoid": [
+      "Publication or institutional masthead framing",
+      "China visual cliches",
+      "Engineering diagrams and interface notation",
+      "Taglines, mockups, and explanatory graphics"
+    ]
+  },
+  "routes": [
+    {
+      "id": "inside-in",
+      "label": "01 — The in inside China",
+      "family": "a second reading already hidden in the name",
+      "rationale": "The in inside China and the spoken in share one typographic voice. The idea is discovered after the name is read, not explained before it.",
+      "prompt": "Reveal the repeated in already present inside China while preserving the exact name and immediate readability.",
+      "imageUrl": "/generated/01-inside-in.svg",
+      "usage_contexts": ["wide header", "homepage"],
+      "watch_out": "The contrast must feel intentional, not like mixed-font decoration."
+    },
+    {
+      "id": "comma-person",
+      "label": "02 — Comma + i = 人",
+      "family": "English, punctuation, and a person in one reading",
+      "rationale": "The comma and the following i still read normally, while their two falling strokes quietly form 人 — person — for those who notice it.",
+      "prompt": "Let the comma and i form the two strokes of 人 without making Chinese knowledge necessary for reading the name.",
+      "imageUrl": "/generated/02-comma-person.svg",
+      "usage_contexts": ["primary wordmark", "people profiles"],
+      "watch_out": "Keep the hidden character quiet; the English reading comes first."
+    },
+    {
+      "id": "c-holds-zhong",
+      "label": "03 — C holds 中",
+      "family": "a Latin entrance carrying a Chinese center",
+      "rationale": "The opening C contains 中, meaning middle or center. Without Chinese knowledge it remains a distinctive first letter; with it, a second layer appears.",
+      "prompt": "Build a readable initial C whose counter holds 中 as part of the same glyph, then keep the rest of the wordmark calm.",
+      "imageUrl": "/generated/03-c-holds-zhong.svg",
+      "usage_contexts": ["primary wordmark", "standalone initial"],
+      "watch_out": "Do not let the combined glyph become a generic cultural badge."
+    },
+    {
+      "id": "crowd-comma",
+      "label": "04 — A crowd becomes the comma",
+      "family": "many contributors making one shared pause",
+      "rationale": "The brand's indispensable comma is made from many unequal dots: individual presences that only together become the punctuation.",
+      "prompt": "Construct the comma from a small organic crowd while leaving the rest of the name typographically quiet.",
+      "imageUrl": "/generated/04-crowd-comma.svg",
+      "usage_contexts": ["homepage", "community moments"],
+      "watch_out": "The dots must merge into a comma at small sizes, not a digital halftone."
+    },
+    {
+      "id": "comma-becomes-f",
+      "label": "05 — The comma becomes Fact",
+      "family": "a pause that physically carries the reader onward",
+      "rationale": "The comma's tail travels through in and rises into the F of Fact. The punctuation performs the promise embedded in the name.",
+      "prompt": "Draw one continuous comma-to-F ligature that keeps China, in Fact readable in the correct order.",
+      "imageUrl": "/generated/05-comma-becomes-f.svg",
+      "usage_contexts": ["wide header", "motion identity"],
+      "watch_out": "Avoid a decorative swoosh; every stroke must serve comma, reading order, or F."
+    },
+    {
+      "id": "found-in-china",
+      "label": "06 — Found in China",
+      "family": "the explicit in is found beneath the in already inside China",
+      "rationale": "The two identical in pairs align vertically. The compact lockup makes the phrase feel discovered inside the name rather than attached as a slogan.",
+      "prompt": "Stack the wordmark so the two occurrences of in occupy one column and reveal the internal wordplay.",
+      "imageUrl": "/generated/06-found-in-china.svg",
+      "usage_contexts": ["compact header", "square avatar"],
+      "watch_out": "Retain the natural reading order and avoid poster-style hierarchy."
+    }
+  ],
+  "handoff": {
+    "default_owner": "identity-design",
+    "next_prompt_hints": [
+      "Select one structural idea before outlining type",
+      "Test the selected wordmark at 32 px, 64 px, and 240 px",
+      "Resolve font licensing before production use"
+    ]
+  }
+}

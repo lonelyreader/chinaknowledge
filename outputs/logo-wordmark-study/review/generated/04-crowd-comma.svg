@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="China, in Fact">
+  <title>China, in Fact — A crowd becomes the comma</title>
+  <rect width="1200" height="420" fill="#fbfaf7"/>
+  <g fill="#171714">
+    <text x="82" y="263" font-family="New York, Georgia, serif" font-size="150" letter-spacing="-5">China</text>
+    <g aria-hidden="true">
+      <circle cx="506" cy="194" r="8"/><circle cx="527" cy="189" r="11"/><circle cx="548" cy="197" r="7"/>
+      <circle cx="497" cy="214" r="6"/><circle cx="516" cy="215" r="10"/><circle cx="540" cy="216" r="9"/><circle cx="557" cy="218" r="5"/>
+      <circle cx="505" cy="235" r="7"/><circle cx="526" cy="235" r="9"/><circle cx="547" cy="237" r="6"/>
+      <circle cx="529" cy="255" r="8"/><circle cx="520" cy="274" r="7"/><circle cx="508" cy="291" r="5"/>
+    </g>
+    <text x="588" y="263" font-family="New York, Georgia, serif" font-size="132" letter-spacing="-4">in Fact</text>
+  </g>
+</svg>

@@ -1,0 +1,46 @@
+{
+  "artifact": "China, in Fact wordmark",
+  "status": "approved-final-vector",
+  "approved_at": "2026-07-30",
+  "exact_text": "China, in Fact",
+  "secondary_reading": "hi, act",
+  "typography": {
+    "source_type": "approved custom high-contrast serif lettering",
+    "source_raster": "../source/approved-hi-act-source.png",
+    "source_sha256": "702bc52fd6a4a4bd1659abf5bd6efee44f0ebfcd27cba2fb1562ac6df433a9b7",
+    "retypeset": false,
+    "substitute_font": false
+  },
+  "tokens": {
+    "rice_paper": "#F4F0E7",
+    "charcoal_ink": "#1D1D1A",
+    "cinnabar_red": "#B43A2F"
+  },
+  "exports": [
+    {
+      "path": "china-in-fact-wordmark.svg",
+      "background": "transparent",
+      "view_box": "0 0 1774 887",
+      "sha256": "d5fb3d84851490f08da64d2e2ac7e1be4c17436af1477083406a8c286a236dca"
+    },
+    {
+      "path": "china-in-fact-wordmark-on-rice.svg",
+      "background": "#F4F0E7",
+      "view_box": "0 0 1774 887",
+      "sha256": "86512f83521de4dbf889ac08545b581e686b95414bbed92e8b43e1ad6d9c67b0"
+    }
+  ],
+  "validation": {
+    "outlined_path_count": 14,
+    "contains_text_element": false,
+    "contains_raster_image": false,
+    "contains_external_font": false,
+    "xml_valid": true,
+    "source_mask_difference": {
+      "ink_pixels": 2326,
+      "ink_ratio": 0.0014782,
+      "accent_pixels": 1714,
+      "accent_ratio": 0.00108927
+    }
+  }
+}
