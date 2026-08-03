@@ -16,7 +16,8 @@ max_lines: 100
 
 | 工作项 | 当前门禁 |
 |---|---|
-| [`GUIDE-FOUNDATION-001`](checklists/guide-foundation-research-corpus.md) | 大规模采集人类原文，交付中文可浏览、可随机抽样的本地审查入口；不生成英西成品，不公开 |
+| [`MIDGAME-COLD-START-001`](checklists/midgame-cold-start.md) | 合同基线已获授权；进入中文母稿、机构署名、英西内容、SEO/GEO 与 Production 冷启动 |
+| [`GUIDE-FOUNDATION-001`](checklists/guide-foundation-research-corpus.md) | `17,706` 条统一索引与 24 条 Codex 分层抽样已完成；等待归档，不公开原文 |
 
 Agent Workspace 001–006 与仓库收敛均已完成并归档；其父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。
 
