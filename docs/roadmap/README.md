@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-08-02
+last_verified: 2026-08-10
 max_lines: 100
 ---
 
@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 当前门禁 |
 |---|---|
-| [`MEDIA-UPLOAD-001`](checklists/media-upload-filename-collision.md) | 修复 Production 同名图片被 Vercel Blob 拒绝的问题；保持客户端直传、缩略图和不可变媒体路径 |
+| — | 当前没有 active checklist |
 
 父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。001–006 与仓库收敛均已完成并归档。
 

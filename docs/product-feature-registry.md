@@ -4,10 +4,10 @@ doc_type: current
 authority: canonical
 status: active
 scope: implemented-app-features
-last_verified: 2026-08-02
+last_verified: 2026-08-10
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:1c0c329245e96dec197275f27af0ae4c733666a0b20d29712a0232d2df33ff36
+implementation_fingerprint: sha256:e0e0576a1165653c26e802f2eed787c8737d595b46940e421c83c348871d8c2e
 ---
 
 # App 功能登记册

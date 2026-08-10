@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: media-upload-filename-collision
 last_verified: 2026-08-10
 max_lines: 180
@@ -84,5 +84,5 @@ approval_gates: checklist-commit, product-code, push, merge, production-deploy, 
 - [x] 实现客户端唯一 pathname，并保持 adapter 服务端缩略图名称稳定。
 - [x] 目标测试、typecheck、lint、Production build、治理和 changed-path 检查通过；lint 仅保留既有 migration warning。
 - [x] 首轮复审发现隐藏无扩展名被二次解析，第二轮发现末尾点导致 `card` 重名；均已修复，第三轮独立复审 `PASS`，`P0/P1/P2 = 0/0/0`。
-- [ ] 推送、部署 Production，并用虚构同名图片完成创建、读回和精确清理。
-- [ ] 写回 current、feature registry、evidence，并把 checklist 移入 archive。
+- [x] 推送、部署 Production，并用虚构同名图片完成创建、读回和精确清理。
+- [x] 写回 current、feature registry、evidence，并把 checklist 移入 archive。
