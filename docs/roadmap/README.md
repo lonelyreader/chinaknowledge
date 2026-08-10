@@ -16,6 +16,7 @@ max_lines: 100
 
 | 工作项 | 当前门禁 |
 |---|---|
+| [`FAVICON-PROD-001`](checklists/favicon-production-release.md) | 三个运行图标资产等待提交、Production 部署和线上哈希回读 |
 | [`GUIDE-FOUNDATION-001`](checklists/guide-foundation-research-corpus.md) | `17,706` 条统一索引与抽样已完成；只等待报告写回和归档，不与冷启动争用优先级，不公开原文 |
 
 `MIDGAME-COLD-START-001` 已完成 60 个中文母稿、120 条英西 Article、Production MCP 分批公开和回读，并移入 [`archive`](../archive/midgame-cold-start.md)。Agent Workspace 001–006 与仓库收敛均已完成并归档；其父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。
