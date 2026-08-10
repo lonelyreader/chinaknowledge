@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: favicon-production-release
 last_verified: 2026-08-11
 max_lines: 100
@@ -59,7 +59,7 @@ approval_gates: product-code, commit, push, merge, production-deploy, worktree-c
 ## Work
 
 - [x] 用户批准合并、Production 部署和已包含工作树清理。
-- [ ] 建立发布提交并推送 `main`。
-- [ ] 部署、线上回读和哈希核对通过。
-- [ ] 写回当前状态并归档。
-- [ ] 清理已包含的临时工作树，保留未合入指南草稿的分支。
+- [x] 发布提交 `eaf288b` 已非强制快进推送至 `main`。
+- [x] Production deployment `dpl_7VSEy3qNbymrRtx4ZTvZyh8xSLYm` 为 READY；英西入口、health 与三个图标路由均为 200，线上与仓库 SHA-256 一致。
+- [x] 当前状态与功能登记已写回，清单归档。
+- [x] 已删除被 `main` 包含的 media 与 midgame release 工作树；未合入指南草稿的保全分支继续保留。

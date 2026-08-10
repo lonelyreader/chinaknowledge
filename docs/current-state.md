@@ -16,7 +16,7 @@ max_lines: 160
 
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
-- 正式品牌名为 **China, in Fact**，正式网站为 [`chinainfact.com`](https://chinainfact.com)；域名已绑定 `china-in-fact` project，`www.chinainfact.com` 以 308 永久跳转到主域名，TLS、匿名访问和公开索引均已启用。Registrar 与 nameserver 均为 Vercel，到期日为 2027-07-27；邮件专用 DNS 保持独立。正式公共字标已经定稿并接入本地 Header 与 Footer：轮廓母版位于 `apps/web/public/brand/china-in-fact-wordmark.svg`，朱砂红层读作 `hi, act`；商标可用性仍需另行核验。
+- 正式品牌名为 **China, in Fact**，正式网站为 [`chinainfact.com`](https://chinainfact.com)；域名已绑定 `china-in-fact` project，`www.chinainfact.com` 以 308 永久跳转到主域名，TLS、匿名访问和公开索引均已启用。Registrar 与 nameserver 均为 Vercel，到期日为 2027-07-27；邮件专用 DNS 保持独立。正式公共字标已经接入 Header 与 Footer；黑、朱砂红双形体与中央开放通道构成的定稿 favicon 已接入 ICO、SVG 和 Apple Touch Icon，三条 Production 路由与仓库 SHA-256 一致。商标可用性仍需另行核验。
 - 信息架构采用稳定内容对象、目的入口与横向语义分层：`Stories / Guides / Places / People` 为主导航，`Understand / Visit / Live / Study / Work / Business` 为目的入口，`Topics / Geography / Situation` 为横向发现。
 - 产品进一步明确为由真实中国成员直接发布、经站方选择与策展的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。成员个人公开与站方官方分发是两个决定，站方在同一 Article 上编辑且不改变原作者署名。
 - Stitch 公共站、People 机制及 Newsletter 状态已经形成 P1 视觉基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；公共 Article、Home 与 Person 已具备明显作者链接。`PUB-CURATION-001` 已把 Member publication 与 Editorial curation 两轴、同 Article 编辑和人物流量链路部署到 Production。
@@ -46,7 +46,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md)、[`MEDIA-UPLOAD-001`](archive/media-upload-filename-collision.md) 与 [`MIDGAME-COLD-START-001`](archive/midgame-cold-start.md) 均已完成并归档。冷启动已在 Production 完成第 14 条 migration、六个 Purpose、60 个中文母稿和 120 条英西 Site Article；60 个双语组各有 EN/ES 两条，全部 Article 为 `published + curated + _status=published`。公开由 Production MCP 分批执行，数据库聚合、三波六个匿名页面、机构署名、Guides、health 与含 122 条 post URL 的 sitemap 均已回读；最终 deployment 为 `dpl_GpjFsp6hwby7FSLEThpQnF6gUqLL`，恢复 run 为 `31405564024`。既有 Member、Person、Media 和 Article 未改写。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md)、[`MEDIA-UPLOAD-001`](archive/media-upload-filename-collision.md)、[`MIDGAME-COLD-START-001`](archive/midgame-cold-start.md) 与 [`FAVICON-PROD-001`](archive/favicon-production-release.md) 均已完成并归档。冷启动已在 Production 完成第 14 条 migration、六个 Purpose、60 个中文母稿和 120 条英西 Site Article；60 个双语组各有 EN/ES 两条，全部 Article 为 `published + curated + _status=published`。公开由 Production MCP 分批执行，数据库聚合、三波六个匿名页面、机构署名、Guides、health 与含 122 条 post URL 的 sitemap 均已回读；恢复 run 为 `31405564024`。既有 Member、Person、Media 和 Article 未改写。
 
 ## 当前运行边界
 
@@ -54,7 +54,7 @@ max_lines: 160
 - `PUB-CURATION-001` 使用独立临时 PostgreSQL 完成 12 条 migration apply、clean rollback/reapply、populated fail-closed 和虚构权限/状态矩阵；最终集中运行 typecheck、lint、build、editorial、migration recovery 与 diff check，全部 PASS。
 - Production Neon 当前为 45 张表、14 条 migration。Person `gexu` 已公开，地点为杭州和墨西哥 Mérida，身份为 Educator and entrepreneur；西语身份、地点和简介分别为 Educador y emprendedor、Hangzhou y Mérida, México、Coherentista；外链为 `https://lonelyreader.com`。既有英西 Article 保持原 ID、slug、translation group、owner、author、正文和媒体；冷启动新增 120 条站方 Article，固定机构署名并由 MCP 公开。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容；Production 没有复制这些数据。
-- 正式 Vercel Production deployment `dpl_GpjFsp6hwby7FSLEThpQnF6gUqLL` 为 `READY / target: production`，已绑定 `chinainfact.com`；该构建在 120 条冷启动 Article 公开后重新生成静态 sitemap。上一稳定 deployment `dpl_AirvgPF92ERMEFycXGjg7fWk3Dum` 保留为代码回滚目标。
+- 正式 Vercel Production deployment `dpl_7VSEy3qNbymrRtx4ZTvZyh8xSLYm` 为 `READY / target: production`，已绑定 `chinainfact.com`；该构建保留冷启动 sitemap 并上线定稿 favicon。上一稳定 deployment `dpl_GpjFsp6hwby7FSLEThpQnF6gUqLL` 保留为代码回滚目标。
 - 最终恢复 run [`30395828366`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30395828366) 在提交 `31f38c9` 上完成数据库与媒体导出、Cloudflare R2 不可变上传、SHA 读回和隔离恢复，断言 33 张表、12 条 ledger migration、12 个 migration 文件和 8 条 workflow event。
 - 2026-07-28 公共产品彻查后的修复已提交为 `4125230`；人物规模复审进一步形成 `31a7988 / 5964da7 / 3be99c6`，补齐 25 人分页、筛选、相邻周互斥轮换和跨年连续周边界。Production staged deployment 首轮 accessibility 发现空首页无 `h1` 与次级文字 4.39:1 对比度，提交 `d95e2b1` 修复后复验为唯一 `h1`、可见文字零 contrast failure、逻辑 tab order、3px focus-visible、桌面/移动无溢出或应用错误；Production 邮件适配器告警与 5xx 均为零。最终独立复审 `PASS`，P0/P1/P2 均为 0。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
 
