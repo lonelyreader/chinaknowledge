@@ -83,6 +83,6 @@ approval_gates: checklist-commit, product-code, push, merge, production-deploy, 
 - [x] 提交本 checklist，建立产品代码的 HEAD 授权基线；commit `096a6a2`。
 - [x] 实现客户端唯一 pathname，并保持 adapter 服务端缩略图名称稳定。
 - [x] 目标测试、typecheck、lint、Production build、治理和 changed-path 检查通过；lint 仅保留既有 migration warning。
-- [ ] 完成独立复审并关闭本批 finding。
+- [ ] 首轮独立复审发现隐藏无扩展名会被 Payload 二次解析；修复后重新复审并关闭 finding。
 - [ ] 推送、部署 Production，并用虚构同名图片完成创建、读回和精确清理。
 - [ ] 写回 current、feature registry、evidence，并把 checklist 移入 archive。

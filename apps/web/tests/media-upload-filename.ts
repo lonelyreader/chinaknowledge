@@ -14,7 +14,12 @@ assert.equal(first, "portrait-11111111-1111-4111-8111-111111111111.JPG");
 assert.equal(second, "portrait-22222222-2222-4222-8222-222222222222.JPG");
 assert.notEqual(first, second, "Two uploads with the same browser filename need distinct Blob keys.");
 assert.equal(uniqueMediaUploadFilename("portrait", "fixture"), "portrait-fixture");
-assert.equal(uniqueMediaUploadFilename(".portrait", "fixture"), ".portrait-fixture");
+assert.equal(
+  uniqueMediaUploadFilename(".portrait", "fixture"),
+  "portrait-fixture",
+  "A hidden extensionless name must not be reparsed by Payload as its own extension.",
+);
+assert.equal(uniqueMediaUploadFilename(".portrait.png", "fixture"), ".portrait-fixture.png");
 assert.equal(uniqueMediaUploadFilename("folder/portrait.png", "fixture"), "portrait-fixture.png");
 
 const plugin = uniqueVercelBlobClientUploadPlugin();

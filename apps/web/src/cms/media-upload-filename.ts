@@ -8,6 +8,11 @@ export const UNIQUE_VERCEL_BLOB_CLIENT_HANDLER =
 export function uniqueMediaUploadFilename(filename: string, suffix: string) {
   const basename = filename.replace(/^.*[\\/]/, "") || "image";
   const extensionIndex = basename.lastIndexOf(".");
+  if (extensionIndex === 0) {
+    const visibleBasename = basename.slice(1) || "image";
+    return `${visibleBasename}-${suffix}`;
+  }
+
   if (extensionIndex <= 0 || extensionIndex === basename.length - 1) {
     return `${basename}-${suffix}`;
   }
