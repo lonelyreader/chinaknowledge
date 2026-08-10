@@ -4,13 +4,13 @@ doc_type: router
 authority: routing
 status: active
 scope: implementation-evidence-index
-last_verified: 2026-08-02
+last_verified: 2026-08-10
 max_lines: 60
 ---
 
 # Implementation Evidence Router
 
-本目录保存产品实现、发布验证、浏览器检查与复审证据，不授权重新执行任何生产动作。
+实现与复审证据索引。
 
 | Slice | 状态 | Evidence |
 |---|---|---|
@@ -27,3 +27,4 @@ max_lines: 60
 | `AGENT-WORKSPACE-004` | Super Admin-only 最近 20 条 workflow activity 最小读取已完成 Local 权限、隐私、不变性与 Agent audit 验证；专用 fixture 已删除，独立复审 P0/P1/P2=`0/0/0`，Preview 未执行 | [`Local runtime`](agent-workspace-004-local-runtime-2026-08-01.md)、[`independent review`](agent-workspace-004-independent-review-2026-08-01.md) |
 | `AGENT-WORKSPACE-005` | Gate 2–6 全部独立复审 PASS；Production public enable、只读 smoke、权限负例、撤销与精确 cleanup 已完成，真实内容未修改 | [`intake`](agent-workspace-005-intake-2026-08-01.md)、[`client compatibility`](agent-workspace-005-client-compatibility-2026-08-01.md)、[`Preview runtime`](agent-workspace-005-preview-runtime-2026-08-01.md)、[`operational readiness`](agent-workspace-005-operational-readiness-2026-08-01.md)、[`Production runtime`](agent-workspace-005-production-runtime-2026-08-01.md)、[`independent review`](agent-workspace-005-independent-review-2026-08-01.md) |
 | `AGENT-WORKSPACE-006` | Codex Member 只读实测与独立复审 PASS，`P0/P1/P2=0/0/0` | [`runtime`](agent-workspace-006-codex-member-compatibility-2026-08-02.md)、[`review`](agent-workspace-006-independent-review-2026-08-02.md) |
+| `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |

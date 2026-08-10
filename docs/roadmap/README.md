@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-08-02
+last_verified: 2026-08-10
 max_lines: 100
 ---
 
@@ -14,7 +14,11 @@ max_lines: 100
 
 ## Active
 
-父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。001–006 与仓库收敛均已完成并归档，当前没有 active checklist。
+| 工作项 | 当前门禁 |
+|---|---|
+| — | 当前没有 active checklist |
+
+父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。001–006 与仓库收敛均已完成并归档。
 
 ## Deferred
 

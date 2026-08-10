@@ -26,10 +26,10 @@ max_lines: 140
 
 ## Browser Evidence
 
-- [桌面 1440×900](/Volumes/External/chinaknowledge/docs/reference/implementation/brand-wordmark-site-integration/home-desktop-1440x900.png)：Header 字标 180×32.94 CSS px；页面横向宽度 `1440 / 1440`，无溢出。
-- [移动 390×844](/Volumes/External/chinaknowledge/docs/reference/implementation/brand-wordmark-site-integration/home-mobile-390x844.png)：Header 字标 144×26.36 CSS px；页面横向宽度 `390 / 390`，无溢出。
-- [Footer 全页证据](/Volumes/External/chinaknowledge/docs/reference/implementation/brand-wordmark-site-integration/home-desktop-full-1440.png)：Footer 使用与 Header 相同的资产、alt 和 180×32.94 CSS px 尺寸。
-- [定稿源与浏览器归一化对照](/Volumes/External/chinaknowledge/docs/reference/implementation/brand-wordmark-site-integration/comparison-wordmark-source-vs-browser.png)：左为定稿源，右为浏览器截图；两侧先统一到 180×33 px，再同时放大检查轮廓与颜色映射。
+- [桌面 1440×900](brand-wordmark-site-integration/home-desktop-1440x900.png)：Header 字标 180×32.94 CSS px；页面横向宽度 `1440 / 1440`，无溢出。
+- [移动 390×844](brand-wordmark-site-integration/home-mobile-390x844.png)：Header 字标 144×26.36 CSS px；页面横向宽度 `390 / 390`，无溢出。
+- [Footer 全页证据](brand-wordmark-site-integration/home-desktop-full-1440.png)：Footer 使用与 Header 相同的资产、alt 和 180×32.94 CSS px 尺寸。
+- [定稿源与浏览器归一化对照](brand-wordmark-site-integration/comparison-wordmark-source-vs-browser.png)：左为定稿源，右为浏览器截图；两侧先统一到 180×33 px，再同时放大检查轮廓与颜色映射。
 - Header 首页链接的 accessible name 为 `China, in Fact`；Footer 图像 alt 同名。
 - 移动菜单在 390px 下完成打开与关闭；`aria-expanded` 依次为 `true / false`，过程中无横向溢出。
 - 新开浏览器 tab 在桌面与移动检查中 console error/warning 均为 0。
