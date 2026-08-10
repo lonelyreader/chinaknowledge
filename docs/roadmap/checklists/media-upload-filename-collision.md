@@ -9,7 +9,7 @@ max_lines: 180
 change_id: MEDIA-UPLOAD-001
 risk_tier: upgraded
 validation_profile: phase_release
-allowed_paths: apps/web/package.json, apps/web/src/payload.config.ts, apps/web/src/app/(payload)/admin/importMap.js, apps/web/src/cms/components/UniqueVercelBlobClientUploadHandler.tsx, apps/web/src/cms/media-upload-filename.ts, apps/web/tests/media-upload-filename.ts, apps/web/tests/preview-config.ts, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/media-upload-filename-collision.md, docs/reference/README.md, docs/reference/implementation/media-upload-filename-collision-2026-08-10.md, docs/archive/README.md, docs/archive/media-upload-filename-collision.md
+allowed_paths: apps/web/package.json, apps/web/src/payload.config.ts, apps/web/src/app/(payload)/admin/importMap.js, apps/web/src/cms/components/UniqueVercelBlobClientUploadHandler.tsx, apps/web/src/cms/media-upload-filename.ts, apps/web/tests/media-upload-filename.ts, apps/web/tests/preview-config.ts, docs/current-state.md, docs/product-feature-registry.md, docs/roadmap/README.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/media-upload-filename-collision.md, docs/reference/README.md, docs/reference/implementation/README.md, docs/reference/implementation/media-upload-filename-collision-2026-08-10.md, docs/archive/README.md, docs/archive/media-upload-filename-collision.md
 approval_gates: checklist-commit, product-code, push, merge, production-deploy, production-fixture, fixture-cleanup
 ---
 
