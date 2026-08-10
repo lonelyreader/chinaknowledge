@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-10
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:c635f74e0cfebb0feb56da3d38fa7123ae62452d672984f99b6f40b8af387973
+implementation_fingerprint: sha256:cc6cd06f2db4854466231fab7b12d8a1dc300485f70fbbafa692fb0d3ede12da
 ---
 
 # App 功能登记册
@@ -38,7 +38,7 @@ implementation_fingerprint: sha256:c635f74e0cfebb0feb56da3d38fa7123ae62452d67298
 | RDR-16 | 搜索引擎入口 | Production 可被索引，并提供 Article JSON-LD、分享信息、sitemap、canonical 和多语言 alternate；Preview 与草稿预览不索引 | `/robots.txt`、`/sitemap.xml` 与页面 metadata；Purpose、Topic 和已公开内容进入 sitemap |
 | RDR-17 | 响应式和键盘访问 | 在桌面与移动端使用主导航、移动菜单、表单、焦点状态和语义化页面 | 全部公共页面；当前验收宽度包含 390px |
 | RDR-18 | 不存在页面处理 | 无效人物、文章或地点返回 Not Found，并提供回到网站的入口 | 各动态详情页 |
-| RDR-19 | 一致品牌字标 | 在公共 Header 与 Footer 看到同一单行 `China, in Fact` 轮廓字标；完整名称保持可读，朱砂红第二阅读层为 `hi, act` | 全部 `/{locale}` 公共页面；字标不依赖客户端字体 |
+| RDR-19 | 一致品牌标识 | 在公共 Header 与 Footer 看到同一单行 `China, in Fact` 轮廓字标；浏览器与设备图标使用黑、朱砂红双形体及中央开放通道 | 全部 `/{locale}` 公共页面；字标与 favicon 均不依赖客户端字体 |
 
 ## Member（铲子计划成员）
 
