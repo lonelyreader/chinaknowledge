@@ -29,6 +29,7 @@
     "test:editorial": "tsx tests/editorial-workflow.ts",
     "test:environment": "tsx tests/environment.ts",
     "test:migration-recovery": "node scripts/test-migration-recovery.mjs",
+    "test:media-upload-filename": "tsx tests/media-upload-filename.ts",
     "test:newsletter": "tsx tests/newsletter.ts && tsx tests/newsletter-route.ts",
     "test:preview-config": "tsx tests/preview-config.ts",
     "test:agent": "tsx tests/agent-contracts.ts && tsx tests/agent-http.ts && tsx tests/agent-routes.ts && tsx tests/agent-fixtures.ts && tsx tests/agent-oauth-model.ts && tsx tests/agent-schema.ts",

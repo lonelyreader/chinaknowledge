@@ -80,9 +80,9 @@ approval_gates: checklist-commit, product-code, push, merge, production-deploy, 
 
 - [x] 产品负责人提供截图并授权修复、提交、发布和后续必要操作。
 - [x] 只读确认 Production 错误、当前 adapter 配置和同名 pathname 拒绝行为。
-- [ ] 提交本 checklist，建立产品代码的 HEAD 授权基线。
-- [ ] 实现客户端唯一 pathname，并保持 adapter 服务端缩略图名称稳定。
-- [ ] 运行目标测试、typecheck、lint、build、治理和 changed-path 检查。
+- [x] 提交本 checklist，建立产品代码的 HEAD 授权基线；commit `096a6a2`。
+- [x] 实现客户端唯一 pathname，并保持 adapter 服务端缩略图名称稳定。
+- [x] 目标测试、typecheck、lint、Production build、治理和 changed-path 检查通过；lint 仅保留既有 migration warning。
 - [ ] 完成独立复审并关闭本批 finding。
 - [ ] 推送、部署 Production，并用虚构同名图片完成创建、读回和精确清理。
 - [ ] 写回 current、feature registry、evidence，并把 checklist 移入 archive。

@@ -25,6 +25,7 @@ import {
   normalizePostgresConnectionString,
   validateServerEnvironment,
 } from "@/config/environment";
+import { uniqueVercelBlobClientUploadPlugin } from "@/cms/media-upload-filename";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverEnvironment = validateServerEnvironment();
@@ -117,6 +118,7 @@ export default buildConfig({
       enabled: serverEnvironment.blobStorageEnabled,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     }),
+    uniqueVercelBlobClientUploadPlugin(),
   ],
   secret: process.env.PAYLOAD_SECRET!,
   sharp,

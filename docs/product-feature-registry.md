@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-02
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:793dfbafc7798175d6a080f8c17bb3841ea6e8ca0aece649ddeb869bf581dc1b
+implementation_fingerprint: sha256:dbb627f68bb0b450b2e9d3c9dc2ef8a7ad09ddef08f7895ddb8ea1a624941f35
 ---
 
 # App 功能登记册
@@ -112,7 +112,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-03 | 健康检查 | 外部系统可确认 App 与数据库可响应 | `/api/health` |
 | OPS-04 | 数据库迁移 | 以有序 migration 升级 CMS schema，并提供状态、整批回滚屏障和恢复测试 | `cms:migration:*` 与 migration recovery test |
 | OPS-05 | 数据库与媒体备份 | 定时或手动导出 Production 数据和媒体清单，上传 Cloudflare R2，校验 SHA 并在隔离数据库恢复读回 | Production backup workflow |
-| OPS-06 | 媒体持久化 | Preview/Production 图片存入 Vercel Blob；Local 使用本地存储 | Media collection 与环境配置 |
+| OPS-06 | 媒体持久化 | Preview/Production 图片存入 Vercel Blob；同名图片在客户端直传前获得不同的不可变路径，原图与 `card` 缩略图保持对应；Local 使用本地存储 | Media collection、唯一上传文件名处理器与环境配置；不覆盖既有 Blob |
 | OPS-07 | 事务邮件 | 通过 Resend 发送邀请和编辑通知，记录失败并支持只重试未成功任务 | 后台动作与 retry script |
 | OPS-08 | Newsletter 名单 | 将有效且同意订阅的邮箱加入 Resend，并记录 EN/ES 偏好 | Newsletter API；只允许同源请求并使用隐藏反机器人字段 |
 | OPS-09 | 首位管理员建立 | 在空数据库中以双重确认建立第一个 Super Admin，不在命令或日志中暴露密码 | `cms:bootstrap-super-admin`，默认只显示计划 |

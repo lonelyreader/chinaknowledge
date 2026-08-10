@@ -32,13 +32,13 @@ const blobProvider = config.admin?.components?.providers?.find(
     typeof provider === "object" &&
     provider !== null &&
     "path" in provider &&
-    provider.path === "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler",
+    provider.path === "/cms/components/UniqueVercelBlobClientUploadHandler#UniqueVercelBlobClientUploadHandler",
 );
 assert.ok(blobProvider && typeof blobProvider === "object" && "clientProps" in blobProvider);
 assert.equal(
   (blobProvider.clientProps as { extra?: { addRandomSuffix?: boolean } }).extra?.addRandomSuffix,
   false,
-  "Payload must own filename uniqueness so resized Blob keys remain addressable.",
+  "The adapter must keep server-generated resized Blob keys stable.",
 );
 
 const shared = new SharedArrayBuffer(4);
