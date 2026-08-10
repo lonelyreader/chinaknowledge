@@ -46,5 +46,5 @@ approval_gates: docs-fix, push, merge
 ## Work
 
 - [x] 从失败 Actions 日志确认 4 个 broken local link；上传代码未进入失败步骤。
-- [ ] 改为仓库相对链接并更新内容指纹。
+- [x] 改为仓库相对链接并更新内容指纹。
 - [ ] 通过本地与 GitHub 门禁，归档 checklist。
