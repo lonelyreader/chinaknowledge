@@ -14,7 +14,9 @@ max_lines: 80
 
 Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.md) 记录；父级不授权实现。
 
-当前没有 active checklist。
+当前 active checklist：
+
+- [`CI-DOC-LINKS-001`](ci-portable-evidence-links.md)：修复旧证据文档的不可移植图片链接。
 
 已完成的 [`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](../../archive/agent-workspace-codex-member-compatibility.md)、[`MEDIA-UPLOAD-001`](../../archive/media-upload-filename-collision.md)、[`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 与 [`REPO-CONSOLIDATION-001`](../../archive/repository-main-consolidation.md) 位于 archive。
 
