@@ -16,7 +16,7 @@ max_lines: 100
 
 | 工作项 | 当前门禁 |
 |---|---|
-| [`CI-DOC-LINKS-001`](checklists/ci-portable-evidence-links.md) | 把旧验收文档的本机绝对图片路径改为仓库相对链接，恢复 GitHub 治理门禁 |
+| — | 当前没有 active checklist |
 
 父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。001–006 与仓库收敛均已完成并归档。
 

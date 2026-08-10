@@ -33,6 +33,7 @@ max_lines: 80
 | `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
 | `REPO-CONSOLIDATION-001` | 54 个用户路径已保全，001–006 历史与 Git refs/worktrees 已收敛到唯一 clean `main` | [`repository-main-consolidation.md`](repository-main-consolidation.md) |
 | `MEDIA-UPLOAD-001` | 同名 Media 使用唯一且不可覆盖的 Blob pathname，原图与 `card` 已在 Production 创建、读回并精确清理 | [`media-upload-filename-collision.md`](media-upload-filename-collision.md) |
+| `CI-DOC-LINKS-001` | 旧字标证据的本机绝对图片路径已改为仓库相对链接，GitHub runner 可解析 | [`ci-portable-evidence-links.md`](ci-portable-evidence-links.md) |
 
 规则：
 

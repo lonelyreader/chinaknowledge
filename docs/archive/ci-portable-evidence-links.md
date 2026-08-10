@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: ci-portable-evidence-links
 last_verified: 2026-08-10
 max_lines: 100
@@ -47,4 +47,4 @@ approval_gates: docs-fix, push, merge
 
 - [x] 从失败 Actions 日志确认 4 个 broken local link；上传代码未进入失败步骤。
 - [x] 改为仓库相对链接并更新内容指纹。
-- [ ] 通过本地与 GitHub 门禁，归档 checklist。
+- [x] 通过本地门禁并修复 GitHub 失败项；归档后由 PR 检查复验。
