@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import sharp from "sharp";
 
 import {
   uniqueMediaUploadFilename,
@@ -21,6 +24,76 @@ assert.equal(
 );
 assert.equal(uniqueMediaUploadFilename(".portrait.png", "fixture"), ".portrait-fixture.png");
 assert.equal(uniqueMediaUploadFilename("folder/portrait.png", "fixture"), "portrait-fixture.png");
+assert.equal(uniqueMediaUploadFilename("portrait.", "fixture"), "portrait-fixture");
+
+const { generateFileData } = await import(
+  pathToFileURL(path.resolve("node_modules/payload/dist/uploads/generateFileData.js")).href
+);
+const imageBuffer = await sharp({
+  create: {
+    background: { alpha: 1, b: 60, g: 40, r: 20 },
+    channels: 4,
+    height: 900,
+    width: 1200,
+  },
+}).png().toBuffer();
+
+async function payloadFilenames(browserFilename: string, suffix: string) {
+  const filename = uniqueMediaUploadFilename(browserFilename, suffix);
+  const result = await generateFileData({
+    collection: {
+      config: {
+        slug: "media",
+        upload: {
+          disableLocalStorage: true,
+          imageSizes: [{ height: 600, name: "card", position: "centre", width: 800 }],
+          staticDir: "/read-only-media-upload-fixture",
+        },
+      },
+    },
+    data: {},
+    draft: false,
+    isDuplicating: false,
+    operation: "create",
+    originalDoc: null,
+    overwriteExistingFiles: false,
+    req: {
+      context: {},
+      file: {
+        clientUploadContext: {},
+        data: imageBuffer,
+        mimetype: "image/png",
+        name: filename,
+        size: imageBuffer.length,
+      },
+      payload: {
+        config: { sharp },
+        db: { findOne: async () => null },
+        logger: { error: () => undefined },
+      },
+      query: {},
+      t: (key: string) => key,
+    },
+    throwOnMissingFile: true,
+  });
+
+  return {
+    card: result.data.sizes.card.filename as string,
+    database: result.data.filename as string,
+    uploaded: filename,
+  };
+}
+
+const trailingDotFirst = await payloadFilenames("portrait.", "first");
+const trailingDotSecond = await payloadFilenames("portrait.", "second");
+assert.equal(trailingDotFirst.uploaded, trailingDotFirst.database);
+assert.equal(trailingDotSecond.uploaded, trailingDotSecond.database);
+assert.notEqual(trailingDotFirst.uploaded, trailingDotSecond.uploaded);
+assert.notEqual(
+  trailingDotFirst.card,
+  trailingDotSecond.card,
+  "Payload card filenames must retain the unique suffix for trailing-dot browser names.",
+);
 
 const plugin = uniqueVercelBlobClientUploadPlugin();
 const config = plugin({

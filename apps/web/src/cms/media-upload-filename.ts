@@ -8,13 +8,15 @@ export const UNIQUE_VERCEL_BLOB_CLIENT_HANDLER =
 export function uniqueMediaUploadFilename(filename: string, suffix: string) {
   const basename = filename.replace(/^.*[\\/]/, "") || "image";
   const extensionIndex = basename.lastIndexOf(".");
-  if (extensionIndex === 0) {
-    const visibleBasename = basename.slice(1) || "image";
-    return `${visibleBasename}-${suffix}`;
-  }
+  const extensionStem = extensionIndex > 0 ? basename.slice(0, extensionIndex) : "";
+  const hasUsableExtension =
+    extensionIndex > 0 &&
+    extensionIndex < basename.length - 1 &&
+    Boolean(extensionStem.replace(/^\.+|\.+$/g, ""));
 
-  if (extensionIndex <= 0 || extensionIndex === basename.length - 1) {
-    return `${basename}-${suffix}`;
+  if (!hasUsableExtension) {
+    const visibleBasename = basename.replace(/^\.+|\.+$/g, "") || "image";
+    return `${visibleBasename}-${suffix}`;
   }
 
   return `${basename.slice(0, extensionIndex)}-${suffix}${basename.slice(extensionIndex)}`;
