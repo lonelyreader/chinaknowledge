@@ -94,6 +94,16 @@ try {
     throw new Error(`Found ${masters.totalDocs}/${bundles.length} requested Chinese masters.`);
   }
   const masterByKey = new Map(masters.docs.map((master) => [master.contentKey, master]));
+  const publishedMasters = await payload.find({
+    collection: "editorial-masters",
+    depth: 0,
+    draft: false,
+    limit: bundles.length,
+    overrideAccess: true,
+    pagination: false,
+    where: { contentKey: { in: bundles.map((bundle) => bundle.contentKey) } },
+  });
+  const publishedMasterByKey = new Map(publishedMasters.docs.map((master) => [master.contentKey, master]));
   const desired = bundles.flatMap((bundle) => {
     const master = masterByKey.get(bundle.contentKey)!;
     assertSourceGate(bundle, master);
@@ -183,19 +193,33 @@ try {
       }
 
       for (const master of masters.docs) {
-        if (master.editorialStatus === "translated") continue;
+        const publishedMaster = publishedMasterByKey.get(master.contentKey);
+        if (master.editorialStatus === "translated" && publishedMaster?.editorialStatus === "translated"
+          && publishedMaster.contentHash === master.contentHash) continue;
         const updated = await payload.update({
           collection: "editorial-masters",
           id: master.id,
-          data: {
-            editorialStatus: "translated",
-            translationNotes: `English and Spanish imported from manifest ${manifestHash}; run ${runID}.`,
-          },
-          draft: true,
+          data: publishableMasterData(master, manifestHash, runID),
+          draft: false,
           overrideAccess: false,
           req,
         });
         result.mastersMarkedTranslated.push(Number(updated.id));
+      }
+      const publishedMasterReadback = await payload.find({
+        collection: "editorial-masters",
+        depth: 0,
+        draft: false,
+        limit: bundles.length,
+        overrideAccess: true,
+        pagination: false,
+        req,
+        where: { contentKey: { in: bundles.map((bundle) => bundle.contentKey) } },
+      });
+      const expectedMasterHashByKey = new Map(masters.docs.map((master) => [master.contentKey, master.contentHash]));
+      if (publishedMasterReadback.totalDocs !== bundles.length || publishedMasterReadback.docs.some((master) =>
+        master.editorialStatus !== "translated" || master.contentHash !== expectedMasterHashByKey.get(master.contentKey))) {
+        throw new Error("Published Chinese master readback did not match every translated source master.");
       }
       await commitTransaction(req);
     } catch (error) {
@@ -215,6 +239,27 @@ try {
   console.log(JSON.stringify(auditRecord, null, 2));
 } finally {
   await payload.destroy();
+}
+
+function publishableMasterData(master: EditorialMaster, manifestHash: string, runID: string) {
+  return {
+    assignedEditor: master.assignedEditor ? relationNumber(master.assignedEditor) : undefined,
+    batchId: master.batchId,
+    bodyZh: master.bodyZh,
+    contentKey: master.contentKey,
+    createdBy: relationNumber(master.createdBy),
+    editorialStatus: "translated" as const,
+    purpose: relationNumber(master.purpose),
+    reviewedAt: master.reviewedAt,
+    reviewedBy: master.reviewedBy ? relationNumber(master.reviewedBy) : undefined,
+    rightsStatus: master.rightsStatus,
+    risk: master.risk,
+    sourceNotes: master.sourceNotes,
+    summaryZh: master.summaryZh,
+    titleZh: master.titleZh,
+    topics: (master.topics ?? []).map(relationNumber),
+    translationNotes: `English and Spanish imported from manifest ${manifestHash}; run ${runID}.`,
+  };
 }
 
 function assertSourceGate(bundle: ColdStartTranslationBundle, master: EditorialMaster) {

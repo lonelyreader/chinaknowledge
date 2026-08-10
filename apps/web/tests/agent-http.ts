@@ -18,6 +18,7 @@ import {
   authorizeActorHeaders,
   validRedirectUri,
   validAuthorizePostOrigin,
+  tokenRequestResource,
   validateAuthorizeRequest,
 } from "@/agent/oauth-http";
 import { handleRegistrationPost } from "@/agent/registration";
@@ -88,6 +89,10 @@ const authorize = new URLSearchParams({
 });
 assert.equal(validateAuthorizeRequest(authorize, origin).resource, urls.resource.href);
 assert.throws(() => validateAuthorizeRequest(new URLSearchParams({ ...Object.fromEntries(authorize), resource: "https://attacker.example/mcp" }), origin));
+assert.equal(tokenRequestResource({ grant_type: "refresh_token" }, origin), urls.resource.href);
+assert.equal(tokenRequestResource({ grant_type: "refresh_token", resource: urls.resource.href }, origin), urls.resource.href);
+assert.throws(() => tokenRequestResource({ grant_type: "refresh_token", resource: "https://attacker.example/mcp" }, origin));
+assert.throws(() => tokenRequestResource({ grant_type: "authorization_code" }, origin));
 assert.equal(validRedirectUri("https://agent.example/callback"), true);
 assert.equal(validRedirectUri("http://localhost:4321/callback"), true);
 assert.equal(validRedirectUri("cursor://anysphere.cursor-mcp/oauth/callback"), true);

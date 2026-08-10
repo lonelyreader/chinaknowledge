@@ -406,7 +406,7 @@ export class AgentMemberService {
       if (hasEditorialRole(user)) {
         tools.push("editorial_article_get", "editorial_prepare_site_selection", "editorial_commit_site_selection");
       }
-      if (isSuperAdmin(user)) tools.push("admin_recent_activity");
+      if (isSuperAdmin(user)) tools.push("editorial_release_site_article_batch", "admin_recent_activity");
       return agentSuccess({
         tools,
         role: user.role,
@@ -473,6 +473,60 @@ export class AgentMemberService {
       return agentSuccess({ asOf, count: items.length, items }, { requestId });
     } catch (error) {
       await this.auditReadFailure("admin_recent_activity", requestId, error);
+      return failure(error, requestId);
+    }
+  }
+
+  async releaseSiteArticleBatch(input: { ids: number[]; approval: string; idempotencyKey: string }) {
+    const requestId = createAgentRequestId();
+    try {
+      if (input.approval !== "PUBLISH_AND_CURATE_SITE_ARTICLES") {
+        throw new AgentServiceError("VALIDATION_ERROR", "The exact batch publication approval is required.");
+      }
+      const batchKey = requireIdempotencyKey(input.idempotencyKey);
+      const ids = [...new Set(input.ids)];
+      if (!ids.length || ids.length !== input.ids.length || ids.length > 20 || ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+        throw new AgentServiceError("VALIDATION_ERROR", "Provide 1-20 unique positive Article IDs.");
+      }
+      const user = await this.currentSuperAdmin();
+      const released: ReturnType<typeof articleSummary>[] = [];
+      for (const id of ids) {
+        let article = await this.editorialArticle(id, user);
+        let latest = await getLatestDraftArticle(this.payload, article.id, article);
+        if (latest.authorshipType !== "site") {
+          throw new AgentServiceError("FORBIDDEN", "Batch release only accepts site-authored Articles.", { articleId: id });
+        }
+        if (latest.publicationStatus !== "published") {
+          const prepared = await this.preparePublication({ id, revision: revision(latest), targetStatus: "published" });
+          if (!prepared.ok || !prepared.data) throw new AgentServiceError(prepared.error?.code ?? "INTERNAL_ERROR", prepared.error?.message ?? "Publication preparation failed.", { articleId: id });
+          const committed = await this.commitPublication({
+            confirmationRef: prepared.data.confirmationRef,
+            idempotencyKey: `${batchKey}:publish:${id}`,
+            revision: revision(latest),
+          });
+          if (!committed.ok) throw new AgentServiceError(committed.error?.code ?? "INTERNAL_ERROR", committed.error?.message ?? "Publication commit failed.", { articleId: id });
+        }
+        article = await this.editorialArticle(id, user);
+        latest = await getLatestDraftArticle(this.payload, article.id, article);
+        if (latest.curationStatus !== "curated") {
+          const prepared = await this.prepareSiteSelection({ id, revision: revision(latest), targetStatus: "curated" });
+          if (!prepared.ok || !prepared.data) throw new AgentServiceError(prepared.error?.code ?? "INTERNAL_ERROR", prepared.error?.message ?? "Site selection preparation failed.", { articleId: id });
+          const committed = await this.commitSiteSelection({
+            confirmationRef: prepared.data.confirmationRef,
+            idempotencyKey: `${batchKey}:curate:${id}`,
+            revision: revision(latest),
+          });
+          if (!committed.ok) throw new AgentServiceError(committed.error?.code ?? "INTERNAL_ERROR", committed.error?.message ?? "Site selection commit failed.", { articleId: id });
+        }
+        article = await this.editorialArticle(id, user);
+        latest = await getLatestDraftArticle(this.payload, article.id, article);
+        if (latest.publicationStatus !== "published" || latest.curationStatus !== "curated") {
+          throw new AgentServiceError("INTERNAL_ERROR", "Article release readback did not match the requested state.", { articleId: id });
+        }
+        released.push(articleSummary(latest));
+      }
+      return agentSuccess({ count: released.length, articles: released }, { requestId });
+    } catch (error) {
       return failure(error, requestId);
     }
   }

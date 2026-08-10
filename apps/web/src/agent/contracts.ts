@@ -100,6 +100,8 @@ export const agentToolDescriptions = {
     "Prepare adding one member-public article to the site's editorial selection, or removing that same selected article as recovery. It returns a server-generated impact summary and short-lived one-time confirmation reference without changing the article or public entry.",
   editorial_commit_site_selection:
     "Execute a prepared site-selection action only after the user explicitly confirms the server summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks the current role, connection, article, transition, revision and curation requirements before changing the site entry.",
+  editorial_release_site_article_batch:
+    "Publish and add 1-20 site-authored Articles to the site after the user has explicitly approved that exact batch. Super Admin only. The server processes Articles serially through the normal prepare, confirmation, idempotency, revision and readback gates; it stops on the first failure and never edits article copy.",
   admin_recent_activity:
     "Return the latest 20 Article workflow activity items for a current Super Admin. This is read-only and exposes only minimal Article, actor, status, notification state and time fields.",
 } as const;

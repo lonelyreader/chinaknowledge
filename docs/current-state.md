@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-08-10
+last_verified: 2026-08-11
 max_lines: 160
 ---
 
@@ -46,15 +46,15 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md) 与 [`MEDIA-UPLOAD-001`](archive/media-upload-filename-collision.md) 均已完成并归档。Media 同名上传修复已通过 Production 创建、原图与 `card` 读回、精确 cleanup 和独立复审，`P0/P1/P2 = 0/0/0`；真实内容、账号、角色和既有媒体未改写。当前 active checklist 为 [`MIDGAME-COLD-START-001`](roadmap/checklists/midgame-cold-start.md)：中文 60/60 已批准，英西 120 个译文已通过合同。Preview deployment `dpl_4jMFsjsZpYL3JAh2p6MpZvVNERXw` 为 READY，第 14 条 migration 已应用；60 个母稿与 120 条英西 Site Article 均以 Draft 导入，60 个 translation group 各有 EN/ES 两条，事务回读与 120/120 幂等复跑通过。Production 仍保持既有 13 条 migration、39 张表和 3 条 Article；新 schema、中文母稿和冷启动内容尚未部署或写入 Production。下一门禁为 Production 恢复点。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md)、[`MEDIA-UPLOAD-001`](archive/media-upload-filename-collision.md) 与 [`MIDGAME-COLD-START-001`](archive/midgame-cold-start.md) 均已完成并归档。冷启动已在 Production 完成第 14 条 migration、六个 Purpose、60 个中文母稿和 120 条英西 Site Article；60 个双语组各有 EN/ES 两条，全部 Article 为 `published + curated + _status=published`。公开由 Production MCP 分批执行，数据库聚合、三波六个匿名页面、机构署名、Guides、health 与含 122 条 post URL 的 sitemap 均已回读；最终 deployment 为 `dpl_GpjFsp6hwby7FSLEThpQnF6gUqLL`，恢复 run 为 `31405564024`。既有 Member、Person、Media 和 Article 未改写。
 
 ## 当前运行边界
 
 - 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
 - `PUB-CURATION-001` 使用独立临时 PostgreSQL 完成 12 条 migration apply、clean rollback/reapply、populated fail-closed 和虚构权限/状态矩阵；最终集中运行 typecheck、lint、build、editorial、migration recovery 与 diff check，全部 PASS。
-- Production Neon 当前为 39 张表、13 条 migration，6 张 Agent 表在 smoke cleanup 后为空。Person `gexu` 已公开，地点为杭州和墨西哥 Mérida，身份为 Educator and entrepreneur；西语身份、地点和简介分别为 Educador y emprendedor、Hangzhou y Mérida, México、Coherentista；外链为 `https://lonelyreader.com`。英西 Article 保持原 ID、slug、translation group、owner、author、正文和媒体并原地映射为 Published + Curated；重复 locale、混合 owner/author、owner/byline mismatch 和缺失 owner/author均为 0。
+- Production Neon 当前为 45 张表、14 条 migration。Person `gexu` 已公开，地点为杭州和墨西哥 Mérida，身份为 Educator and entrepreneur；西语身份、地点和简介分别为 Educador y emprendedor、Hangzhou y Mérida, México、Coherentista；外链为 `https://lonelyreader.com`。既有英西 Article 保持原 ID、slug、translation group、owner、author、正文和媒体；冷启动新增 120 条站方 Article，固定机构署名并由 MCP 公开。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容；Production 没有复制这些数据。
-- 正式 Vercel Production deployment `dpl_7KkTgKWbYC1GmgvGK83iykFbECFy` 为 `READY / target: production`，已绑定 `chinainfact.com`；同名 Media 的原图与 `card` 创建、读回和精确删除均通过。上一 deployment `dpl_2praoBzrH9hhuAMMmJYR3nCexQB4` 保留为代码回滚目标；本批没有 schema 或数据 migration。
+- 正式 Vercel Production deployment `dpl_GpjFsp6hwby7FSLEThpQnF6gUqLL` 为 `READY / target: production`，已绑定 `chinainfact.com`；该构建在 120 条冷启动 Article 公开后重新生成静态 sitemap。上一稳定 deployment `dpl_AirvgPF92ERMEFycXGjg7fWk3Dum` 保留为代码回滚目标。
 - 最终恢复 run [`30395828366`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30395828366) 在提交 `31f38c9` 上完成数据库与媒体导出、Cloudflare R2 不可变上传、SHA 读回和隔离恢复，断言 33 张表、12 条 ledger migration、12 个 migration 文件和 8 条 workflow event。
 - 2026-07-28 公共产品彻查后的修复已提交为 `4125230`；人物规模复审进一步形成 `31a7988 / 5964da7 / 3be99c6`，补齐 25 人分页、筛选、相邻周互斥轮换和跨年连续周边界。Production staged deployment 首轮 accessibility 发现空首页无 `h1` 与次级文字 4.39:1 对比度，提交 `d95e2b1` 修复后复验为唯一 `h1`、可见文字零 contrast failure、逻辑 tab order、3px focus-visible、桌面/移动无溢出或应用错误；Production 邮件适配器告警与 5xx 均为零。最终独立复审 `PASS`，P0/P1/P2 均为 0。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
 

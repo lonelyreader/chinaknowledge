@@ -354,14 +354,25 @@ export async function handleTokenPost(request: Request, payload: Payload, origin
   try {
     if (!request.headers.get("content-type")?.startsWith("application/x-www-form-urlencoded")) throw new OAuth2Server.InvalidRequestError("Form encoding is required.");
     const body = Object.fromEntries(new URLSearchParams(await limitedFormText(request)).entries());
-    if (body.resource !== agentUrls(origin).resource.href) throw new OAuth2Server.InvalidGrantError("Invalid resource.");
-    const server = createAgentOAuthServer(payload, secret, body.resource);
+    const resource = tokenRequestResource(body, origin);
+    body.resource = resource;
+    const server = createAgentOAuthServer(payload, secret, resource);
     const oauthResponse = new OAuth2Server.Response();
     const token = await server.token(oauthRequest(request, body), oauthResponse);
     return Response.json(oauthResponse.body ?? token, { headers: { "Cache-Control": "no-store", Pragma: "no-cache" }, status: oauthResponse.status ?? 200 });
   } catch (error) {
     return oauthFailure(error);
   }
+}
+
+export function tokenRequestResource(body: Record<string, string>, origin: string | URL) {
+  const expected = agentUrls(origin).resource.href;
+  if (body.grant_type === "refresh_token") {
+    if (body.resource && body.resource !== expected) throw new OAuth2Server.InvalidGrantError("Invalid resource.");
+    return expected;
+  }
+  if (body.resource !== expected) throw new OAuth2Server.InvalidGrantError("Invalid resource.");
+  return expected;
 }
 
 export async function handleRevokePost(request: Request, payload: Payload, secret: string) {

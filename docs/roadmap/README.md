@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-08-10
+last_verified: 2026-08-11
 max_lines: 100
 ---
 
@@ -12,19 +12,13 @@ max_lines: 100
 
 本页是当前执行与后置工作的唯一队列。详细步骤进入 [`checklists/README.md`](checklists/README.md) 挂载的单项 checklist。
 
-## Urgent
-
-| 工作项 | 当前门禁 |
-|---|---|
-| [`MIDGAME-COLD-START-001`](checklists/midgame-cold-start.md) | 当前唯一紧急计划；从 979 个 core 来源收敛独立问题，先完成并发布 Wave A 20 篇，再扩展至 60 篇 |
-
 ## Non-urgent closeout
 
 | 工作项 | 当前门禁 |
 |---|---|
 | [`GUIDE-FOUNDATION-001`](checklists/guide-foundation-research-corpus.md) | `17,706` 条统一索引与抽样已完成；只等待报告写回和归档，不与冷启动争用优先级，不公开原文 |
 
-Agent Workspace 001–006 与仓库收敛均已完成并归档；其父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。
+`MIDGAME-COLD-START-001` 已完成 60 个中文母稿、120 条英西 Article、Production MCP 分批公开和回读，并移入 [`archive`](../archive/midgame-cold-start.md)。Agent Workspace 001–006 与仓库收敛均已完成并归档；其父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。
 
 ## Deferred
 

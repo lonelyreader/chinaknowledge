@@ -4,13 +4,13 @@ doc_type: router
 authority: routing
 status: active
 scope: archive-index
-last_verified: 2026-08-10
+last_verified: 2026-08-11
 max_lines: 80
 ---
 
 # Archive Router
 
-本目录保存已完成、被替代或退出执行状态的 checklist 与历史材料。
+本目录保存已完成或被替代的 checklist。
 
 | ID | 结果 | 归档材料 |
 |---|---|---|
@@ -33,11 +33,12 @@ max_lines: 80
 | `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
 | `REPO-CONSOLIDATION-001` | 54 个用户路径已保全，001–006 历史与 Git refs/worktrees 已收敛到唯一 clean `main` | [`repository-main-consolidation.md`](repository-main-consolidation.md) |
 | `MEDIA-UPLOAD-001` | 同名 Media 使用唯一且不可覆盖的 Blob pathname，原图与 `card` 已在 Production 创建、读回并精确清理 | [`media-upload-filename-collision.md`](media-upload-filename-collision.md) |
+| `MIDGAME-COLD-START-001` | 60 份中文母稿与 120 条英西 Article 已公开并回读 | [`midgame-cold-start.md`](midgame-cold-start.md) |
 | `CI-DOC-LINKS-001` | 旧字标证据的本机绝对图片路径已改为仓库相对链接，GitHub runner 可解析 | [`ci-portable-evidence-links.md`](ci-portable-evidence-links.md) |
 
 规则：
 
-- Archive 只用于追溯，不授权重新执行。
+- Archive 只供追溯，不授权执行。
 - active checklist 完成后，先写回 current、decision 和 reference，再移入本目录。
 - 被替代的文件保留替代入口。
 - 不把大段历史复制回 current、architecture 或 roadmap。

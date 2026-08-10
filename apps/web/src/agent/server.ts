@@ -167,6 +167,20 @@ export async function createAgentMcpServer(context: McpRequestContext) {
 
   if (admin) {
     server.registerTool(
+      "editorial_release_site_article_batch",
+      {
+        title: "Release site article batch",
+        description: agentToolDescriptions.editorial_release_site_article_batch,
+        inputSchema: z.object({
+          ids: z.array(z.number().int().positive()).min(1).max(20),
+          approval: z.literal("PUBLISH_AND_CURATE_SITE_ARTICLES"),
+          idempotencyKey: z.string().min(16).max(80),
+        }),
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+      },
+      async (input) => result(await service.releaseSiteArticleBatch(input)),
+    );
+    server.registerTool(
       "admin_recent_activity",
       {
         title: "Recent activity",

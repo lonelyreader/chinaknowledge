@@ -306,7 +306,12 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
     if (!hasEditorialRole(req.user)) {
       throw new APIError("Only an Editor can change site curation.", 403);
     }
-    assertCurationTransition(currentCuration, nextCuration);
+    const directSiteSelection = originalDoc.authorshipType === "site"
+      && isSuperAdmin(req.user)
+      && context.curationConfirmed === true
+      && currentCuration === "not_selected"
+      && nextCuration === "curated";
+    if (!directSiteSelection) assertCurationTransition(currentCuration, nextCuration);
   }
 
   const memberChangedPublicContent = ["title", "summary", "body", "coverImage"]

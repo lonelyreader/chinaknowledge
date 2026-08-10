@@ -2,9 +2,9 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: production-cold-start
-last_verified: 2026-08-10
+last_verified: 2026-08-11
 max_lines: 300
 change_id: MIDGAME-COLD-START-001
 risk_tier: upgraded
@@ -15,7 +15,7 @@ approval_gates: dependency-install, paid-plan-change, third-party-republication,
 
 # MIDGAME-COLD-START-001 生产冷启动
 
-这是当前唯一紧急执行计划。目标不是把抓取文章批量改写，而是尽快建立一批真正解决外国人来华、在华问题的站方 Guide，并形成之后可以持续扩展的中文审查、英西翻译和发布流水线。
+本计划已完成。目标是建立一批真正解决外国人来华、在华问题的站方 Guide，并形成可持续扩展的中文审查、英西翻译和发布流水线。
 
 用户已授权本计划内的产品代码、schema、migration、站方真实内容、Preview、Production 部署、分批公开、搜索索引及明确缺口内的现有 Firecrawl 额度。第三方转载、付费升级、真实人物资料、merge 与 push仍分别批准。
 
@@ -155,7 +155,7 @@ flowchart LR
 - manifest 先 dry-run，报告创建、更新、跳过和冲突；相同 hash 重跑不得重复创建。
 - Local 与 Preview 验证中文母稿权限、英西关系、机构署名、来源、核验日期、canonical、hreflang、metadata、sitemap 和恢复。
 - Preview 检查桌面与 390px 页面，不用解释性文案弥补结构。
-- Production 发布前建立恢复点；Super Admin 使用明确 release 清单，通过 MCP `article_prepare_publication` / `article_commit_publication` 逐篇公开，导入和公开分开执行。
+- Production 发布前建立恢复点；Super Admin 使用明确 release 清单，通过 MCP 单篇 prepare/commit 或最多 20 篇的 `editorial_release_site_article_batch` 公开；批量工具内部仍逐篇执行 revision、确认、幂等与读回门禁，导入和公开分开执行。
 - 每次公开 10–20 篇；单批可以精确撤回，不改现有 Member、Person 和三篇 Production Article。
 - 公开后读回数据库、匿名页面、列表、Purpose、Topic、sitemap、日志和错误语言 URL。
 
@@ -195,15 +195,24 @@ Editorial Master 继续只用：
 - [x] 从指南型来源筛出 `979 core / 337 support / 298 review`。
 - [x] 建立 Editorial Master、Site Article、翻译关系和批量导入的工作树实现。
 - [x] 将 979 个 core 来源聚类为独立读者问题，形成 307 组可审查候选选题。
-- [ ] 用新选题覆盖旧 60 组来源结构，删除 48 篇占位稿的进度含义。
+- [x] 用新选题覆盖旧 60 组来源结构，删除 48 篇占位稿的进度含义。
 - [x] 将 Wave A 20 份事实提纲重写为 `DetailedGuideV1` 中文详细攻略。60 篇已完成 `humanizer-zh v2.9.1` 中文编辑并由用户统一批准；批准记录绑定逐稿内容 hash、来源权利、操作者和回读，审查后改稿会使原决定失效。本地 CMS 批准回读与 60/60 幂等复跑通过。商业医疗保险稿已有社会保险官方依据，但全国商业产品选择仍明确标记为官方依据缺口。
 - [x] 完成 60 篇英西翻译和一致性检查。`gpt-5.6-sol / medium` 通过 Codex CLI 受监督分片生成 120 个译文，保留中文块结构、数字和链接；60/60 `ColdStartTranslationV1` 全量合同通过。Local CMS 创建 120 条 Article 并事务回读 PASS，幂等复跑 120/120 跳过、零冲突。规范 manifest hash 为 `90a94aee45e136e5ca330ada6f8e0531a8011fc9da1d5b4948cc18532bbdc859`。
-- [ ] 完成 Wave B 20 篇长期生活指南；选题与来源包、`DetailedGuideV1` 中文详细草稿均为 20/20，本地 CMS 导入与回读 20/20，重复导入 20/20 全部跳过且零冲突。生育、宠物和驾驶的官方依据已补齐；学校、托育和城市选择保留全国性依据缺口，发布前按目标城市与机构复核。
+- [x] 完成 Wave B 20 篇长期生活指南；选题、来源包、中文详细稿、英西翻译、Production 导入和公开回读均为 20/20。生育、宠物和驾驶的官方依据已补齐；学校、托育和城市选择保留按目标城市与机构复核的维护提示。
 - [x] 完成 migration、权限、导入、回滚和页面的 Local/Preview 验证；站方 Article 已纳入现有 MCP 逐篇 `prepare/commit`，Local 专用数据库通过 Super Admin 公开、幂等重放、撤回和 Editor 权限负例。Preview 从最新 `origin/main` 隔离发布为 READY，第 14 条 migration、六个 Purpose、60 个母稿和 120 条英西 Draft 均已写入并回读；跨环境重绑只在旧审批 hash、译文中文源与目标中文标题/摘要/正文逐项相同后生成。翻译幂等复跑 120/120 跳过、零冲突，health 为 OK。
-- [ ] 通过内容与技术独立复审，建立 Production 恢复点。
-- [ ] 发布 Wave A，回读真实页面、索引、日志和恢复能力。
-- [ ] 根据 Wave A 结果完成并发布 Wave B 与 Wave C；Wave B 与 Wave C 中文详细攻略、来源包和本地 CMS 回读均已完成 20/20。Wave C 包含 8 篇中国社会与日常语境、12 篇商务办事；数字平台稿已补商务部移动支付和公安反诈依据，本地更新回读与 20/20 幂等复跑通过。全批仍有 7 篇按题目性质保留官方依据缺口，发布前按城市、机构或当事人复核。60 篇统一审查入口为 `/Volumes/External/service/china-in-fact-corpus/cold-start-60-chinese-review.html`；中文 60/60 已批准，英西 120 个译文已完成并导入 Local CMS，尚未进入 Preview 或公开。
-- [ ] 写回实际选题数、发布数、来源结构、成本、失败项和维护计划后归档。
+- [x] 通过用户中文内容复审和技术合同验证，并在 Production 写入前完成 GitHub Actions 恢复点 `31405564024`；数据库、媒体、不可变上传、读回和隔离恢复均 PASS。
+- [x] 发布 Wave A，回读真实页面、机构署名、列表、sitemap、健康状态和恢复能力。
+- [x] 根据 Wave A 结果完成并发布 Wave B 与 Wave C。60 个中文母稿、120 条英西 Article 和 60 个双语组已在 Production 精确回读；全部 Article 为 `published + curated + _status=published`。仍需按维护周期处理 7 篇题目特有的城市、机构或当事人复核提示。
+- [x] 写回实际选题数、发布数、来源结构、失败修复和维护计划并归档。
+
+## 完成结果
+
+- Production 已应用第 14 条 migration，当前为 45 张表；六个 Purpose、60 个中文母稿、120 条英西 Site Article 已写入，未改写既有 Member、Person、Media 和 Article。
+- 中文母稿正式版与最新版本均为 `60 translated / 60 cleared`；Article 为 `60 en / 60 es / 120 published / 120 curated`，60 个 translation group 均恰好两条。
+- 导入三批均事务回读 PASS；幂等复跑 120/120 跳过、零冲突。跨环境 ID/hash 仅在中文标题、摘要、正文和批准源逐项相同时重绑。
+- 公开由 Production MCP 完成：ID 7 单篇验证后，余下 119 篇按 20/20/20/20/20/19 六批发布。批量工具只对 Super Admin 开放，逐篇执行原有 prepare、commit、revision、幂等和最终读回。
+- 最终 Production deployment 为 `dpl_GpjFsp6hwby7FSLEThpQnF6gUqLL`；health、英西 Guides、三波六个匿名样本均为 200，样本显示 `China, in Fact` 署名，sitemap 含 122 条公开 post URL（120 条本批加 2 条既有文章）。
+- 实际故障均已关闭：目标环境 Master ID/hash 重绑、站方 Article Super Admin 发布权限、站方直接精选、内部母稿正式版本、OAuth refresh resource 兼容和静态 sitemap 发布后重建。
 
 ## Acceptance
 

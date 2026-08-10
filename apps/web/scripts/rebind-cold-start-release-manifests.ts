@@ -27,12 +27,19 @@ const decisionsPath = requiredPath("--decisions=");
 const translationsPath = requiredPath("--translations=");
 const reviewOutputPath = requiredPath("--review-output=");
 const translationOutputPath = requiredPath("--translation-output=");
-const decisions = parseDecisions(await readFile(decisionsPath, "utf8"));
-const translations = parseTranslationJSONL(await readFile(translationsPath, "utf8"));
+const requestedBatches = new Set((process.argv.find((argument) => argument.startsWith("--batches="))?.slice("--batches=".length) ?? "")
+  .split(",").map((value) => value.trim()).filter(Boolean));
+const allDecisions = parseDecisions(await readFile(decisionsPath, "utf8"));
+const allTranslations = parseTranslationJSONL(await readFile(translationsPath, "utf8"));
+const translations = requestedBatches.size
+  ? allTranslations.filter((bundle) => requestedBatches.has(bundle.batchId))
+  : allTranslations;
+const allDecisionByKey = new Map(allDecisions.map((decision) => [decision.contentKey, decision]));
+const decisions = translations.map((bundle) => allDecisionByKey.get(bundle.contentKey)).filter((decision): decision is ReviewDecision => Boolean(decision));
 const decisionByKey = new Map(decisions.map((decision) => [decision.contentKey, decision]));
 const translationByKey = new Map(translations.map((bundle) => [bundle.contentKey, bundle]));
 
-if (decisions.length !== translations.length || decisions.some((decision) => !translationByKey.has(decision.contentKey))) {
+if (!translations.length || decisions.length !== translations.length || decisions.some((decision) => !translationByKey.has(decision.contentKey))) {
   throw new Error("Approved decisions and translation bundles must contain the same content keys.");
 }
 
@@ -89,6 +96,7 @@ try {
   await writeFile(translationOutputPath, `${reboundTranslations.map((bundle) => JSON.stringify(bundle)).join("\n")}\n`, "utf8");
   console.log(JSON.stringify({
     action: "rebind_cold_start_release_manifests",
+    batches: [...new Set(reboundTranslations.map((bundle) => bundle.batchId))],
     entries: reboundDecisions.length,
     reviewOutputPath,
     translationOutputPath,

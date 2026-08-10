@@ -528,6 +528,7 @@ try {
       body: cmsBody,
       editorialMaster: siteMaster.id,
       format: "guide",
+      freshnessDate: new Date().toISOString(),
       locale: "en",
       slug: `agent-site-publication-${suffix}`,
       sourceNotes: [{ checkedAt: new Date().toISOString(), label: "Official source", url: "https://example.com/source" }],
@@ -568,19 +569,79 @@ try {
   });
   assert.equal(siteReplay.ok, true, JSON.stringify(siteReplay));
   assert.equal(siteReplay.data?.article.revision, siteCommitted.data?.article.revision);
-  const siteWithdrawPrepared = await adminService.preparePublication({
+  assert.equal((await editorService.prepareSiteSelection({
     id: siteArticle.id,
     revision: siteCommitted.data!.article.revision,
+    targetStatus: "curated",
+  })).error?.code, "FORBIDDEN");
+  const siteSelectionPrepared = await adminService.prepareSiteSelection({
+    id: siteArticle.id,
+    revision: siteCommitted.data!.article.revision,
+    targetStatus: "curated",
+  });
+  assert.equal(siteSelectionPrepared.ok, true, JSON.stringify(siteSelectionPrepared));
+  const siteSelectionCommitted = await adminService.commitSiteSelection({
+    confirmationRef: siteSelectionPrepared.data!.confirmationRef,
+    idempotencyKey: `site-curate-${randomUUID()}`,
+    revision: siteCommitted.data!.article.revision,
+  });
+  assert.equal(siteSelectionCommitted.ok, true, JSON.stringify(siteSelectionCommitted));
+  assert.equal(siteSelectionCommitted.data?.article.curationStatus, "curated");
+  const siteWithdrawPrepared = await adminService.preparePublication({
+    id: siteArticle.id,
+    revision: siteSelectionCommitted.data!.article.revision,
     targetStatus: "withdrawn",
   });
   assert.equal(siteWithdrawPrepared.ok, true, JSON.stringify(siteWithdrawPrepared));
   const siteWithdrawn = await adminService.commitPublication({
     confirmationRef: siteWithdrawPrepared.data!.confirmationRef,
     idempotencyKey: `site-withdraw-${randomUUID()}`,
-    revision: siteCommitted.data!.article.revision,
+    revision: siteSelectionCommitted.data!.article.revision,
   });
   assert.equal(siteWithdrawn.ok, true, JSON.stringify(siteWithdrawn));
   assert.equal(siteWithdrawn.data?.article.publicationStatus, "withdrawn");
+
+  const batchSiteArticle = await payload.create({
+    collection: "articles",
+    data: {
+      authorshipType: "site",
+      body: cmsBody,
+      editorialMaster: siteMaster.id,
+      format: "guide",
+      freshnessDate: new Date().toISOString(),
+      locale: "es",
+      slug: `agent-site-batch-${suffix}`,
+      sourceNotes: [{ checkedAt: new Date().toISOString(), label: "Official source", url: "https://example.com/source" }],
+      summary: "A site-authored batch release fixture.",
+      title: "Site MCP batch release fixture",
+      translationGroup: `agent-site-batch-${suffix}`,
+    },
+    draft: true,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  assert.equal((await editorService.releaseSiteArticleBatch({
+    ids: [batchSiteArticle.id],
+    approval: "PUBLISH_AND_CURATE_SITE_ARTICLES",
+    idempotencyKey: `batch-editor-${randomUUID()}`,
+  })).error?.code, "FORBIDDEN");
+  const batchReleaseKey = `batch-admin-${randomUUID()}`;
+  const batchReleased = await adminService.releaseSiteArticleBatch({
+    ids: [batchSiteArticle.id],
+    approval: "PUBLISH_AND_CURATE_SITE_ARTICLES",
+    idempotencyKey: batchReleaseKey,
+  });
+  assert.equal(batchReleased.ok, true, JSON.stringify(batchReleased));
+  assert.equal(batchReleased.data?.count, 1);
+  assert.equal(batchReleased.data?.articles[0]?.publicationStatus, "published");
+  assert.equal(batchReleased.data?.articles[0]?.curationStatus, "curated");
+  const batchReplay = await adminService.releaseSiteArticleBatch({
+    ids: [batchSiteArticle.id],
+    approval: "PUBLISH_AND_CURATE_SITE_ARTICLES",
+    idempotencyKey: batchReleaseKey,
+  });
+  assert.equal(batchReplay.ok, true, JSON.stringify(batchReplay));
+  assert.equal(batchReplay.data?.count, 1);
 
   assert.equal((await serviceB.commitPublication({
     confirmationRef: preparedPublish.data!.confirmationRef,
@@ -1293,11 +1354,13 @@ try {
   assert.equal(editorCapabilities.ok, true);
   assert.equal(adminCapabilities.ok, true);
   assert.equal(memberCapabilities.ok, true);
-  assert.deepEqual(adminCapabilities.data?.tools, [...(editorCapabilities.data?.tools ?? []), "admin_recent_activity"]);
+  assert.deepEqual(adminCapabilities.data?.tools, [...(editorCapabilities.data?.tools ?? []), "editorial_release_site_article_batch", "admin_recent_activity"]);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_article_get"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_prepare_site_selection"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_commit_site_selection"), true);
   assert.equal(editorCapabilities.data?.tools.includes("admin_recent_activity"), false);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_release_site_article_batch"), false);
+  assert.equal(adminCapabilities.data?.tools.includes("editorial_release_site_article_batch"), true);
   assert.equal(adminCapabilities.data?.tools.includes("admin_recent_activity"), true);
   assert.equal(memberCapabilities.data?.tools.includes("editorial_article_get"), false);
   assert.equal(memberCapabilities.data?.tools.includes("admin_recent_activity"), false);

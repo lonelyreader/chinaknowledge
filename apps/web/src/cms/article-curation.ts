@@ -4,6 +4,7 @@ import type { Article } from "@/payload-types";
 
 import { assertCurationComplete } from "./article-hooks";
 import { getLatestDraftData } from "./article-publication";
+import { isSuperAdmin } from "./roles";
 import { assertCurationTransition, type CurationStatus } from "./workflow";
 
 export type EditorialSiteSelectionAction = "add_to_site" | "remove_from_site";
@@ -19,8 +20,12 @@ function relationID(value: unknown) {
 export function editorialSiteSelectionAction(
   current: CurationStatus,
   target: EditorialSiteSelectionTarget,
+  options: { allowDirectSiteSelection?: boolean } = {},
 ): EditorialSiteSelectionAction {
   if (target === "curated") {
+    if (options.allowDirectSiteSelection && current === "not_selected") {
+      return "add_to_site";
+    }
     if (current !== "selected" && current !== "editing" && current !== "needs_recheck") {
       throw new APIError("Only a selected article can be added to the site.", 403);
     }
@@ -54,7 +59,8 @@ export async function prepareEditorialSiteSelection(
   req: PayloadRequest,
 ) {
   const current = article.curationStatus ?? "not_selected";
-  const action = editorialSiteSelectionAction(current, target);
+  const allowDirectSiteSelection = article.authorshipType === "site" && isSuperAdmin(req.user);
+  const action = editorialSiteSelectionAction(current, target, { allowDirectSiteSelection });
   if (target === "curated") {
     const promotable = await getLatestDraftData(req.payload, article.id, article, req, "curation");
     await assertCurationComplete({ ...article, ...promotable, curationStatus: target }, req);
@@ -76,7 +82,8 @@ export async function commitEditorialSiteSelection(
   options: { strictAgentSlice?: boolean } = {},
 ) {
   const current = article.curationStatus ?? "not_selected";
-  if (options.strictAgentSlice) editorialSiteSelectionAction(current, target);
+  const allowDirectSiteSelection = article.authorshipType === "site" && isSuperAdmin(req.user);
+  if (options.strictAgentSlice) editorialSiteSelectionAction(current, target, { allowDirectSiteSelection });
   else assertCurationTransition(current, target);
   const promotedData = target === "curated"
     ? await getLatestDraftData(req.payload, article.id, article, req, "curation")
