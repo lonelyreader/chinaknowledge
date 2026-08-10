@@ -35,6 +35,12 @@ const writingCondition = (data: unknown, _siblingData: unknown, { user }: { user
   return owner == null || String(owner) === String(user.id);
 };
 
+const memberAuthorshipCondition = (data: unknown) =>
+  (data as { authorshipType?: unknown } | null)?.authorshipType !== "site";
+
+const siteAuthorshipCondition = (data: unknown) =>
+  (data as { authorshipType?: unknown } | null)?.authorshipType === "site";
+
 const categoryField = (name: string, label: string, dimension: string) => ({
   name,
   label,
@@ -53,7 +59,7 @@ export const Articles: CollectionConfig = {
   lockDocuments: { duration: 300 },
   admin: {
     useAsTitle: "title",
-    defaultColumns: ["title", "author", "locale", "publishedAt", "curationStatus", "updatedAt"],
+    defaultColumns: ["title", "authorshipType", "author", "locale", "publishedAt", "curationStatus", "updatedAt"],
     group: "Editorial",
     hideAPIURL: true,
     preview: (doc) => {
@@ -137,12 +143,41 @@ export const Articles: CollectionConfig = {
           admin: { condition: editorialCondition },
           fields: [
             {
+              name: "authorshipType",
+              type: "select",
+              label: "Public byline",
+              required: true,
+              defaultValue: "member",
+              index: true,
+              access: { create: editorialField, update: () => false },
+              options: [
+                { label: "Member", value: "member" },
+                { label: "China, in Fact", value: "site" },
+              ],
+            },
+            {
               name: "author",
               type: "relationship",
               relationTo: "people",
-              required: true,
               access: { create: editorialField, update: () => false },
-              admin: { readOnly: true },
+              admin: { condition: memberAuthorshipCondition, readOnly: true },
+            },
+            {
+              name: "editorialMaster",
+              type: "relationship",
+              relationTo: "editorial-masters",
+              access: { create: editorialField, read: editorialField, update: () => false },
+              admin: { condition: siteAuthorshipCondition },
+              filterOptions: { editorialStatus: { in: ["approved", "translated", "released"] } },
+            },
+            {
+              name: "relatedPeople",
+              type: "relationship",
+              relationTo: "people",
+              hasMany: true,
+              label: "Related people",
+              access: { create: editorialField, update: editorialField },
+              admin: { condition: siteAuthorshipCondition },
             },
             {
               name: "format",
@@ -168,6 +203,7 @@ export const Articles: CollectionConfig = {
               fields: [
                 { name: "label", type: "text", required: true },
                 { name: "url", type: "text" },
+                { name: "checkedAt", type: "date", label: "Checked" },
                 {
                   name: "check",
                   type: "textarea",
@@ -216,6 +252,22 @@ export const Articles: CollectionConfig = {
               label: "Public since",
               access: { create: editorialField, update: editorialField },
               admin: { readOnly: true },
+            },
+            {
+              name: "seo",
+              type: "group",
+              label: "Search and sharing",
+              access: { create: editorialField, update: editorialField },
+              fields: [
+                { name: "title", type: "text", maxLength: 70 },
+                { name: "description", type: "textarea", maxLength: 180 },
+                {
+                  name: "image",
+                  type: "upload",
+                  relationTo: "media",
+                  admin: { components: { Field: "/cms/components/AccessibleUploadField#AccessibleUploadField" } },
+                },
+              ],
             },
             {
               name: "homepagePlacement",

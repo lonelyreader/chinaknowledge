@@ -5,6 +5,8 @@ import { headers } from "next/headers";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import { CMSRichText } from "@/components/CMSRichText";
+import { ArticleBylineLink, GuideArticleByline } from "@/components/article-byline";
+import { EditorialCover } from "@/components/editorial-cover";
 import { requireLocale, ui } from "@/content";
 import { articlePath, cmsReadEnabled, getDraftPreviewCMSArticle, getPublishedCMSArticle, getPublishedCMSArticleAlternates, resolvePublishedCMSArticle } from "@/content/cms";
 
@@ -20,9 +22,27 @@ export async function generateMetadata({ params, searchParams }: { params: Promi
   if (!article) return {};
   const languages = await getPublishedCMSArticleAlternates(article);
   return {
-    title: article.title,
-    description: article.summary || undefined,
+    title: article.seo.title || article.title,
+    description: article.seo.description || article.summary || undefined,
     alternates: { canonical: articlePath(locale, article), languages },
+    openGraph: {
+      type: "article",
+      title: article.seo.title || article.title,
+      description: article.seo.description || article.summary || undefined,
+      publishedTime: article.publishedAt,
+      modifiedTime: article.updatedAt,
+      images: article.seo.image?.url || article.coverImage?.url
+        ? [{ url: article.seo.image?.url || article.coverImage!.url, alt: article.seo.image?.alt || article.coverImage!.alt }]
+        : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.seo.title || article.title,
+      description: article.seo.description || article.summary || undefined,
+      images: article.seo.image?.url || article.coverImage?.url
+        ? [article.seo.image?.url || article.coverImage!.url]
+        : undefined,
+    },
   };
 }
 
@@ -46,31 +66,47 @@ export default async function PostPage({ params, searchParams }: { params: Promi
   const label = siteSelected
     ? (isGuide ? copy.guide : locale === "en" ? "Story" : "Historia")
     : (locale === "en" ? "Post" : "Publicación");
+  const canonicalPath = articlePath(locale, article);
+  const origin = (process.env.PAYLOAD_PUBLIC_SERVER_URL || "https://chinainfact.com").replace(/\/$/, "");
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    author: article.author.kind === "person"
+      ? { "@type": "Person", name: article.author.name, url: `${origin}/${locale}/people/${article.author.slug}` }
+      : { "@type": "Organization", name: "China, in Fact", url: `${origin}/${locale}/about` },
+    dateModified: article.updatedAt,
+    datePublished: article.publishedAt,
+    description: article.seo.description || article.summary || undefined,
+    headline: article.seo.title || article.title,
+    image: article.seo.image?.url || article.coverImage?.url || undefined,
+    inLanguage: locale,
+    mainEntityOfPage: `${origin}${canonicalPath}`,
+    publisher: { "@type": "Organization", name: "China, in Fact", url: origin },
+  };
 
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
+      />
       <article className="guide-page page-shell">
         <header className="guide-header">
           <p className="meta">{label}{siteSelected && article.purposes[0] ? ` · ${article.purposes[0]}` : ""}</p>
           <h1>{article.title}</h1>
           {article.summary ? <p className="dek">{article.summary}</p> : null}
-          <div className="guide-byline">
-            <Image src={article.author.image.url} alt={article.author.image.alt} width={72} height={72} unoptimized />
-            <div>
-              <span className="meta">{copy.writtenBy}</span>
-              <Link href={`/${locale}/people/${article.author.slug}`}>{article.author.name}</Link>
-              <span>{article.author.identity}, {article.author.city}</span>
-            </div>
-            <p>
-              {isGuide && article.freshnessDate ? <><span className="meta">{copy.reviewed}</span><br />{article.freshnessDate.slice(0, 10)}</> : article.publishedAt.slice(0, 10)}
-            </p>
-          </div>
+          <GuideArticleByline
+            author={article.author}
+            locale={locale}
+            label={copy.writtenBy}
+            date={isGuide && article.freshnessDate ? <><span className="meta">{copy.reviewed}</span><br />{article.freshnessDate.slice(0, 10)}</> : article.publishedAt.slice(0, 10)}
+          />
         </header>
         {article.coverImage ? (
           <figure className="guide-image">
             <Image src={article.coverImage.url} alt={article.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 1200px" />
           </figure>
-        ) : null}
+        ) : <figure className="guide-image"><EditorialCover title={article.title} /></figure>}
         <div className="guide-body">
           <aside className="guide-aside"><p className="meta">{article.publishedAt.slice(0, 10)}</p></aside>
           <div className="prose">
@@ -89,15 +125,29 @@ export default async function PostPage({ params, searchParams }: { params: Promi
             ) : null}
           </div>
         </div>
-        <section className="author-passage">
-          <Image src={article.author.image.url} alt={article.author.image.alt} width={180} height={180} unoptimized />
-          <div>
-            <p className="meta">{copy.aboutAuthor}</p>
-            <h2>{article.author.name}</h2>
-            <p>{article.author.introduction}</p>
-            <Link className="text-link" href={`/${locale}/people/${article.author.slug}`}>{copy.contributions} →</Link>
-          </div>
-        </section>
+        {article.author.kind === "person" ? (
+          <section className="author-passage">
+            <Image src={article.author.image.url} alt={article.author.image.alt} width={180} height={180} unoptimized />
+            <div>
+              <p className="meta">{copy.aboutAuthor}</p>
+              <h2>{article.author.name}</h2>
+              <p>{article.author.introduction}</p>
+              <ArticleBylineLink className="text-link" author={article.author} locale={locale} />
+            </div>
+          </section>
+        ) : article.relatedPeople.length ? (
+          <section className="related-people-passage">
+            <p className="meta">{copy.people}</p>
+            <div className="story-stream">
+              {article.relatedPeople.map((person) => (
+                <article className="story-line" key={person.slug}>
+                  <h2><Link href={`/${locale}/people/${person.slug}`}>{person.name}</Link></h2>
+                  <span>{person.identity}, {person.city}</span>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </article>
     </main>
   );

@@ -4,7 +4,7 @@ doc_type: product
 authority: canonical
 status: active
 scope: product-definition
-last_verified: 2026-07-31
+last_verified: 2026-08-04
 max_lines: 240
 ---
 
@@ -28,9 +28,9 @@ China, in Fact 是一个让世界找到中国信息，也找到中国人的地�
 
 ## 1. 一句话定义
 
-一个由真实中国人持续发布、由站方选择和组织的中国信息与人物网络。读者既能获得可信、深入的信息，也能通过每篇内容认识具体的人，继续进入作者主页、外部渠道和平台社群。
+一个由真实中国人持续发布、并由站方维护基础事实指南的中国信息与人物网络。读者既能获得可信、深入的信息，也能从成员内容和确实相关的主题关系认识具体的人，继续进入作者主页、外部渠道和平台社群。
 
-作者负责表达，站方负责策展和分发。两者作用在同一篇内容上：站方编辑不会生成“官方副本”，也不会取代原作者署名。
+成员作者负责自己的表达，站方负责策展和分发；站方另以 `China, in Fact` 署名维护基础事实指南。成员内容仍只保留同一篇 Article，站方编辑不会生成“官方副本”或取代原作者署名。
 
 ## 2. 产品价值
 
@@ -146,7 +146,9 @@ flowchart LR
 ### Article
 
 - 同一语言的一次创作只有一个 Article ID；没有“成员原文”和“站方编辑版”两条记录。
-- `author` 始终是原 Member 的 Person；Editor actor 进入版本和审计，不进入署名。
+- Member Article 的 `author` 始终是原 Member 的 Person；Editor actor 进入版本和审计，不进入署名。
+- Site Article 以 `China, in Fact` 机构署名，关联内部中文 Editorial Master，不创建或借用 Person。
+- 中文母稿保存站方事实、来源、权利、时效和编辑状态，只供内部审查；English 与 Español 分别从同一份已批准母稿形成独立 Article。
 - Member publication：`Draft / Published / Withdrawn`。
 - Editorial curation：`Not selected / Selected / Editing / Curated / Needs recheck / Removed`。
 - Member Published Article 最低需要语言、标题、正文、作者和稳定 URL。
@@ -154,6 +156,7 @@ flowchart LR
 - 内容形态包括 Guide、Reporting、Analysis、First-person、Update；它只决定官方 Stories/Guides 分类。
 - Member 更新已 Curated Article 后，同一 Article 继续在个人页公开，策展状态转为 Needs recheck 并暂时退出官方入口。
 - Member Withdrawn 从个人与官方入口撤回；Removed 只撤出官方分发。
+- Site Article 不进入 Person 个人归档；只在有真实相关人物时提供 People 入口，不强行挂靠。
 
 ### Person
 

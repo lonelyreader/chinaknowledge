@@ -8,6 +8,7 @@ import { createLocalReq, getPayload, type Payload } from "payload";
 
 import config from "@payload-config";
 import { getLatestDraftData } from "@/cms/article-publication";
+import { editorialMasterContentHash } from "@/cms/editorial-master-hooks";
 import { buildPublicationSummary } from "@/cms/publication-summary";
 import { isCMSUser } from "@/cms/roles";
 import { inviteUserEndpoint } from "@/cms/user-endpoints";
@@ -30,6 +31,24 @@ const body: NonNullable<Article["body"]> = {
     direction: null, format: "", indent: 0, version: 1,
   },
 };
+
+assert.equal(
+  editorialMasterContentHash({
+    bodyZh: body,
+    purpose: 1,
+    sourceNotes: [{ checkedAt: "2026-08-04T00:00:00+08:00", label: "Official", rights: "official", url: "https://example.com" }],
+    summaryZh: "Same instant in two date formats.",
+    titleZh: "Canonical dates",
+  }),
+  editorialMasterContentHash({
+    bodyZh: body,
+    purpose: 1,
+    sourceNotes: [{ checkedAt: "2026-08-03T16:00:00.000Z", label: "Official", rights: "official", url: "https://example.com" }],
+    summaryZh: "Same instant in two date formats.",
+    titleZh: "Canonical dates",
+  }),
+  "Editorial master hashes must canonicalize equivalent source verification dates.",
+);
 
 function relationID(value: number | User | { id: number | string } | null | undefined) {
   return value && typeof value === "object" ? value.id : value;
@@ -95,7 +114,7 @@ async function person(
 async function clean(payload: Payload) {
   const articles = await payload.find({
     collection: "articles", depth: 0, limit: 50, overrideAccess: true,
-    where: { translationGroup: { in: ["acceptance-member-curation", "acceptance-member-personal-only", "acceptance-editor-member", "acceptance-forged-byline", "acceptance-other-personal-only"] } },
+    where: { translationGroup: { in: ["acceptance-member-curation", "acceptance-member-personal-only", "acceptance-editor-member", "acceptance-forged-byline", "acceptance-other-personal-only", "acceptance-site-content"] } },
   });
   for (const article of articles.docs) {
     await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: article.id } } });
@@ -218,6 +237,118 @@ async function main() {
   await payload.delete({ collection: "people", id: invitedProfiles.docs[0]!.id, overrideAccess: true });
   await payload.delete({ collection: "users", id: invited.id, overrideAccess: true });
   await clean(payload);
+
+  const purposeSearch = await payload.find({
+    collection: "taxonomies", limit: 1, overrideAccess: true,
+    where: { and: [{ dimension: { equals: "purpose" } }, { slug: { equals: "understand" } }] },
+  });
+  const purpose = purposeSearch.docs[0] ?? await payload.create({
+    collection: "taxonomies",
+    data: { dimension: "purpose", name: "Understand", slug: "understand" },
+    overrideAccess: false,
+    user: editor,
+  });
+  await expectRejected(() => payload.create({
+    collection: "editorial-masters",
+    data: {
+      batchId: "acceptance",
+      bodyZh: body,
+      contentHash: "pending",
+      contentKey: `member-master-${randomUUID()}`,
+      createdBy: member.id,
+      editorialStatus: "candidate",
+      purpose: purpose.id,
+      risk: "evergreen",
+      rightsStatus: "pending",
+      sourceNotes: [{ checkedAt: new Date().toISOString(), label: "Official source", rights: "official", url: "https://example.com/source" }],
+      summaryZh: "会员不能建立中文母稿。",
+      titleZh: "会员母稿",
+    },
+    draft: true,
+    overrideAccess: false,
+    user: member,
+  }), "A Member cannot create a Chinese editorial master.");
+  const siteMaster = await payload.create({
+    collection: "editorial-masters",
+    data: {
+      batchId: "acceptance",
+      bodyZh: body,
+      contentHash: "pending",
+      contentKey: `acceptance-site-master-${randomUUID()}`,
+      createdBy: editor.id,
+      editorialStatus: "approved",
+      purpose: purpose.id,
+      risk: "evergreen",
+      rightsStatus: "cleared",
+      sourceNotes: [{ checkedAt: new Date().toISOString(), label: "Official source", rights: "official", url: "https://example.com/source" }],
+      summaryZh: "用于验证站方内容发布链路的中文母稿。",
+      titleZh: "站方内容验收母稿",
+    },
+    draft: false,
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.equal(siteMaster.editorialStatus, "approved");
+  assert.equal(siteMaster.rightsStatus, "cleared");
+  assert.ok(siteMaster.reviewedAt);
+  await expectRejected(
+    () => payload.find({ collection: "editorial-masters", limit: 10, overrideAccess: false }),
+    "Anonymous readers cannot access Chinese editorial masters.",
+  );
+  await expectRejected(
+    () => payload.find({ collection: "editorial-masters", limit: 10, overrideAccess: false, user: member }),
+    "Members cannot access Chinese editorial masters.",
+  );
+  const siteDraft = await payload.create({
+    collection: "articles",
+    data: {
+      authorshipType: "site",
+      body,
+      editorialMaster: siteMaster.id,
+      format: "analysis",
+      locale: "en",
+      slug: "site-content-acceptance",
+      sourceNotes: [{ checkedAt: new Date().toISOString(), label: "Official source", url: "https://example.com/source" }],
+      summary: "A site-authored acceptance article.",
+      title: "Site content acceptance",
+      translationGroup: "acceptance-site-content",
+    },
+    draft: true,
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.equal(siteDraft.authorshipType, "site");
+  assert.equal(siteDraft.author, null);
+  assert.equal(relationID(siteDraft.editorialMaster), siteMaster.id);
+  await expectRejected(() => payload.update({
+    collection: "articles", id: siteDraft.id, context: { memberPublicationConfirmed: true },
+    data: { publicationStatus: "published" }, draft: false, overrideAccess: false, user: editor,
+  }), "An Editor cannot publish site-authored content.");
+  const sitePublished = await payload.update({
+    collection: "articles", id: siteDraft.id, context: { memberPublicationConfirmed: true },
+    data: { publicationStatus: "published" }, draft: false, overrideAccess: false, user: admin,
+  });
+  assert.equal(sitePublished.publicationStatus, "published");
+  assert.equal(sitePublished.author, null);
+  await payload.update({
+    collection: "articles", id: siteDraft.id,
+    data: { curationStatus: "selected" }, draft: false, overrideAccess: false, user: editor,
+  });
+  const siteCurated = await payload.update({
+    collection: "articles", id: siteDraft.id,
+    data: { curationStatus: "curated" }, draft: false, overrideAccess: false, user: editor,
+  });
+  assert.equal(siteCurated.curationStatus, "curated");
+  const siteSummary = buildPublicationSummary(await payload.findByID({ collection: "articles", id: siteDraft.id, depth: 2, overrideAccess: true }));
+  assert.equal(siteSummary.author, "China, in Fact");
+  assert.equal(siteSummary.missing.includes("Author portrait"), false);
+  assert.equal(siteSummary.missing.includes("Cover"), false);
+  const anonymousSite = await payload.findByID({ collection: "articles", id: siteDraft.id, depth: 0, overrideAccess: false });
+  assert.equal(anonymousSite.authorshipType, "site");
+  assert.equal(anonymousSite.author, null);
+  assert.equal(anonymousSite.editorialMaster, undefined);
+  const siteEvents = await payload.find({ collection: "workflow-events", limit: 50, overrideAccess: true, where: { article: { equals: siteDraft.id } } });
+  assert.equal(siteEvents.docs.some((event) => event.notificationKind), false);
 
   const memberPortrait = await image(payload, member, "Member publication portrait", false);
   const approvedImage = await image(payload, editor, "Site curation image", true);

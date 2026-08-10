@@ -54,6 +54,9 @@ export const transitionArticleEndpoint: Endpoint = {
       if (body.status !== "published" && body.status !== "withdrawn") {
         throw new APIError("Choose publish or withdraw.", 400);
       }
+      if (current.authorshipType === "site" && !isSuperAdmin(req.user)) {
+        throw new APIError("Only a Super Admin can publish or withdraw site content.", 403);
+      }
       if (!ownerAction && !isSuperAdmin(req.user)) {
         throw new APIError("Only the member or a Super Admin can change personal publication.", 403);
       }
@@ -102,6 +105,10 @@ export const createArticleTranslationEndpoint: Endpoint = {
       overrideAccess: true,
       req,
     });
+    if (source.authorshipType === "site") {
+      if (!hasEditorialRole(req.user)) throw new APIError("Editor access is required.", 403);
+      throw new APIError("Site translations are created from the approved Chinese master.", 409);
+    }
     if (relationID(source.owner) !== req.user.id) {
       throw new APIError("Only the member can add a translation of this article.", 403);
     }
@@ -174,6 +181,9 @@ export const notifyArticleAuthorEndpoint: Endpoint = {
       overrideAccess: true,
       req,
     });
+    if (article.authorshipType === "site") {
+      throw new APIError("Site content has no Member author to notify.", 400);
+    }
     const status = article.curationStatus ?? "not_selected";
     const event = await createEditorialNotificationEvent({
       article,

@@ -4,7 +4,7 @@ doc_type: product
 authority: canonical
 status: active
 scope: member-publishing-and-editorial-curation
-last_verified: 2026-07-29
+last_verified: 2026-08-04
 max_lines: 260
 ---
 
@@ -16,7 +16,7 @@ max_lines: 260
 
 铲子计划成员拥有自己的 Person 和内容空间，可以保存、预览并直接公开自己的文章，不需要投稿或等待站方批准。站方 Editor 从已经公开的成员文章中选择内容，在同一篇 Article 上编辑、核对、分类和策展，并决定是否把它分发到 Home、Stories、Guides、Topics、Places 与 Purpose 等站方入口。
 
-读者无论从站方入口还是个人页进入文章，都看到原始成员署名，并能顺畅进入作者主页和外部链接。站方策展不制造第二篇文章，也不把署名改成 Editor 或机构。
+读者无论从站方入口还是个人页进入 Member Article，都看到原始成员署名，并能顺畅进入作者主页和外部链接。站方策展不制造第二篇文章，也不把成员署名改成 Editor 或机构。站方自己的基础事实内容使用独立 Site Article，并固定署名 `China, in Fact`。
 
 首期继续使用同一 Payload Admin；为 Member 与 Editor 提供两个聚焦入口，不建设第二套 CMS。
 
@@ -28,11 +28,14 @@ max_lines: 260
 - **Member publication**：作者决定文章是否在自己的公开内容空间出现。
 - **Editorial curation**：站方决定同一篇文章是否进入官方组织和分发的页面。
 - **People 与权限分离**：Person 是公开身份，Editor/Super Admin 是后台权限；同一账户可以既有 Person，又有 Editor 或 Super Admin 能力。
+- **Editorial Master**：只供 Editor/Super Admin 使用的中文编辑真相；承载站方稿、来源、权利、时效、风险和翻译依据，不生成公共中文页面。
+- **Site Article**：由站方承担内容责任的英西公开记录；没有 Person 作者，固定显示 `China, in Fact`。
 
 ## R1. One Article, One Author, Two Independent States
 
 - 同一语言的一次创作只有一条 Article；策展、编辑、分类、撤出和再次策展都在该记录及其版本历史上完成。
-- `author` 始终指向原始 Member 的 Person。Editor 改写、核对或分类不改变公开署名。
+- Member Article 的 `author` 始终指向原始 Member 的 Person。Editor 改写、核对或分类不改变公开署名。
+- Site Article 没有 Person author，必须关联已批准 Editorial Master，并固定使用机构署名；Editor/Super Admin actor 只进入审计。
 - 编辑操作者、修改时间和变更内容进入版本与审计记录，不替代公开作者。
 - Member publication 至少表达 `Draft / Published / Withdrawn`。
 - Editorial curation 至少表达 `Not selected / Selected / Editing / Curated / Needs recheck / Removed`。
@@ -82,6 +85,7 @@ max_lines: 260
 - Person 的姓名、头像、支持语言、外链目标和顺序跨语言共享；身份、地点、介绍与外链标签提供 English 和 Español 两组公开文案。English 为必填基础，Español 可选；缺少西语文案时回退 English，不隐藏人物。
 - My profile 把共享身份、English profile 与 Perfil en español 分成清楚的短区块；公共 Person 和 Article 作者信息按当前语言选择对应文案。
 - 语言切换直接输出目标 Article 的 canonical slug；alternate metadata 与 sitemap 不泄漏 Draft 或 Withdrawn 版本，也不依靠错误 slug 再重定向。
+- Site Article 的 English 与 Español 必须关联同一 Editorial Master；中文母稿没有公共 locale、canonical、alternate 或 sitemap 记录。
 
 ## R6. Membership And Account Lifecycle
 

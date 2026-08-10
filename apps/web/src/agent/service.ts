@@ -346,6 +346,21 @@ export class AgentMemberService {
     return article;
   }
 
+  private async publicationArticle(id: number, user: User, req?: PayloadRequest) {
+    let article: Article;
+    try {
+      article = await this.payload.findByID({ collection: "articles", id, depth: 0, draft: true, overrideAccess: false, req, user });
+    } catch {
+      throw new AgentServiceError("NOT_FOUND", "Article not found.");
+    }
+    const ownsMemberArticle = article.authorshipType !== "site" && String(relationId(article.owner)) === String(user.id);
+    const canPublishSiteArticle = article.authorshipType === "site" && isSuperAdmin(user);
+    if (!ownsMemberArticle && !canPublishSiteArticle) {
+      throw new AgentServiceError("FORBIDDEN", "Only the owner or a Super Admin may publish this article.");
+    }
+    return article;
+  }
+
   private async editorialArticle(id: number, user: User, req?: PayloadRequest) {
     if (!hasEditorialRole(user)) {
       throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
@@ -819,7 +834,7 @@ export class AgentMemberService {
     if (prior.result !== "success" || !prior.objectId || !prior.afterRevision || !stored) {
       throw new AgentServiceError("TEMPORARY_FAILURE", "The previous publication has no readable result.");
     }
-    await this.ownedArticle(Number(prior.objectId), user);
+    await this.publicationArticle(Number(prior.objectId), user);
     if (stored.result.article.revision !== prior.afterRevision) {
       throw new AgentServiceError("TEMPORARY_FAILURE", "The stored publication result is inconsistent.");
     }
@@ -970,7 +985,7 @@ export class AgentMemberService {
     try {
       requireRevision(input.revision);
       const user = await this.currentUser();
-      const article = await this.ownedArticle(input.id, user);
+      const article = await this.publicationArticle(input.id, user);
       const currentRevision = await this.latestArticleRevision(article);
       if (input.revision !== currentRevision) {
         throw new AgentServiceError(
@@ -1096,7 +1111,7 @@ export class AgentMemberService {
           this.assertConfirmationEvent(confirmationEvent, parsedConfirmation);
 
           await this.lockArticle(req, parsedConfirmation.articleId);
-          const article = await this.ownedArticle(parsedConfirmation.articleId, lockedUser, req);
+          const article = await this.publicationArticle(parsedConfirmation.articleId, lockedUser, req);
           const latestArticle = await getLatestDraftArticle(this.payload, article.id, article, req);
           const beforeRevision = revision(latestArticle);
           const coverImageId = articleRelationID(latestArticle.coverImage);

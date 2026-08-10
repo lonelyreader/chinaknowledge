@@ -14,6 +14,7 @@ import { Articles } from "@/collections/Articles";
 import { AgentConnections } from "@/collections/AgentConnections";
 import { AgentEvents } from "@/collections/AgentEvents";
 import { AgentOAuthClients } from "@/collections/AgentOAuthClients";
+import { EditorialMasters } from "@/collections/EditorialMasters";
 import { Media } from "@/collections/Media";
 import { People } from "@/collections/People";
 import { PersonRevisions } from "@/collections/PersonRevisions";
@@ -65,6 +66,7 @@ export default buildConfig({
     PersonRevisions,
     Taxonomies,
     Media,
+    EditorialMasters,
     Articles,
     Places,
     WorkflowEvents,

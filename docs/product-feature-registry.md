@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-10
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:e0e0576a1165653c26e802f2eed787c8737d595b46940e421c83c348871d8c2e
+implementation_fingerprint: sha256:b1e31f95a35785cd34292d1615921e04d57c440619629e41126b2d0a243b278a
 ---
 
 # App 功能登记册
@@ -24,18 +24,18 @@ implementation_fingerprint: sha256:e0e0576a1165653c26e802f2eed787c8737d595b46940
 | RDR-02 | 编辑型首页 | 查看站方主推、精选、最近更新、地点、人物和 Newsletter | `/{locale}`；只展示已公开且被站方选中的内容 |
 | RDR-03 | Stories | 浏览站方选中的报道、观察、分析、评论和第一人称内容 | `/{locale}/stories` |
 | RDR-04 | Guides | 浏览带来源、时效和维护信息的实用指南 | `/{locale}/guides` |
-| RDR-05 | 稳定文章页 | 阅读标题、摘要、正文、封面、来源、日期和作者信息，并进入作者主页 | `/{locale}/posts/{slug}`；旧 Stories/Guides 详情地址会永久转到稳定地址 |
+| RDR-05 | 稳定文章页 | 阅读标题、摘要、正文、封面或站方视觉、来源、日期和署名；Member 稿进入作者主页，站方稿进入 About | `/{locale}/posts/{slug}`；旧 Stories/Guides 详情地址会永久转到稳定地址 |
 | RDR-06 | 个人公开文章 | 阅读 Member 已公开但未被站方选中的文章 | 文章稳定地址和作者主页；不会进入首页、Stories、Guides 等官方入口 |
 | RDR-07 | Places | 浏览地点列表和地点详情，查看与该地点关联的文章和人物 | `/{locale}/places`、`/{locale}/places/{slug}` |
 | RDR-08 | Purpose 入口 | 按 Understand、Visit、Live、Study、Work、Business 找到站方内容 | `/{locale}/purposes/{slug}` |
 | RDR-09 | Topic 入口 | 按主题聚合站方内容 | `/{locale}/topics/{slug}` |
 | RDR-10 | People 目录 | 查看每周稳定轮换的一主两辅人物，并按姓名、主题、地点、语言筛选和分页 | `/{locale}/people`；桌面每页 24 人，移动端每页 12 人 |
 | RDR-11 | Person 主页 | 查看人物头像、身份、地点、介绍、主题、全部公开文章、站方精选和个人外链 | `/{locale}/people/{slug}`；西语资料缺失时回退英语 |
-| RDR-12 | 作者导流 | 从首页、栏目、文章进入原作者主页，再进入个人网站、Newsletter、社交账号、邮箱或其他公开渠道 | 文章作者区、Person 外链；外链在新窗口打开 |
+| RDR-12 | 人物导流 | Member 稿从首页、栏目、文章进入原作者主页；站方稿只在确有相关人物时提供人物入口 | 文章署名区和 Related people；站方稿不生成虚构 Person |
 | RDR-13 | Discord 社群入口 | 从 Person 页面进入平台 Discord | Person 页面底部的 Discord 入口 |
 | RDR-14 | Newsletter 订阅 | 用邮箱和明确同意加入对应语言的邮件名单，收到成功或必要错误状态 | 首页与 `/{locale}/newsletter`；重复邮箱更新语言，不替用户重新开启已取消订阅状态 |
 | RDR-15 | About 与 Privacy | 了解产品定位、Newsletter 数据用途、公开人物资料、跟踪政策和联系邮箱 | `/{locale}/about`、`/{locale}/privacy` |
-| RDR-16 | 搜索引擎入口 | Production 可被索引，并提供 sitemap、canonical 和多语言 alternate；Preview 与草稿预览不索引 | `/robots.txt`、`/sitemap.xml` 与页面 metadata |
+| RDR-16 | 搜索引擎入口 | Production 可被索引，并提供 Article JSON-LD、分享信息、sitemap、canonical 和多语言 alternate；Preview 与草稿预览不索引 | `/robots.txt`、`/sitemap.xml` 与页面 metadata；Purpose、Topic 和已公开内容进入 sitemap |
 | RDR-17 | 响应式和键盘访问 | 在桌面与移动端使用主导航、移动菜单、表单、焦点状态和语义化页面 | 全部公共页面；当前验收宽度包含 390px |
 | RDR-18 | 不存在页面处理 | 无效人物、文章或地点返回 Not Found，并提供回到网站的入口 | 各动态详情页 |
 | RDR-19 | 一致品牌字标 | 在公共 Header 与 Footer 看到同一单行 `China, in Fact` 轮廓字标；完整名称保持可读，朱砂红第二阅读层为 `hi, act` | 全部 `/{locale}` 公共页面；字标不依赖客户端字体 |
@@ -83,6 +83,8 @@ Editor 负责选择和组织成员已经公开的内容。若 Editor 账户同�
 | EDT-10 | 更新复核 | Member 修改已被选择的文章后，文章自动进入 Needs recheck 并暂离官方入口；Editor 可重新确认 | Needs attention 与 Article |
 | EDT-11 | 作者通知 | 从文章向原作者发送策展相关事务通知；失败会被记录且可重试 | Article 的 Notify author |
 | EDT-12 | 编辑/写作模式分离 | 当 Editor 同时是作者时，可在 Writing 与 Site 两个聚焦界面间切换 | 自己的 Article；编辑他人文章时只进入 Site 模式 |
+| EDT-13 | 中文母稿 | 用中文维护站方选题、结构化详细攻略、来源、权利、风险、核验与翻译状态，作为英西稿共同真相 | Chinese masters；只对 Editor/Super Admin 可读，事实提纲不算母稿，批准前必须通过详细攻略结构、来源与权利检查 |
+| EDT-14 | 机构署名内容 | 建立不依附 Member 的站方 Article，并固定显示 `China, in Fact` | Site Article；必须关联同一份已批准中文母稿，不创建虚构 Person，不向作者发送通知 |
 
 ## Super Admin（超级管理员）
 
@@ -99,7 +101,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | ADM-07 | Places 管理 | 维护地点名称、摘要、封面、所属 Geography、英西 slug 与公开状态 | Places；地点页自动聚合相关人物和文章 |
 | ADM-08 | Images 管理 | 查看和管理图片、上传者、图片说明和公开使用状态 | Images；创建、读取、修改和删除均受角色权限控制 |
 | ADM-09 | Activity 审计 | 查看文章发布、策展、通知等工作流事件及操作者、前后状态和时间 | Activity 记录只读；Agent 的 Super Admin-only 最近 20 条最小读取已在 Production 完成真实 OAuth 只读 smoke，不返回输入或私密字段 |
-| ADM-10 | 全量内容管理 | 访问全部 Articles、People、Images、Categories、Places 和 Members | 后台主导航；权限仍由服务端执行 |
+| ADM-10 | 全量内容管理 | 访问全部 Chinese masters、Articles、People、Images、Categories、Places 和 Members | 后台主导航；权限仍由服务端执行 |
 
 ## 运营与维护
 
@@ -120,6 +122,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-11 | 搜索索引开关 | 只有明确启用的 Production 可索引；Preview 和预览内容保持 noindex | 环境变量、robots、页面 metadata |
 | OPS-12 | 自动质量门禁 | PR 自动运行治理、功能登记同步、环境、migration、编辑权限、Newsletter、lint、typecheck、依赖审计、build 和公共路由 smoke | GitHub Preview checks |
 | OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、发布、策展和最小审计工具，并随时撤销连接 | Production `/api/agent/*`；WorkBuddy、Cursor 与 Codex 已完成真实客户端兼容验收，Claude、Gemini 目前只提供配置 adapter；不支持 TRAE 或静态 API key。公共动作继续要求服务器确认、revision、幂等、审计与 readback |
+| OPS-14 | 冷启动批次 | 为空环境补齐六个核心 Purpose，从受控 JSONL 幂等写入通过 `DetailedGuideV1` 门槛的中文母稿，按内容 hash 写入人工批准，再建立英西翻译并检查结构、数字、链接与来源一致性 | `cms:provision-core-taxonomies`、`cms:import-cold-start`、`cms:apply-cold-start-review`、`cms:build-cold-start-translations` 与 `cms:import-cold-start-translations`；中文未批准、母稿已变化或来源权利未清时拒绝后续动作，默认 dry-run，导入不会自动公开 |
 
 ## 当前明确不提供
 

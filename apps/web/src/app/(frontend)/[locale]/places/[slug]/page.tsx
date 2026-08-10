@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { CMSPersonRow } from "@/components/cms-person-row";
+import { ArticleBylineLink } from "@/components/article-byline";
 import { requireLocale, ui } from "@/content";
 import {
   articlePath,
@@ -64,7 +65,7 @@ export default async function PlacePage({ params }: { params: Promise<{ locale: 
               <article className="story-line" key={`${article.format}-${article.slug}`}>
                 <p className="meta">{article.format === "guide" ? copy.guide : locale === "en" ? "Story" : "Historia"}<br />{article.publishedAt.slice(0, 10)}</p>
                 <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
-                <Link href={`/${locale}/people/${article.author.slug}`}>{article.author.name}</Link>
+                <ArticleBylineLink author={article.author} locale={locale} />
               </article>
             ))}
           </div>

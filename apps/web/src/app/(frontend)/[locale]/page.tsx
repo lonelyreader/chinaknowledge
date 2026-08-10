@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { NewsletterForm } from "@/components/newsletter-form";
 import { CMSPersonRow } from "@/components/cms-person-row";
+import { ArticleBylineLink, HeroArticleByline } from "@/components/article-byline";
+import { EditorialCover } from "@/components/editorial-cover";
 import { PersonRow } from "@/components/person-row";
 import { drivingGuide, kindLabels, localize, people, requireLocale, stories, ui } from "@/content";
 import { articlePath, cmsReadEnabled, getPublishedCMSHomepage, getPublishedCMSHomepagePeople, getPublishedCMSPlaces, placePath, stableWeeklyPeople } from "@/content/cms";
@@ -36,16 +38,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <p className="meta">{lead.purposes[0] ?? (lead.format === "guide" ? copy.guide : "Story")} · {lead.publishedAt.slice(0, 10)}</p>
               <h1><Link href={articlePath(locale, lead)}>{lead.title}</Link></h1>
               <p className="dek">{lead.summary}</p>
-              <div className="hero-byline">
-                <Image src={lead.author.image.url} alt={lead.author.image.alt} width={64} height={64} unoptimized />
-                <div>
-                  <Link href={`/${locale}/people/${lead.author.slug}`}>{lead.author.name}</Link>
-                  <span>{lead.author.identity}, {lead.author.city}</span>
-                </div>
-              </div>
+              <HeroArticleByline author={lead.author} locale={locale} />
             </div>
             <Link className="home-hero__image" href={articlePath(locale, lead)}>
-              <Image src={lead.coverImage.url} alt={lead.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 50vw" />
+              {lead.coverImage
+                ? <Image src={lead.coverImage.url} alt={lead.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 50vw" />
+                : <EditorialCover title={lead.title} />}
             </Link>
           </section>
         ) : null}
@@ -59,7 +57,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   <p className="meta">{article.format === "guide" ? copy.guide : "Story"}{article.purposes[0] ? ` · ${article.purposes[0]}` : ""}</p>
                   <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
                   <p>{article.summary}</p>
-                  <Link className="text-link" href={`/${locale}/people/${article.author.slug}`}>{article.author.name}, {article.author.city}</Link>
+                  <ArticleBylineLink className="text-link" author={article.author} locale={locale} />
                 </article>
               ))}
             </div>
@@ -74,7 +72,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <article className="story-line" key={`${article.format}-${article.slug}`}>
                   <p className="meta">{article.format === "guide" ? copy.guide : "Story"}<br />{article.publishedAt.slice(0, 10)}</p>
                   <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
-                  <Link href={`/${locale}/people/${article.author.slug}`}>{article.author.name}</Link>
+                  <ArticleBylineLink author={article.author} locale={locale} />
                 </article>
               ))}
             </div>

@@ -61,7 +61,7 @@ export async function prepareEditorialSiteSelection(
   }
   return {
     action,
-    authorId: relationID(article.author),
+    authorId: article.authorshipType === "site" ? null : relationID(article.author),
     currentStatus: current,
     publicPath: `/${article.locale}/posts/${article.slug}`,
     siteEntryEffect: target === "curated" ? "included" as const : "removed" as const,

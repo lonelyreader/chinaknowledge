@@ -19,8 +19,10 @@ const geistMono = Geist_Mono({
 });
 
 const { indexable } = validateServerEnvironment();
+const publicOrigin = (process.env.PAYLOAD_PUBLIC_SERVER_URL || "https://chinainfact.com").replace(/\/$/, "");
 
 export const metadata: Metadata = {
+  metadataBase: new URL(publicOrigin),
   title: { default: "China, in Fact", template: "%s | China, in Fact" },
   description: "Stories, guides, places and people from China, edited for international readers.",
   robots: indexable

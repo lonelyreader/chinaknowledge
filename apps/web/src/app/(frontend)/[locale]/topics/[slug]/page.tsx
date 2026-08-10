@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ArticleBylineLink } from "@/components/article-byline";
 import { requireLocale } from "@/content";
 import { articlePath, cmsReadEnabled, getPublishedCMSArticlesByTaxonomy } from "@/content/cms";
 
@@ -23,7 +24,7 @@ export default async function TopicPage({ params }: { params: Promise<{ locale: 
           <article className="story-line" key={`${article.format}-${article.slug}`}>
             <p className="meta">{article.publishedAt.slice(0, 10)}</p>
             <h2><Link href={articlePath(locale, article)}>{article.title}</Link></h2>
-            <Link href={`/${locale}/people/${article.author.slug}`}>{article.author.name}</Link>
+            <ArticleBylineLink author={article.author} locale={locale} />
           </article>
         ))}
       </div>

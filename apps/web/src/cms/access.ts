@@ -121,7 +121,17 @@ export const readPublicArticlesOrOwned: Access = async ({ req }) => {
       { publicationStatus: { equals: "published" } },
       { _status: { equals: "published" } },
       { publishedAt: { exists: true } },
-      { or: publicAuthorsByLocale },
+      {
+        or: [
+          { authorshipType: { equals: "site" } },
+          {
+            and: [
+              { authorshipType: { equals: "member" } },
+              { or: publicAuthorsByLocale },
+            ],
+          },
+        ],
+      },
     ],
   };
 

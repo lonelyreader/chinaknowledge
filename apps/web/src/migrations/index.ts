@@ -11,6 +11,7 @@ import * as migration_20260728_172626_article_translation_identity from './20260
 import * as migration_20260729_030000_profile_localization_and_creator_workspace from './20260729_030000_profile_localization_and_creator_workspace';
 import * as migration_20260729_193000_batch_rollback_barrier from './20260729_193000_batch_rollback_barrier';
 import * as migration_20260730_181300 from './20260730_181300';
+import * as migration_20260803_163331 from './20260803_163331';
 
 export const migrations = [
   {
@@ -76,6 +77,11 @@ export const migrations = [
   {
     up: migration_20260730_181300.up,
     down: migration_20260730_181300.down,
-    name: '20260730_181300'
+    name: '20260730_181300',
+  },
+  {
+    up: migration_20260803_163331.up,
+    down: migration_20260803_163331.down,
+    name: '20260803_163331'
   },
 ];

@@ -33,7 +33,10 @@ function relationshipNames(values: (number | Taxonomy)[] | null | undefined) {
 }
 
 export function buildPublicationSummary(article: Article): PublicationSummary {
-  const author = typeof article.author === "object"
+  const siteAuthorship = article.authorshipType === "site";
+  const author = siteAuthorship
+    ? "China, in Fact"
+    : typeof article.author === "object"
     ? (article.author as Person).name
     : "Not set";
   const classification = [
@@ -45,10 +48,10 @@ export function buildPublicationSummary(article: Article): PublicationSummary {
   const sources = (article.sourceNotes ?? []).map((source) => source.label).filter(Boolean);
   const person = typeof article.author === "object" ? (article.author as Person) : null;
   const missing = [
-    ...(!article.coverImage ? ["Cover"] : []),
+    ...(!siteAuthorship && !article.coverImage ? ["Cover"] : []),
     ...(!sources.length ? ["Sources"] : []),
     ...(article.format === "guide" && !article.freshnessDate ? ["Freshness"] : []),
-    ...(!person?.portrait ? ["Author portrait"] : []),
+    ...(!siteAuthorship && !person?.portrait ? ["Author portrait"] : []),
     ...(!article.format ? ["Section"] : []),
   ];
 

@@ -31,8 +31,13 @@ export type PublishedCMSPerson = {
   topics: string[];
 };
 
+export type PublishedCMSByline =
+  | ({ kind: "person" } & Omit<PublishedCMSPerson, "contribution">)
+  | { kind: "site"; name: "China, in Fact" };
+
 export type PublishedCMSArticleSummary = {
-  authorSlug: string;
+  authorSlug: string | null;
+  authorshipType: "member" | "site";
   coverImage: PublishedCMSImage | null;
   curationStatus: Article["curationStatus"];
   format: Article["format"] | null;
@@ -52,17 +57,19 @@ export type PublishedCMSArticleSummary = {
   topics: string[];
   topicSlugs: string[];
   translationGroup: string;
+  updatedAt: string;
 };
 
 export type PublishedCMSArticle = PublishedCMSArticleSummary & {
-  author: Omit<PublishedCMSPerson, "contribution">;
+  author: PublishedCMSByline;
   body: NonNullable<Article["body"]>;
-  sources: { label: string; url?: string | null }[];
+  relatedPeople: Omit<PublishedCMSPerson, "contribution">[];
+  seo: { description: string | null; image: PublishedCMSImage | null; title: string | null };
+  sources: { checkedAt: string | null; label: string; url?: string | null }[];
 };
 
 export type PublishedCMSGuide = PublishedCMSArticle;
 export type CuratedCMSArticle = PublishedCMSArticle & {
-  coverImage: PublishedCMSImage;
   format: NonNullable<Article["format"]>;
 };
 
@@ -140,9 +147,12 @@ function personBase(person: Person, locale: Locale): Omit<PublishedCMSPerson, "c
 function articleSummary(article: Article): PublishedCMSArticleSummary | null {
   const coverImage = publicImage(article.coverImage);
   const author = typeof article.author === "object" ? article.author : null;
-  if (!author || !author.slug || !article.publishedAt || !article.slug || !article.translationGroup || !article.title) return null;
+  const authorshipType = article.authorshipType === "site" ? "site" : "member";
+  if (authorshipType === "member" && (!author || !author.slug)) return null;
+  if (!article.publishedAt || !article.slug || !article.translationGroup || !article.title) return null;
   return {
-    authorSlug: author.slug,
+    authorSlug: authorshipType === "member" ? author!.slug ?? null : null,
+    authorshipType,
     coverImage,
     curationStatus: article.curationStatus,
     format: article.format ?? null,
@@ -162,19 +172,36 @@ function articleSummary(article: Article): PublishedCMSArticleSummary | null {
     topics: taxonomyNames(article.topics),
     topicSlugs: taxonomySlugs(article.topics),
     translationGroup: article.translationGroup,
+    updatedAt: article.updatedAt,
   };
 }
 
 function toPublishedArticle(article: Article): PublishedCMSArticle | null {
-  if (!article.body || !article.author || typeof article.author !== "object") return null;
+  if (!article.body) return null;
   const summary = articleSummary(article);
-  const author = personBase(article.author, article.locale);
+  const memberAuthor = article.author && typeof article.author === "object"
+    ? personBase(article.author, article.locale)
+    : null;
+  const author: PublishedCMSByline | null = summary?.authorshipType === "site"
+    ? { kind: "site", name: "China, in Fact" }
+    : memberAuthor ? { ...memberAuthor, kind: "person" } : null;
   if (!summary || !author) return null;
   return {
     ...summary,
     author,
     body: article.body,
+    relatedPeople: (article.relatedPeople ?? []).flatMap((person) => {
+      if (typeof person !== "object") return [];
+      const related = personBase(person, article.locale);
+      return related ? [related] : [];
+    }),
+    seo: {
+      description: article.seo?.description ?? null,
+      image: publicImage(article.seo?.image),
+      title: article.seo?.title ?? null,
+    },
     sources: (article.sourceNotes ?? []).map((source) => ({
+      checkedAt: source.checkedAt ?? null,
       label: source.label,
       url: source.url ? safeExternalURL(source.url) : null,
     })),
@@ -261,9 +288,9 @@ const findCuratedArticles = cache(async (locale: Locale) => {
   });
   return result.docs.flatMap((article) => {
     const published = toPublishedArticle(article);
-    return published?.format && published.coverImage
-      ? [published as CuratedCMSArticle]
-      : [];
+    if (!published?.format) return [];
+    if (published.authorshipType === "member" && !published.coverImage) return [];
+    return [published as CuratedCMSArticle];
   });
 });
 

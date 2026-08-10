@@ -91,9 +91,9 @@ export const agentToolDescriptions = {
   article_preview:
     "Return an authenticated preview path for an article owned by the current member. This is read-only and never creates or changes a public URL or publication state.",
   article_prepare_publication:
-    "Prepare publishing, updating the public version, withdrawing or republishing an article owned by the current member. This validates the action and returns an exact summary plus a short-lived one-time confirmation reference. It never changes the article or public page.",
+    "Prepare publishing, updating the public version, withdrawing or republishing an article owned by the current member, or a site-authored article when the caller is a Super Admin. This validates the action and returns an exact summary plus a short-lived one-time confirmation reference. It never changes the article or public page.",
   article_commit_publication:
-    "Execute a prepared publication action only after the user explicitly confirms the exact prepare summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks ownership, account state, connection, revision and transition before changing the public page.",
+    "Execute a prepared publication action only after the user explicitly confirms the exact prepare summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks owner or Super Admin site authority, account state, connection, revision and transition before changing the public page.",
   editorial_article_get:
     "Return one exact article for a current Editor or Super Admin to assess for site selection. It includes the latest revision and only the content and curation fields needed for this decision. It never grants Member publication control or changes the article.",
   editorial_prepare_site_selection:

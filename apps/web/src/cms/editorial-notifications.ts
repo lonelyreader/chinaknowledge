@@ -110,6 +110,7 @@ export async function createEditorialNotificationEvent({
   req: PayloadRequest;
   toStatus: WorkflowEvent["toStatus"];
 }) {
+  if (article.authorshipType === "site") return null;
   const ownerID = relationID(article.owner);
   if (!ownerID) return null;
   const owner = await req.payload.findByID({

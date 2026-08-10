@@ -75,6 +75,7 @@ export interface Config {
     'person-revisions': PersonRevision;
     taxonomies: Taxonomy;
     media: Media;
+    'editorial-masters': EditorialMaster;
     articles: Article;
     places: Place;
     'workflow-events': WorkflowEvent;
@@ -93,6 +94,7 @@ export interface Config {
     'person-revisions': PersonRevisionsSelect<false> | PersonRevisionsSelect<true>;
     taxonomies: TaxonomiesSelect<false> | TaxonomiesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    'editorial-masters': EditorialMastersSelect<false> | EditorialMastersSelect<true>;
     articles: ArticlesSelect<false> | ArticlesSelect<true>;
     places: PlacesSelect<false> | PlacesSelect<true>;
     'workflow-events': WorkflowEventsSelect<false> | WorkflowEventsSelect<true>;
@@ -349,6 +351,55 @@ export interface PersonRevision {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "editorial-masters".
+ */
+export interface EditorialMaster {
+  id: number;
+  titleZh: string;
+  summaryZh: string;
+  bodyZh: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  contentKey: string;
+  batchId: string;
+  purpose: number | Taxonomy;
+  risk: 'evergreen' | 'annual' | 'volatile' | 'high';
+  topics?: (number | Taxonomy)[] | null;
+  sourceNotes: {
+    label: string;
+    url: string;
+    capturedAt?: string | null;
+    checkedAt?: string | null;
+    rights: 'official' | 'permission' | 'factual_reference' | 'human_reference' | 'restricted';
+    check?: string | null;
+    id?: string | null;
+  }[];
+  rightsStatus: 'pending' | 'cleared' | 'restricted';
+  editorialStatus: 'candidate' | 'in_review' | 'approved' | 'translated' | 'released';
+  translationNotes?: string | null;
+  assignedEditor?: (number | null) | User;
+  reviewedAt?: string | null;
+  reviewedBy?: (number | null) | User;
+  createdBy: number | User;
+  contentHash: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "articles".
  */
 export interface Article {
@@ -373,7 +424,10 @@ export interface Article {
   coverImage?: (number | null) | Media;
   locale: 'en' | 'es';
   slug: string;
-  author: number | Person;
+  authorshipType: 'member' | 'site';
+  author?: (number | null) | Person;
+  editorialMaster?: (number | null) | EditorialMaster;
+  relatedPeople?: (number | Person)[] | null;
   format?: ('guide' | 'reporting' | 'analysis' | 'first_person' | 'update') | null;
   purposes?: (number | Taxonomy)[] | null;
   topics?: (number | Taxonomy)[] | null;
@@ -383,6 +437,7 @@ export interface Article {
     | {
         label: string;
         url?: string | null;
+        checkedAt?: string | null;
         check?: string | null;
         id?: string | null;
       }[]
@@ -399,6 +454,11 @@ export interface Article {
   assignedEditor?: (number | null) | User;
   freshnessDate?: string | null;
   publishedAt?: string | null;
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
   homepagePlacement?: ('none' | 'lead' | 'selected') | null;
   homepageStartsAt?: string | null;
   homepageEndsAt?: string | null;
@@ -539,6 +599,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'editorial-masters';
+        value: number | EditorialMaster;
       } | null)
     | ({
         relationTo: 'articles';
@@ -802,6 +866,42 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "editorial-masters_select".
+ */
+export interface EditorialMastersSelect<T extends boolean = true> {
+  titleZh?: T;
+  summaryZh?: T;
+  bodyZh?: T;
+  contentKey?: T;
+  batchId?: T;
+  purpose?: T;
+  risk?: T;
+  topics?: T;
+  sourceNotes?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        capturedAt?: T;
+        checkedAt?: T;
+        rights?: T;
+        check?: T;
+        id?: T;
+      };
+  rightsStatus?: T;
+  editorialStatus?: T;
+  translationNotes?: T;
+  assignedEditor?: T;
+  reviewedAt?: T;
+  reviewedBy?: T;
+  createdBy?: T;
+  contentHash?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "articles_select".
  */
 export interface ArticlesSelect<T extends boolean = true> {
@@ -811,7 +911,10 @@ export interface ArticlesSelect<T extends boolean = true> {
   coverImage?: T;
   locale?: T;
   slug?: T;
+  authorshipType?: T;
   author?: T;
+  editorialMaster?: T;
+  relatedPeople?: T;
   format?: T;
   purposes?: T;
   topics?: T;
@@ -822,6 +925,7 @@ export interface ArticlesSelect<T extends boolean = true> {
     | {
         label?: T;
         url?: T;
+        checkedAt?: T;
         check?: T;
         id?: T;
       };
@@ -837,6 +941,13 @@ export interface ArticlesSelect<T extends boolean = true> {
   assignedEditor?: T;
   freshnessDate?: T;
   publishedAt?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
   homepagePlacement?: T;
   homepageStartsAt?: T;
   homepageEndsAt?: T;

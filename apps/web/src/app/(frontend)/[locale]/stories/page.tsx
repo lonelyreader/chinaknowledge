@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArticleBylineLink } from "@/components/article-byline";
 import { localize, people, requireLocale, stories } from "@/content";
 import { articlePath, cmsReadEnabled, getPublishedCMSStories } from "@/content/cms";
 
@@ -16,7 +17,7 @@ export default async function StoriesPage({ params }: { params: Promise<{ locale
             <article className="story-line" key={story.slug}>
               <p className="meta">{story.publishedAt.slice(0, 10)}</p>
               <h2><Link href={articlePath(locale, story)}>{story.title}</Link></h2>
-              <Link href={`/${locale}/people/${story.author.slug}`}>{story.author.name}</Link>
+              <ArticleBylineLink author={story.author} locale={locale} />
             </article>
           ))}
         </div>

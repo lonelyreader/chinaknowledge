@@ -62,7 +62,7 @@ max_lines: 260
 
 - Member 可以处理自己的 Person、文章、媒体、翻译关系、草稿、预览和个人公开。
 - Editor 可以处理 Needs attention、负责人、分类、来源、时效、策展、排期、复核和作者通知。
-- Super Admin 可以处理明确开放的邀请、账户状态、基础对象和审计任务。
+- Super Admin 可以处理明确开放的邀请、账户状态、基础对象、站方 Article 公开与审计任务。站方 Article 沿用逐篇 `prepare/commit`，发布清单由 Agent 分批编排，不开放批量通用写入。
 - Agent 返回对象名称、当前状态、发生的变化、可访问链接和必要错误，不向普通用户暴露数据库、schema、内部权限表或实现细节。
 
 ## 4. 产品形态

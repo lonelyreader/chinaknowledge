@@ -25,10 +25,12 @@ import {
 } from "./workflow";
 
 type ArticleShape = {
-  author?: number | string | { id: number | string };
+  author?: number | string | { id: number | string } | null;
+  authorshipType?: "member" | "site" | null;
   body?: unknown;
   coverImage?: number | string | { id: number | string } | null;
   curationStatus?: CurationStatus;
+  editorialMaster?: number | string | { id: number | string } | null;
   format?: "guide" | "reporting" | "analysis" | "first_person" | "update" | null;
   freshnessDate?: string | null;
   homepageEndsAt?: string | null;
@@ -40,7 +42,7 @@ type ArticleShape = {
   publicationStatus?: PublicationStatus;
   publishedAt?: string | null;
   slug?: string;
-  sourceNotes?: { label?: string | null; url?: string | null }[] | null;
+  sourceNotes?: { checkedAt?: string | null; label?: string | null; url?: string | null }[] | null;
   summary?: string | null;
   title?: string;
   translationGroup?: string;
@@ -90,11 +92,18 @@ export async function assertCurationComplete(
   }
   if (!article.summary?.trim()) throw new APIError("A summary is required for site distribution.", 400);
   if (!article.format) throw new APIError("A site format is required for site distribution.", 400);
-  await assertMediaApprovedForPublicUse(article.coverImage, req, "Cover image");
+  if (article.authorshipType === "site") {
+    if (article.coverImage) await assertMediaApprovedForPublicUse(article.coverImage, req, "Cover image");
+  } else {
+    await assertMediaApprovedForPublicUse(article.coverImage, req, "Cover image");
+  }
   if (!article.sourceNotes?.length) {
     throw new APIError("At least one source is required for site distribution.", 400);
   }
   for (const source of article.sourceNotes) {
+    if (article.authorshipType === "site" && !source.checkedAt) {
+      throw new APIError("Site sources require a verification time.", 400);
+    }
     if (!source.url) continue;
     try {
       const url = new URL(source.url);
@@ -106,6 +115,8 @@ export async function assertCurationComplete(
   if (article.format === "guide" && !article.freshnessDate) {
     throw new APIError("A freshness date is required before distributing a guide.", 400);
   }
+  await assertArticleBylineOwnership(article as ArticleShape, req);
+  if (article.authorshipType === "site") return;
   const authorID = relationID(article.author);
   if (!authorID) throw new APIError("An author profile is required for site distribution.", 400);
   const person = await req.payload.findByID({
@@ -141,11 +152,17 @@ export const prepareArticle: CollectionBeforeValidateHook<ArticleShape> = async 
     data.publicationStatus ||= "draft";
     data.curationStatus ||= "not_selected";
     data.workflowStatus ||= "draft";
+    data.authorshipType ||= "member";
     data._status = "draft";
     if (isCMSUser(req.user)) {
-      const person = await findOwnPerson(req.user.id, req);
       data.owner = req.user.id;
-      data.author = person.id;
+      if (data.authorshipType === "site") {
+        if (!hasEditorialRole(req.user)) throw new APIError("Only Editors can create site content.", 403);
+        data.author = null;
+      } else {
+        const person = await findOwnPerson(req.user.id, req);
+        data.author = person.id;
+      }
 
       const groupedArticles = await req.payload.find({
         collection: "articles",
@@ -156,11 +173,17 @@ export const prepareArticle: CollectionBeforeValidateHook<ArticleShape> = async 
         req,
         where: { translationGroup: { equals: data.translationGroup } },
       });
-      const foreignArticle = groupedArticles.docs.find((article) =>
-        relationID(article.owner) !== req.user!.id || relationID(article.author) !== person.id,
-      );
+      const foreignArticle = groupedArticles.docs.find((article) => {
+        if (data.authorshipType === "site") {
+          return article.authorshipType !== "site"
+            || relationID(article.editorialMaster) !== relationID(data.editorialMaster);
+        }
+        return article.authorshipType === "site"
+          || relationID(article.owner) !== req.user!.id
+          || relationID(article.author) !== relationID(data.author);
+      });
       if (foreignArticle) {
-        throw new APIError("A translation group can only contain articles from the same member.", 403);
+        throw new APIError("A translation group must keep the same authorship and source master.", 403);
       }
     }
   }
@@ -213,7 +236,13 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
 
   if (operation === "create") {
     data.owner = req.user.id;
-    data.author = (await findOwnPerson(req.user.id, req)).id;
+    data.authorshipType ||= "member";
+    if (data.authorshipType === "site") {
+      if (!hasEditorialRole(req.user)) throw new APIError("Only Editors can create site content.", 403);
+      data.author = null;
+    } else {
+      data.author = (await findOwnPerson(req.user.id, req)).id;
+    }
     await assertArticleBylineOwnership(data as ArticleShape, req);
     data.publicationStatus = "draft";
     data.curationStatus = "not_selected";
@@ -237,6 +266,13 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
   if (data.translationGroup !== undefined && data.translationGroup !== originalDoc.translationGroup) {
     throw new APIError("An article translation group cannot be changed.", 403);
   }
+  if (data.authorshipType !== undefined && data.authorshipType !== originalDoc.authorshipType) {
+    throw new APIError("Article authorship cannot be changed.", 403);
+  }
+  if (data.editorialMaster !== undefined
+    && relationID(data.editorialMaster) !== relationID(originalDoc.editorialMaster)) {
+    throw new APIError("The Chinese master relation cannot be changed.", 403);
+  }
   if (currentPublication !== "draft" || originalDoc.publishedAt) {
     if (data.locale !== undefined && data.locale !== originalDoc.locale) {
       throw new APIError("A published article language cannot be changed.", 403);
@@ -255,6 +291,9 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
   assertCurationWindow({ ...originalDoc, ...data });
 
   if (nextPublication !== currentPublication) {
+    if (originalDoc.authorshipType === "site" && !isSuperAdmin(req.user)) {
+      throw new APIError("Only a Super Admin can publish or withdraw site content.", 403);
+    }
     if (!ownerAction && !isSuperAdmin(req.user)) {
       throw new APIError("Only the member or a Super Admin can change personal publication.", 403);
     }
@@ -273,6 +312,13 @@ export const enforceArticleWorkflow: CollectionBeforeChangeHook<ArticleShape> = 
   const memberChangedPublicContent = ["title", "summary", "body", "coverImage"]
     .some((field) => Object.prototype.hasOwnProperty.call(data, field));
   if (!hasEditorialRole(req.user) && ownerAction && currentCuration === "curated" && memberChangedPublicContent) {
+    data.curationStatus = "needs_recheck";
+    nextCuration = "needs_recheck";
+  }
+  if (originalDoc.authorshipType === "site"
+    && currentCuration === "curated"
+    && memberChangedPublicContent
+    && context.curationConfirmed !== true) {
     data.curationStatus = "needs_recheck";
     nextCuration = "needs_recheck";
   }

@@ -14,10 +14,13 @@ max_lines: 80
 
 Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.md) 记录；父级不授权实现。
 
-当前 active：
+当前唯一紧急 checklist：
 
-- [`MIDGAME-COLD-START-001`](midgame-cold-start.md)：把研究语料转成中文编辑真相、英西内容与 Production 冷启动。
-- [`GUIDE-FOUNDATION-001`](guide-foundation-research-corpus.md)：语料采集与抽样已经完成，保留到抽样报告写回和归档。
+- [`MIDGAME-COLD-START-001`](midgame-cold-start.md)：从 979 个 core 来源收敛独立问题，先完成 Wave A 20 篇中文母稿、英西翻译和 Production 发布，再扩展至 60 篇。
+
+非紧急收尾：
+
+- [`GUIDE-FOUNDATION-001`](guide-foundation-research-corpus.md)：语料采集与抽样已经完成，只等待报告写回和归档，不占用当前执行优先级。
 
 已完成的 [`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](../../archive/agent-workspace-codex-member-compatibility.md)、[`MEDIA-UPLOAD-001`](../../archive/media-upload-filename-collision.md)、[`CI-DOC-LINKS-001`](../../archive/ci-portable-evidence-links.md)、[`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 与 [`REPO-CONSOLIDATION-001`](../../archive/repository-main-consolidation.md) 位于 archive。
 

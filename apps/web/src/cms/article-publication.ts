@@ -7,7 +7,7 @@ import {
   markMediaForMemberPublication,
   type MediaRelation,
 } from "./media-policy";
-import { isCMSUser } from "./roles";
+import { hasEditorialRole, isCMSUser } from "./roles";
 import {
   assertPublicationTransition,
   type CurationStatus,
@@ -16,8 +16,10 @@ import {
 
 type ArticleShape = {
   author?: unknown;
+  authorshipType?: "member" | "site" | null;
   body?: unknown;
   coverImage?: MediaRelation;
+  editorialMaster?: unknown;
   id: number | string;
   locale?: "en" | "es";
   owner?: unknown;
@@ -66,6 +68,8 @@ function editorialPromotableArticleData(article: Article) {
     homepagePlacement: article.homepagePlacement,
     homepageStartsAt: article.homepageStartsAt,
     purposes: relationIDs(article.purposes),
+    relatedPeople: relationIDs(article.relatedPeople),
+    seo: article.seo,
     situations: relationIDs(article.situations),
     sourceNotes: article.sourceNotes,
     summary: article.summary,
@@ -117,6 +121,24 @@ export async function assertArticleBylineOwnership(
   req: PayloadRequest,
 ) {
   if (!isCMSUser(req.user)) throw new APIError("Authentication is required.", 401);
+  if (article.authorshipType === "site") {
+    if (!hasEditorialRole(req.user)) throw new APIError("Editor access is required for site content.", 403);
+    if (articleRelationID(article.author)) throw new APIError("Site content cannot use a Person byline.", 400);
+    const masterID = articleRelationID(article.editorialMaster);
+    if (!masterID) throw new APIError("An approved Chinese master is required for site content.", 400);
+    const master = await req.payload.findByID({
+      collection: "editorial-masters",
+      id: masterID,
+      depth: 0,
+      draft: true,
+      overrideAccess: true,
+      req,
+    });
+    if (!master || !["approved", "translated", "released"].includes(master.editorialStatus) || master.rightsStatus !== "cleared") {
+      throw new APIError("The Chinese master must be approved and rights-cleared.", 400);
+    }
+    return null;
+  }
   const authorID = articleRelationID(article.author);
   if (!authorID) throw new APIError("An author profile is required.", 400);
   const person = await req.payload.findByID({
@@ -145,6 +167,8 @@ export async function assertMemberPublicationComplete(
     throw new APIError("Language and public URL are required before publication.", 400);
   }
   const person = await assertArticleBylineOwnership(article, req);
+  if (article.authorshipType === "site") return;
+  if (!person) throw new APIError("An author profile is required.", 400);
   if (person.profileStatus !== "public" || !person.profilePublishedAt) {
     throw new APIError("Publish your profile before publishing an article.", 400);
   }

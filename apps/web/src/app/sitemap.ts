@@ -24,13 +24,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       getPublishedCMSPeople(locale),
       getPublishedCMSPlaces(locale),
     ]);
+    const topicSlugs = [...new Set(articles.flatMap((article) => article.topicSlugs))];
     return [
-      ...articles.map((article) => ({ lastModified: article.publishedAt, url: `${site}${articlePath(locale, article)}` })),
+      ...articles.map((article) => ({ lastModified: article.updatedAt, url: `${site}${articlePath(locale, article)}` })),
       ...people.map((person) => ({ url: `${site}/${locale}/people/${person.slug}` })),
       ...places.map((place) => ({ lastModified: place.publishedAt, url: `${site}${placePath(locale, place)}` })),
+      ...topicSlugs.map((slug) => ({ url: `${site}/${locale}/topics/${slug}` })),
     ];
   }));
-  const staticPages = locales.flatMap((locale) => ["", "/stories", "/guides", "/people", "/places", "/about"]
+  const purposeSlugs = ["understand", "visit", "live", "study", "work", "business"];
+  const staticPages = locales.flatMap((locale) => ["", "/stories", "/guides", "/people", "/places", "/about", "/privacy", ...purposeSlugs.map((slug) => `/purposes/${slug}`)]
     .map((path) => ({ url: `${site}/${locale}${path}` })));
   return [...staticPages, ...dynamic.flat()];
 }

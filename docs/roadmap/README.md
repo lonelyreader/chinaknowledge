@@ -12,12 +12,17 @@ max_lines: 100
 
 本页是当前执行与后置工作的唯一队列。详细步骤进入 [`checklists/README.md`](checklists/README.md) 挂载的单项 checklist。
 
-## Active
+## Urgent
 
 | 工作项 | 当前门禁 |
 |---|---|
-| [`MIDGAME-COLD-START-001`](checklists/midgame-cold-start.md) | 合同基线已获授权；进入中文母稿、机构署名、英西内容、SEO/GEO 与 Production 冷启动 |
-| [`GUIDE-FOUNDATION-001`](checklists/guide-foundation-research-corpus.md) | `17,706` 条统一索引与 24 条 Codex 分层抽样已完成；等待归档，不公开原文 |
+| [`MIDGAME-COLD-START-001`](checklists/midgame-cold-start.md) | 当前唯一紧急计划；从 979 个 core 来源收敛独立问题，先完成并发布 Wave A 20 篇，再扩展至 60 篇 |
+
+## Non-urgent closeout
+
+| 工作项 | 当前门禁 |
+|---|---|
+| [`GUIDE-FOUNDATION-001`](checklists/guide-foundation-research-corpus.md) | `17,706` 条统一索引与抽样已完成；只等待报告写回和归档，不与冷启动争用优先级，不公开原文 |
 
 Agent Workspace 001–006 与仓库收敛均已完成并归档；其父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。
 
