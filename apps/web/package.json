@@ -25,6 +25,7 @@
     "cms:migration:status": "payload migrate:status",
     "cms:bootstrap-super-admin": "tsx scripts/bootstrap-super-admin.ts",
     "cms:provision-core-taxonomies": "tsx scripts/provision-core-taxonomies.ts",
+    "cms:rebind-cold-start-release": "tsx scripts/rebind-cold-start-release-manifests.ts",
     "cms:provision-accounts": "tsx scripts/provision-cms-accounts.ts",
     "cms:retry-notifications": "tsx scripts/retry-editorial-notifications.ts",
     "cms:import-cold-start": "tsx scripts/import-cold-start-content.ts",

@@ -46,7 +46,7 @@ max_lines: 160
 
 ## 当前执行线
 
-[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md) 与 [`MEDIA-UPLOAD-001`](archive/media-upload-filename-collision.md) 均已完成并归档。Media 同名上传修复已通过 Production 创建、原图与 `card` 读回、精确 cleanup 和独立复审，`P0/P1/P2 = 0/0/0`；真实内容、账号、角色和既有媒体未改写。当前 active checklist 为 [`MIDGAME-COLD-START-001`](roadmap/checklists/midgame-cold-start.md)：中文 60/60 已批准，英西 120 个译文已通过合同并导入 Local CMS，事务回读与幂等复跑通过。Production 仍保持既有 13 条 migration、39 张表和 3 条 Article；新 schema、中文母稿和冷启动内容尚未部署或写入 Production。本批已经隔离到最新 `origin/main` 发布基线，下一门禁为 Preview。
+[`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md) 与 [`MEDIA-UPLOAD-001`](archive/media-upload-filename-collision.md) 均已完成并归档。Media 同名上传修复已通过 Production 创建、原图与 `card` 读回、精确 cleanup 和独立复审，`P0/P1/P2 = 0/0/0`；真实内容、账号、角色和既有媒体未改写。当前 active checklist 为 [`MIDGAME-COLD-START-001`](roadmap/checklists/midgame-cold-start.md)：中文 60/60 已批准，英西 120 个译文已通过合同。Preview deployment `dpl_4jMFsjsZpYL3JAh2p6MpZvVNERXw` 为 READY，第 14 条 migration 已应用；60 个母稿与 120 条英西 Site Article 均以 Draft 导入，60 个 translation group 各有 EN/ES 两条，事务回读与 120/120 幂等复跑通过。Production 仍保持既有 13 条 migration、39 张表和 3 条 Article；新 schema、中文母稿和冷启动内容尚未部署或写入 Production。下一门禁为 Production 恢复点。
 
 ## 当前运行边界
 

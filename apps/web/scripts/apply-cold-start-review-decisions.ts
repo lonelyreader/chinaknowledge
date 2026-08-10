@@ -189,3 +189,5 @@ function parseDecisions(raw: string): ReviewDecision[] {
     return decision as ReviewDecision;
   });
 }
+
+process.exit(0);

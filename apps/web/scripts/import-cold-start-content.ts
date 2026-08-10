@@ -289,3 +289,5 @@ function validateDetailedGuideBody(
   const missing = requiredGuideRoles.filter((role) => !roles.includes(role));
   if (missing.length) throw new Error(`Manifest line ${line} is missing section roles: ${missing.join(", ")}.`);
 }
+
+process.exit(0);

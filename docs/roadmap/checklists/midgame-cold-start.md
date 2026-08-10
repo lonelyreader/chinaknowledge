@@ -199,7 +199,7 @@ Editorial Master 继续只用：
 - [x] 将 Wave A 20 份事实提纲重写为 `DetailedGuideV1` 中文详细攻略。60 篇已完成 `humanizer-zh v2.9.1` 中文编辑并由用户统一批准；批准记录绑定逐稿内容 hash、来源权利、操作者和回读，审查后改稿会使原决定失效。本地 CMS 批准回读与 60/60 幂等复跑通过。商业医疗保险稿已有社会保险官方依据，但全国商业产品选择仍明确标记为官方依据缺口。
 - [x] 完成 60 篇英西翻译和一致性检查。`gpt-5.6-sol / medium` 通过 Codex CLI 受监督分片生成 120 个译文，保留中文块结构、数字和链接；60/60 `ColdStartTranslationV1` 全量合同通过。Local CMS 创建 120 条 Article 并事务回读 PASS，幂等复跑 120/120 跳过、零冲突。规范 manifest hash 为 `90a94aee45e136e5ca330ada6f8e0531a8011fc9da1d5b4948cc18532bbdc859`。
 - [ ] 完成 Wave B 20 篇长期生活指南；选题与来源包、`DetailedGuideV1` 中文详细草稿均为 20/20，本地 CMS 导入与回读 20/20，重复导入 20/20 全部跳过且零冲突。生育、宠物和驾驶的官方依据已补齐；学校、托育和城市选择保留全国性依据缺口，发布前按目标城市与机构复核。
-- [ ] 完成 migration、权限、导入、回滚和页面的 Local/Preview 验证；Local 翻译导入、事务回读和幂等复跑已通过。站方 Article 已纳入现有 MCP 逐篇 `prepare/commit`，Local 专用数据库通过 Super Admin 公开、幂等重放、撤回和 Editor 权限负例。Preview 等待把本批变更集成到当前 `origin/main`，不能从落后 11 个提交且混有其他任务改动的工作树部署。
+- [x] 完成 migration、权限、导入、回滚和页面的 Local/Preview 验证；站方 Article 已纳入现有 MCP 逐篇 `prepare/commit`，Local 专用数据库通过 Super Admin 公开、幂等重放、撤回和 Editor 权限负例。Preview 从最新 `origin/main` 隔离发布为 READY，第 14 条 migration、六个 Purpose、60 个母稿和 120 条英西 Draft 均已写入并回读；跨环境重绑只在旧审批 hash、译文中文源与目标中文标题/摘要/正文逐项相同后生成。翻译幂等复跑 120/120 跳过、零冲突，health 为 OK。
 - [ ] 通过内容与技术独立复审，建立 Production 恢复点。
 - [ ] 发布 Wave A，回读真实页面、索引、日志和恢复能力。
 - [ ] 根据 Wave A 结果完成并发布 Wave B 与 Wave C；Wave B 与 Wave C 中文详细攻略、来源包和本地 CMS 回读均已完成 20/20。Wave C 包含 8 篇中国社会与日常语境、12 篇商务办事；数字平台稿已补商务部移动支付和公安反诈依据，本地更新回读与 20/20 幂等复跑通过。全批仍有 7 篇按题目性质保留官方依据缺口，发布前按城市、机构或当事人复核。60 篇统一审查入口为 `/Volumes/External/service/china-in-fact-corpus/cold-start-60-chinese-review.html`；中文 60/60 已批准，英西 120 个译文已完成并导入 Local CMS，尚未进入 Preview 或公开。
