@@ -1,4 +1,5 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
+import { APIError } from "payload";
 
 import {
   authenticated,
@@ -16,6 +17,81 @@ import {
 } from "@/cms/article-hooks";
 import { createArticleTranslationEndpoint, notifyArticleAuthorEndpoint, transitionArticleEndpoint } from "@/cms/article-endpoints";
 import { hasEditorialRole, isCMSUser } from "@/cms/roles";
+
+/*
+ * INFRA-BODY-MEDIA-001: server-side whitelist for rich-text embeds.
+ * Shared by the lexical youtubeEmbed block validate (payload.config.ts),
+ * the beforeValidate guards below and in EditorialMasters. The public
+ * renderer (CMSRichText.tsx) keeps its own copy on purpose so the read
+ * path never trusts stored data.
+ */
+const YOUTUBE_EMBED_HOSTS = new Set([
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "youtube-nocookie.com",
+  "www.youtube-nocookie.com",
+]);
+const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+
+export function extractYouTubeVideoID(rawURL: unknown): string | null {
+  if (typeof rawURL !== "string") return null;
+  let url: URL;
+  try {
+    url = new URL(rawURL.trim());
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:") return null;
+  const host = url.hostname.toLowerCase();
+  if (host === "youtu.be") {
+    const id = url.pathname.slice(1).split("/")[0] ?? "";
+    return YOUTUBE_VIDEO_ID.test(id) ? id : null;
+  }
+  if (!YOUTUBE_EMBED_HOSTS.has(host)) return null;
+  if (url.pathname === "/watch") {
+    const id = url.searchParams.get("v") ?? "";
+    return YOUTUBE_VIDEO_ID.test(id) ? id : null;
+  }
+  const match = url.pathname.match(/^\/(?:embed|shorts|live)\/([A-Za-z0-9_-]{11})$/);
+  return match ? match[1] : null;
+}
+
+type RichTextEmbedNode = {
+  children?: RichTextEmbedNode[];
+  fields?: Record<string, unknown>;
+  type?: string;
+};
+
+export function assertAllowedRichTextEmbeds(value: unknown, fieldLabel: string) {
+  const root = (value as { root?: RichTextEmbedNode } | null | undefined)?.root;
+  if (!root || typeof root !== "object") return;
+  const stack: RichTextEmbedNode[] = [root];
+  while (stack.length) {
+    const node = stack.pop()!;
+    if (node.type === "block" || node.type === "inlineBlock") {
+      const blockType = node.fields?.blockType;
+      if (blockType !== "youtubeEmbed") {
+        throw new APIError(
+          `Embed type "${String(blockType)}" is not allowed in ${fieldLabel}.`,
+          400,
+        );
+      }
+      if (!extractYouTubeVideoID(node.fields?.url)) {
+        throw new APIError(
+          `Only YouTube video links (youtube.com / youtu.be) are allowed in ${fieldLabel}.`,
+          400,
+        );
+      }
+    }
+    if (Array.isArray(node.children)) stack.push(...node.children);
+  }
+}
+
+const validateBodyEmbeds: CollectionBeforeValidateHook = ({ data }) => {
+  if (data && data.body !== undefined) assertAllowedRichTextEmbeds(data.body, "body");
+  return data;
+};
 
 const editorialCondition = (_data: unknown, _siblingData: unknown, { user }: { user: unknown }) =>
   isCMSUser(user) && hasEditorialRole(user);
@@ -84,7 +160,7 @@ export const Articles: CollectionConfig = {
     update: updateOwnedArticlesOrEditorial,
   },
   hooks: {
-    beforeValidate: [prepareArticle],
+    beforeValidate: [validateBodyEmbeds, prepareArticle],
     beforeChange: [enforceArticleWorkflow],
     afterChange: [recordWorkflowEvent],
   },

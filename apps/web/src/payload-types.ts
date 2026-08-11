@@ -1060,6 +1060,17 @@ export interface CollectionsWidget {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "YouTubeEmbedBlock".
+ */
+export interface YouTubeEmbedBlock {
+  url: string;
+  caption?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'youtubeEmbed';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "auth".
  */
 export interface Auth {
