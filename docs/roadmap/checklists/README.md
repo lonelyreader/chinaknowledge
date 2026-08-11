@@ -21,6 +21,10 @@ Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.m
 - [`INFRA-BODY-MEDIA-001`](article-body-media.md)：正文图片与白名单 embed 能力（upgraded）。
 - [`DESIGN-DIRECTION-001`](design-direction-revision.md)：DESIGN.md 桥梁化方向修订与 ADR。
 
+当前 active（Batch 2 提前项）：
+
+- [`INFRA-BODY-MEDIA-002`](article-body-media-002.md)：正文媒体权限收敛与发布管道补全（upgraded，001 复审 F1/F2/F4）。
+
 非紧急收尾：
 
 - [`GUIDE-FOUNDATION-001`](guide-foundation-research-corpus.md)：语料采集与抽样已经完成，只等待报告写回和归档，不占用当前执行优先级。

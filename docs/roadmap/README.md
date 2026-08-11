@@ -22,8 +22,9 @@ max_lines: 100
 | [`INFRA-TOKENS-001`](checklists/design-token-architecture.md) | Design token 化与样式架构重构，视觉零变化 |
 | [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文图片与白名单 embed 能力 |
 | [`DESIGN-DIRECTION-001`](checklists/design-direction-revision.md) | DESIGN.md 桥梁化方向修订与 ADR |
+| [`INFRA-BODY-MEDIA-002`](checklists/article-body-media-002.md) | 正文媒体权限收敛与发布管道补全（Batch 2 提前项） |
 
-Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
+其余 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
 
 ## Non-urgent closeout
 

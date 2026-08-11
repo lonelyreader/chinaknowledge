@@ -66,7 +66,7 @@ flowchart LR
 | `INFRA-ARTICLE-TEMPLATE-001` | 2 | queued | 文章页模板：目录、排版、作者卡、文末路由模块 | TOKENS、DESIGN-DIRECTION、BODY-MEDIA |
 | `INFRA-OG-001` | 2 | queued | 动态 OG 图生成与封面兜底视觉系统 | TOKENS |
 | `INFRA-AGENT-MEDIA-001` | 2 | queued | Agent 正文合同 V2、media_upload、set cover、发布预检 | BODY-MEDIA |
-| `INFRA-BODY-MEDIA-002` | 2 | queued | 正文媒体权限收敛与发布管道补全（独立复审 F1/F2/F4） | BODY-MEDIA |
+| `INFRA-BODY-MEDIA-002` | 2 | active | 正文媒体权限收敛与发布管道补全（独立复审 F1/F2/F4），见 [checklist](checklists/article-body-media-002.md) | 无（BODY-MEDIA-001 已合并） |
 | `INFRA-PERSON-PAGE-001` | 2 | queued | Person schema 扩展与个人页重构 | DESIGN-DIRECTION |
 | `INFRA-FEEDS-001` | 2 | queued | RSS/JSON Feed、Person 与文章结构化数据补全 | 无 |
 | `INFRA-HOME-001` | 3 | queued | 首页重组：人物权重、社群模块、Hero 组合 | TOKENS、DESIGN-DIRECTION、ARTICLE-TEMPLATE |
