@@ -66,6 +66,7 @@ flowchart LR
 | `INFRA-ARTICLE-TEMPLATE-001` | 2 | queued | 文章页模板：目录、排版、作者卡、文末路由模块 | TOKENS、DESIGN-DIRECTION、BODY-MEDIA |
 | `INFRA-OG-001` | 2 | queued | 动态 OG 图生成与封面兜底视觉系统 | TOKENS |
 | `INFRA-AGENT-MEDIA-001` | 2 | queued | Agent 正文合同 V2、media_upload、set cover、发布预检 | BODY-MEDIA |
+| `INFRA-BODY-MEDIA-002` | 2 | queued | 正文媒体权限收敛与发布管道补全（独立复审 F1/F2/F4） | BODY-MEDIA |
 | `INFRA-PERSON-PAGE-001` | 2 | queued | Person schema 扩展与个人页重构 | DESIGN-DIRECTION |
 | `INFRA-FEEDS-001` | 2 | queued | RSS/JSON Feed、Person 与文章结构化数据补全 | 无 |
 | `INFRA-HOME-001` | 3 | queued | 首页重组：人物权重、社群模块、Hero 组合 | TOKENS、DESIGN-DIRECTION、ARTICLE-TEMPLATE |
@@ -92,11 +93,17 @@ flowchart LR
 - 目标：文章页成为可读、可路由的模板——目录（≥3 个 H2 时显示）、列表与行距排版修复、成员稿作者卡（文首简版 + 文末完整版）、文末路由模块（相关人物 / 社群入口 / 下一篇）、机构稿 Related people 呈现。
 - 关键路径：`apps/web/src/app/(frontend)/[locale]/posts/**`、`apps/web/src/components/**`；不改 schema 与权限。
 - 验收要点：桌面与 390px 无溢出；作者卡链接进 Person；模块在无数据时整体隐藏而非留空。
+- 吸收 BODY-MEDIA-001 复审 F3：公开渲染器补 HorizontalRule/Checklist/Align/Indent 的呈现或明确降级决定。
 
 ### INFRA-OG-001（base）
 
 - 目标：`/opengraph-image` 动态生成（标题 + 作者头像/字标 + 品牌底），封面缺失时公共卡片使用系统化兜底视觉；废除标题重复红块的生成逻辑。
 - 关键路径：`apps/web/src/app/**/opengraph-image*`、`editorial-cover.tsx`、相关脚本。
+
+### INFRA-BODY-MEDIA-002（upgraded：媒体权限与发布管道，源自 BODY-MEDIA-001 独立复审 finding）
+
+- 目标：F1——beforeValidate hook 补 upload 节点媒体归属校验（仿 `assertMediaAllowedForMemberPublication`），并收敛 `getDraftPreviewCMSArticle` 的 `overrideAccess: true` 对 body media 的越权 populate（属既有模式缺口，非 001 回归）；F2——发布管道对 body 内作者图片补 `markMediaForMemberPublication`，否则公开页正文图片被安全忽略（fail-safe 但不满足 001 验收第 1 条，宜在 Preview 验收前完成）；F4——inlineBlock 写读不一致收敛与 `ignoreNode` 日志降噪。
+- 关键路径：`apps/web/src/collections/Articles.ts`、`EditorialMasters.ts`、`content/cms.ts`、`article-publication.ts`。
 
 ### INFRA-AGENT-MEDIA-001（upgraded：Agent 合同与媒体写路径）
 

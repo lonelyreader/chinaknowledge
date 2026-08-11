@@ -9,7 +9,7 @@ max_lines: 160
 change_id: INFRA-BODY-MEDIA-001
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: apps/web/src/payload.config.ts, apps/web/src/components/CMSRichText.tsx, apps/web/src/app/(frontend)/globals.css, apps/web/src/collections/Articles.ts, apps/web/src/collections/EditorialMasters.ts, docs/roadmap/**, docs/reference/**, docs/product-feature-registry.md
+allowed_paths: apps/web/src/payload.config.ts, apps/web/src/components/CMSRichText.tsx, apps/web/src/app/(frontend)/globals.css, apps/web/src/collections/Articles.ts, apps/web/src/collections/EditorialMasters.ts, apps/web/src/payload-types.ts, apps/web/src/app/(payload)/admin/importMap.js, docs/roadmap/**, docs/reference/**, docs/product-feature-registry.md
 approval_gates: schema, migration, preview, production-deploy, commit, merge, push
 ---
 
