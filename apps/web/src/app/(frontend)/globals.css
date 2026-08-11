@@ -1256,3 +1256,41 @@ p {
   syntax: "*";
   inherits: false;
 }
+
+/* === INFRA-BODY-MEDIA-001 rich media (append-only) === */
+
+.prose .rich-media-figure {
+  margin: 2.5rem 0;
+}
+
+.prose .rich-media-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.prose .rich-media-figure figcaption {
+  margin-top: 0.75rem;
+  color: var(--color-stone-gray);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.prose .rich-media-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--color-charcoal-ink);
+}
+
+.prose .rich-media-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+/* === end INFRA-BODY-MEDIA-001 rich media === */

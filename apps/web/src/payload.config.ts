@@ -2,15 +2,39 @@ import "dotenv/config";
 
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
-import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import {
+  AlignFeature,
+  BlockquoteFeature,
+  BlocksFeature,
+  BoldFeature,
+  ChecklistFeature,
+  HeadingFeature,
+  HorizontalRuleFeature,
+  IndentFeature,
+  InlineCodeFeature,
+  InlineToolbarFeature,
+  ItalicFeature,
+  lexicalEditor,
+  LinkFeature,
+  OrderedListFeature,
+  ParagraphFeature,
+  RelationshipFeature,
+  StrikethroughFeature,
+  SubscriptFeature,
+  SuperscriptFeature,
+  UnderlineFeature,
+  UnorderedListFeature,
+  UploadFeature,
+} from "@payloadcms/richtext-lexical";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 import { enTranslations } from "@payloadcms/translations/languages/en";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { Block } from "payload";
 import { buildConfig } from "payload";
 import sharp from "sharp";
 
-import { Articles } from "@/collections/Articles";
+import { Articles, extractYouTubeVideoID } from "@/collections/Articles";
 import { AgentConnections } from "@/collections/AgentConnections";
 import { AgentEvents } from "@/collections/AgentEvents";
 import { AgentOAuthClients } from "@/collections/AgentOAuthClients";
@@ -30,6 +54,31 @@ import { uniqueVercelBlobClientUploadPlugin } from "@/cms/media-upload-filename"
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const serverEnvironment = validateServerEnvironment();
+
+/*
+ * INFRA-BODY-MEDIA-001: the only embed allowed in rich text. The url field
+ * validate runs server-side on every validated write; the beforeValidate
+ * guards in Articles/EditorialMasters additionally cover draft autosaves
+ * (versions.drafts.validate is false) and raw API writes.
+ */
+const youTubeEmbedBlock: Block = {
+  slug: "youtubeEmbed",
+  interfaceName: "YouTubeEmbedBlock",
+  labels: { singular: "YouTube video", plural: "YouTube videos" },
+  fields: [
+    {
+      name: "url",
+      type: "text",
+      label: "YouTube URL",
+      required: true,
+      validate: (value: null | string | undefined) =>
+        extractYouTubeVideoID(value)
+          ? true
+          : "Only YouTube video links (youtube.com / youtu.be) are supported.",
+    },
+    { name: "caption", type: "text", label: "Caption" },
+  ],
+};
 
 export default buildConfig({
   serverURL: process.env.PAYLOAD_PUBLIC_SERVER_URL,
@@ -91,7 +140,43 @@ export default buildConfig({
       serverEnvironment.environment === "local" &&
       process.env.NODE_ENV === "development",
   }),
-  editor: lexicalEditor(),
+  /*
+   * INFRA-BODY-MEDIA-001: explicit feature list. Mirrors the 3.86.0 default
+   * set (so existing documents keep loading and rendering unchanged) plus a
+   * media-only UploadFeature with caption and the whitelisted YouTube embed.
+   */
+  editor: lexicalEditor({
+    features: [
+      BoldFeature(),
+      ItalicFeature(),
+      UnderlineFeature(),
+      StrikethroughFeature(),
+      SubscriptFeature(),
+      SuperscriptFeature(),
+      InlineCodeFeature(),
+      ParagraphFeature(),
+      HeadingFeature(),
+      AlignFeature(),
+      IndentFeature(),
+      UnorderedListFeature(),
+      OrderedListFeature(),
+      ChecklistFeature(),
+      LinkFeature(),
+      RelationshipFeature(),
+      BlockquoteFeature(),
+      HorizontalRuleFeature(),
+      InlineToolbarFeature(),
+      UploadFeature({
+        enabledCollections: ["media"],
+        collections: {
+          media: {
+            fields: [{ name: "caption", type: "text", label: "Caption" }],
+          },
+        },
+      }),
+      BlocksFeature({ blocks: [youTubeEmbedBlock] }),
+    ],
+  }),
   i18n: {
     translations: {
       en: {

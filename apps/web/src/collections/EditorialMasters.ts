@@ -1,7 +1,14 @@
-import type { CollectionConfig } from "payload";
+import type { CollectionBeforeValidateHook, CollectionConfig } from "payload";
 
 import { editorial, superAdmin } from "@/cms/access";
 import { enforceEditorialMaster, prepareEditorialMaster } from "@/cms/editorial-master-hooks";
+import { assertAllowedRichTextEmbeds } from "@/collections/Articles";
+
+/* INFRA-BODY-MEDIA-001: same server-side embed whitelist as Articles.body. */
+const validateBodyZhEmbeds: CollectionBeforeValidateHook = ({ data }) => {
+  if (data && data.bodyZh !== undefined) assertAllowedRichTextEmbeds(data.bodyZh, "bodyZh");
+  return data;
+};
 
 export const EditorialMasters: CollectionConfig = {
   slug: "editorial-masters",
@@ -21,7 +28,7 @@ export const EditorialMasters: CollectionConfig = {
     update: editorial,
   },
   hooks: {
-    beforeValidate: [prepareEditorialMaster],
+    beforeValidate: [validateBodyZhEmbeds, prepareEditorialMaster],
     beforeChange: [enforceEditorialMaster],
   },
   versions: {

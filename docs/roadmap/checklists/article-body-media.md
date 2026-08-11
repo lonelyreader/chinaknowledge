@@ -67,5 +67,7 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 ## Current gate
 
 - [x] 用户批准建立本 checklist（2026-08-11，接手规划批次）。
-- [ ] 实现前冻结本批合同（scope/no-go/invariants 复读确认）。
+- [x] 实现前冻结本批合同（scope/no-go/invariants 复读确认，2026-08-11）；实现已完成并通过本地静态验证，浏览器验证与独立复审待做。
+- [x] 用户批准把生成文件 `payload-types.ts` 与 `importMap.js` 补进 allowed_paths 并执行再生成（2026-08-11）。
+- [x] 独立复审 PASS（2026-08-11，非实现者，24 组 URL 负例 + 6 组 guard 负例全过；4 项 finding 已路由父级，见 program 登记）。
 - [ ] Preview 验收与 Production 部署分别批准。

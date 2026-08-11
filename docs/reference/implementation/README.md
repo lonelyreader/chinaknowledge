@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: implementation-evidence-index
-last_verified: 2026-08-10
+last_verified: 2026-08-11
 max_lines: 60
 ---
 
@@ -29,3 +29,4 @@ max_lines: 60
 | `AGENT-WORKSPACE-006` | Codex Member 只读实测与独立复审 PASS，`P0/P1/P2=0/0/0` | [`runtime`](agent-workspace-006-codex-member-compatibility-2026-08-02.md)、[`review`](agent-workspace-006-independent-review-2026-08-02.md) |
 | `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |
 | `AUTH-RESET-001` | Production 与复审 PASS | [`evidence`](password-reset-recovery-2026-08-11.md) |
+| `INFRA-BODY-MEDIA-001` | 待复审 | [`evidence`](body-media-security-2026-08-11.md) |

@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-11
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:52ef25538536fb2fc98bca2f41ea45817913253ac75e89625dcc3b452240ad3d
+implementation_fingerprint: sha256:04478266a57f6a80cff7a353ad9fefc2f9389d66ff3b74bda29bb7e9bbdd3e24
 ---
 
 # App 功能登记册
@@ -24,7 +24,7 @@ implementation_fingerprint: sha256:52ef25538536fb2fc98bca2f41ea45817913253ac75e8
 | RDR-02 | 编辑型首页 | 查看站方主推、精选、最近更新、地点、人物和 Newsletter | `/{locale}`；只展示已公开且被站方选中的内容 |
 | RDR-03 | Stories | 浏览站方选中的报道、观察、分析、评论和第一人称内容 | `/{locale}/stories` |
 | RDR-04 | Guides | 浏览带来源、时效和维护信息的实用指南 | `/{locale}/guides` |
-| RDR-05 | 稳定文章页 | 阅读标题、摘要、正文、封面或站方视觉、来源、日期和署名；Member 稿进入作者主页，站方稿进入 About | `/{locale}/posts/{slug}`；旧 Stories/Guides 详情地址会永久转到稳定地址 |
+| RDR-05 | 稳定文章页 | 阅读标题、摘要、正文、封面或站方视觉、来源、日期和署名；正文可包含作者插入的图片（含说明文字）和 YouTube 视频，视频经 youtube-nocookie 惰性加载并保持 16:9；Member 稿进入作者主页，站方稿进入 About | `/{locale}/posts/{slug}`；旧 Stories/Guides 详情地址会永久转到稳定地址；正文只渲染白名单媒体节点，其他节点安全忽略，不输出原始 HTML |
 | RDR-06 | 个人公开文章 | 阅读 Member 已公开但未被站方选中的文章 | 文章稳定地址和作者主页；不会进入首页、Stories、Guides 等官方入口 |
 | RDR-07 | Places | 浏览地点列表和地点详情，查看与该地点关联的文章和人物 | `/{locale}/places`、`/{locale}/places/{slug}` |
 | RDR-08 | Purpose 入口 | 按 Understand、Visit、Live、Study、Work、Business 找到站方内容 | `/{locale}/purposes/{slug}` |
@@ -49,7 +49,7 @@ Member 是有后台账户并关联 Person 的内容作者。文章公开由本�
 | MEM-01 | 登录和密码设置 | 使用 24 小时有效的最新邀请/重置邮件设置密码并登录后台；失效链接在填写密码前提供重新申请入口；连续失败会触发临时锁定 | `/admin`、`/admin/reset/:token`；重发会使旧链接失效，暂停账户不能登录 |
 | MEM-02 | My work | 登录后查看自己的最近文章、语言、个人公开状态、站方选择状态和下一动作 | `/admin`；只显示本人文章，支持进入全部个人文章 |
 | MEM-03 | 新建文章 | 从 My work 进入 Payload 原生 Article 新建页，选择 English 或 Español 后开始写作 | My work 的 New article；作者、owner 和稳定身份由服务端建立 |
-| MEM-04 | 文章写作 | 编辑标题、摘要、富文本正文和封面；封面可在文章内上传、预览、替换或移除 | Article 的 Writing 模式 |
+| MEM-04 | 文章写作 | 编辑标题、摘要、富文本正文和封面；封面可在文章内上传、预览、替换或移除；正文可插入本人上传的图片（含说明文字）和 YouTube 视频嵌入 | Article 的 Writing 模式；正文图片仅限 media 库，视频嵌入仅接受 YouTube 链接且由服务端校验，非白名单地址被拒绝 |
 | MEM-05 | 保存状态与失败恢复 | 使用 Payload 原生 Saving、Last saved 和错误反馈；Article 自动保存，失败后保留本地内容并在后续周期重试 | Article/Person 编辑页；重试期间继续输入不会被旧版本覆盖 |
 | MEM-06 | 并发与离页保护 | 看到其他编辑者的锁定状态；未保存时阻止误离开；避免静默覆盖 | Article 与 Person 编辑页，锁定时长 5 分钟 |
 | MEM-07 | 版本历史 | 查看和恢复 Article、Person 的历史版本；自动保存版本状态与界面同步 | 后台版本入口；每个文档最多保留 50 个版本 |
