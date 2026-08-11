@@ -24,6 +24,7 @@ max_lines: 100
 | `ADR-0008` | accepted | [`Production Launch 基础`](0008-production-launch-foundation.md) |
 | `ADR-0009` | accepted | [`成员直接发布与站方策展分离`](0009-member-publishing-and-editorial-curation.md) |
 | `ADR-0010` | accepted | [`站方编辑内容基础`](0010-site-editorial-content-foundation.md) |
+| `ADR-0011` | accepted | [`宋式编辑部设计方向`](0011-song-editorial-design-direction.md) |
 
 ## 登记规则
 

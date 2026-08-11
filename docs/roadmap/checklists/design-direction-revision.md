@@ -55,9 +55,9 @@ approval_gates: design-direction-acceptance, commit, merge, push
 
 ## Acceptance
 
-- [x] 六项议题逐条获得接受/驳回结论（2026-08-11 全部接受，含参数级方案 D1–D4）。
-- [ ] DESIGN.md 修订完成并通过行数预算与治理检查。
-- [ ] ADR 进入 `docs/decisions/` 并在 router 登记。
+- [x] 六项议题逐条获得接受/驳回结论（2026-08-11 全部接受，含参数级方案 D1–D4 与宋式第二轮 Q1–Q4）。
+- [x] DESIGN.md 修订完成并通过行数预算与治理检查（宋式色板、六级字阶、印章署名体系、社群三形态、封面兜底、留白制度）。
+- [x] ADR-0011 进入 `docs/decisions/` 并在 router 登记；product-brief 核对无需同步（表述已一致）。
 
 ## Validation
 
