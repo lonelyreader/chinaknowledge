@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: password-reset-recovery
 last_verified: 2026-08-11
 max_lines: 140
@@ -49,7 +49,7 @@ approval_gates: product-code, auth-change, commit, push, merge, production-deplo
 - 无效、过期和旧链接在输入密码前进入同一恢复界面；重新申请链接可达。
 - 未注册邮箱请求不泄露账号存在性。
 - 邮件和 Admin 成功状态清楚说明 24 小时与最新链接规则。
-- Local/Preview 正例与负例、typecheck、build、governance、diff check 和独立复审通过。
+- Local 正例与负例、typecheck、build、governance、diff check 和独立复审通过。
 - Production 部署后公开 reset/forgot 路由、health 和无效 token 恢复页回读通过，不创建真实账号或发送真实邮件。
 
 ## Validation
@@ -70,8 +70,8 @@ approval_gates: product-code, auth-change, commit, push, merge, production-deplo
 ## Work
 
 - [x] 用户批准正式修复；产品代码、提交、合并与 Production 部署进入本批。
-- [x] checklist 基线已提交为 `cc8a64c`。
+- [x] checklist 基线提交 `cc8a64c`；实现提交 `c478ea0` 已快进合入 `main`。
 - [x] 已实现 24 小时、最新链接提示与过期恢复页。
 - [x] 自动验证通过；首轮复审 finding 已修复，复审结论为 `PASS`。
-- [ ] 推送、合并、部署并完成匿名 Production 回读。
-- [ ] 写回、归档并关闭 LON-93。
+- [x] deployment `dpl_6jgR7oVx5zu5KGZMN6DpQSxhckoc` 为 READY，匿名 Production 回读通过。
+- [x] current、feature registry、reference 与 Linear 已写回；本清单归档。

@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: reference
 authority: evidence
-status: active
+status: completed
 scope: password-reset-recovery-evidence
 last_verified: 2026-08-11
 max_lines: 120
@@ -45,8 +45,11 @@ change_id: AUTH-RESET-001
 
 ## Production
 
-等待部署与匿名回读。不会创建真实账号、发送真实邮件或操作真实密码。
+- deployment `dpl_6jgR7oVx5zu5KGZMN6DpQSxhckoc` 为 `READY / target: production`，已绑定 `chinainfact.com`。
+- `/api/health` 返回 `{"status":"ok"}`；`/admin/login`、`/admin/forgot` 与 `/admin/reset/invalid-fixture-token` 均为 200。
+- 浏览器回读确认失效链接页显示恢复状态，密码字段数为 `0`，`Request a new link` 与 `Back to login` 均可见。
+- `Request a new link` 进入 `/admin/forgot`；没有提交邮箱、创建真实账号、发送真实邮件或操作真实密码。
 
 ## 恢复边界
 
-代码可回滚到部署前 Production；token 与密码不执行数据回滚。本批没有数据库 migration。
+上一稳定 deployment `dpl_7VSEy3qNbymrRtx4ZTvZyh8xSLYm` 保留为代码回滚目标。token 与密码不执行数据回滚；本批没有数据库 migration。

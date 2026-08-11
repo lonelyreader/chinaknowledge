@@ -28,4 +28,4 @@ max_lines: 60
 | `AGENT-WORKSPACE-005` | Gate 2–6 全部独立复审 PASS；Production public enable、只读 smoke、权限负例、撤销与精确 cleanup 已完成，真实内容未修改 | [`intake`](agent-workspace-005-intake-2026-08-01.md)、[`client compatibility`](agent-workspace-005-client-compatibility-2026-08-01.md)、[`Preview runtime`](agent-workspace-005-preview-runtime-2026-08-01.md)、[`operational readiness`](agent-workspace-005-operational-readiness-2026-08-01.md)、[`Production runtime`](agent-workspace-005-production-runtime-2026-08-01.md)、[`independent review`](agent-workspace-005-independent-review-2026-08-01.md) |
 | `AGENT-WORKSPACE-006` | Codex Member 只读实测与独立复审 PASS，`P0/P1/P2=0/0/0` | [`runtime`](agent-workspace-006-codex-member-compatibility-2026-08-02.md)、[`review`](agent-workspace-006-independent-review-2026-08-02.md) |
 | `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |
-| `AUTH-RESET-001` | 本地正负例与复审 PASS；等待 Production 回读 | [`evidence`](password-reset-recovery-2026-08-11.md) |
+| `AUTH-RESET-001` | Production 与复审 PASS | [`evidence`](password-reset-recovery-2026-08-11.md) |
