@@ -16,6 +16,7 @@ max_lines: 100
 
 | 工作项 | 当前门禁 |
 |---|---|
+| [`AUTH-RESET-001`](checklists/password-reset-recovery.md) | 正式修复已批准；冻结 24 小时 token、最新链接提示、过期恢复页与 Production 回读 |
 | [`GUIDE-FOUNDATION-001`](checklists/guide-foundation-research-corpus.md) | `17,706` 条统一索引与抽样已完成；只等待报告写回和归档，不与冷启动争用优先级，不公开原文 |
 
 `MIDGAME-COLD-START-001` 与 `FAVICON-PROD-001` 均已部署 Production 并移入 [`archive`](../archive/README.md)。Agent Workspace 001–006 与仓库收敛也已归档；其父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。
