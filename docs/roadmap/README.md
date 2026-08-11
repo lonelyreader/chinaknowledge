@@ -12,6 +12,19 @@ max_lines: 100
 
 本页是当前执行与后置工作的唯一队列。详细步骤进入 [`checklists/README.md`](checklists/README.md) 挂载的单项 checklist。
 
+## Active：Site Infrastructure Program
+
+网站基础设施升级由 [`Site Infrastructure Parent Checklist`](site-infrastructure-program.md) 统一控制批次、并行线与阻塞关系。当前 Batch 1 四项并行 active：
+
+| 工作项 | 交付目标 |
+|---|---|
+| [`INFRA-MEASURE-001`](checklists/site-measurement-foundation.md) | Web Analytics、GSC/Bing 与隐私文案核对 |
+| [`INFRA-TOKENS-001`](checklists/design-token-architecture.md) | Design token 化与样式架构重构，视觉零变化 |
+| [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文图片与白名单 embed 能力 |
+| [`DESIGN-DIRECTION-001`](checklists/design-direction-revision.md) | DESIGN.md 桥梁化方向修订与 ADR |
+
+Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
+
 ## Non-urgent closeout
 
 | 工作项 | 当前门禁 |
