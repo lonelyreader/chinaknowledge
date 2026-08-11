@@ -55,7 +55,7 @@ export function InviteMember() {
       });
       const data = await response.json() as unknown;
       if (!response.ok) throw new Error(errorMessage(data));
-      toast.success("Invitation sent");
+      toast.success("Invitation sent. Valid for 24 hours; only the newest link works.");
       setDisplayName("");
       setEmail("");
       setRole("author");
@@ -82,7 +82,7 @@ export function InviteMember() {
       });
       const data = await response.json() as unknown;
       if (!response.ok) throw new Error(errorMessage(data));
-      toast.success("Invitation sent");
+      toast.success("Invitation sent. Valid for 24 hours; only the newest link works.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Invitation failed.");
     } finally {

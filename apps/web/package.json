@@ -40,6 +40,7 @@
     "test:media-upload-filename": "tsx tests/media-upload-filename.ts",
     "test:newsletter": "tsx tests/newsletter.ts && tsx tests/newsletter-route.ts",
     "test:preview-config": "tsx tests/preview-config.ts",
+    "test:password-reset": "tsx tests/password-reset.ts",
     "test:agent": "tsx tests/agent-contracts.ts && tsx tests/agent-http.ts && tsx tests/agent-routes.ts && tsx tests/agent-fixtures.ts && tsx tests/agent-oauth-model.ts && tsx tests/agent-schema.ts",
     "test:agent:live": "tsx tests/agent-live.ts"
   },

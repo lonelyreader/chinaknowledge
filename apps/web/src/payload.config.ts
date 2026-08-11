@@ -37,11 +37,22 @@ export default buildConfig({
     user: Users.slug,
     importMap: { baseDir: dirname },
     meta: { titleSuffix: " — China, in Fact" },
+    routes: {
+      reset: "/payload-reset",
+    },
     components: {
       beforeNavLinks: ["/cms/components/AdminNav#AdminNavLinks"],
       graphics: {
         Icon: "/cms/components/Brand#AdminIcon",
         Logo: "/cms/components/Brand#AdminLogo",
+      },
+      views: {
+        passwordSetup: {
+          Component: "/cms/views/PasswordSetup#PasswordSetup",
+          exact: false,
+          path: "/reset",
+          sensitive: true,
+        },
       },
     },
     dashboard: {

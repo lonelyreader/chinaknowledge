@@ -9,6 +9,11 @@ import {
 } from "@/cms/access";
 import { ensureMemberProfile, protectMemberAccount, requireActiveAccount } from "@/cms/user-hooks";
 import { inviteUserEndpoint, resendUserInviteEndpoint } from "@/cms/user-endpoints";
+import {
+  generatePasswordResetEmailHTML,
+  generatePasswordResetEmailSubject,
+  PASSWORD_RESET_EXPIRATION_MS,
+} from "@/cms/password-reset";
 
 export const Users: CollectionConfig = {
   slug: "users",
@@ -25,6 +30,11 @@ export const Users: CollectionConfig = {
   },
   endpoints: [inviteUserEndpoint, resendUserInviteEndpoint],
   auth: {
+    forgotPassword: {
+      expiration: PASSWORD_RESET_EXPIRATION_MS,
+      generateEmailHTML: generatePasswordResetEmailHTML,
+      generateEmailSubject: generatePasswordResetEmailSubject,
+    },
     maxLoginAttempts: 5,
     lockTime: 10 * 60 * 1000,
     tokenExpiration: 8 * 60 * 60,

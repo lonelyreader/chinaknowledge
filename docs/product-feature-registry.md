@@ -4,10 +4,10 @@ doc_type: current
 authority: canonical
 status: active
 scope: implemented-app-features
-last_verified: 2026-08-10
+last_verified: 2026-08-11
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:a0e018f1d50f90c2c5f954d82317dc5c198d80a3dfd0a8180dc831326dba5e7f
+implementation_fingerprint: sha256:41ab330820a7433b5003a00d988bcf272fa86a7ca07f917e7203ad6a1e5f645d
 ---
 
 # App 功能登记册
@@ -46,7 +46,7 @@ Member 是有后台账户并关联 Person 的内容作者。文章公开由本�
 
 | 编号 | 当前功能 | 人能做到的事情 | 主要入口与边界 |
 |---|---|---|---|
-| MEM-01 | 登录和密码设置 | 使用邀请/重置邮件设置密码并登录后台；连续失败会触发临时锁定 | `/admin`；暂停账户不能登录 |
+| MEM-01 | 登录和密码设置 | 使用 24 小时有效的最新邀请/重置邮件设置密码并登录后台；失效链接在填写密码前提供重新申请入口；连续失败会触发临时锁定 | `/admin`、`/admin/reset/:token`；重发会使旧链接失效，暂停账户不能登录 |
 | MEM-02 | My work | 登录后查看自己的最近文章、语言、个人公开状态、站方选择状态和下一动作 | `/admin`；只显示本人文章，支持进入全部个人文章 |
 | MEM-03 | 新建文章 | 从 My work 进入 Payload 原生 Article 新建页，选择 English 或 Español 后开始写作 | My work 的 New article；作者、owner 和稳定身份由服务端建立 |
 | MEM-04 | 文章写作 | 编辑标题、摘要、富文本正文和封面；封面可在文章内上传、预览、替换或移除 | Article 的 Writing 模式 |
@@ -92,8 +92,8 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 
 | 编号 | 当前功能 | 人能做到的事情 | 主要入口与边界 |
 |---|---|---|---|
-| ADM-01 | 成员邀请 | 用姓名、邮箱和 Member/Editor 角色邀请账户，并发送密码设置邮件 | Members 的唯一开户入口；同一邮箱和 Person 关系保持唯一 |
-| ADM-02 | 重发邀请 | 对尚需激活的账户重新发送密码设置邮件 | Members |
+| ADM-01 | 成员邀请 | 用姓名、邮箱和 Member/Editor 角色邀请账户，并发送 24 小时有效的密码设置邮件 | Members 的唯一开户入口；同一邮箱和 Person 关系保持唯一，只有最新链接有效 |
+| ADM-02 | 重发邀请 | 对尚需激活的账户重新发送密码设置邮件，并明确旧链接随即失效 | Members；邮件和后台成功状态均说明 24 小时与最新链接规则 |
 | ADM-03 | 角色管理 | 在 Member、Editor、Super Admin 之间调整后台权限 | Members；普通用户不能修改自己的角色 |
 | ADM-04 | 暂停与恢复 | 暂停账户登录或恢复访问，不删除 Person、文章、版本和审计记录 | Members |
 | ADM-05 | Person 管理 | 创建、编辑、预览、公开或转私有任意 Person，设置 Spotlight 排除/临时置顶，并保护已有文章的人物不被误删 | People；全站同时至多一人临时置顶 |

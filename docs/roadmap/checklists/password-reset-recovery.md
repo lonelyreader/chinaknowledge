@@ -70,8 +70,8 @@ approval_gates: product-code, auth-change, commit, push, merge, production-deplo
 ## Work
 
 - [x] 用户批准正式修复；产品代码、提交、合并与 Production 部署进入本批。
-- [ ] 建立 checklist commit。
-- [ ] 实现 24 小时、最新链接提示与过期恢复页。
-- [ ] 完成自动验证和独立复审。
+- [x] checklist 基线已提交为 `cc8a64c`。
+- [x] 已实现 24 小时、最新链接提示与过期恢复页。
+- [x] 自动验证通过；首轮复审 finding 已修复，复审结论为 `PASS`。
 - [ ] 推送、合并、部署并完成匿名 Production 回读。
 - [ ] 写回、归档并关闭 LON-93。
