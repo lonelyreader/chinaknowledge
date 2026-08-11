@@ -26,10 +26,10 @@ max_lines: 80
 | `BRAND-WORDMARK-001` | 定稿轮廓字标已接入公共 Header 与 Footer，SVG、构建、桌面和移动视觉验证通过 | [`brand-wordmark-site-integration.md`](brand-wordmark-site-integration.md) |
 | `AGENT-WORKSPACE-001` | 远程 OAuth/MCP、Member read/draft/preview、Local/Preview migration、Cursor 真实工具链、越权与撤权负例和独立复审均通过 | [`agent-workspace-member-foundation.md`](agent-workspace-member-foundation.md) |
 | `AGENT-WORKSPACE-002` | Member publication 的 Local/Preview 发布、撤回、清理与复审通过 | [`agent-workspace-member-publication.md`](agent-workspace-member-publication.md) |
-| `AGENT-WORKSPACE-003` | Editor 单篇跨作者 Article exact read、确认后 Add/Remove、权限负例、匿名读回、Local 清理和最终独立复审均通过；Preview 未执行 | [`agent-workspace-editor-site-curation.md`](agent-workspace-editor-site-curation.md) |
-| `AGENT-WORKSPACE-004` | Super Admin-only 最近 20 条 workflow activity 最小读取、权限/隐私负例、领域不变、Agent audit、Local 清理和独立复审均通过；Preview 未执行 | [`agent-workspace-super-admin-activity-read.md`](agent-workspace-super-admin-activity-read.md) |
+| `AGENT-WORKSPACE-003` | Editor 单篇跨作者策展 exact read/Add/Remove、权限负例与独立复审通过；Preview 未执行 | [`agent-workspace-editor-site-curation.md`](agent-workspace-editor-site-curation.md) |
+| `AGENT-WORKSPACE-004` | Super Admin-only 最近 20 条 activity 最小读取、权限/隐私负例与独立复审通过；Preview 未执行 | [`agent-workspace-super-admin-activity-read.md`](agent-workspace-super-admin-activity-read.md) |
 | `AGENT-WORKSPACE-005` | WorkBuddy/Cursor 兼容与 Production 发布通过 | [`agent-workspace-compatibility-release.md`](agent-workspace-compatibility-release.md) |
-| `AGENT-WORKSPACE-006` | Codex CLI Production Member 只读兼容、权限隔离、撤销失败关闭、精确 cleanup 和独立复审均通过 | [`agent-workspace-codex-member-compatibility.md`](agent-workspace-codex-member-compatibility.md) |
+| `AGENT-WORKSPACE-006` | Codex CLI Member 只读兼容、权限隔离与独立复审通过 | [`agent-workspace-codex-member-compatibility.md`](agent-workspace-codex-member-compatibility.md) |
 | `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
 | `REPO-CONSOLIDATION-001` | 54 个用户路径已保全，001–006 历史与 Git refs/worktrees 已收敛到唯一 clean `main` | [`repository-main-consolidation.md`](repository-main-consolidation.md) |
 | `MEDIA-UPLOAD-001` | 同名 Media 使用唯一且不可覆盖的 Blob pathname，原图与 `card` 已在 Production 创建、读回并精确清理 | [`media-upload-filename-collision.md`](media-upload-filename-collision.md) |
@@ -37,6 +37,7 @@ max_lines: 80
 | `FAVICON-PROD-001` | 定稿 favicon 已上线并完成哈希回读 | [`favicon-production-release.md`](favicon-production-release.md) |
 | `AUTH-RESET-001` | 24 小时重置链接、最新邮件规则与失效恢复页已上线 | [`password-reset-recovery.md`](password-reset-recovery.md) |
 | `CI-DOC-LINKS-001` | 旧字标证据的本机绝对图片路径已改为仓库相对链接，GitHub runner 可解析 | [`ci-portable-evidence-links.md`](ci-portable-evidence-links.md) |
+| `INFRA-MEASURE-001` | Vercel Web Analytics 与 GSC 验证 + sitemap 提交已上线，隐私文案同步；Bing 暂缓 | [`site-measurement-foundation.md`](site-measurement-foundation.md) |
 
 规则：
 

@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-11
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:a4678f66ca087bc146c889d15019223416b47a4ce78839b2853820af1f04d105
+implementation_fingerprint: sha256:d1c8170a7afebfe0b05e54fc1f5a15908e22c9e4750471215098d2af71379b87
 ---
 
 # App 功能登记册
@@ -123,6 +123,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-12 | 自动质量门禁 | PR 自动运行治理、功能登记同步、环境、migration、编辑权限、Newsletter、lint、typecheck、依赖审计、build 和公共路由 smoke | GitHub Preview checks |
 | OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、发布、策展和最小审计工具，并随时撤销连接 | Production `/api/agent/*`；WorkBuddy、Cursor 与 Codex 已完成真实客户端兼容验收，Claude、Gemini 目前只提供配置 adapter；不支持 TRAE 或静态 API key。公共动作继续要求服务器确认、revision、幂等、审计与 readback |
 | OPS-14 | 冷启动批次 | 为空环境补齐六个核心 Purpose，从受控 JSONL 幂等写入通过 `DetailedGuideV1` 门槛的中文母稿，按内容 hash 写入人工批准，再建立英西翻译并检查结构、数字、链接与来源一致性 | `cms:provision-core-taxonomies`、`cms:import-cold-start`、`cms:rebind-cold-start-release`、`cms:apply-cold-start-review`、`cms:build-cold-start-translations` 与 `cms:import-cold-start-translations`；跨环境只在已批准 hash 与译文源一致且中文标题、摘要、正文逐项相同后重绑目标 ID/hash。导入不自动公开；Super Admin 可用 MCP `editorial_release_site_article_batch` 对明确批准的 1–20 条站方 Article 逐篇执行发布、精选、幂等与读回 |
+| OPS-15 | 站点测量 | 以无 cookie 的匿名聚合统计查看站点流量，并经搜索引擎工具监测索引与 sitemap 状态 | Vercel Web Analytics（前台 layout `<Analytics />`，隐私政策如实披露）；GSC 域名资源经 Vercel DNS TXT 验证并已提交 sitemap；Bing 暂缓 |
 
 ## 当前明确不提供
 

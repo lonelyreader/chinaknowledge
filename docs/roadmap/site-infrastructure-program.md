@@ -59,7 +59,7 @@ flowchart LR
 
 | ID | 批次 | 状态 | 目标 | 阻塞于 |
 |---|---|---|---|---|
-| `INFRA-MEASURE-001` | 1 | active | Web Analytics、GSC/Bing、隐私文案核对 | 无 |
+| `INFRA-MEASURE-001` | 1 | done | Web Analytics 与 GSC 已上线，[已归档](../archive/site-measurement-foundation.md)；Bing 注册 deferred（2026-08-12 用户决定） | 无 |
 | `INFRA-TOKENS-001` | 1 | active | 设计 token 化与样式架构重构，视觉零变化 | 无 |
 | `INFRA-BODY-MEDIA-001` | 1 | active | 正文图片与白名单 embed 能力 | 无 |
 | `DESIGN-DIRECTION-001` | 1 | active | DESIGN.md 桥梁化方向修订与 ADR | 无 |
@@ -73,8 +73,8 @@ flowchart LR
 | `INFRA-PROJECTS-001` | 3 | queued | Member Projects 一等对象与展示入口 | PERSON-PAGE |
 | `INFRA-AGENT-PROFILE-001` | 3 | queued | MCP `my_profile_*` 与外链维护工具 | PERSON-PAGE |
 | `INFRA-SEARCH-001` | 3 | queued | 站内搜索（Postgres 全文检索 + 搜索页） | TOKENS |
-| `INFRA-OUTBOUND-001` | 3 | queued | 作者外链、Discord、项目外链出站点击计量 | MEASURE |
-| `OPS-SOCIAL-PIPELINE-001` | 外部 | queued | codex-ops 侧社交素材流水线，不进本仓库 | MEASURE（UTM 约定） |
+| `INFRA-OUTBOUND-001` | 3 | queued | 作者外链、Discord、项目外链出站点击计量 | 无（MEASURE 已完成） |
+| `OPS-SOCIAL-PIPELINE-001` | 外部 | queued | codex-ops 侧社交素材流水线，不进本仓库 | 无（UTM 约定已就绪） |
 
 `queued` 只保留目标与进入条件，不构成实现授权。子级开始时必须按本页 mini-spec 建立 active checklist 并在 router 登记。
 

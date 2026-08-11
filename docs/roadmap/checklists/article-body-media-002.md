@@ -70,4 +70,5 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 - [x] 用户批准建立本 checklist 并冻结合同（2026-08-11，"全都批准" 批次授权，scope/no-go/invariants 冻结）。
 - [x] allowed_paths 补 `docs/product-feature-registry.md`（指纹重算为 governance 强制项，沿 001 先例，同批次授权覆盖）。
 - [x] 独立复审 PASS（2026-08-11，非实现者；权限负例/预览收敛/发布链路/F4 一致性/invariants/no-go/allowed_paths 七项全过；4 个不阻断 finding 已路由父级）。
-- [ ] Preview 验收与 Production 部署分别批准。
+- [x] push 与 Production 部署获批准（2026-08-12，"批准push/部署 002"）。
+- [ ] Preview/生产验收（成员正文图片发布 → 匿名读回）待执行后归档。

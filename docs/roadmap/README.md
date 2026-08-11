@@ -14,11 +14,10 @@ max_lines: 100
 
 ## Active：Site Infrastructure Program
 
-网站基础设施升级由 [`Site Infrastructure Parent Checklist`](site-infrastructure-program.md) 统一控制批次、并行线与阻塞关系。当前 Batch 1 四项并行 active：
+网站基础设施升级由 [`Site Infrastructure Parent Checklist`](site-infrastructure-program.md) 统一控制批次、并行线与阻塞关系。`INFRA-MEASURE-001` 已完成并[归档](../archive/site-measurement-foundation.md)（Bing 部分 deferred）。当前 active：
 
 | 工作项 | 交付目标 |
 |---|---|
-| [`INFRA-MEASURE-001`](checklists/site-measurement-foundation.md) | Web Analytics、GSC/Bing 与隐私文案核对 |
 | [`INFRA-TOKENS-001`](checklists/design-token-architecture.md) | Design token 化与样式架构重构，视觉零变化 |
 | [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文图片与白名单 embed 能力 |
 | [`DESIGN-DIRECTION-001`](checklists/design-direction-revision.md) | DESIGN.md 桥梁化方向修订与 ADR |

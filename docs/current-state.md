@@ -30,7 +30,7 @@ max_lines: 160
 - Media 客户端直传会在写入 Vercel Blob 前为新文件生成唯一、不可覆盖的 pathname；Payload 记录、原图与 `card` 缩略图保持同一唯一 basename。同一浏览器文件名连续上传已在 Production 创建、读回并精确清理，权限与既有媒体未改变。
 - 虚构验收流程、权限负例、匿名字段隔离、公开撤回/恢复、桌面与移动端后台和公共 Guide 已通过实现者验证与代理独立复审。复审补齐公开前八项摘要、44px 移动操作按钮和公共 Guide 窄屏无溢出；证据见 [`P1-EDITORIAL-001`](reference/implementation/p1-editorial-cms-foundation-2026-07-27.md)。
 - 公共产品切片的 lint、typecheck、build、实现者浏览器验收和产品负责人复审均已通过；实现基线提交为 `6e075ea`。
-- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 71 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；227 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
+- Governance V1 已建立并提交为仓库基线（`d1bd435`）。当前 72 项已实现能力按访客、Member、Editor、Super Admin 与运营维护登记在 [`App 功能登记册`](product-feature-registry.md)；255 个当前功能实现与事实文件受内容指纹门禁约束，变更后未同步登记册会使治理检查失败。
 - Preview 已执行 13 条 CMS migration，形成 39 张 `public` 表；005 临时开放均已恢复原 SSO 并回到 Gateway 默认关闭。重试用虚构 User/Person/Media/Article、DCR client、connection、workflow 与 Agent event 已精确删除；当前 User/Person/Media/Article/workflow event 为 `36/32/6/32/150`，OAuth client/connection/Agent event 为 `0/0/0`。Production 已完成前后 backup/restore、既有 `20260730_181300`、Gateway-off staged release 和公开启用；当前为 13 条 migration、39 张表，Gateway 公开开启。WorkBuddy、Cursor 与 Codex 已完成真实客户端兼容验收；Codex 用现有 Member 完成三项只读调用、隐藏高角色工具、撤销失败关闭与精确 cleanup。User/Person/Media/Article/workflow 仍为 `2/2/2/3/10`，Agent client/connection/event 为 `0/0/0`，真实内容、账号和角色未改写。
 - 旧 `inbox/` / `dataset/` 架构已经退出当前方案。
 
@@ -55,7 +55,8 @@ max_lines: 160
 - `PUB-CURATION-001` 使用独立临时 PostgreSQL 完成 12 条 migration apply、clean rollback/reapply、populated fail-closed 和虚构权限/状态矩阵；最终集中运行 typecheck、lint、build、editorial、migration recovery 与 diff check，全部 PASS。
 - Production Neon 当前为 45 张表、14 条 migration。Person `gexu` 已公开，地点为杭州和墨西哥 Mérida，身份为 Educator and entrepreneur；西语身份、地点和简介分别为 Educador y emprendedor、Hangzhou y Mérida, México、Coherentista；外链为 `https://lonelyreader.com`。既有英西 Article 保持原 ID、slug、translation group、owner、author、正文和媒体；冷启动新增 120 条站方 Article，固定机构署名并由 MCP 公开。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容；Production 没有复制这些数据。
-- 正式 Vercel Production deployment `dpl_6jgR7oVx5zu5KGZMN6DpQSxhckoc` 为 `READY / target: production`，已绑定 `chinainfact.com`；该构建保留冷启动 sitemap 与定稿 favicon，并上线密码重置恢复。上一稳定 deployment `dpl_7VSEy3qNbymrRtx4ZTvZyh8xSLYm` 保留为代码回滚目标。
+- 正式 Vercel Production deployment `dpl_HLKSMNtWV7HfSvvckXTeWpQ8KnA4`（commit `6b6a143`，Site Infrastructure Batch 1：token 化样式、正文媒体、Web Analytics、隐私文案）为 `READY / target: production`，已绑定 `chinainfact.com`。上一稳定 deployment `dpl_6jgR7oVx5zu5KGZMN6DpQSxhckoc` 保留为代码回滚目标。仓库整合曾使 Vercel project 丢失 GitHub 连接与 Root Directory；2026-08-11 已重连 `lonelyreader/chinaknowledge` 并恢复 `rootDirectory=apps/web`，push `main` 恢复自动部署。
+- 站点测量已接入：Vercel Web Analytics 已启用（无 cookie 匿名统计），前台 layout 挂 `<Analytics />`，EN/ES 隐私文案如实披露；GSC 域名资源 `sc-domain:chinainfact.com` 经 Vercel DNS TXT 自动验证，`sitemap.xml` 提交成功（2026-08-12）；Bing Webmaster 按产品负责人决定暂缓。UTM 与事件命名约定见 [`utm-and-event-naming.md`](reference/utm-and-event-naming.md)。
 - 最终恢复 run [`30395828366`](https://github.com/lonelyreader/chinaknowledge/actions/runs/30395828366) 在提交 `31f38c9` 上完成数据库与媒体导出、Cloudflare R2 不可变上传、SHA 读回和隔离恢复，断言 33 张表、12 条 ledger migration、12 个 migration 文件和 8 条 workflow event。
 - 2026-07-28 公共产品彻查后的修复已提交为 `4125230`；人物规模复审进一步形成 `31a7988 / 5964da7 / 3be99c6`，补齐 25 人分页、筛选、相邻周互斥轮换和跨年连续周边界。Production staged deployment 首轮 accessibility 发现空首页无 `h1` 与次级文字 4.39:1 对比度，提交 `d95e2b1` 修复后复验为唯一 `h1`、可见文字零 contrast failure、逻辑 tab order、3px focus-visible、桌面/移动无溢出或应用错误；Production 邮件适配器告警与 5xx 均为零。最终独立复审 `PASS`，P0/P1/P2 均为 0。证据见 [`Production Public Product Audit`](reference/implementation/production-public-product-audit-2026-07-28.md)。
 
