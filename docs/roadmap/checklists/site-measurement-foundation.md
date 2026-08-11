@@ -9,7 +9,7 @@ max_lines: 120
 change_id: INFRA-MEASURE-001
 risk_tier: base
 validation_profile: work_item
-allowed_paths: apps/web/src/app/(frontend)/layout.tsx, apps/web/src/app/(frontend)/[locale]/privacy/**, apps/web/package.json, apps/web/package-lock.json, docs/roadmap/**, docs/reference/**, docs/product-feature-registry.md, docs/current-state.md
+allowed_paths: apps/web/src/app/(frontend)/[locale]/layout.tsx, apps/web/src/app/(frontend)/[locale]/privacy/**, apps/web/package.json, apps/web/package-lock.json, docs/roadmap/**, docs/reference/**, docs/product-feature-registry.md, docs/current-state.md
 approval_gates: third-party-service-enable, legal-copy, dns, production-deploy, commit, merge, push
 ---
 
@@ -53,6 +53,7 @@ approval_gates: third-party-service-enable, legal-copy, dns, production-deploy, 
 ## Current gate
 
 - [x] 用户批准建立本 checklist（2026-08-11，接手规划批次）。
+- [x] 代码与文档部分完成：前台 layout 接入 `@vercel/analytics`，UTM 与事件命名约定写入 [`docs/reference/utm-and-event-naming.md`](../../reference/utm-and-event-naming.md)（2026-08-11，未提交）。
 - [ ] 产品负责人执行或授权 Vercel dashboard 启用与 GSC/Bing 注册。
 - [ ] 隐私文案修订获 legal-copy 批准。
 - [ ] Production 部署获单独批准。

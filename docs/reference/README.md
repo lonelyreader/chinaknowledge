@@ -20,6 +20,8 @@ max_lines: 80
 | 共享研究素材层提案审查 | `revise`；只建议先做 summary-only 运营验证 | [`shared-research-layer-proposal-review-2026-08-02.md`](shared-research-layer-proposal-review-2026-08-02.md) |
 | Media 同名上传修复 | Production 创建、读回、精确清理与独立复审通过 | [`implementation/media-upload-filename-collision-2026-08-10.md`](implementation/media-upload-filename-collision-2026-08-10.md) |
 | 密码重置恢复 | 24 小时有效期、最新链接规则、失效恢复页与 Production 匿名回读通过 | [`implementation/password-reset-recovery-2026-08-11.md`](implementation/password-reset-recovery-2026-08-11.md) |
+| UTM 与自定义事件命名约定 | active；供 INFRA-OUTBOUND-001 与社交流水线复用 | [`utm-and-event-naming.md`](utm-and-event-naming.md) |
+| 前台样式架构与 design token | active；token 命名、扩展规则与对照审计（INFRA-TOKENS-001） | [`style-architecture.md`](style-architecture.md) |
 
 规则：
 

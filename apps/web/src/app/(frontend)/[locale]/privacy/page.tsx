@@ -10,7 +10,7 @@ const privacy = {
     profilesBody: "Author information is published after editorial review and author approval.",
     title: "Privacy",
     tracking: "Tracking",
-    trackingBody: "Advertising and email open or click tracking are not enabled at launch.",
+    trackingBody: "We use Vercel Web Analytics to measure aggregate site traffic. It sets no cookies and does not identify individual visitors or track them across sites. Advertising and email open or click tracking are not enabled.",
   },
   es: {
     contact: "Contacto",
@@ -21,7 +21,7 @@ const privacy = {
     profilesBody: "La información de cada autor se publica tras la revisión editorial y su aprobación.",
     title: "Privacidad",
     tracking: "Seguimiento",
-    trackingBody: "En el lanzamiento no se habilitan publicidad ni seguimiento de aperturas o clics del correo.",
+    trackingBody: "Usamos Vercel Web Analytics para medir el tráfico agregado del sitio. No usa cookies y no identifica a visitantes individuales ni los rastrea entre sitios. No se habilitan publicidad ni seguimiento de aperturas o clics del correo.",
   },
 } as const;
 

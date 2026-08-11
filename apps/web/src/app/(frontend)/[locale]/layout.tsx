@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 import { Geist_Mono, Instrument_Serif } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
@@ -57,6 +58,7 @@ export default async function LocaleLayout({ children, params }: Readonly<{ chil
             <p className="meta">© 2026</p>
           </div>
         </footer>
+        <Analytics />
       </body>
     </html>
   );
