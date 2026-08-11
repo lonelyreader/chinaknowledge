@@ -9,7 +9,7 @@ max_lines: 160
 change_id: INFRA-BODY-MEDIA-002
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: apps/web/src/collections/Articles.ts, apps/web/src/cms/rich-text-media.ts, apps/web/src/cms/article-publication.ts, apps/web/src/content/cms.ts, apps/web/src/components/CMSRichText.tsx, docs/roadmap/**, docs/reference/**, docs/current-state.md
+allowed_paths: apps/web/src/collections/Articles.ts, apps/web/src/cms/rich-text-media.ts, apps/web/src/cms/article-publication.ts, apps/web/src/content/cms.ts, apps/web/src/components/CMSRichText.tsx, docs/roadmap/**, docs/reference/**, docs/current-state.md, docs/product-feature-registry.md
 approval_gates: schema, migration, preview, production-deploy, commit, merge, push
 ---
 
@@ -68,5 +68,6 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 ## Current gate
 
 - [x] 用户批准建立本 checklist 并冻结合同（2026-08-11，"全都批准" 批次授权，scope/no-go/invariants 冻结）。
-- [ ] 独立复审 PASS。
+- [x] allowed_paths 补 `docs/product-feature-registry.md`（指纹重算为 governance 强制项，沿 001 先例，同批次授权覆盖）。
+- [x] 独立复审 PASS（2026-08-11，非实现者；权限负例/预览收敛/发布链路/F4 一致性/invariants/no-go/allowed_paths 七项全过；4 个不阻断 finding 已路由父级）。
 - [ ] Preview 验收与 Production 部署分别批准。

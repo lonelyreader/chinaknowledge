@@ -16,6 +16,8 @@ import {
   recordWorkflowEvent,
 } from "@/cms/article-hooks";
 import { createArticleTranslationEndpoint, notifyArticleAuthorEndpoint, transitionArticleEndpoint } from "@/cms/article-endpoints";
+import { assertMediaAllowedForMemberPublication } from "@/cms/media-policy";
+import { collectRichTextUploadMediaIDs } from "@/cms/rich-text-media";
 import { hasEditorialRole, isCMSUser } from "@/cms/roles";
 
 /*
@@ -69,7 +71,13 @@ export function assertAllowedRichTextEmbeds(value: unknown, fieldLabel: string) 
   const stack: RichTextEmbedNode[] = [root];
   while (stack.length) {
     const node = stack.pop()!;
-    if (node.type === "block" || node.type === "inlineBlock") {
+    // INFRA-BODY-MEDIA-002 (F4): no inline blocks are configured in the
+    // editor and the public renderer never renders them, so reject them
+    // at write time instead of storing unrenderable content.
+    if (node.type === "inlineBlock") {
+      throw new APIError(`Inline embeds are not allowed in ${fieldLabel}.`, 400);
+    }
+    if (node.type === "block") {
       const blockType = node.fields?.blockType;
       if (blockType !== "youtubeEmbed") {
         throw new APIError(
@@ -88,8 +96,15 @@ export function assertAllowedRichTextEmbeds(value: unknown, fieldLabel: string) 
   }
 }
 
-const validateBodyEmbeds: CollectionBeforeValidateHook = ({ data }) => {
-  if (data && data.body !== undefined) assertAllowedRichTextEmbeds(data.body, "body");
+const validateBodyEmbeds: CollectionBeforeValidateHook = async ({ data, req }) => {
+  if (data && data.body !== undefined) {
+    assertAllowedRichTextEmbeds(data.body, "body");
+    // INFRA-BODY-MEDIA-002 (F1): body images must belong to the writing
+    // member or be approved for public use; editorial roles pass through.
+    for (const mediaID of collectRichTextUploadMediaIDs(data.body)) {
+      await assertMediaAllowedForMemberPublication(mediaID, req, "Body image");
+    }
+  }
   return data;
 };
 

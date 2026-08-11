@@ -104,6 +104,7 @@ flowchart LR
 
 - 目标：F1——beforeValidate hook 补 upload 节点媒体归属校验（仿 `assertMediaAllowedForMemberPublication`），并收敛 `getDraftPreviewCMSArticle` 的 `overrideAccess: true` 对 body media 的越权 populate（属既有模式缺口，非 001 回归）；F2——发布管道对 body 内作者图片补 `markMediaForMemberPublication`，否则公开页正文图片被安全忽略（fail-safe 但不满足 001 验收第 1 条，宜在 Preview 验收前完成）；F4——inlineBlock 写读不一致收敛与 `ignoreNode` 日志降噪。
 - 关键路径：`apps/web/src/collections/Articles.ts`、`EditorialMasters.ts`、`content/cms.ts`、`article-publication.ts`。
+- 002 复审 finding（不阻断，后续批次登记依据）：A——正文悬空 media ID 使 guard 抛 NotFound 打断保存，宜转明确报错或跳过；B——预览裸 catch 吞非权限错误，宜只吞权限类或补 debug 日志；C——存量 `inlineBlock(youtubeEmbed)` 理论上今后保存即 400，Preview 验收遇到手工清理；D——autosave 逐个点查 media 可合并为一次 `in` 查询。
 
 ### INFRA-AGENT-MEDIA-001（upgraded：Agent 合同与媒体写路径）
 

@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-11
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:04478266a57f6a80cff7a353ad9fefc2f9389d66ff3b74bda29bb7e9bbdd3e24
+implementation_fingerprint: sha256:a4678f66ca087bc146c889d15019223416b47a4ce78839b2853820af1f04d105
 ---
 
 # App 功能登记册
@@ -49,7 +49,7 @@ Member 是有后台账户并关联 Person 的内容作者。文章公开由本�
 | MEM-01 | 登录和密码设置 | 使用 24 小时有效的最新邀请/重置邮件设置密码并登录后台；失效链接在填写密码前提供重新申请入口；连续失败会触发临时锁定 | `/admin`、`/admin/reset/:token`；重发会使旧链接失效，暂停账户不能登录 |
 | MEM-02 | My work | 登录后查看自己的最近文章、语言、个人公开状态、站方选择状态和下一动作 | `/admin`；只显示本人文章，支持进入全部个人文章 |
 | MEM-03 | 新建文章 | 从 My work 进入 Payload 原生 Article 新建页，选择 English 或 Español 后开始写作 | My work 的 New article；作者、owner 和稳定身份由服务端建立 |
-| MEM-04 | 文章写作 | 编辑标题、摘要、富文本正文和封面；封面可在文章内上传、预览、替换或移除；正文可插入本人上传的图片（含说明文字）和 YouTube 视频嵌入 | Article 的 Writing 模式；正文图片仅限 media 库，视频嵌入仅接受 YouTube 链接且由服务端校验，非白名单地址被拒绝 |
+| MEM-04 | 文章写作 | 编辑标题、摘要、富文本正文和封面；封面可在文章内上传、预览、替换或移除；正文可插入本人上传的图片（含说明文字）和 YouTube 视频嵌入 | Article 的 Writing 模式；正文图片仅限 media 库且服务端校验归属（他人未公开图片被拒绝），视频嵌入仅接受 YouTube 链接且由服务端校验，非白名单地址被拒绝；发布时正文图片随文公开 |
 | MEM-05 | 保存状态与失败恢复 | 使用 Payload 原生 Saving、Last saved 和错误反馈；Article 自动保存，失败后保留本地内容并在后续周期重试 | Article/Person 编辑页；重试期间继续输入不会被旧版本覆盖 |
 | MEM-06 | 并发与离页保护 | 看到其他编辑者的锁定状态；未保存时阻止误离开；避免静默覆盖 | Article 与 Person 编辑页，锁定时长 5 分钟 |
 | MEM-07 | 版本历史 | 查看和恢复 Article、Person 的历史版本；自动保存版本状态与界面同步 | 后台版本入口；每个文档最多保留 50 个版本 |

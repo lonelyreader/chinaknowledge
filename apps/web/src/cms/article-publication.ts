@@ -7,6 +7,7 @@ import {
   markMediaForMemberPublication,
   type MediaRelation,
 } from "./media-policy";
+import { collectRichTextUploadMediaIDs } from "./rich-text-media";
 import { hasEditorialRole, isCMSUser } from "./roles";
 import {
   assertPublicationTransition,
@@ -180,6 +181,16 @@ export async function assertMemberPublicationComplete(
       await markMediaForMemberPublication(article.coverImage, req, "Cover image");
     } else {
       await assertMediaAllowedForMemberPublication(article.coverImage, req, "Cover image");
+    }
+  }
+  // INFRA-BODY-MEDIA-002 (F2): body images go through the same
+  // assert/mark pipeline as the cover so they become publicly
+  // readable when the article is published.
+  for (const mediaID of collectRichTextUploadMediaIDs(article.body)) {
+    if (options.markMedia) {
+      await markMediaForMemberPublication(mediaID, req, "Body image");
+    } else {
+      await assertMediaAllowedForMemberPublication(mediaID, req, "Body image");
     }
   }
 }

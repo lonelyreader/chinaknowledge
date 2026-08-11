@@ -217,35 +217,44 @@ export async function getDraftPreviewCMSArticle(
   const payload = await getPayload({ config });
   const { user } = await payload.auth({ headers: requestHeaders });
   if (!isCMSUser(user)) return null;
-  const current = await payload.findByID({
-    collection: "articles",
-    depth: 2,
-    id,
-    overrideAccess: true,
-  });
-  const ownerID = typeof current.owner === "object" ? current.owner.id : current.owner;
-  if (ownerID !== user.id && !hasEditorialRole(user)) return null;
-  const versions = await payload.findVersions({
-    collection: "articles",
-    depth: 2,
-    limit: 1,
-    overrideAccess: true,
-    pagination: false,
-    sort: "-updatedAt",
-    where: {
-      and: [
-        { parent: { equals: id } },
-        { latest: { equals: true } },
-        { autosave: { equals: true } },
-      ],
-    },
-  });
-  const draft = versions.docs[0]?.version ?? current;
-  if (draft.locale !== locale) return null;
-  return toPublishedArticle({
-    ...draft,
-    publishedAt: draft.publishedAt ?? draft.updatedAt,
-  });
+  // INFRA-BODY-MEDIA-002 (F1): read as the authenticated user instead of
+  // overrideAccess so populated relations (body media included) go through
+  // normal access control; access failures degrade to "no preview".
+  try {
+    const current = await payload.findByID({
+      collection: "articles",
+      depth: 2,
+      id,
+      overrideAccess: false,
+      user,
+    });
+    const ownerID = typeof current.owner === "object" ? current.owner.id : current.owner;
+    if (ownerID !== user.id && !hasEditorialRole(user)) return null;
+    const versions = await payload.findVersions({
+      collection: "articles",
+      depth: 2,
+      limit: 1,
+      overrideAccess: false,
+      pagination: false,
+      sort: "-updatedAt",
+      user,
+      where: {
+        and: [
+          { parent: { equals: id } },
+          { latest: { equals: true } },
+          { autosave: { equals: true } },
+        ],
+      },
+    });
+    const draft = versions.docs[0]?.version ?? current;
+    if (draft.locale !== locale) return null;
+    return toPublishedArticle({
+      ...draft,
+      publishedAt: draft.publishedAt ?? draft.updatedAt,
+    });
+  } catch {
+    return null;
+  }
 }
 
 const findMemberPublishedArticles = cache(async (locale: Locale) => {

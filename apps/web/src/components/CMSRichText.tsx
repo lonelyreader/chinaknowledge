@@ -34,8 +34,16 @@ function safeHref(value: string | undefined) {
   return /^(https?:|mailto:|\/)/.test(value) ? value : null;
 }
 
+// INFRA-BODY-MEDIA-002 (F4): warn once per distinct reason per server
+// process instead of on every render; capped so stored junk node types
+// cannot grow the set without bound.
+const warnedIgnoreReasons = new Set<string>();
+
 function ignoreNode(reason: string) {
-  console.warn(`[CMSRichText] Ignored ${reason}`);
+  if (!warnedIgnoreReasons.has(reason) && warnedIgnoreReasons.size < 100) {
+    warnedIgnoreReasons.add(reason);
+    console.warn(`[CMSRichText] Ignored ${reason}`);
+  }
   return null;
 }
 

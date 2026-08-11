@@ -44,3 +44,17 @@ max_lines: 120
 - 已执行：tsc、eslint、`next build`、`npm run governance:check`、`git diff --check`；`extractYouTubeVideoID` 12 组正/负 URL 用例与 `assertAllowedRichTextEmbeds` 5 组 guard 用例（evil 域、任意 blockType、inlineBlock、script 文本）全部按预期通过/拒绝；本地 dev server（3012）公开首页 200 冒烟。
 - 未执行：浏览器主流程（编辑器插图/插视频/预览）与移动端视口验证——本地库无已公开文章且无后台凭据，留待 Preview 验收；独立复审待做。
 - 生成产物：`payload-types.ts` 与 `importMap.js` 不在冻结合同 allowed_paths 内，本批 diff 保持 HEAD 原状；合并（另行批准）时必须运行 `npm run cms:types && npm run cms:importmap` 再生成（新增 `YouTubeEmbedBlock` 接口与 Blocks/Upload feature client 条目），否则 admin 编辑器新能力不可用。
+
+## INFRA-BODY-MEDIA-002 补充（2026-08-11，F1/F2/F4）
+
+| Finding | 落点 | 行为 |
+|---|---|---|
+| F1 写 | `collections/Articles.ts` `validateBodyEmbeds`（beforeValidate）+ `cms/rich-text-media.ts` 收集器 | 正文每个 upload media 过 `assertMediaAllowedForMemberPublication`：成员引用他人未公开 media → 403；编辑角色豁免；覆盖 autosave 与 API 直写 |
+| F1 读 | `content/cms.ts` `getDraftPreviewCMSArticle` | `findByID`/`findVersions` 改 `overrideAccess: false` + 认证 user；media populate 回归 `readApprovedMediaOrOwn`，访问被拒 catch 后返回 null（无预览，不 500） |
+| F2 | `cms/article-publication.ts` `assertMemberPublicationComplete` | 正文 upload media 与封面同管道：prepare 阶段 assert、confirm 阶段 `markMediaForMemberPublication`（label "Body image"），发布后 `memberUsePublishedAt` 使匿名读者可读正文图片 |
+| F4 写 | `collections/Articles.ts` `assertAllowedRichTextEmbeds` | 一切 `inlineBlock` 写入 400（编辑器未配置、渲染器不支持，消除写读不一致） |
+| F4 读 | `components/CMSRichText.tsx` `ignoreNode` | 按 reason 去重告警（每进程一次，Set 上限 100 防存量垃圾节点撑爆） |
+
+- 验证：tsc、eslint（改动文件 0 warning）、`next build` 通过；节点级用例 9 组全过——收集器 3 组（嵌套/去重/非 media/悬空）、负例 4 组（inlineBlock×2、任意 blockType、evil 域）、正例 2 组（合法 youtubeEmbed block、纯文本 script）。
+- 未执行：登录态浏览器主流程（本人图片发布 → 匿名读回、他人媒体 API 负例的真库验证）留待 Preview 验收。
+- 独立复审：PASS（2026-08-11，非实现者复跑 tsc 与 `git diff --check`；access 链路逐条对照 `access.ts` 验证；4 个不阻断 finding A/B/C/D 登记于父级 program）。
