@@ -4,12 +4,12 @@ doc_type: checklist
 authority: execution
 status: active
 scope: site-measurement-foundation
-last_verified: 2026-08-11
+last_verified: 2026-08-12
 max_lines: 120
 change_id: INFRA-MEASURE-001
 risk_tier: base
 validation_profile: work_item
-allowed_paths: apps/web/src/app/(frontend)/[locale]/layout.tsx, apps/web/src/app/(frontend)/[locale]/privacy/**, apps/web/package.json, apps/web/package-lock.json, docs/roadmap/**, docs/reference/**, docs/product-feature-registry.md, docs/current-state.md
+allowed_paths: apps/web/src/app/(frontend)/[locale]/layout.tsx, apps/web/src/app/(frontend)/[locale]/privacy/**, apps/web/package.json, apps/web/package-lock.json, docs/roadmap/**, docs/reference/**, docs/product-feature-registry.md, docs/current-state.md, docs/archive/README.md, docs/archive/site-measurement-foundation.md
 approval_gates: third-party-service-enable, legal-copy, dns, production-deploy, commit, merge, push
 ---
 
@@ -35,10 +35,10 @@ approval_gates: third-party-service-enable, legal-copy, dns, production-deploy, 
 
 ## Acceptance
 
-- [ ] Production 页面访问出现在 Vercel Web Analytics，count 查询返回非零。
-- [ ] GSC 与 Bing 验证通过，sitemap 已提交，索引覆盖基线数字记录在案。
-- [ ] EN/ES 隐私文案与实际采集一致并经产品负责人确认。
-- [ ] UTM 与事件命名约定写入 `docs/reference/`。
+- [x] Vercel Web Analytics 已启用（CLI `vercel project web-analytics` 返回 `enabled: true`），`<Analytics />` 已随 Batch 1 部署上线；count 非零留待首批真实流量（脚本路由 `/_vercel/insights/script.js` 生产 200 已确认）。
+- [x] GSC 域名资源 `sc-domain:chinainfact.com` 经 Vercel DNS TXT 记录自动验证，`https://chinainfact.com/sitemap.xml` 提交成功（2026-08-12）；新资源首日无索引数据，基线记 0。Bing Webmaster 按产品负责人决定 deferred（2026-08-12），不阻塞本项收口。
+- [x] EN/ES 隐私文案与实际采集一致，legal-copy 已获批准（2026-08-11）。
+- [x] UTM 与事件命名约定已写入 [`utm-and-event-naming.md`](../../reference/utm-and-event-naming.md)。
 
 ## Validation
 
@@ -53,7 +53,8 @@ approval_gates: third-party-service-enable, legal-copy, dns, production-deploy, 
 ## Current gate
 
 - [x] 用户批准建立本 checklist（2026-08-11，接手规划批次）。
-- [x] 代码与文档部分完成：前台 layout 接入 `@vercel/analytics`，UTM 与事件命名约定写入 [`docs/reference/utm-and-event-naming.md`](../../reference/utm-and-event-naming.md)（2026-08-11，未提交）。
-- [ ] 产品负责人执行或授权 Vercel dashboard 启用与 GSC/Bing 注册。
-- [ ] 隐私文案修订获 legal-copy 批准。
-- [ ] Production 部署获单独批准。
+- [x] 代码与文档部分完成：前台 layout 接入 `@vercel/analytics`，UTM 与事件命名约定写入 [`docs/reference/utm-and-event-naming.md`](../../reference/utm-and-event-naming.md)（2026-08-11，已随 Batch 1 提交）。
+- [x] 用户授权账号侧动作（"全都批准"，2026-08-11）：WA 经 CLI 启用；GSC 在用户登录的 Cursor 浏览器会话中完成注册、DNS TXT 验证与 sitemap 提交；Bing deferred（2026-08-12，用户决定）。
+- [x] 隐私文案修订获 legal-copy 批准（2026-08-11）。
+- [x] Production 部署获批准并完成（`dpl_HLKSMNtWV7HfSvvckXTeWpQ8KnA4`，2026-08-11）。
+- [x] 本项收口（2026-08-12，用户确认 "GSC 做完就算完结"）；WA count 首批流量读回归入日常运营，不再单列工作项。
