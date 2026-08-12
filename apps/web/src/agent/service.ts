@@ -14,7 +14,8 @@ import {
   type PayloadRequest,
 } from "payload";
 
-import type { AgentEvent, Article, User, WorkflowEvent } from "@/payload-types";
+import type { AgentEvent, Article, Media, User, WorkflowEvent } from "@/payload-types";
+import { extractYouTubeVideoID } from "@/collections/Articles";
 import {
   commitEditorialSiteSelection,
   editorialCurationIssue,
@@ -28,12 +29,16 @@ import {
   getLatestDraftArticle,
   prepareMemberPublication,
 } from "@/cms/article-publication";
+import { assertMediaAllowedForMemberPublication } from "@/cms/media-policy";
+import { uniqueMediaUploadFilename } from "@/cms/media-upload-filename";
+import { collectRichTextUploadMediaIDs } from "@/cms/rich-text-media";
 import { hasEditorialRole, isSuperAdmin } from "@/cms/roles";
 
 import {
   agentBodyToLexical,
   agentBodyToMarkdown,
   lexicalToAgentBody,
+  lexicalToAgentBodyV2,
   UnsupportedAgentContentError,
 } from "./content";
 import {
@@ -48,12 +53,14 @@ import {
   type SiteSelectionConfirmationPayload,
 } from "./confirmation";
 import {
+  AGENT_BODY_V2_VERSION,
+  AGENT_BODY_VERSION,
   agentFailure,
   agentSuccess,
   createAgentRequestId,
   requireIdempotencyKey,
   requireRevision,
-  type AgentArticleBodyV1,
+  type AgentArticleBody,
   type AgentErrorCode,
   type AgentToolName,
 } from "./contracts";
@@ -70,7 +77,7 @@ type Actor = {
 
 type WriteContext = {
   idempotencyKey: string;
-  tool: "article_commit_publication" | "article_create_draft" | "article_save_draft" | "editorial_commit_site_selection";
+  tool: "article_commit_publication" | "article_create_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_site_selection" | "media_upload";
 };
 
 class AgentServiceError extends Error {
@@ -124,6 +131,32 @@ function articleSummary(article: Article) {
     updatedAt: article.updatedAt,
   };
 }
+
+function coverSummary(article: Article) {
+  const coverId = articleRelationID(article.coverImage);
+  return { ...articleSummary(article), coverMediaId: typeof coverId === "number" ? coverId : null };
+}
+
+function mediaSummary(media: Media) {
+  return {
+    id: media.id,
+    alt: media.alt,
+    filename: media.filename ?? null,
+    mimeType: media.mimeType ?? null,
+    filesize: media.filesize ?? null,
+    width: media.width ?? null,
+    height: media.height ?? null,
+    url: media.url ?? null,
+    publicUseApproved: Boolean(media.publicUseApprovedAt),
+    createdAt: media.createdAt,
+  };
+}
+
+type AgentPreviewWarning = {
+  code: "body_media_ownership" | "heading_level_jump" | "missing_cover" | "missing_summary";
+  message: string;
+  details?: Record<string, unknown>;
+};
 
 function publicationSummary(
   article: Article,
@@ -227,6 +260,8 @@ function failure(error: unknown, requestId = createAgentRequestId()) {
   }
   return agentFailure({ code: "INTERNAL_ERROR", message: "The request could not be completed.", retryable: false }, { requestId });
 }
+
+const MAX_AGENT_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 function idempotentRequestId(actor: Actor, input: WriteContext) {
   const key = requireIdempotencyKey(input.idempotencyKey);
@@ -346,6 +381,47 @@ export class AgentMemberService {
     return article;
   }
 
+  private async mediaPolicyReq(user: User, req?: PayloadRequest) {
+    if (req) return req;
+    return createLocalReq({ user }, this.payload);
+  }
+
+  /*
+   * INFRA-AGENT-MEDIA-001: same ownership rule as the web write path
+   * (BODY-MEDIA-002). The Articles beforeValidate hook re-checks on the
+   * real write; this pre-check exists so the Agent surface rejects
+   * another member's unapproved media with an exact error before any
+   * write is attempted.
+   */
+  private async assertMediaUsableByMember(mediaId: number | string, label: string, user: User, req?: PayloadRequest) {
+    const policyReq = await this.mediaPolicyReq(user, req);
+    try {
+      await assertMediaAllowedForMemberPublication(mediaId, policyReq, label);
+    } catch (error) {
+      if (error instanceof APIError && error.status === 403) {
+        throw new AgentServiceError("FORBIDDEN", `${label} must be media uploaded by the current member or media approved for public use.`, { mediaId });
+      }
+      if (error instanceof APIError && error.status !== 400) {
+        throw new AgentServiceError("NOT_FOUND", `${label} media was not found.`, { mediaId });
+      }
+      throw error;
+    }
+  }
+
+  private async assertWritableBody(body: AgentArticleBody, user: User) {
+    if (body.version !== AGENT_BODY_V2_VERSION) return;
+    for (const block of body.blocks) {
+      if (block.type === "youtube" && !extractYouTubeVideoID(block.url)) {
+        throw new AgentServiceError("VALIDATION_ERROR", "Only YouTube video links (youtube.com / youtu.be) are allowed in the article body.");
+      }
+    }
+    for (const block of body.blocks) {
+      if (block.type === "image") {
+        await this.assertMediaUsableByMember(block.mediaId, "Body image", user);
+      }
+    }
+  }
+
   private async publicationArticle(id: number, user: User, req?: PayloadRequest) {
     let article: Article;
     try {
@@ -402,7 +478,7 @@ export class AgentMemberService {
     try {
       const user = await this.currentUser();
       await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "capabilities_list" });
-      const tools: AgentToolName[] = ["account_context", "capabilities_list", "my_articles_list", "article_get_working_copy", "article_create_draft", "article_save_draft", "article_preview", "article_prepare_publication", "article_commit_publication"];
+      const tools: AgentToolName[] = ["account_context", "capabilities_list", "my_articles_list", "article_get_working_copy", "article_create_draft", "article_save_draft", "media_upload", "article_set_cover", "article_preview", "article_prepare_publication", "article_commit_publication"];
       if (hasEditorialRole(user)) {
         tools.push("editorial_article_get", "editorial_prepare_site_selection", "editorial_commit_site_selection");
       }
@@ -544,11 +620,42 @@ export class AgentMemberService {
     }
   }
 
-  async workingCopy(id: number) {
+  private async bodyMediaAltById(article: Article, user: User) {
+    const altById = new Map<string, string>();
+    const mediaIds = collectRichTextUploadMediaIDs(article.body);
+    if (!mediaIds.length) return altById;
+    const req = await createLocalReq({ user }, this.payload);
+    const media = await this.payload.find({
+      collection: "media",
+      depth: 0,
+      limit: mediaIds.length,
+      overrideAccess: false,
+      pagination: false,
+      req,
+      user,
+      where: { id: { in: mediaIds } },
+    });
+    for (const doc of media.docs) altById.set(String(doc.id), doc.alt);
+    return altById;
+  }
+
+  async workingCopy(id: number, options: { bodyVersion?: typeof AGENT_BODY_VERSION | typeof AGENT_BODY_V2_VERSION } = {}) {
     const requestId = createAgentRequestId();
     try {
-      const article = await this.ownedArticle(id, await this.currentUser());
-      const body = lexicalToAgentBody(article.body.root);
+      const user = await this.currentUser();
+      const article = await this.ownedArticle(id, user);
+      // The default stays AgentArticleBodyV1, so existing V1 clients keep
+      // their exact behaviour, including the explicit UNSUPPORTED_CONTENT
+      // failure for bodies that contain media blocks.
+      let body: AgentArticleBody;
+      if (options.bodyVersion === AGENT_BODY_V2_VERSION) {
+        const altById = await this.bodyMediaAltById(article, user);
+        body = lexicalToAgentBodyV2(article.body.root, {
+          mediaAlt: (mediaId) => altById.get(String(mediaId)) ?? null,
+        });
+      } else {
+        body = lexicalToAgentBody(article.body.root);
+      }
       const currentRevision = await this.latestArticleRevision(article);
       await this.auditAttempt({ objectId: String(article.id), objectType: "article", requestId, result: "success", tool: "article_get_working_copy" });
       return agentSuccess({ ...articleSummary(article), revision: currentRevision, summary: article.summary ?? null, body, markdown: agentBodyToMarkdown(body) }, { requestId, meta: { objectId: String(article.id), revision: currentRevision } });
@@ -825,7 +932,7 @@ export class AgentMemberService {
     }
   }
 
-  private async reserveWrite(input: { fingerprint: string; idempotencyDigest?: string; requestId: string; tool: AgentToolName }, req: PayloadRequest) {
+  private async reserveWrite(input: { fingerprint: string; idempotencyDigest?: string; objectType?: "account" | "article"; requestId: string; tool: AgentToolName }, req: PayloadRequest) {
     try {
       return await this.payload.create({
         collection: "agent-events",
@@ -836,7 +943,7 @@ export class AgentMemberService {
           connection: this.actor.connectionId,
           clientFamily: this.actor.clientFamily,
           tool: input.tool,
-          objectType: "article",
+          objectType: input.objectType ?? "article",
           requestId: input.requestId,
           idempotencyDigest: input.idempotencyDigest ?? input.requestId,
           inputFingerprint: input.fingerprint,
@@ -872,6 +979,27 @@ export class AgentMemberService {
       throw new AgentServiceError("TEMPORARY_FAILURE", "The previous write has no readable result.");
     }
     return this.ownedArticle(Number(prior.objectId), user);
+  }
+
+  private async readableMedia(id: number, user: User) {
+    const req = await createLocalReq({ user }, this.payload);
+    try {
+      return await this.payload.findByID({ collection: "media", id, depth: 0, overrideAccess: false, req, user }) as Media;
+    } catch {
+      throw new AgentServiceError("NOT_FOUND", "Media not found.");
+    }
+  }
+
+  private async replayedMediaUpload(requestId: string, fingerprint: string, user: User) {
+    const prior = await this.priorWrite(requestId);
+    if (!prior) return null;
+    if (prior.inputFingerprint !== fingerprint) {
+      throw new AgentServiceError("IDEMPOTENCY_CONFLICT", "The idempotency key was already used with different input.");
+    }
+    if (prior.result !== "success" || !prior.objectId) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The previous upload has no readable result.");
+    }
+    return this.readableMedia(Number(prior.objectId), user);
   }
 
   private async replayedPublication(idempotencyDigest: string, fingerprint: string, user: User) {
@@ -940,16 +1068,19 @@ export class AgentMemberService {
 
   private async auditReadFailure(tool: AgentToolName, requestId: string, error: unknown, objectId?: string) {
     const denied = error instanceof AgentServiceError && ["ACCOUNT_PAUSED", "CONNECTION_REVOKED", "FORBIDDEN", "NO_PERSON", "NOT_FOUND", "UNAUTHENTICATED"].includes(error.code);
-    const objectType = tool === "account_context" || tool === "capabilities_list" || tool === "admin_recent_activity" ? "account" : "article";
+    // media_upload audits under "account": agent-events objectType is a
+    // frozen enum (account/article/connection) and media has no value.
+    const objectType = tool === "account_context" || tool === "capabilities_list" || tool === "admin_recent_activity" || tool === "media_upload" ? "account" : "article";
     await this.auditAttempt({ objectId, objectType, requestId, result: denied ? "denied" : "failed", tool });
   }
 
-  async createDraft(input: { body: AgentArticleBodyV1; idempotencyKey: string; locale: "en" | "es"; summary?: string; title: string }) {
+  async createDraft(input: { body: AgentArticleBody; idempotencyKey: string; locale: "en" | "es"; summary?: string; title: string }) {
     let requestId = createAgentRequestId();
     try {
       requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "article_create_draft" });
       const user = await this.currentUser();
       if (!input.title.trim() || input.title.length > 240) throw new AgentServiceError("VALIDATION_ERROR", "Title is required and must be at most 240 characters.");
+      await this.assertWritableBody(input.body, user);
       const fingerprint = inputFingerprint(input);
       const prior = await this.replayedWrite(requestId, fingerprint, user);
       if (prior) {
@@ -978,13 +1109,14 @@ export class AgentMemberService {
     }
   }
 
-  async saveDraft(input: { body: AgentArticleBodyV1; id: number; idempotencyKey: string; revision: string; summary?: string; title: string }) {
+  async saveDraft(input: { body: AgentArticleBody; id: number; idempotencyKey: string; revision: string; summary?: string; title: string }) {
     let requestId = createAgentRequestId();
     try {
       requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "article_save_draft" });
       const user = await this.currentUser();
       requireRevision(input.revision);
       if (!input.title.trim() || input.title.length > 240) throw new AgentServiceError("VALIDATION_ERROR", "Title is required and must be at most 240 characters.");
+      await this.assertWritableBody(input.body, user);
       const fingerprint = inputFingerprint(input);
       const prior = await this.replayedWrite(requestId, fingerprint, user);
       if (prior) {
@@ -1029,6 +1161,132 @@ export class AgentMemberService {
     } catch (error) {
       if (!(error instanceof AgentServiceError && (error.code === "REVISION_CONFLICT" || error.code === "IDEMPOTENCY_CONFLICT"))) {
         await this.auditAttempt({ objectId: String(input.id), objectType: "article", requestId, result: "failed", tool: "article_save_draft" });
+      }
+      return failure(error, requestId);
+    }
+  }
+
+  async mediaUpload(input: { alt: string; data: string; filename: string; idempotencyKey: string; mimeType: string }) {
+    let requestId = createAgentRequestId();
+    try {
+      requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "media_upload" });
+      const user = await this.currentUser();
+      if (!input.alt.trim()) throw new AgentServiceError("VALIDATION_ERROR", "An image description (alt) is required.");
+      if (!input.filename.trim()) throw new AgentServiceError("VALIDATION_ERROR", "A filename is required.");
+      if (!/^image\/[\w.+-]+$/.test(input.mimeType)) throw new AgentServiceError("VALIDATION_ERROR", "Only image uploads are supported.");
+      const normalized = input.data.replace(/\s+/g, "");
+      if (!normalized || normalized.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(normalized)) {
+        throw new AgentServiceError("VALIDATION_ERROR", "File data must be standard base64.");
+      }
+      const file = Buffer.from(normalized, "base64");
+      if (!file.byteLength) throw new AgentServiceError("VALIDATION_ERROR", "The uploaded file is empty.");
+      if (file.byteLength > MAX_AGENT_UPLOAD_BYTES) {
+        throw new AgentServiceError("VALIDATION_ERROR", "Image uploads are limited to 10 MB.");
+      }
+      const fingerprint = inputFingerprint({
+        alt: input.alt,
+        digest: createHash("sha256").update(file).digest("base64url"),
+        filename: input.filename,
+        mimeType: input.mimeType,
+      });
+      const prior = await this.replayedMediaUpload(requestId, fingerprint, user);
+      if (prior) {
+        return agentSuccess(mediaSummary(prior), { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true } });
+      }
+      let media: Media;
+      try {
+        media = await this.withWriteTransaction(user, async (req) => {
+          const event = await this.reserveWrite({ fingerprint, objectType: "account", requestId, tool: "media_upload" }, req);
+          /*
+           * Same unique-pathname rule as the web direct-upload pipeline
+           * (UniqueVercelBlobClientUploadHandler): the stored filename gets a
+           * random suffix so member uploads never collide or overwrite.
+           * Ownership (uploadedBy) is set by the Media beforeChange hook from
+           * req.user, exactly like a web upload.
+           */
+          const created = await this.payload.create({
+            collection: "media",
+            data: { alt: input.alt.trim() },
+            file: {
+              data: file,
+              mimetype: input.mimeType,
+              name: uniqueMediaUploadFilename(input.filename, randomUUID()),
+              size: file.byteLength,
+            },
+            overrideAccess: false,
+            req,
+            user,
+          }) as Media;
+          await this.finishWrite(event.id, { objectId: String(created.id), result: "success" }, req);
+          return created;
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedMediaUpload(requestId, fingerprint, user);
+        if (!replay) throw error.original;
+        media = replay;
+      }
+      return agentSuccess(mediaSummary(media), { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(media.id), readAfterWrite: true } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && error.code === "IDEMPOTENCY_CONFLICT")) {
+        await this.auditReadFailure("media_upload", requestId, error);
+      }
+      return failure(error, requestId);
+    }
+  }
+
+  async setCover(input: { id: number; idempotencyKey: string; mediaId: number; revision: string }) {
+    let requestId = createAgentRequestId();
+    try {
+      requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "article_set_cover" });
+      const user = await this.currentUser();
+      requireRevision(input.revision);
+      if (!Number.isInteger(input.mediaId) || input.mediaId <= 0) {
+        throw new AgentServiceError("VALIDATION_ERROR", "A positive media ID is required.");
+      }
+      const fingerprint = inputFingerprint(input);
+      const prior = await this.replayedWrite(requestId, fingerprint, user);
+      if (prior) {
+        return agentSuccess(coverSummary(prior), { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true, revision: revision(prior) } });
+      }
+      let outcome: { kind: "conflict"; revision: string } | { article: Article; kind: "saved" };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const event = await this.reserveWrite({ fingerprint, requestId, tool: "article_set_cover" }, req);
+          await this.lockArticle(req, input.id);
+          const article = await this.ownedArticle(input.id, user, req);
+          const beforeRevision = await this.latestArticleRevision(article, req);
+          if (input.revision !== beforeRevision) {
+            await this.finishWrite(event.id, { beforeRevision, objectId: String(article.id), result: "conflict" }, req);
+            return { kind: "conflict" as const, revision: beforeRevision };
+          }
+          await this.assertMediaUsableByMember(input.mediaId, "Cover image", user, req);
+          const saved = await this.payload.update({
+            collection: "articles",
+            id: article.id,
+            draft: true,
+            overrideAccess: false,
+            req,
+            user,
+            data: { coverImage: input.mediaId } as never,
+          });
+          await this.finishWrite(event.id, { afterRevision: revision(saved), beforeRevision, objectId: String(saved.id), result: "success" }, req);
+          return { article: saved, kind: "saved" as const };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedWrite(requestId, fingerprint, user);
+        if (!replay) throw error.original;
+        outcome = { article: replay, kind: "saved" };
+      }
+      if (outcome.kind === "conflict") {
+        throw new AgentServiceError("REVISION_CONFLICT", "The article changed after this working copy was loaded.", { latestRevision: outcome.revision });
+      }
+      const saved = outcome.article;
+      return agentSuccess(coverSummary(saved), { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(saved.id), readAfterWrite: true, revision: revision(saved) } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && (error.code === "REVISION_CONFLICT" || error.code === "IDEMPOTENCY_CONFLICT"))) {
+        await this.auditReadFailure("article_set_cover", requestId, error, String(input.id));
       }
       return failure(error, requestId);
     }
@@ -1461,12 +1719,63 @@ export class AgentMemberService {
     }
   }
 
+  private headingLevelWarnings(article: Article): AgentPreviewWarning[] {
+    const warnings: AgentPreviewWarning[] = [];
+    const root = (article.body as { root?: { children?: unknown } } | null)?.root;
+    const children = Array.isArray(root?.children) ? root.children : [];
+    // The article title renders as h1, so the first body heading may be at
+    // most h2 and every later heading may go at most one level deeper.
+    let previousLevel = 1;
+    children.forEach((node, index) => {
+      if (!node || typeof node !== "object" || (node as { type?: unknown }).type !== "heading") return;
+      const tag = String((node as { tag?: unknown }).tag ?? "");
+      if (!/^h[1-6]$/.test(tag)) return;
+      const level = Number(tag.slice(1));
+      if (level > previousLevel + 1) {
+        warnings.push({
+          code: "heading_level_jump",
+          message: `Heading level jumps from h${previousLevel} to h${level}.`,
+          details: { blockIndex: index, from: previousLevel, to: level },
+        });
+      }
+      previousLevel = level;
+    });
+    return warnings;
+  }
+
+  private async previewWarnings(article: Article, user: User) {
+    const warnings: AgentPreviewWarning[] = [];
+    if (!articleRelationID(article.coverImage)) {
+      warnings.push({ code: "missing_cover", message: "The article has no cover image." });
+    }
+    if (!article.summary?.trim()) {
+      warnings.push({ code: "missing_summary", message: "The article has no summary." });
+    }
+    warnings.push(...this.headingLevelWarnings(article));
+    const policyReq = await createLocalReq({ user }, this.payload);
+    for (const mediaId of collectRichTextUploadMediaIDs(article.body)) {
+      try {
+        await assertMediaAllowedForMemberPublication(mediaId, policyReq, "Body image");
+      } catch (error) {
+        if (!(error instanceof APIError)) throw error;
+        warnings.push({
+          code: "body_media_ownership",
+          message: "A body image is not media the current member may publish.",
+          details: { mediaId },
+        });
+      }
+    }
+    return warnings;
+  }
+
   async preview(id: number) {
     const requestId = createAgentRequestId();
     try {
-      const article = await this.ownedArticle(id, await this.currentUser());
+      const user = await this.currentUser();
+      const article = await this.ownedArticle(id, user);
+      const warnings = await this.previewWarnings(article, user);
       await this.auditAttempt({ objectId: String(article.id), objectType: "article", requestId, result: "success", tool: "article_preview" });
-      return agentSuccess({ path: `/${article.locale}/posts/${article.slug}?preview=${encodeURIComponent(String(article.id))}`, expiresAt: null }, { requestId, meta: { objectId: String(article.id), revision: revision(article) } });
+      return agentSuccess({ path: `/${article.locale}/posts/${article.slug}?preview=${encodeURIComponent(String(article.id))}`, expiresAt: null, warnings }, { requestId, meta: { objectId: String(article.id), revision: revision(article) } });
     } catch (error) {
       await this.auditReadFailure("article_preview", requestId, error, String(id));
       return failure(error, requestId);
