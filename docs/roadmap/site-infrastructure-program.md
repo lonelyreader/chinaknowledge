@@ -27,6 +27,7 @@ flowchart LR
       D["DESIGN-DIRECTION-001<br/>设计方向修订"]
     end
     subgraph B2["Batch 2"]
+      R["RETHEME-001<br/>宋式换装"]
       E["ARTICLE-TEMPLATE-001<br/>文章页模板"]
       F["OG-001<br/>动态 OG 与封面兜底"]
       G["AGENT-MEDIA-001<br/>MCP 媒体与正文 V2"]
@@ -40,6 +41,8 @@ flowchart LR
       L["SEARCH-001<br/>站内搜索"]
       N["OUTBOUND-001<br/>出站点击计量"]
     end
+    D --> R
+    R --> E
     B --> E
     D --> E
     C --> E
@@ -63,12 +66,13 @@ flowchart LR
 | `INFRA-TOKENS-001` | 1 | active | 设计 token 化与样式架构重构，视觉零变化 | 无 |
 | `INFRA-BODY-MEDIA-001` | 1 | active | 正文图片与白名单 embed 能力 | 无 |
 | `DESIGN-DIRECTION-001` | 1 | active | DESIGN.md 桥梁化方向修订与 ADR | 无 |
-| `INFRA-ARTICLE-TEMPLATE-001` | 2 | queued | 文章页模板：目录、排版、作者卡、文末路由模块 | TOKENS、DESIGN-DIRECTION、BODY-MEDIA |
-| `INFRA-OG-001` | 2 | queued | 动态 OG 图生成与封面兜底视觉系统 | TOKENS |
-| `INFRA-AGENT-MEDIA-001` | 2 | queued | Agent 正文合同 V2、media_upload、set cover、发布预检 | BODY-MEDIA |
-| `INFRA-BODY-MEDIA-002` | 2 | active | 正文媒体权限收敛与发布管道补全（独立复审 F1/F2/F4），见 [checklist](checklists/article-body-media-002.md) | 无（BODY-MEDIA-001 已合并） |
-| `INFRA-PERSON-PAGE-001` | 2 | queued | Person schema 扩展与个人页重构 | DESIGN-DIRECTION |
-| `INFRA-FEEDS-001` | 2 | queued | RSS/JSON Feed、Person 与文章结构化数据补全 | 无 |
+| `INFRA-RETHEME-001` | 2 | active | 宋式视觉换装：token 值切换到 DESIGN.md 宋式定值，[checklist](checklists/site-retheme-song.md) | 无（DESIGN-DIRECTION 已完成） |
+| `INFRA-ARTICLE-TEMPLATE-001` | 2 | active | 文章页模板：目录、排版、印章署名、文末路由模块，[checklist](checklists/article-page-template.md) | 无（合并顺序在 RETHEME 后） |
+| `INFRA-OG-001` | 2 | active | 动态 OG 图生成与封面兜底视觉系统，[checklist](checklists/dynamic-og-cover-fallback.md) | 无 |
+| `INFRA-AGENT-MEDIA-001` | 2 | active | Agent 正文合同 V2、media_upload、set cover、发布预检，[checklist](checklists/agent-media-tools.md) | 无 |
+| `INFRA-BODY-MEDIA-002` | 2 | active | 正文媒体权限收敛与发布管道补全（独立复审 F1/F2/F4），代码已上线，见 [checklist](checklists/article-body-media-002.md)；剩生产验收 | 无 |
+| `INFRA-PERSON-PAGE-001` | 2 | active | Person schema 扩展与个人页重构，[checklist](checklists/person-page-expansion.md) | 无（schema/migration 逐门禁批准） |
+| `INFRA-FEEDS-001` | 2 | active | RSS/JSON Feed、Person 与文章结构化数据补全，[checklist](checklists/feeds-structured-data.md) | 无（页面注入部分合并顺序最后） |
 | `INFRA-HOME-001` | 3 | queued | 首页重组：人物权重、社群模块、Hero 组合 | TOKENS、DESIGN-DIRECTION、ARTICLE-TEMPLATE |
 | `INFRA-PROJECTS-001` | 3 | queued | Member Projects 一等对象与展示入口 | PERSON-PAGE |
 | `INFRA-AGENT-PROFILE-001` | 3 | queued | MCP `my_profile_*` 与外链维护工具 | PERSON-PAGE |
@@ -83,6 +87,10 @@ flowchart LR
 - Batch 1 四项可同时 active：路径互不重叠（MEASURE 走 layout/隐私页/Vercel 设置；TOKENS 走样式层；BODY-MEDIA 走 editor 配置与渲染器逻辑；DESIGN-DIRECTION 只改 docs）。
 - 样式冲突唯一热点是 `globals.css`：TOKENS 持有其结构性重写权；BODY-MEDIA 只允许在文件尾部追加独立注释块的最小样式，合并顺序固定为 TOKENS 先进 `main`，BODY-MEDIA 样式段随后 rebase。
 - Batch 2 内 ARTICLE-TEMPLATE 与 PERSON-PAGE 都改前端组件，但路由与组件文件不重叠；OG、AGENT-MEDIA、FEEDS 与两者无路径交集，可并行。
+- Batch 2 `globals.css` 合并顺序：RETHEME 持有结构性修改权先进 `main`；ARTICLE-TEMPLATE、PERSON-PAGE 各以独立注释块追加并在 RETHEME 后 rebase。
+- Batch 2 名义 glob 相交但文件集不重叠的豁免：OG 的 `opengraph-image.tsx` 落在 posts/people 路由目录内但不属页面子级文件；FEEDS 对两个页面文件只插 JSON-LD，合并顺序在 ARTICLE-TEMPLATE 与 PERSON-PAGE 之后 rebase。
+- `CMSRichText.tsx` 与 `content/cms.ts` 的修改权转移：BODY-MEDIA-001/002 代码已冻结（仅剩验收与归档），Batch 2 内分别由 ARTICLE-TEMPLATE 与 PERSON-PAGE 持有。
+- Batch 2 全部实现线在独立 git worktree 分支进行，不写主工作树；合并由总控串行执行。
 - 一个分支和 PR 对应一个子级 checklist；跨子级顺手修改一律进入对方 checklist 的 finding_route，不扩大当前 diff。
 - 每批关闭条件：本批全部子级归档、feature registry 与 current-state 写回、下一批进入条件复核。
 

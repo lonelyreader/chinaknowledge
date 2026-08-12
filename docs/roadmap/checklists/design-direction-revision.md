@@ -9,7 +9,7 @@ max_lines: 120
 change_id: DESIGN-DIRECTION-001
 risk_tier: base
 validation_profile: slice
-allowed_paths: DESIGN.md, docs/decisions/**, docs/roadmap/**, docs/product-brief.md
+allowed_paths: DESIGN.md, docs/decisions/**, docs/roadmap/**, docs/product-brief.md, docs/archive/README.md, docs/archive/design-direction-revision.md
 approval_gates: design-direction-acceptance, commit, merge, push
 ---
 
@@ -71,4 +71,5 @@ approval_gates: design-direction-acceptance, commit, merge, push
 
 - [x] 用户批准建立本 checklist（2026-08-11，接手规划批次；方向性批评已由产品负责人在对话中确认）。
 - [x] 产品负责人逐条接受修订议题（2026-08-11，含深研后参数级方案 D1–D4 拍板）。
-- [ ] 起草 DESIGN.md 修订 diff 与 ADR，提交治理检查。
+- [x] DESIGN.md 修订与 ADR-0011 已提交并通过治理检查（2026-08-11，随 Batch 1 合并 `main`）。
+- [x] 本项收口（2026-08-12，Batch 2 启动时归档；宋式定值的代码落地由 `INFRA-RETHEME-001` 承接）。

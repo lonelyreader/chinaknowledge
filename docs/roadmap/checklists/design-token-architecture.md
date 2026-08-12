@@ -9,7 +9,7 @@ max_lines: 120
 change_id: INFRA-TOKENS-001
 risk_tier: base
 validation_profile: work_item
-allowed_paths: apps/web/src/app/(frontend)/globals.css, apps/web/src/app/(frontend)/**/*.module.css, apps/web/src/components/**, apps/web/postcss.config.*, apps/web/tailwind.config.*, docs/roadmap/**, docs/reference/**
+allowed_paths: apps/web/src/app/(frontend)/globals.css, apps/web/src/app/(frontend)/**/*.module.css, apps/web/src/components/**, apps/web/postcss.config.*, apps/web/tailwind.config.*, docs/roadmap/**, docs/reference/**, docs/archive/README.md, docs/archive/design-token-architecture.md
 approval_gates: commit, merge, push, production-deploy
 ---
 
@@ -56,4 +56,5 @@ approval_gates: commit, merge, push, production-deploy
 ## Current gate
 
 - [x] 用户批准建立本 checklist（2026-08-11，接手规划批次）。
-- [ ] 实现完成后按验收截图复核。
+- [x] 验收截图复核通过（2026-08-11，编译 CSS 字节级一致 + 七类页面两宽度逐像素对比）；已合并 `main` 并随 Batch 1 部署上线（`dpl_HLKSMN…`）。
+- [x] 本项收口（2026-08-12，Batch 2 启动时归档；`globals.css` 结构性修改权移交 `INFRA-RETHEME-001`）。

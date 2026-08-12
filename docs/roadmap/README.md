@@ -18,10 +18,16 @@ max_lines: 100
 
 | 工作项 | 交付目标 |
 |---|---|
-| [`INFRA-TOKENS-001`](checklists/design-token-architecture.md) | Design token 化与样式架构重构，视觉零变化 |
-| [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文图片与白名单 embed 能力 |
-| [`DESIGN-DIRECTION-001`](checklists/design-direction-revision.md) | DESIGN.md 桥梁化方向修订与 ADR |
-| [`INFRA-BODY-MEDIA-002`](checklists/article-body-media-002.md) | 正文媒体权限收敛与发布管道补全（Batch 2 提前项） |
+| [`INFRA-TOKENS-001`](checklists/design-token-architecture.md) | token 化重构（Batch 1 收尾，待归档） |
+| [`DESIGN-DIRECTION-001`](checklists/design-direction-revision.md) | 设计方向修订（Batch 1 收尾，待归档） |
+| [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文媒体能力（剩 Preview/生产验收） |
+| [`INFRA-BODY-MEDIA-002`](checklists/article-body-media-002.md) | 媒体权限收敛（已部署，剩生产验收） |
+| [`INFRA-RETHEME-001`](checklists/site-retheme-song.md) | 宋式视觉换装：token 值切换 |
+| [`INFRA-ARTICLE-TEMPLATE-001`](checklists/article-page-template.md) | 文章页模板：目录、印章署名、文末路由 |
+| [`INFRA-OG-001`](checklists/dynamic-og-cover-fallback.md) | 动态 OG 与封面兜底 |
+| [`INFRA-AGENT-MEDIA-001`](checklists/agent-media-tools.md) | Agent 媒体工具与正文合同 V2 |
+| [`INFRA-PERSON-PAGE-001`](checklists/person-page-expansion.md) | Person 页扩展与正式名片 |
+| [`INFRA-FEEDS-001`](checklists/feeds-structured-data.md) | RSS/JSON Feed 与结构化数据 |
 
 其余 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
 

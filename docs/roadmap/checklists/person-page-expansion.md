@@ -1,0 +1,71 @@
+---
+doc_contract: DocContractV1
+doc_type: checklist
+authority: execution
+status: active
+scope: person-page-expansion
+last_verified: 2026-08-12
+max_lines: 160
+change_id: INFRA-PERSON-PAGE-001
+risk_tier: upgraded
+validation_profile: work_item
+allowed_paths: apps/web/src/collections/People.ts, apps/web/src/migrations/**, apps/web/src/app/(frontend)/[locale]/people/**, apps/web/src/components/person-row.tsx, apps/web/src/components/cms-person-row.tsx, apps/web/src/components/people-directory.tsx, apps/web/src/components/cms-people-directory.tsx, apps/web/src/components/person/**, apps/web/src/cms/components/**, apps/web/src/content/cms.ts, apps/web/src/payload-types.ts, apps/web/src/app/(payload)/admin/importMap.js, apps/web/src/app/(frontend)/globals.css, docs/roadmap/**, docs/reference/**, docs/current-state.md, docs/product-feature-registry.md
+approval_gates: schema, migration, preview, production-deploy, commit, merge, push
+---
+
+# INFRA-PERSON-PAGE-001 Person 页扩展与正式名片
+
+目标：Person 从档案页升级为成员的正式名片——schema 增加长自述（richText）、「我能帮什么」、编辑判词（People 索引判词名录用）、近期动态区；页面按 DESIGN.md 宋式条款重构（第三人称编辑传记、判词、联系渠道、近期发布）；My profile 表单同步扩展；双语字段延续既有 EN/ES 回退规则。
+
+父级：[`Site Infrastructure Program`](../site-infrastructure-program.md)。
+
+## Scope
+
+- People schema：长自述 richText（EN/ES）、「我能帮什么」结构化条目、编辑判词短语（EN/ES，Editor 维护）；字段设计先过 schema 门禁再实现。
+- 迁移：新增字段的 migration 文件（本地生成与验证；Preview/Production apply 分别批准）。
+- 公开页 `/people/[slug]` 重构：编辑传记、判词、能帮什么、近期公开文章动态区、既有联系渠道与外链；无数据区块整体隐藏。
+- People 索引页呈现判词名录（Gentlewoman 式一行判词）。
+- My profile 表单扩展自管字段；判词只读（Editor 在 Person 文档维护）。
+- 竖排汉字栏目侧签等宋式细节按 DESIGN.md 实现；样式以独立注释块追加 `globals.css` 尾部。
+
+## No-go
+
+- 不改 Person 公开/撤回语义、版本历史、锁定与权限模型；新字段沿用既有字段级权限模式。
+- 不做 Member Projects（属 PROJECTS-001）；不做 Agent 工具（属 AGENT-PROFILE-001）。
+- 不改文章页与首页；不动既有 Person 数据（新字段全部可空，无回填）。
+- richText 新字段渲染复用 `CMSRichText` 只读调用，不修改该文件。
+
+## Upgraded contract
+
+- `data_truth`：People 表新增可空字段；Local 开发，Preview 验收；migration 与 Production 分别批准。
+- `read_path`：公开 Person 页与 People 索引新增字段呈现；未公开 Person 行为不变。
+- `write_path`：My profile 表单与 Payload admin 写新字段；无新增端点。
+- `permission_boundary`：成员只能改本人自管字段；判词仅 Editor+ 可写；负例——成员 API 直写他人 Person 或判词字段被拒。
+- `audit_boundary`：沿用 Person 版本历史，无新增审计面。
+- `recovery`：字段可空、无回填，migration 逐条可回滚；页面 revert 即恢复。
+- `independent_review`：非实现者复核权限负例、migration 回滚、未公开 Person 隔离、EN/ES 回退，给出 PASS/BLOCK。
+- `key_invariants`：既有 Person 页 URL 与公开语义不变；自动保存与并发行为不变；空字段页面不出现空壳区块；EN/ES 回退规则一致。
+- `finding_route`：Projects 与 Agent profile 需求分别路由 PROJECTS-001 / AGENT-PROFILE-001；首页人物模块路由 HOME-001。
+
+## Acceptance
+
+- [ ] schema 设计经批准后实现；migration 本地 apply + 回滚测试通过。
+- [ ] 成员经 My profile 维护长自述与「我能帮什么」，公开页正确渲染；判词仅 Editor 可写并在索引页呈现。
+- [ ] 未公开 Person 不因新字段泄露；权限负例被拒。
+- [ ] 全部新区块无数据时整体隐藏；桌面与 390px 无溢出；EN/ES 回退正确。
+
+## Validation
+
+- lint、typecheck、build、`npm run governance:check`、`git diff --check`。
+- migration recovery 测试；浏览器主流程（成员编辑 → 公开读回）；独立复审 PASS。
+
+## Writeback
+
+- feature registry（People 相关条目）与 current-state 写回；本 checklist 归档。
+
+## Current gate
+
+- [x] 用户批准 Batch 2 启动并冻结本批合同（2026-08-12，scope/no-go/invariants 冻结）。
+- [ ] schema 字段设计批准（schema 门禁）。
+- [ ] migration apply（Preview/Production 分别批准）。
+- [ ] 实现与独立复审完成后，preview/merge/push/production-deploy 分别批准。

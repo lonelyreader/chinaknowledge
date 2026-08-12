@@ -14,15 +14,21 @@ max_lines: 80
 
 Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.md) 记录；Site Infrastructure 的批次与依赖由 [`Site Infrastructure 父级清单`](../site-infrastructure-program.md) 记录；父级均不授权实现。
 
-当前 active（Site Infrastructure Batch 1，可并行）：
+Batch 1 收尾（代码已上线，剩验收归档）：
 
-- [`INFRA-TOKENS-001`](design-token-architecture.md)：Design token 化与样式架构重构，视觉零变化。
-- [`INFRA-BODY-MEDIA-001`](article-body-media.md)：正文图片与白名单 embed 能力（upgraded）。
-- [`DESIGN-DIRECTION-001`](design-direction-revision.md)：DESIGN.md 桥梁化方向修订与 ADR。
+- [`INFRA-TOKENS-001`](design-token-architecture.md)：token 化重构，验收全过待归档。
+- [`DESIGN-DIRECTION-001`](design-direction-revision.md)：设计方向修订，验收全过待归档。
+- [`INFRA-BODY-MEDIA-001`](article-body-media.md)：正文媒体能力（upgraded），剩 Preview/生产验收。
+- [`INFRA-BODY-MEDIA-002`](article-body-media-002.md)：媒体权限收敛（upgraded），已部署剩生产验收。
 
-当前 active（Batch 2 提前项）：
+当前 active（Site Infrastructure Batch 2，可并行，合并顺序见父级）：
 
-- [`INFRA-BODY-MEDIA-002`](article-body-media-002.md)：正文媒体权限收敛与发布管道补全（upgraded，001 复审 F1/F2/F4）。
+- [`INFRA-RETHEME-001`](site-retheme-song.md)：宋式视觉换装，token 值切换。
+- [`INFRA-ARTICLE-TEMPLATE-001`](article-page-template.md)：文章页模板（upgraded）。
+- [`INFRA-OG-001`](dynamic-og-cover-fallback.md)：动态 OG 与封面兜底。
+- [`INFRA-AGENT-MEDIA-001`](agent-media-tools.md)：Agent 媒体工具与正文 V2（upgraded）。
+- [`INFRA-PERSON-PAGE-001`](person-page-expansion.md)：Person 页扩展与正式名片（upgraded）。
+- [`INFRA-FEEDS-001`](feeds-structured-data.md)：Feed 与结构化数据。
 
 非紧急收尾：
 
