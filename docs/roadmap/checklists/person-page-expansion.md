@@ -66,6 +66,6 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 ## Current gate
 
 - [x] 用户批准 Batch 2 启动并冻结本批合同（2026-08-12，scope/no-go/invariants 冻结）。
-- [ ] schema 字段设计批准（schema 门禁）。
+- [x] schema 字段设计批准（2026-08-12）：`nameZh`（成员自管）、`editorialBio`/`editorialBioEs`（richText，Editor+）、`verdict`/`verdictEs`（text，Editor+）、`quote`/`quoteEs`（text，成员自管）、`canHelpWith`/`canHelpWithEs`（array(text)，成员自管）；全部可空无回填；近期动态由公开文章聚合不加字段；links 缺 discord 选项则补。
 - [ ] migration apply（Preview/Production 分别批准）。
 - [ ] 实现与独立复审完成后，preview/merge/push/production-deploy 分别批准。
