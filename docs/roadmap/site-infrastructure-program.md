@@ -102,6 +102,7 @@ flowchart LR
 - 关键路径：`apps/web/src/app/(frontend)/[locale]/posts/**`、`apps/web/src/components/**`；不改 schema 与权限。
 - 验收要点：桌面与 390px 无溢出；作者卡链接进 Person；模块在无数据时整体隐藏而非留空。
 - 吸收 BODY-MEDIA-001 复审 F3：公开渲染器补 HorizontalRule/Checklist/Align/Indent 的呈现或明确降级决定。
+- 复审 finding（2026-08-12 PASS，不阻断，后续路由依据）：`GuideArticleByline` 死导出与 `articleCopy`/Discord 常量重复宜后续清理；无封面文章从兜底封面改为纯排版开场属可见变化，合并评审时确认；汉字衬线栈字面值路由 RETHEME-001。
 
 ### INFRA-OG-001（base）
 
