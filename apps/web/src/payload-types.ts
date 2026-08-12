@@ -173,19 +173,75 @@ export interface User {
 export interface Person {
   id: number;
   name: string;
+  nameZh?: string | null;
   portrait?: (number | null) | Media;
   languages?: ('en' | 'es')[] | null;
   topics?: (number | Taxonomy)[] | null;
   identity?: string | null;
   city?: string | null;
   introduction?: string | null;
+  quote?: string | null;
+  canHelpWith?:
+    | {
+        item: string;
+        id?: string | null;
+      }[]
+    | null;
+  editorialBio?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  verdict?: string | null;
   identityEs?: string | null;
   cityEs?: string | null;
   introductionEs?: string | null;
+  quoteEs?: string | null;
+  canHelpWithEs?:
+    | {
+        item: string;
+        id?: string | null;
+      }[]
+    | null;
+  editorialBioEs?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  verdictEs?: string | null;
   links?:
     | {
         type:
-          'personal_site' | 'newsletter' | 'youtube' | 'linkedin' | 'x' | 'instagram' | 'github' | 'email' | 'other';
+          | 'personal_site'
+          | 'newsletter'
+          | 'youtube'
+          | 'linkedin'
+          | 'x'
+          | 'instagram'
+          | 'github'
+          | 'discord'
+          | 'email'
+          | 'other';
         label: string;
         labelEs?: string | null;
         url: string;
@@ -689,15 +745,34 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface PeopleSelect<T extends boolean = true> {
   name?: T;
+  nameZh?: T;
   portrait?: T;
   languages?: T;
   topics?: T;
   identity?: T;
   city?: T;
   introduction?: T;
+  quote?: T;
+  canHelpWith?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
+  editorialBio?: T;
+  verdict?: T;
   identityEs?: T;
   cityEs?: T;
   introductionEs?: T;
+  quoteEs?: T;
+  canHelpWithEs?:
+    | T
+    | {
+        item?: T;
+        id?: T;
+      };
+  editorialBioEs?: T;
+  verdictEs?: T;
   links?:
     | T
     | {

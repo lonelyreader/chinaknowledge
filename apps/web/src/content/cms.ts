@@ -17,14 +17,26 @@ export type PublishedCMSImage = {
 };
 
 export type PublishedCMSPerson = {
+  /** Plain-text third-person editorial biography (byline/author-card shape). */
+  bioThirdPerson?: string;
+  canHelpWith: string[];
   city: string;
   contribution?: PublishedCMSArticleSummary;
+  /** Member-owned Discord contact line; absent without a discord link. */
+  discordLine?: string;
+  /** Localized richText editorial biography for the person page renderer. */
+  editorialBio: Person["editorialBio"] | null;
+  /** Localized editorial epithet (roster line, byline, OG description). */
+  epithet?: string;
+  /** Member's hanzi name for the seal/signature system. */
+  hanziName?: string;
   identity: string;
   image: PublishedCMSImage;
   introduction: string;
   languages: ("en" | "es")[];
   links: { label: string; type: string; url: string }[];
   name: string;
+  quote: string | null;
   slug: string;
   spotlightExcluded: boolean;
   spotlightPinnedUntil: string | null;
@@ -121,26 +133,96 @@ function safeExternalURL(value: string, type?: string | null) {
   }
 }
 
+function richTextNodeHasContent(node: { children?: unknown; text?: unknown; type?: unknown }): boolean {
+  if (typeof node.text === "string" && node.text.trim()) return true;
+  if (node.type === "upload" || node.type === "block") return true;
+  return Array.isArray(node.children)
+    && node.children.some((child) => child && typeof child === "object" && richTextNodeHasContent(child));
+}
+
+// Localized richText with the site-wide "es falls back to en" rule; empty
+// documents (an empty root produced by touching the editor) count as missing.
+function localizedRichText(en: Person["editorialBio"], es: Person["editorialBio"], locale: Locale) {
+  const candidates = locale === "es" ? [es, en] : [en];
+  for (const value of candidates) {
+    if (value?.root && richTextNodeHasContent(value.root)) return value;
+  }
+  return null;
+}
+
+function localizedLine(en: string | null | undefined, es: string | null | undefined, locale: Locale) {
+  const value = locale === "es" ? es || en : en;
+  return value?.trim() || null;
+}
+
+function localizedItems(
+  en: { item: string }[] | null | undefined,
+  es: { item: string }[] | null | undefined,
+  locale: Locale,
+) {
+  const rows = locale === "es" && es?.length ? es : en;
+  return (rows ?? []).flatMap((row) => (row.item?.trim() ? [row.item.trim()] : []));
+}
+
+function richTextPlainText(node: { children?: unknown; text?: unknown; type?: unknown }): string {
+  if (typeof node.text === "string") return node.text;
+  if (!Array.isArray(node.children)) return "";
+  const parts = node.children
+    .map((child) => (child && typeof child === "object" ? richTextPlainText(child) : ""));
+  // Blocks under the root read as separate sentences; inline nodes concatenate.
+  return node.type === "root"
+    ? parts.map((part) => part.trim()).filter(Boolean).join(" ")
+    : parts.join("");
+}
+
+// Member-owned contact line (DESIGN §5): the member is the subject; the line
+// exists only when the member lists a discord link.
+function discordContactLine(name: string, topics: string[], locale: Locale) {
+  const topicList = topics.slice(0, 3).join(", ");
+  if (locale === "es") {
+    return topicList
+      ? `${name} responde preguntas sobre ${topicList} en Discord.`
+      : `${name} responde preguntas en Discord.`;
+  }
+  return topicList
+    ? `${name} answers questions about ${topicList} on Discord.`
+    : `${name} answers questions on Discord.`;
+}
+
 function personBase(person: Person, locale: Locale): Omit<PublishedCMSPerson, "contribution"> | null {
   const image = publicImage(person.portrait);
   if (!image || !person.city || !person.identity || !person.introduction || !person.languages?.length || !person.slug) return null;
+  const editorialBio = localizedRichText(person.editorialBio, person.editorialBioEs, locale);
+  const bioThirdPerson = editorialBio ? richTextPlainText(editorialBio.root).trim() : "";
+  const epithet = localizedLine(person.verdict, person.verdictEs, locale);
+  const hanziName = person.nameZh?.trim();
+  const topics = taxonomyNames(person.topics);
+  const links = (person.links ?? []).flatMap((link) => {
+    const type = link.type || "personal_site";
+    const url = safeExternalURL(link.url, type);
+    const label = locale === "es" ? link.labelEs || link.label : link.label;
+    return url ? [{ label, type, url }] : [];
+  });
+  const hasDiscord = links.some((link) => link.type === "discord");
   return {
+    ...(bioThirdPerson ? { bioThirdPerson } : {}),
+    canHelpWith: localizedItems(person.canHelpWith, person.canHelpWithEs, locale),
     city: locale === "es" ? person.cityEs || person.city : person.city,
+    ...(hasDiscord ? { discordLine: discordContactLine(person.name, topics, locale) } : {}),
+    editorialBio,
+    ...(epithet ? { epithet } : {}),
+    ...(hanziName ? { hanziName } : {}),
     identity: locale === "es" ? person.identityEs || person.identity : person.identity,
     image,
     introduction: locale === "es" ? person.introductionEs || person.introduction : person.introduction,
     languages: person.languages,
-    links: (person.links ?? []).flatMap((link) => {
-      const type = link.type || "personal_site";
-      const url = safeExternalURL(link.url, type);
-      const label = locale === "es" ? link.labelEs || link.label : link.label;
-      return url ? [{ label, type, url }] : [];
-    }),
+    links,
     name: person.name,
+    quote: localizedLine(person.quote, person.quoteEs, locale),
     slug: person.slug,
     spotlightExcluded: person.spotlightExcluded ?? false,
     spotlightPinnedUntil: person.spotlightPinnedUntil ?? null,
-    topics: taxonomyNames(person.topics),
+    topics,
   };
 }
 

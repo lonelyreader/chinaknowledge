@@ -49,10 +49,10 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 
 ## Acceptance
 
-- [ ] schema 设计经批准后实现；migration 本地 apply + 回滚测试通过。
-- [ ] 成员经 My profile 维护长自述与「我能帮什么」，公开页正确渲染；判词仅 Editor 可写并在索引页呈现。
-- [ ] 未公开 Person 不因新字段泄露；权限负例被拒。
-- [ ] 全部新区块无数据时整体隐藏；桌面与 390px 无溢出；EN/ES 回退正确。
+- [x] schema 设计经批准后实现；migration 本地 apply + 回滚测试通过（2026-08-12，含批次隔离 up/down 与 recovery 测试）。
+- [ ] 成员经 My profile 维护长自述与「我能帮什么」，公开页正确渲染；判词仅 Editor 可写并在索引页呈现（写路径与读映射已由本地 API 测试验证；浏览器主流程 pending）。
+- [x] 未公开 Person 不因新字段泄露；权限负例被拒（2026-08-12 负例脚本 PASS，见证据）。
+- [ ] 全部新区块无数据时整体隐藏；桌面与 390px 无溢出；EN/ES 回退正确（隐藏逻辑与 EN/ES 回退已验证；视口无溢出待浏览器验证）。
 
 ## Validation
 
@@ -67,5 +67,6 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 
 - [x] 用户批准 Batch 2 启动并冻结本批合同（2026-08-12，scope/no-go/invariants 冻结）。
 - [x] schema 字段设计批准（2026-08-12）：`nameZh`（成员自管）、`editorialBio`/`editorialBioEs`（richText，Editor+）、`verdict`/`verdictEs`（text，Editor+）、`quote`/`quoteEs`（text，成员自管）、`canHelpWith`/`canHelpWithEs`（array(text)，成员自管）；全部可空无回填；近期动态由公开文章聚合不加字段；links 缺 discord 选项则补。
-- [ ] migration apply（Preview/Production 分别批准）。
+- [x] 实现完成于分支 `infra/person-page-001`（2026-08-12）：schema、migration 文件、公开页重构、判词名录、cms.ts 单字段映射（ARTICLE-TEMPLATE-001 接口）；本地证据见 [`person-page-001-local-runtime-2026-08-12.md`](../../reference/implementation/person-page-001-local-runtime-2026-08-12.md)。
+- [ ] migration apply（Preview/Production 分别批准）；build 与浏览器验证（桌面/390px、成员编辑→公开读回）随合并评审执行。
 - [ ] 实现与独立复审完成后，preview/merge/push/production-deploy 分别批准。
