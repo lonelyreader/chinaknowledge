@@ -120,6 +120,7 @@ flowchart LR
 - 目标：`AgentArticleBodyV2` 增加 image（引用本人已上传 media）与 embed 块；新增 `media_upload`（走唯一 pathname 直传管道）、`article_set_cover`；`article_preview` 返回缺封面/摘要/标题层级预检。
 - 关键路径：`apps/web/src/agent/**`、`Media.ts` 访问规则复用；服务端校验媒体归属。
 - 不变量：不能引用他人媒体；不支持的节点显式报错不静默丢弃。
+- 复审 finding（2026-08-12 PASS，不阻断，后续路由依据）：`tests/agent-live.ts` 的 9 工具硬断言未更新（不在 allowed_paths，Preview 批次一并改）；createDraft 拒绝路径审计记 `failed` 而非 `denied`（既有模式，宜后续统一）；新工具幂等重放分支无直接测试；mimeType 仅声明校验与网页侧 parity。
 
 ### INFRA-PERSON-PAGE-001（upgraded：schema 与个人数据面）
 

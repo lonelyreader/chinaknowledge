@@ -66,4 +66,6 @@ approval_gates: preview, production-deploy, commit, merge, push
 ## Current gate
 
 - [x] 用户批准 Batch 2 启动并冻结本批合同（2026-08-12，scope/no-go/invariants 冻结）。
-- [ ] 实现与独立复审完成后，preview/merge/push/production-deploy 分别批准。
+- [x] 实现完成并提交 worktree 分支 `infra/agent-media-001`（`d04510d`，10 files +947/−49）。
+- [x] 独立复审 PASS（2026-08-12，非实现者；四类权限负例/归属校验/V1 兼容/白名单一致/审计幂等/无 schema 变更/allowed_paths 全过；5 项不阻断 finding 已路由父级，含 `tests/agent-live.ts` 工具清单断言待 Preview 批次更新）。
+- [ ] preview/merge/push/production-deploy 分别批准。
