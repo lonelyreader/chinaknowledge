@@ -18,8 +18,6 @@ max_lines: 100
 
 | 工作项 | 交付目标 |
 |---|---|
-| [`INFRA-TOKENS-001`](checklists/design-token-architecture.md) | token 化重构（Batch 1 收尾，待归档） |
-| [`DESIGN-DIRECTION-001`](checklists/design-direction-revision.md) | 设计方向修订（Batch 1 收尾，待归档） |
 | [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文媒体能力（剩 Preview/生产验收） |
 | [`INFRA-BODY-MEDIA-002`](checklists/article-body-media-002.md) | 媒体权限收敛（已部署，剩生产验收） |
 | [`INFRA-RETHEME-001`](checklists/site-retheme-song.md) | 宋式视觉换装：token 值切换 |

@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: design-token-architecture
 last_verified: 2026-08-11
 max_lines: 120
@@ -17,7 +17,7 @@ approval_gates: commit, merge, push, production-deploy
 
 目标：把 DESIGN.md 的色彩、字体、间距与 motion 合同抽成可复用 token（Tailwind v4 `@theme`），将 1,439 行单体 `globals.css` 分解为 token 层 + 组件级样式，**公开页面视觉零变化**。本项是一切后续视觉迭代的架构前置。
 
-父级：[`Site Infrastructure Program`](../site-infrastructure-program.md)。
+父级：[`Site Infrastructure Program`](../roadmap/site-infrastructure-program.md)。
 
 ## Scope
 
@@ -38,7 +38,7 @@ approval_gates: commit, merge, push, production-deploy
 - [x] token 层建立且所有颜色/字体/间距硬编码值收敛到 token 引用（81 token，残留字面值扫描为零）。
 - [x] `globals.css` 主体拆分完成，总体样式行数不升（1439 → 1258 行；曾被并行迁移误还原，2026-08-11 从编译产物重建恢复，产物字节级一致）。
 - [x] 七类页面（含 Stories、Newsletter；文章详情因库内无公开文章以 Person/列表页代偿）在 1440px 与 390px 前后截图逐像素一致，hover/focus 态抽查一致（2026-08-11，编译 CSS 路由拦截对比法）。
-- [x] 样式架构说明写入 [`docs/reference/style-architecture.md`](../../reference/style-architecture.md)（含 token 对照审计表与 findings）。
+- [x] 样式架构说明写入 [`docs/reference/style-architecture.md`](../reference/style-architecture.md)（含 token 对照审计表与 findings）。
 
 ## Validation
 

@@ -63,9 +63,9 @@ flowchart LR
 | ID | 批次 | 状态 | 目标 | 阻塞于 |
 |---|---|---|---|---|
 | `INFRA-MEASURE-001` | 1 | done | Web Analytics 与 GSC 已上线，[已归档](../archive/site-measurement-foundation.md)；Bing 注册 deferred（2026-08-12 用户决定） | 无 |
-| `INFRA-TOKENS-001` | 1 | active | 设计 token 化与样式架构重构，视觉零变化 | 无 |
-| `INFRA-BODY-MEDIA-001` | 1 | active | 正文图片与白名单 embed 能力 | 无 |
-| `DESIGN-DIRECTION-001` | 1 | active | DESIGN.md 桥梁化方向修订与 ADR | 无 |
+| `INFRA-TOKENS-001` | 1 | done | token 化重构上线，[已归档](../archive/design-token-architecture.md)；`globals.css` 修改权移交 RETHEME | 无 |
+| `INFRA-BODY-MEDIA-001` | 1 | active | 正文媒体能力已上线，剩 Preview/生产验收后归档 | 无 |
+| `DESIGN-DIRECTION-001` | 1 | done | 宋式方向写入 DESIGN.md 与 ADR-0011，[已归档](../archive/design-direction-revision.md) | 无 |
 | `INFRA-RETHEME-001` | 2 | active | 宋式视觉换装：token 值切换到 DESIGN.md 宋式定值，[checklist](checklists/site-retheme-song.md) | 无（DESIGN-DIRECTION 已完成） |
 | `INFRA-ARTICLE-TEMPLATE-001` | 2 | active | 文章页模板：目录、排版、印章署名、文末路由模块，[checklist](checklists/article-page-template.md) | 无（合并顺序在 RETHEME 后） |
 | `INFRA-OG-001` | 2 | active | 动态 OG 图生成与封面兜底视觉系统，[checklist](checklists/dynamic-og-cover-fallback.md) | 无 |

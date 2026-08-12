@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: design-direction-revision
 last_verified: 2026-08-11
 max_lines: 120
@@ -17,7 +17,7 @@ approval_gates: design-direction-acceptance, commit, merge, push
 
 目标：修订 DESIGN.md 的方向性条款，把「克制的编辑出版物」校准为「通往真实的人的桥梁与路由器」，并以 ADR 固化决定。本项只改文档，是 ARTICLE-TEMPLATE、PERSON-PAGE、HOME 三个公开面子级的合同前置。
 
-父级：[`Site Infrastructure Program`](../site-infrastructure-program.md)。
+父级：[`Site Infrastructure Program`](../roadmap/site-infrastructure-program.md)。
 
 ## 修订议题（2026-08-11 产品负责人已逐条接受）
 
