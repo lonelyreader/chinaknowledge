@@ -20,12 +20,15 @@ import {
   lexicalToAgentBodyV2,
   UnsupportedAgentContentError,
 } from "../src/agent/content";
-import { articleRevisionMatches, createArticleRevision } from "../src/agent/revision";
+import { articleRevisionMatches, createArticleRevision, createPersonRevision, personRevisionMatches } from "../src/agent/revision";
 import {
+  createProfilePublicationConfirmation,
   createPublicationConfirmation,
   createSiteSelectionConfirmation,
   PublicationConfirmationError,
   publicationConfirmationDigest,
+  profilePublicationConfirmationDigest,
+  readProfilePublicationConfirmation,
   readPublicationConfirmation,
   readSiteSelectionConfirmation,
   siteSelectionConfirmationDigest,
@@ -165,9 +168,32 @@ for (const description of Object.values(agentToolDescriptions)) {
   assert.ok(description.length > 40);
   assert.ok(description.length <= 512);
 }
-assert.equal(Object.keys(agentToolDescriptions).length, 16);
+assert.equal(Object.keys(agentToolDescriptions).length, 23);
 assert.ok(agentToolDescriptions.media_upload);
 assert.ok(agentToolDescriptions.article_set_cover);
+assert.ok(agentToolDescriptions.my_profile_get);
+assert.ok(agentToolDescriptions.my_links_save);
+assert.ok(agentToolDescriptions.article_create_translation_draft);
+
+const personSource = {
+  id: 8,
+  updatedAt: "2026-08-16T09:00:00.000Z",
+  name: "Fixture Member",
+  portrait: { id: 31 },
+  topics: [{ id: 11 }],
+  languages: ["en"],
+  identity: "Writer",
+  city: "Shanghai",
+  introduction: "Fixture introduction",
+  canHelpWith: [{ id: "payload-row-a", item: "Research" }],
+  links: [{ id: "payload-row-b", type: "x", label: "X", url: "https://x.com/fixture" }],
+  profileStatus: "draft",
+};
+const personRevision = createPersonRevision(personSource);
+assert.match(personRevision, /^rev1_[A-Za-z0-9_-]{43}$/);
+assert.equal(personRevisionMatches(personRevision, { ...personSource, canHelpWith: [{ id: "different-row", item: "Research" }], links: [{ id: "different-link-row", type: "x", label: "X", url: "https://x.com/fixture" }] }), true);
+assert.equal(personRevisionMatches(personRevision, { ...personSource, profileStatus: "public" }), false);
+assert.equal(personRevisionMatches(personRevision, { ...personSource, portrait: { id: 32 } }), false);
 
 const confirmationSecret = "fixture-publication-secret-at-least-32-characters";
 const confirmationPayload = {
@@ -218,6 +244,29 @@ assert.throws(
   () => readSiteSelectionConfirmation(`${siteSelectionConfirmation.slice(0, -1)}x`, { secret: confirmationSecret }),
   PublicationConfirmationError,
 );
+
+const profileConfirmationPayload = {
+  action: "publish" as const,
+  connectionId: 7,
+  exp: Date.now() + 60_000,
+  jti: randomUUID(),
+  personId: 8,
+  revision: personRevision,
+  role: "author" as const,
+  targetStatus: "public" as const,
+  userId: 9,
+  v: 1 as const,
+};
+const profileConfirmation = createProfilePublicationConfirmation(profileConfirmationPayload, confirmationSecret);
+assert.deepEqual(readProfilePublicationConfirmation(profileConfirmation, { secret: confirmationSecret }), profileConfirmationPayload);
+assert.match(profilePublicationConfirmationDigest(profileConfirmation), /^profile_confirm_[A-Za-z0-9_-]{43}$/);
+assert.throws(() => readProfilePublicationConfirmation(`${profileConfirmation.slice(0, -1)}x`, { secret: confirmationSecret }), PublicationConfirmationError);
+assert.throws(
+  () => readProfilePublicationConfirmation(profileConfirmation, { now: profileConfirmationPayload.exp + 1, secret: confirmationSecret }),
+  (error: unknown) => error instanceof PublicationConfirmationError && error.reason === "expired",
+);
+assert.throws(() => readPublicationConfirmation(profileConfirmation, { secret: confirmationSecret }), PublicationConfirmationError);
+assert.throws(() => readProfilePublicationConfirmation(confirmation, { secret: confirmationSecret }), PublicationConfirmationError);
 assert.throws(
   () => readSiteSelectionConfirmation(siteSelectionConfirmation, { now: siteSelectionPayload.exp + 1, secret: confirmationSecret }),
   (error: unknown) => error instanceof PublicationConfirmationError && error.reason === "expired",

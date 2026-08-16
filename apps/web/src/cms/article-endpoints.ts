@@ -2,6 +2,7 @@ import { APIError, type Endpoint } from "payload";
 
 import { commitEditorialSiteSelection } from "./article-curation";
 import { commitMemberPublication } from "./article-publication";
+import { createArticleTranslationDraft } from "./article-translation";
 import { hasEditorialRole, isCMSUser, isSuperAdmin } from "./roles";
 import { isCurationStatus, isPublicationStatus } from "./workflow";
 import { createEditorialNotificationEvent } from "./editorial-notifications";
@@ -97,69 +98,11 @@ export const createArticleTranslationEndpoint: Endpoint = {
     if (typeof id !== "string" && typeof id !== "number") {
       throw new APIError("Article ID is required.", 400);
     }
-    const source = await req.payload.findByID({
-      collection: "articles",
-      id,
-      depth: 0,
-      draft: true,
-      overrideAccess: true,
-      req,
-    });
-    if (source.authorshipType === "site") {
-      if (!hasEditorialRole(req.user)) throw new APIError("Editor access is required.", 403);
-      throw new APIError("Site translations are created from the approved Chinese master.", 409);
-    }
-    if (relationID(source.owner) !== req.user.id) {
-      throw new APIError("Only the member can add a translation of this article.", 403);
-    }
-    const targetLocale = source.locale === "es" ? "en" : "es";
-    const existing = await req.payload.find({
-      collection: "articles",
-      depth: 0,
-      limit: 1,
-      overrideAccess: true,
-      pagination: false,
-      req,
-      where: {
-        and: [
-          { translationGroup: { equals: source.translationGroup } },
-          { locale: { equals: targetLocale } },
-        ],
-      },
-    });
-    if (existing.docs[0]) {
-      return Response.json({
-        id: existing.docs[0].id,
-        url: `/admin/collections/articles/${existing.docs[0].id}`,
-      });
-    }
-    const slugMatches = await req.payload.count({
-      collection: "articles",
-      overrideAccess: true,
-      req,
-      where: {
-        and: [
-          { locale: { equals: targetLocale } },
-          { slug: { equals: source.slug } },
-        ],
-      },
-    });
-    const article = await req.payload.create({
-      collection: "articles",
-      data: {
-        body: source.body,
-        coverImage: relationID(source.coverImage),
-        locale: targetLocale,
-        slug: slugMatches.totalDocs === 0 ? source.slug : `${source.slug}-${targetLocale}`,
-        summary: source.summary,
-        title: source.title,
-        translationGroup: source.translationGroup,
-      },
-      draft: true,
-      overrideAccess: false,
-      req,
-    });
-    return Response.json({ id: article.id, url: `/admin/collections/articles/${article.id}` }, { status: 201 });
+    const result = await createArticleTranslationDraft(id, req);
+    return Response.json(
+      { id: result.article.id, url: `/admin/collections/articles/${result.article.id}` },
+      { status: result.created ? 201 : 200 },
+    );
   },
 };
 

@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-16
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:0d6d8cb27033337618aa8d1c0bd73cc63b59896f7d921b9f4b7cdce1c7aaecf6
+implementation_fingerprint: sha256:04d7aae5e17003e7acc57e215657797c201a516e8e1d8bbf48735adf5bda54ac
 ---
 
 # App 功能登记册
@@ -56,13 +56,13 @@ Member 是有后台账户并关联 Person 的内容作者。文章公开由本�
 | MEM-08 | 登录态预览 | 在公开前预览自己的文章和 Person；预览页不会被搜索引擎索引 | Article/Person 的 Preview |
 | MEM-09 | 个人发布 | 将草稿直接公开、更新公开文章、撤回或重新公开 | Article 的 Personal publication；未被站方选择也有稳定公开页 |
 | MEM-10 | 原作者身份保护 | 无论站方怎样编辑或分类，公开署名仍指向原 Member，文章仍是一条记录 | 所有 Article；Member 不能把文章改成他人作品 |
-| MEM-11 | 双语文章关联 | 为自己的 English 文章建立 Español 版本，或反向建立 English 版本 | Article 的 Add English/Spanish version；两种语言独立保存和公开 |
+| MEM-11 | 双语文章关联 | 为自己的 English 文章建立 Español 版本，或反向建立 English 版本 | Article 的 Add English/Spanish version；007 Local Agent 也可从本人 Article 建立唯一的另一语言私有 draft；两种语言独立保存和公开 |
 | MEM-12 | My profile | 持久进入自己的 Person 编辑页，不必在 People 全量列表中寻找自己 | 后台主导航 My profile |
-| MEM-13 | 双语个人资料 | 维护共享姓名、汉字姓名、头像、语言、主题，以及英语/西语的身份、地点、介绍、本人引语和「能帮什么」 | My profile 的 Profile、English、Español 分区；编辑传记与判词只由 Editor 维护 |
+| MEM-13 | 双语个人资料 | 维护共享姓名、汉字姓名、头像、语言、主题，以及英语/西语的身份、地点、介绍、本人引语和「能帮什么」 | My profile 的 Profile、English、Español 分区；007 Local Agent 只保存本人同一白名单；编辑传记与判词只由 Editor 维护 |
 | MEM-14 | 头像管理 | 在个人页内上传、预览、替换、编辑或移除头像，并填写图片说明 | My profile；站方是否把媒体用于策展入口由 Editor 另行确认 |
-| MEM-15 | 个人外链 | 最多维护 8 个个人网站、Newsletter、社交、Email 或其他链接；可改标签、顺序和删除 | My profile 的 Links；网页限 http/https，Email 限 mailto |
-| MEM-16 | 个人页公开控制 | 预览、公开或转为不公开自己的 Person | Profile 动作区；有公开文章时需先撤回文章，被 Super Admin 暂停时不能自行恢复 |
-| MEM-17 | 私有内容隔离 | 读取和修改自己的草稿、版本及未采用媒体，但不能读取其他 Member 的私有内容 | 后台和 API 均由服务端校验 |
+| MEM-15 | 个人外链 | 最多维护 8 个个人网站、Newsletter、社交、Email 或其他链接；可改标签、顺序和删除 | My profile 的 Links；007 Local Agent 支持同一完整列表与 X；网页和 Agent 普通链接限 http/https，Email 限 mailto |
+| MEM-16 | 个人页公开控制 | 预览、公开或转为不公开自己的 Person | Profile 动作区；007 Local Agent 从资料读取返回 Preview path，可见状态只经 prepare/commit；有公开文章时需先撤回文章，被 Super Admin 暂停时不能自行恢复 |
+| MEM-17 | 私有内容隔离 | 读取和修改自己的草稿、版本及未采用媒体，但不能读取其他 Member 的私有内容 | 后台和 API 均由服务端校验；007 Local Agent 的 Profile、媒体、文章与 translation 工具固定当前 Person/owner |
 | MEM-18 | 站方变更通知 | 在文章被选择、重大编辑、需要复核或撤出时接收事务邮件 | 邮件发送失败不回滚文章状态，可由站方安全重试 |
 
 ## Editor（站方编辑）
@@ -121,7 +121,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-10 | 批量账户准备 | 从受控 JSON 预检或建立 Member/Editor；限制字段、批量规模和冲突 | `cms:provision-accounts`，默认 dry-run |
 | OPS-11 | 搜索索引开关 | 只有明确启用的 Production 可索引；Preview 和预览内容保持 noindex | 环境变量、robots、页面 metadata |
 | OPS-12 | 自动质量门禁 | PR 自动运行治理、功能登记同步、环境、migration、编辑权限、Newsletter、lint、typecheck、依赖审计、build 和公共路由 smoke | GitHub Preview checks |
-| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、图片上传、封面设置、发布、策展和最小审计工具，并随时撤销连接；正文支持文本合同 V1 与含本人图片、YouTube 嵌入的 V2，预览工具随发布预检返回缺封面、缺摘要、标题跳级和正文媒体归属 warning | Production `/api/agent/*`；WorkBuddy、Cursor 与 Codex 已完成真实客户端兼容验收，Claude、Gemini 目前只提供配置 adapter；不支持 TRAE 或静态 API key。公共动作继续要求服务器确认、revision、幂等、审计与 readback；`media_upload`、`article_set_cover` 与 V2 正文复用唯一文件名直传管线和媒体归属规则（他人未公开媒体、跨成员文章、暂停账户均被拒），为 INFRA-AGENT-MEDIA-001 新增，已通过本地合同与权限负例测试，Preview/Production 验收待批 |
+| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、本人资料与外链、本人媒体发现、双语 draft、图片上传、封面设置、个人发布、策展和最小审计工具，并随时撤销连接；正文支持文本合同 V1 与含本人图片、YouTube 嵌入的 V2 | Production `/api/agent/*` 仍为 14 个工具；WorkBuddy、Cursor 与 Codex 已完成既有真实客户端兼容验收。Local main 的媒体批次为 16 个工具；007 分支为 23 个，按当前服务端 User 角色注册并在每次调用重检 connection、client、Person、owner、revision、幂等与确认。007 已通过 Local scratch 与回归，独立复审和 Preview/Production 待执行；不支持 TRAE、静态 API key、任意 CRUD、自动翻译或 Agent 账户管理 |
 | OPS-14 | 冷启动批次 | 为空环境补齐六个核心 Purpose，从受控 JSONL 幂等写入通过 `DetailedGuideV1` 门槛的中文母稿，按内容 hash 写入人工批准，再建立英西翻译并检查结构、数字、链接与来源一致性 | `cms:provision-core-taxonomies`、`cms:import-cold-start`、`cms:rebind-cold-start-release`、`cms:apply-cold-start-review`、`cms:build-cold-start-translations` 与 `cms:import-cold-start-translations`；跨环境只在已批准 hash 与译文源一致且中文标题、摘要、正文逐项相同后重绑目标 ID/hash。导入不自动公开；Super Admin 可用 MCP `editorial_release_site_article_batch` 对明确批准的 1–20 条站方 Article 逐篇执行发布、精选、幂等与读回 |
 | OPS-15 | 站点测量 | 以无 cookie 的匿名聚合统计查看站点流量，并经搜索引擎工具监测索引与 sitemap 状态 | Vercel Web Analytics（前台 layout `<Analytics />`，隐私政策如实披露）；GSC 域名资源经 Vercel DNS TXT 验证并已提交 sitemap；Bing 暂缓 |
 

@@ -26,6 +26,19 @@ export type SiteSelectionConfirmationPayload = {
   v: 1;
 };
 
+export type ProfilePublicationConfirmationPayload = {
+  action: "publish" | "withdraw";
+  connectionId: number;
+  exp: number;
+  jti: string;
+  personId: number;
+  revision: string;
+  role: "author" | "editor" | "super_admin";
+  targetStatus: "draft" | "public";
+  userId: number;
+  v: 1;
+};
+
 export class PublicationConfirmationError extends Error {
   constructor(readonly reason: "expired" | "invalid", message: string) {
     super(message);
@@ -45,6 +58,10 @@ function signature(encoded: string, secret: string) {
 
 function siteSelectionSignature(encoded: string, secret: string) {
   return createHmac("sha256", secret).update(`agent-site-selection\0${encoded}`).digest("base64url");
+}
+
+function profilePublicationSignature(encoded: string, secret: string) {
+  return createHmac("sha256", secret).update(`agent-profile-publication\0${encoded}`).digest("base64url");
 }
 
 function validPayload(value: unknown): value is PublicationConfirmationPayload {
@@ -75,6 +92,21 @@ function validSiteSelectionPayload(value: unknown): value is SiteSelectionConfir
     && typeof payload.jti === "string" && /^[0-9a-f-]{36}$/.test(payload.jti)
     && typeof payload.revision === "string" && /^rev1_[A-Za-z0-9_-]{43}$/.test(payload.revision)
     && (payload.targetStatus === "curated" || payload.targetStatus === "removed");
+}
+
+function validProfilePublicationPayload(value: unknown): value is ProfilePublicationConfirmationPayload {
+  if (!value || typeof value !== "object") return false;
+  const payload = value as Partial<ProfilePublicationConfirmationPayload>;
+  return payload.v === 1
+    && Number.isInteger(payload.connectionId) && Number(payload.connectionId) > 0
+    && Number.isInteger(payload.personId) && Number(payload.personId) > 0
+    && Number.isInteger(payload.userId) && Number(payload.userId) > 0
+    && (payload.action === "publish" || payload.action === "withdraw")
+    && typeof payload.exp === "number" && Number.isFinite(payload.exp)
+    && typeof payload.jti === "string" && /^[0-9a-f-]{36}$/.test(payload.jti)
+    && typeof payload.revision === "string" && /^rev1_[A-Za-z0-9_-]{43}$/.test(payload.revision)
+    && (payload.role === "author" || payload.role === "editor" || payload.role === "super_admin")
+    && (payload.targetStatus === "draft" || payload.targetStatus === "public");
 }
 
 export function createPublicationConfirmation(
@@ -163,4 +195,48 @@ export function readSiteSelectionConfirmation(
 
 export function siteSelectionConfirmationDigest(token: string) {
   return `site_confirm_${createHash("sha256").update(token).digest("base64url")}`;
+}
+
+export function createProfilePublicationConfirmation(
+  payload: ProfilePublicationConfirmationPayload,
+  secret = publicationSecret(),
+) {
+  const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  return `cifp1.${encoded}.${profilePublicationSignature(encoded, publicationSecret(secret))}`;
+}
+
+export function readProfilePublicationConfirmation(
+  token: string,
+  options: { allowExpired?: boolean; now?: number; secret?: string } = {},
+) {
+  if (typeof token !== "string" || token.length > 2_048) {
+    throw new PublicationConfirmationError("invalid", "The profile publication confirmation is invalid.");
+  }
+  const [version, encoded, provided, ...rest] = token.split(".");
+  if (version !== "cifp1" || !encoded || !provided || rest.length) {
+    throw new PublicationConfirmationError("invalid", "The profile publication confirmation is invalid.");
+  }
+  const expected = profilePublicationSignature(encoded, publicationSecret(options.secret));
+  const expectedBytes = Buffer.from(expected);
+  const providedBytes = Buffer.from(provided);
+  if (expectedBytes.length !== providedBytes.length || !timingSafeEqual(expectedBytes, providedBytes)) {
+    throw new PublicationConfirmationError("invalid", "The profile publication confirmation is invalid.");
+  }
+  let payload: unknown;
+  try {
+    payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8"));
+  } catch {
+    throw new PublicationConfirmationError("invalid", "The profile publication confirmation is invalid.");
+  }
+  if (!validProfilePublicationPayload(payload)) {
+    throw new PublicationConfirmationError("invalid", "The profile publication confirmation is invalid.");
+  }
+  if (!options.allowExpired && payload.exp < (options.now ?? Date.now())) {
+    throw new PublicationConfirmationError("expired", "The profile publication confirmation expired. Prepare the action again.");
+  }
+  return payload;
+}
+
+export function profilePublicationConfirmationDigest(token: string) {
+  return `profile_confirm_${createHash("sha256").update(token).digest("base64url")}`;
 }

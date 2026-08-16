@@ -103,12 +103,26 @@ export const agentToolDescriptions = {
     "Return the current China, in Fact account, linked Person, role and account state. This is read-only. The server rechecks the account and Person relationship on every call.",
   capabilities_list:
     "List the China, in Fact tools currently allowed for this connection. Capabilities describe the present maximum only; every later call still checks account state, role and object ownership.",
+  my_profile_get:
+    "Return the current member's editable Person profile, links, publication state, completeness, public path, authenticated preview path and latest revision. This is read-only and never exposes another Person or editorial-only fields.",
+  my_profile_save:
+    "Save only the current member's allowed Person profile fields. The server derives the Person from the connection, validates portrait and topic relationships, and requires the latest revision plus an idempotency key. It cannot change links, ownership, slug, editorial fields or visibility.",
+  my_links_save:
+    "Replace the current member's ordered profile link list with 0-8 validated links. The server derives the Person from the connection and requires the latest revision plus an idempotency key. It cannot change profile content, ownership or visibility.",
+  my_profile_prepare_publication:
+    "Prepare making the current member's profile public or draft. It validates the current profile and returns an exact summary plus a short-lived one-time confirmation reference without changing profile visibility.",
+  my_profile_commit_publication:
+    "Execute a prepared profile visibility action only after explicit confirmation. The server rechecks the current connection, Person relationship, revision, profile requirements and public Article constraints before changing visibility.",
   my_articles_list:
-    "List the current member's own China, in Fact articles with minimal status, locale and revision fields. It never returns another member's private article or hidden editorial fields.",
+    "List a bounded page of the current member's own China, in Fact articles with status, locale, revision and translation-pair state. Optional locale and publication-status filters apply only within that member boundary.",
+  my_media_list:
+    "List a bounded page of images uploaded by the current member with safe metadata. It never returns another member's private upload or changes approval state.",
   article_get_working_copy:
     "Return one article owned by the current member as a working copy with locale and revision. The default AgentArticleBodyV1 body is text-only; request AgentArticleBodyV2 to include image and YouTube blocks. Unsupported rich-text nodes fail explicitly instead of being silently removed.",
   article_create_draft:
     "Create a private article draft for the current member. The server fixes owner, author, translation identity and initial states. Requires an idempotency key and never publishes content.",
+  article_create_translation_draft:
+    "Create the missing opposite-locale private draft for one Article owned by the current member, or return the existing paired draft. The server derives target locale and translation identity, serializes concurrent requests and requires an idempotency key.",
   article_save_draft:
     "Save allowed writing fields on a private article owned by the current member. Requires the latest revision and an idempotency key; stale revisions fail without overwriting newer work.",
   article_preview:

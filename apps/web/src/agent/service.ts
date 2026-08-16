@@ -10,11 +10,12 @@ import {
   initTransaction,
   killTransaction,
   APIError,
+  type Where,
   type Payload,
   type PayloadRequest,
 } from "payload";
 
-import type { AgentEvent, Article, Media, User, WorkflowEvent } from "@/payload-types";
+import type { AgentEvent, Article, Media, Person, User, WorkflowEvent } from "@/payload-types";
 import { extractYouTubeVideoID } from "@/collections/Articles";
 import {
   commitEditorialSiteSelection,
@@ -29,10 +30,18 @@ import {
   getLatestDraftArticle,
   prepareMemberPublication,
 } from "@/cms/article-publication";
+import { createArticleTranslationDraft } from "@/cms/article-translation";
 import { assertMediaAllowedForMemberPublication } from "@/cms/media-policy";
 import { uniqueMediaUploadFilename } from "@/cms/media-upload-filename";
+import { isValidEmailProfileLink, isValidWebProfileLink } from "@/cms/profile-links";
 import { collectRichTextUploadMediaIDs } from "@/cms/rich-text-media";
 import { hasEditorialRole, isSuperAdmin } from "@/cms/roles";
+import {
+  commitProfilePublication,
+  prepareProfilePublication,
+  type ProfilePublicationAction,
+  type ProfilePublicationTarget,
+} from "@/cms/profile-publication";
 
 import {
   agentBodyToLexical,
@@ -43,13 +52,17 @@ import {
 } from "./content";
 import {
   createPublicationConfirmation,
+  createProfilePublicationConfirmation,
   createSiteSelectionConfirmation,
   PublicationConfirmationError,
   publicationConfirmationDigest,
+  profilePublicationConfirmationDigest,
+  readProfilePublicationConfirmation,
   readSiteSelectionConfirmation,
   readPublicationConfirmation,
   siteSelectionConfirmationDigest,
   type PublicationConfirmationPayload,
+  type ProfilePublicationConfirmationPayload,
   type SiteSelectionConfirmationPayload,
 } from "./confirmation";
 import {
@@ -64,7 +77,7 @@ import {
   type AgentErrorCode,
   type AgentToolName,
 } from "./contracts";
-import { createArticleRevision } from "./revision";
+import { createArticleRevision, createPersonRevision } from "./revision";
 
 type Actor = {
   clientFamily: string;
@@ -77,8 +90,28 @@ type Actor = {
 
 type WriteContext = {
   idempotencyKey: string;
-  tool: "article_commit_publication" | "article_create_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_site_selection" | "media_upload";
+  tool: "article_commit_publication" | "article_create_draft" | "article_create_translation_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_site_selection" | "media_upload" | "my_links_save" | "my_profile_commit_publication" | "my_profile_save";
 };
+
+export type AgentProfilePatch = {
+  canHelpWith?: string[];
+  canHelpWithEs?: string[];
+  city?: string | null;
+  cityEs?: string | null;
+  identity?: string | null;
+  identityEs?: string | null;
+  introduction?: string | null;
+  introductionEs?: string | null;
+  languages?: ("en" | "es")[];
+  name?: string;
+  nameZh?: string | null;
+  portraitId?: number | null;
+  quote?: string | null;
+  quoteEs?: string | null;
+  topicIds?: number[];
+};
+
+export type AgentProfileLink = NonNullable<Person["links"]>[number];
 
 class AgentServiceError extends Error {
   constructor(readonly code: AgentErrorCode, message: string, readonly details?: Record<string, unknown>) {
@@ -150,6 +183,95 @@ function mediaSummary(media: Media) {
     publicUseApproved: Boolean(media.publicUseApprovedAt),
     createdAt: media.createdAt,
   };
+}
+
+function memberMediaSummary(media: Pick<Media, "alt" | "id" | "memberUsePublishedAt" | "publicUseApprovedAt" | "updatedAt" | "url">) {
+  return {
+    id: media.id,
+    alt: media.alt,
+    url: media.url ?? null,
+    status: media.publicUseApprovedAt
+      ? "public_approved" as const
+      : media.memberUsePublishedAt
+        ? "member_published" as const
+        : "private" as const,
+    updatedAt: media.updatedAt,
+  };
+}
+
+function profileCompleteness(person: Person) {
+  const missing = [
+    !person.name.trim() ? "name" : null,
+    !person.identity?.trim() ? "identity" : null,
+    !person.introduction?.trim() ? "introduction" : null,
+    !person.city?.trim() ? "city" : null,
+    !(person.languages?.length) ? "languages" : null,
+    relationId(person.portrait) == null ? "portrait" : null,
+  ].filter((value): value is string => value != null);
+  return { complete: missing.length === 0, missing };
+}
+
+function profilePath(person: Person) {
+  if (!person.slug) return null;
+  const locale = person.languages?.[0] === "es" ? "es" : "en";
+  return `/${locale}/people/${person.slug}`;
+}
+
+function profileSummary(person: Person) {
+  const publicPath = profilePath(person);
+  return {
+    profile: {
+      name: person.name,
+      nameZh: person.nameZh ?? null,
+      portraitId: relationId(person.portrait) ?? null,
+      languages: person.languages ?? [],
+      topicIds: (person.topics ?? []).map(relationId).filter((value): value is number => typeof value === "number"),
+      identity: person.identity ?? null,
+      city: person.city ?? null,
+      introduction: person.introduction ?? null,
+      quote: person.quote ?? null,
+      canHelpWith: (person.canHelpWith ?? []).map((row) => row.item),
+      identityEs: person.identityEs ?? null,
+      cityEs: person.cityEs ?? null,
+      introductionEs: person.introductionEs ?? null,
+      quoteEs: person.quoteEs ?? null,
+      canHelpWithEs: (person.canHelpWithEs ?? []).map((row) => row.item),
+    },
+    links: (person.links ?? []).map(({ type, label, labelEs, url }) => ({ type, label, labelEs: labelEs ?? null, url })),
+    profileStatus: person.profileStatus,
+    publicPath,
+    previewPath: publicPath ? `${publicPath}?preview=${encodeURIComponent(String(person.id))}` : null,
+    completeness: profileCompleteness(person),
+    publicEffect: person.profileStatus === "public" ? "immediate_public_update" as const : "private_only" as const,
+    updatedAt: person.updatedAt,
+    revision: createPersonRevision(person),
+  };
+}
+
+function profilePublicationSummary(person: Person, action: ProfilePublicationAction) {
+  return { action, person: profileSummary(person), publicPath: profilePath(person) };
+}
+
+type StoredProfilePublicationResult = {
+  action: ProfilePublicationAction;
+  profileStatus: "draft" | "public" | "paused";
+  publicPath: string | null;
+  revision: string;
+};
+
+function storedProfilePublicationFingerprint(fingerprint: string, result: StoredProfilePublicationResult) {
+  return `profile_pub1.${fingerprint}.${Buffer.from(JSON.stringify(result), "utf8").toString("base64url")}`;
+}
+
+function readStoredProfilePublicationFingerprint(value: string | null | undefined) {
+  if (!value?.startsWith("profile_pub1.")) return null;
+  const [, fingerprint, encoded, ...rest] = value.split(".");
+  if (!fingerprint || !encoded || rest.length) return null;
+  try {
+    return { fingerprint, result: JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as StoredProfilePublicationResult };
+  } catch {
+    return null;
+  }
 }
 
 type AgentPreviewWarning = {
@@ -304,18 +426,64 @@ export class AgentMemberService {
       throw new AgentServiceError("CONNECTION_REVOKED", "This Agent connection is no longer active.");
     }
     const connectionPersonId = articleRelationID(connection.person);
+    const accessExpiresAt = connection.accessExpiresAt == null
+      ? Number.NaN
+      : new Date(connection.accessExpiresAt).getTime();
     if (
       connection.state !== "active"
       || articleRelationID(connection.user) !== this.actor.userId
-      || (connectionPersonId != null && connectionPersonId !== this.actor.personId)
+      || connectionPersonId !== this.actor.personId
+      || connection.resource !== this.actor.resource
+      || !connection.scopes.includes("agent:member")
+      || !Number.isFinite(accessExpiresAt)
+      || accessExpiresAt <= Date.now()
     ) {
       throw new AgentServiceError("CONNECTION_REVOKED", "This Agent connection is no longer active.");
+    }
+    const clientId = articleRelationID(connection.client);
+    if (typeof clientId !== "number") {
+      throw new AgentServiceError("CONNECTION_REVOKED", "This Agent client is no longer active.");
+    }
+    let client;
+    try {
+      client = await this.payload.findByID({ collection: "agent-oauth-clients", id: clientId, depth: 0, overrideAccess: true });
+    } catch {
+      throw new AgentServiceError("CONNECTION_REVOKED", "This Agent client is no longer active.");
+    }
+    const clientExpiresAt = client.expiresAt == null ? null : new Date(client.expiresAt).getTime();
+    if (client.disabled || (clientExpiresAt != null && (!Number.isFinite(clientExpiresAt) || clientExpiresAt <= Date.now()))) {
+      throw new AgentServiceError("CONNECTION_REVOKED", "This Agent client is no longer active.");
     }
     const user = await this.payload.findByID({ collection: "users", id: this.actor.userId, depth: 0, overrideAccess: true });
     if (user.accountStatus === "paused") throw new AgentServiceError("ACCOUNT_PAUSED", "This account is paused.");
     const people = await this.payload.find({ collection: "people", depth: 0, limit: 1, overrideAccess: true, pagination: false, where: { and: [{ id: { equals: this.actor.personId } }, { user: { equals: user.id } }] } });
     if (!people.docs[0]) throw new AgentServiceError("NO_PERSON", "This account is not linked to a Person.");
     return user as User;
+  }
+
+  async currentRole() {
+    return (await this.currentUser()).role;
+  }
+
+  private async currentPerson(user: User, req?: PayloadRequest) {
+    const localReq = req ?? await createLocalReq({ user }, this.payload);
+    let person: Person;
+    try {
+      person = await this.payload.findByID({
+        collection: "people",
+        depth: 0,
+        id: this.actor.personId,
+        overrideAccess: false,
+        req: localReq,
+        user,
+      }) as Person;
+    } catch {
+      throw new AgentServiceError("NO_PERSON", "This account is not linked to a Person.");
+    }
+    if (String(relationId(person.user)) !== String(user.id)) {
+      throw new AgentServiceError("NO_PERSON", "This account is not linked to a Person.");
+    }
+    return person;
   }
 
   private async currentSuperAdmin() {
@@ -465,8 +633,17 @@ export class AgentMemberService {
     const requestId = createAgentRequestId();
     try {
       const user = await this.currentUser();
+      const person = await this.currentPerson(user);
       await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "account_context" });
-      return agentSuccess({ userId: user.id, personId: this.actor.personId, role: user.role, accountStatus: user.accountStatus }, { requestId });
+      return agentSuccess({
+        userId: user.id,
+        personId: person.id,
+        role: user.role,
+        accountStatus: user.accountStatus,
+        profileStatus: person.profileStatus,
+        profileCompleteness: profileCompleteness(person),
+        profilePublicPath: profilePath(person),
+      }, { requestId });
     } catch (error) {
       await this.auditReadFailure("account_context", requestId, error);
       return failure(error, requestId);
@@ -478,7 +655,7 @@ export class AgentMemberService {
     try {
       const user = await this.currentUser();
       await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "capabilities_list" });
-      const tools: AgentToolName[] = ["account_context", "capabilities_list", "my_articles_list", "article_get_working_copy", "article_create_draft", "article_save_draft", "media_upload", "article_set_cover", "article_preview", "article_prepare_publication", "article_commit_publication"];
+      const tools: AgentToolName[] = ["account_context", "capabilities_list", "my_profile_get", "my_profile_save", "my_links_save", "my_profile_prepare_publication", "my_profile_commit_publication", "my_articles_list", "my_media_list", "article_get_working_copy", "article_create_draft", "article_create_translation_draft", "article_save_draft", "media_upload", "article_set_cover", "article_preview", "article_prepare_publication", "article_commit_publication"];
       if (hasEditorialRole(user)) {
         tools.push("editorial_article_get", "editorial_prepare_site_selection", "editorial_commit_site_selection");
       }
@@ -489,6 +666,20 @@ export class AgentMemberService {
       }, { requestId });
     } catch (error) {
       await this.auditReadFailure("capabilities_list", requestId, error);
+      return failure(error, requestId);
+    }
+  }
+
+  async myProfileGet() {
+    const requestId = createAgentRequestId();
+    try {
+      const user = await this.currentUser();
+      const person = await this.currentPerson(user);
+      const result = profileSummary(person);
+      await this.auditAttempt({ objectId: String(person.id), objectType: "account", requestId, result: "success", tool: "my_profile_get" });
+      return agentSuccess(result, { requestId, meta: { objectId: String(person.id), revision: result.revision } });
+    } catch (error) {
+      await this.auditReadFailure("my_profile_get", requestId, error);
       return failure(error, requestId);
     }
   }
@@ -607,15 +798,95 @@ export class AgentMemberService {
     }
   }
 
-  async myArticles() {
+  async myArticles(input: { locale?: "en" | "es"; limit?: number; page?: number; publicationStatus?: "draft" | "published" | "withdrawn" } = {}) {
     const requestId = createAgentRequestId();
     try {
       const user = await this.currentUser();
-      const result = await this.payload.find({ collection: "articles", depth: 0, draft: true, limit: 100, overrideAccess: true, pagination: false, sort: "-updatedAt", where: { owner: { equals: user.id } } });
+      const page = input.page ?? 1;
+      const limit = input.limit ?? 20;
+      const conditions: Where[] = [{ owner: { equals: user.id } }];
+      if (input.locale) conditions.push({ locale: { equals: input.locale } });
+      if (input.publicationStatus) conditions.push({ publicationStatus: { equals: input.publicationStatus } });
+      const req = await createLocalReq({ user }, this.payload);
+      // Payload's draft reader rewrites access filters against `version.*`,
+      // where owner is not queryable. The explicit current-owner predicate is
+      // therefore the security boundary for this self-only latest-draft list.
+      const result = await this.payload.find({ collection: "articles", depth: 0, draft: true, limit, page, overrideAccess: true, req, user, sort: "-updatedAt", where: { and: conditions } });
+      const groups = [...new Set(result.docs.map((article) => article.translationGroup))];
+      const translations = groups.length ? await this.payload.find({
+        collection: "articles",
+        depth: 0,
+        draft: true,
+        limit: Math.max(groups.length * 2, 1),
+        overrideAccess: true,
+        pagination: false,
+        req,
+        user,
+        where: { and: [{ owner: { equals: user.id } }, { translationGroup: { in: groups } }] },
+      }) : { docs: [] as Article[] };
+      const pairByGroup = new Map<string, { enId: number | null; esId: number | null }>();
+      for (const article of translations.docs) {
+        const pair = pairByGroup.get(article.translationGroup) ?? { enId: null, esId: null };
+        if (article.locale === "en") pair.enId = article.id;
+        else pair.esId = article.id;
+        pairByGroup.set(article.translationGroup, pair);
+      }
       await this.auditAttempt({ objectType: "article", requestId, result: "success", tool: "my_articles_list" });
-      return agentSuccess({ articles: result.docs.map(articleSummary) }, { requestId });
+      return agentSuccess({
+        articles: result.docs.map((article) => {
+          const pair = pairByGroup.get(article.translationGroup) ?? { enId: null, esId: null };
+          return { ...articleSummary(article), translation: { ...pair, paired: pair.enId != null && pair.esId != null } };
+        }),
+        page: result.page ?? page,
+        limit,
+        totalDocs: result.totalDocs,
+        totalPages: result.totalPages,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      }, { requestId });
     } catch (error) {
       await this.auditReadFailure("my_articles_list", requestId, error);
+      return failure(error, requestId);
+    }
+  }
+
+  async myMedia(input: { limit?: number; page?: number } = {}) {
+    const requestId = createAgentRequestId();
+    try {
+      const user = await this.currentUser();
+      const page = input.page ?? 1;
+      const limit = input.limit ?? 20;
+      const req = await createLocalReq({ user }, this.payload);
+      const result = await this.payload.find({
+        collection: "media",
+        depth: 0,
+        limit,
+        page,
+        overrideAccess: false,
+        req,
+        select: {
+          alt: true,
+          memberUsePublishedAt: true,
+          publicUseApprovedAt: true,
+          updatedAt: true,
+          url: true,
+        },
+        sort: "-updatedAt",
+        user,
+        where: { uploadedBy: { equals: user.id } },
+      });
+      await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "my_media_list" });
+      return agentSuccess({
+        media: result.docs.map(memberMediaSummary),
+        page: result.page ?? page,
+        limit,
+        totalDocs: result.totalDocs,
+        totalPages: result.totalPages,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      }, { requestId });
+    } catch (error) {
+      await this.auditReadFailure("my_media_list", requestId, error);
       return failure(error, requestId);
     }
   }
@@ -801,6 +1072,7 @@ export class AgentMemberService {
       !connection
       || connection.state !== "active"
       || Number(connection.user_id) !== this.actor.userId
+      || connection.person_id == null
       || Number(connection.person_id) !== this.actor.personId
       || connection.resource !== this.actor.resource
       || connection.access_expires_at == null
@@ -932,6 +1204,34 @@ export class AgentMemberService {
     }
   }
 
+  private assertProfileConfirmationActor(payload: ProfilePublicationConfirmationPayload) {
+    if (
+      payload.userId !== this.actor.userId
+      || payload.personId !== this.actor.personId
+      || payload.connectionId !== this.actor.connectionId
+    ) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The profile publication confirmation belongs to a different connection.");
+    }
+  }
+
+  private assertProfileConfirmationEvent(event: AgentEvent | undefined, payload: ProfilePublicationConfirmationPayload) {
+    if (!event
+      || event.tool !== "my_profile_prepare_publication"
+      || event.objectType !== "account"
+      || event.objectId !== String(payload.personId)
+      || articleRelationID(event.user) !== payload.userId
+      || articleRelationID(event.connection) !== payload.connectionId
+    ) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The profile publication confirmation is invalid.");
+    }
+    if (event.result !== "pending") {
+      throw new AgentServiceError("CONFIRMATION_USED", "The profile publication confirmation was already used. Prepare the action again.");
+    }
+    if (event.beforeRevision !== payload.revision) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The profile publication confirmation revision is invalid.");
+    }
+  }
+
   private async reserveWrite(input: { fingerprint: string; idempotencyDigest?: string; objectType?: "account" | "article"; requestId: string; tool: AgentToolName }, req: PayloadRequest) {
     try {
       return await this.payload.create({
@@ -979,6 +1279,21 @@ export class AgentMemberService {
       throw new AgentServiceError("TEMPORARY_FAILURE", "The previous write has no readable result.");
     }
     return this.ownedArticle(Number(prior.objectId), user);
+  }
+
+  private async replayedProfileWrite(requestId: string, fingerprint: string, user: User) {
+    const prior = await this.priorWrite(requestId);
+    if (!prior) return null;
+    if (prior.inputFingerprint !== fingerprint) {
+      throw new AgentServiceError("IDEMPOTENCY_CONFLICT", "The idempotency key was already used with different input.");
+    }
+    if (prior.result === "conflict") {
+      throw new AgentServiceError("REVISION_CONFLICT", "The profile changed after it was loaded.", { latestRevision: prior.beforeRevision });
+    }
+    if (prior.result !== "success" || prior.objectId !== String(this.actor.personId)) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The previous profile write has no readable result.");
+    }
+    return this.currentPerson(user);
   }
 
   private async readableMedia(id: number, user: User) {
@@ -1044,6 +1359,27 @@ export class AgentMemberService {
     return stored.result;
   }
 
+  private async replayedProfilePublication(idempotencyDigest: string, fingerprint: string, user: User) {
+    const prior = await this.priorWrite(idempotencyDigest);
+    if (!prior) return null;
+    const stored = readStoredProfilePublicationFingerprint(prior.inputFingerprint);
+    const priorFingerprint = stored?.fingerprint ?? prior.inputFingerprint;
+    if (priorFingerprint !== fingerprint) {
+      throw new AgentServiceError("IDEMPOTENCY_CONFLICT", "The idempotency key was already used with different input.");
+    }
+    if (prior.result === "conflict") {
+      throw new AgentServiceError("REVISION_CONFLICT", "The profile changed after this publication action was prepared.", { latestRevision: prior.beforeRevision });
+    }
+    if (prior.result !== "success" || prior.objectId !== String(this.actor.personId) || !prior.afterRevision || !stored) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The previous profile publication has no readable result.");
+    }
+    if (stored.result.revision !== prior.afterRevision) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The stored profile publication result is inconsistent.");
+    }
+    const person = await this.currentPerson(user);
+    return profilePublicationSummary(person, stored.result.action);
+  }
+
   private async auditAttempt(input: { objectId?: string; objectType: "account" | "article"; requestId: string; result: "success" | "denied" | "failed"; tool: AgentToolName }) {
     try {
       await this.payload.create({
@@ -1068,10 +1404,143 @@ export class AgentMemberService {
 
   private async auditReadFailure(tool: AgentToolName, requestId: string, error: unknown, objectId?: string) {
     const denied = error instanceof AgentServiceError && ["ACCOUNT_PAUSED", "CONNECTION_REVOKED", "FORBIDDEN", "NO_PERSON", "NOT_FOUND", "UNAUTHENTICATED"].includes(error.code);
-    // media_upload audits under "account": agent-events objectType is a
-    // frozen enum (account/article/connection) and media has no value.
-    const objectType = tool === "account_context" || tool === "capabilities_list" || tool === "admin_recent_activity" || tool === "media_upload" ? "account" : "article";
+    // Profile and media tools audit under "account": agent-events objectType
+    // is a frozen enum (account/article/connection).
+    const objectType = tool === "account_context"
+      || tool === "capabilities_list"
+      || tool === "admin_recent_activity"
+      || tool === "media_upload"
+      || tool === "my_media_list"
+      || tool.startsWith("my_profile_")
+      || tool === "my_links_save"
+      ? "account"
+      : "article";
     await this.auditAttempt({ objectId, objectType, requestId, result: denied ? "denied" : "failed", tool });
+  }
+
+  private async saveProfileData(input: {
+    data: Record<string, unknown>;
+    fingerprintValue: unknown;
+    idempotencyKey: string;
+    revision: string;
+    tool: "my_links_save" | "my_profile_save";
+    validate?: (user: User, req: PayloadRequest) => Promise<void>;
+  }) {
+    let requestId = createAgentRequestId();
+    try {
+      requireRevision(input.revision);
+      requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: input.tool });
+      const user = await this.currentUser();
+      const fingerprint = inputFingerprint(input.fingerprintValue);
+      const prior = await this.replayedProfileWrite(requestId, fingerprint, user);
+      if (prior) {
+        const result = profileSummary(prior);
+        return agentSuccess(result, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true, revision: result.revision } });
+      }
+
+      let outcome: { auditId: string; kind: "saved"; person: Person } | { kind: "conflict"; revision: string };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          const event = await this.reserveWrite({ fingerprint, objectType: "account", requestId, tool: input.tool }, req);
+          const person = await this.currentPerson(lockedUser, req);
+          const beforeRevision = createPersonRevision(person);
+          if (beforeRevision !== input.revision) {
+            await this.finishWrite(event.id, { beforeRevision, objectId: String(person.id), result: "conflict" }, req);
+            return { kind: "conflict" as const, revision: beforeRevision };
+          }
+          await input.validate?.(lockedUser, req);
+          const saved = await this.payload.update({
+            collection: "people",
+            data: input.data,
+            id: person.id,
+            overrideAccess: false,
+            req,
+          }) as Person;
+          const afterRevision = createPersonRevision(saved);
+          await this.finishWrite(event.id, { afterRevision, beforeRevision, objectId: String(saved.id), result: "success" }, req);
+          return { auditId: String(event.id), kind: "saved" as const, person: saved };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedProfileWrite(requestId, fingerprint, user);
+        if (!replay) throw error.original;
+        const result = profileSummary(replay);
+        return agentSuccess(result, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(replay.id), readAfterWrite: true, revision: result.revision } });
+      }
+      if (outcome.kind === "conflict") {
+        throw new AgentServiceError("REVISION_CONFLICT", "The profile changed after it was loaded.", { latestRevision: outcome.revision });
+      }
+      const result = profileSummary(outcome.person);
+      return agentSuccess(result, { requestId, meta: { auditId: outcome.auditId, idempotencyKey: input.idempotencyKey, objectId: String(outcome.person.id), readAfterWrite: true, revision: result.revision } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && ["IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT"].includes(error.code))) {
+        await this.auditReadFailure(input.tool, requestId, error, String(this.actor.personId));
+      }
+      return failure(error, requestId);
+    }
+  }
+
+  async myProfileSave(input: { idempotencyKey: string; patch: AgentProfilePatch; revision: string }) {
+    const entries = Object.entries(input.patch).filter(([, value]) => value !== undefined);
+    if (!entries.length) return failure(new AgentServiceError("VALIDATION_ERROR", "At least one profile field is required."));
+    if (input.patch.name !== undefined && !input.patch.name.trim()) {
+      return failure(new AgentServiceError("VALIDATION_ERROR", "Name cannot be empty."));
+    }
+    for (const values of [input.patch.canHelpWith, input.patch.canHelpWithEs]) {
+      if (values && (values.length > 8 || values.some((value) => !value.trim()))) {
+        return failure(new AgentServiceError("VALIDATION_ERROR", "Profile help items must contain 0-8 non-empty values."));
+      }
+    }
+    const data: Record<string, unknown> = {};
+    for (const [key, value] of entries) {
+      if (key === "portraitId") data.portrait = value;
+      else if (key === "topicIds") data.topics = value;
+      else if (key === "canHelpWith" || key === "canHelpWithEs") data[key] = (value as string[]).map((item) => ({ item }));
+      else data[key] = value;
+    }
+    return this.saveProfileData({
+      data,
+      fingerprintValue: input,
+      idempotencyKey: input.idempotencyKey,
+      revision: input.revision,
+      tool: "my_profile_save",
+      validate: async (user, req) => {
+        if (input.patch.portraitId != null) await this.assertMediaUsableByMember(input.patch.portraitId, "Portrait", user, req);
+        if (input.patch.topicIds !== undefined) {
+          const ids = [...new Set(input.patch.topicIds)];
+          if (ids.length !== input.patch.topicIds.length) throw new AgentServiceError("VALIDATION_ERROR", "Topic IDs must be unique.");
+          const topics = ids.length ? await this.payload.find({
+            collection: "taxonomies",
+            depth: 0,
+            limit: ids.length,
+            overrideAccess: true,
+            pagination: false,
+            req,
+            where: { and: [{ id: { in: ids } }, { dimension: { equals: "topic" } }] },
+          }) : { docs: [] };
+          if (topics.docs.length !== ids.length) throw new AgentServiceError("VALIDATION_ERROR", "Every topic must reference a Topic taxonomy.");
+        }
+      },
+    });
+  }
+
+  async myLinksSave(input: { idempotencyKey: string; links: AgentProfileLink[]; revision: string }) {
+    if (input.links.length > 8) return failure(new AgentServiceError("VALIDATION_ERROR", "A profile may have at most 8 links."));
+    const allowed = new Set(["personal_site", "newsletter", "youtube", "linkedin", "x", "instagram", "github", "discord", "email", "other"]);
+    for (const link of input.links) {
+      if (!allowed.has(link.type) || !link.label.trim()) return failure(new AgentServiceError("VALIDATION_ERROR", "Every profile link requires an allowed type and label."));
+      const valid = link.type === "email" ? isValidEmailProfileLink(link.url) : isValidWebProfileLink(link.url);
+      if (!valid) return failure(new AgentServiceError("VALIDATION_ERROR", link.type === "email" ? "Email links must use a valid mailto address." : "Profile links must use a valid http or https URL."));
+    }
+    const links = input.links.map(({ type, label, labelEs, url }) => ({ type, label, labelEs: labelEs ?? null, url }));
+    return this.saveProfileData({
+      data: { links },
+      fingerprintValue: { ...input, links },
+      idempotencyKey: input.idempotencyKey,
+      revision: input.revision,
+      tool: "my_links_save",
+    });
   }
 
   async createDraft(input: { body: AgentArticleBody; idempotencyKey: string; locale: "en" | "es"; summary?: string; title: string }) {
@@ -1105,6 +1574,67 @@ export class AgentMemberService {
       return agentSuccess(articleSummary(article), { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(article.id), readAfterWrite: true, revision: afterRevision } });
     } catch (error) {
       await this.auditAttempt({ objectType: "article", requestId, result: "failed", tool: "article_create_draft" });
+      return failure(error, requestId);
+    }
+  }
+
+  async createTranslationDraft(input: { id: number; idempotencyKey: string }) {
+    let requestId = createAgentRequestId();
+    try {
+      requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "article_create_translation_draft" });
+      const user = await this.currentUser();
+      const fingerprint = inputFingerprint(input);
+      const prior = await this.replayedWrite(requestId, fingerprint, user);
+      if (prior) {
+        return agentSuccess({ article: articleSummary(prior), created: false }, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true, revision: revision(prior) } });
+      }
+      let outcome: { article: Article; auditId: string; created: boolean };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          const event = await this.reserveWrite({ fingerprint, requestId, tool: "article_create_translation_draft" }, req);
+          await this.lockArticle(req, input.id);
+          const source = await this.ownedArticle(input.id, lockedUser, req);
+          if (source.authorshipType === "site") throw new AgentServiceError("FORBIDDEN", "Site translations are not available to Member tools.");
+          const beforeRevision = await this.latestArticleRevision(source, req);
+          const translated = await createArticleTranslationDraft(source.id, req);
+          const target = translated.article;
+          const targetOwner = relationId(target.owner);
+          const targetAuthor = relationId(target.author);
+          if (
+            target.authorshipType !== "member"
+            || targetOwner !== lockedUser.id
+            || targetAuthor !== this.actor.personId
+            || target.translationGroup !== source.translationGroup
+            || target.locale === source.locale
+            || target.publicationStatus !== "draft"
+          ) {
+            throw new AgentServiceError("TEMPORARY_FAILURE", "The translation draft readback did not match the current member and source article.");
+          }
+          const afterRevision = revision(target);
+          await this.finishWrite(event.id, { afterRevision, beforeRevision, objectId: String(target.id), result: "success" }, req);
+          return { article: target, auditId: String(event.id), created: translated.created };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedWrite(requestId, fingerprint, user);
+        if (!replay) throw error.original;
+        outcome = { article: replay, auditId: "", created: false };
+      }
+      return agentSuccess({ article: articleSummary(outcome.article), created: outcome.created }, {
+        requestId,
+        meta: {
+          ...(outcome.auditId ? { auditId: outcome.auditId } : {}),
+          idempotencyKey: input.idempotencyKey,
+          objectId: String(outcome.article.id),
+          readAfterWrite: true,
+          revision: revision(outcome.article),
+        },
+      });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && error.code === "IDEMPOTENCY_CONFLICT")) {
+        await this.auditReadFailure("article_create_translation_draft", requestId, error, String(input.id));
+      }
       return failure(error, requestId);
     }
   }
@@ -1287,6 +1817,145 @@ export class AgentMemberService {
     } catch (error) {
       if (!(error instanceof AgentServiceError && (error.code === "REVISION_CONFLICT" || error.code === "IDEMPOTENCY_CONFLICT"))) {
         await this.auditReadFailure("article_set_cover", requestId, error, String(input.id));
+      }
+      return failure(error, requestId);
+    }
+  }
+
+  async prepareProfilePublication(input: { revision: string; targetStatus: ProfilePublicationTarget }) {
+    const requestId = `prep_profile_${input.targetStatus}_${randomUUID()}`;
+    try {
+      requireRevision(input.revision);
+      const user = await this.currentUser();
+      const person = await this.currentPerson(user);
+      const currentRevision = createPersonRevision(person);
+      if (input.revision !== currentRevision) {
+        throw new AgentServiceError("REVISION_CONFLICT", "The profile changed after it was loaded.", { latestRevision: currentRevision });
+      }
+      const completeness = profileCompleteness(person);
+      if (input.targetStatus === "public" && !completeness.complete) {
+        throw new AgentServiceError("VALIDATION_ERROR", "The profile is incomplete and cannot be public.", { completeness });
+      }
+      const req = await createLocalReq({ user }, this.payload);
+      const prepared = await prepareProfilePublication(person, input.targetStatus, req);
+      const expiresAt = Date.now() + (5 * 60 * 1_000);
+      const confirmationRef = createProfilePublicationConfirmation({
+        action: prepared.action,
+        connectionId: this.actor.connectionId,
+        exp: expiresAt,
+        jti: randomUUID(),
+        personId: person.id,
+        revision: currentRevision,
+        role: user.role,
+        targetStatus: input.targetStatus,
+        userId: user.id,
+        v: 1,
+      });
+      const event = await this.payload.create({
+        collection: "agent-events",
+        overrideAccess: true,
+        data: {
+          user: user.id,
+          connection: this.actor.connectionId,
+          clientFamily: this.actor.clientFamily,
+          tool: "my_profile_prepare_publication",
+          objectType: "account",
+          objectId: String(person.id),
+          requestId,
+          idempotencyDigest: profilePublicationConfirmationDigest(confirmationRef),
+          inputFingerprint: inputFingerprint({ action: prepared.action, personId: person.id, revision: currentRevision, role: user.role, targetStatus: input.targetStatus }),
+          result: "pending",
+          beforeRevision: currentRevision,
+          occurredAt: new Date().toISOString(),
+        },
+      });
+      return agentSuccess({
+        confirmationRef,
+        expiresAt: new Date(expiresAt).toISOString(),
+        person: profileSummary(person),
+        summary: { ...prepared, completeness, publicPath: profilePath(person) },
+      }, { requestId, meta: { auditId: String(event.id), objectId: String(person.id), revision: currentRevision } });
+    } catch (error) {
+      const failureRequestId = auditedFailureRequestId(requestId, error);
+      await this.auditReadFailure("my_profile_prepare_publication", failureRequestId, error, String(this.actor.personId));
+      return failure(error, failureRequestId);
+    }
+  }
+
+  async commitProfilePublication(input: { confirmationRef: string; idempotencyKey: string; revision: string }) {
+    let requestId = createAgentRequestId();
+    let idempotencyDigest: string | undefined;
+    let confirmation: ProfilePublicationConfirmationPayload | undefined;
+    try {
+      requireRevision(input.revision);
+      const parsed = readProfilePublicationConfirmation(input.confirmationRef, { allowExpired: true });
+      confirmation = parsed;
+      this.assertProfileConfirmationActor(parsed);
+      idempotencyDigest = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "my_profile_commit_publication" });
+      requestId = `${idempotencyDigest}_${parsed.targetStatus}`;
+      if (input.revision !== parsed.revision) {
+        throw new AgentServiceError("CONFIRMATION_INVALID", "The profile publication confirmation revision does not match this request.");
+      }
+      const user = await this.currentUser();
+      if (user.role !== parsed.role) throw new AgentServiceError("CONFIRMATION_INVALID", "The current role changed after profile publication was prepared.");
+      const fingerprint = inputFingerprint({ confirmationDigest: profilePublicationConfirmationDigest(input.confirmationRef), revision: input.revision });
+      const prior = await this.replayedProfilePublication(idempotencyDigest, fingerprint, user);
+      if (prior) {
+        return agentSuccess(prior, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(parsed.personId), readAfterWrite: true, revision: prior.person.revision } });
+      }
+
+      let outcome: { auditId: string; kind: "committed"; person: Person } | { kind: "conflict"; revision: string };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          if (lockedUser.role !== parsed.role) throw new AgentServiceError("CONFIRMATION_INVALID", "The current role changed after profile publication was prepared.");
+          if (parsed.exp < Date.now()) throw new PublicationConfirmationError("expired", "The profile publication confirmation expired. Prepare the action again.");
+          const commitEvent = await this.reserveWrite({ fingerprint, idempotencyDigest, objectType: "account", requestId, tool: "my_profile_commit_publication" }, req);
+          const digest = profilePublicationConfirmationDigest(input.confirmationRef);
+          const located = await this.confirmationEvent(digest, req);
+          if (!located) throw new AgentServiceError("CONFIRMATION_INVALID", "The profile publication confirmation is invalid.");
+          await this.lockAgentEvent(req, Number(located.id));
+          const confirmationEvent = await this.confirmationEvent(digest, req);
+          this.assertProfileConfirmationEvent(confirmationEvent, parsed);
+
+          const person = await this.currentPerson(lockedUser, req);
+          const beforeRevision = createPersonRevision(person);
+          if (parsed.targetStatus === "public") {
+            const portraitID = relationId(person.portrait);
+            if (typeof portraitID === "number") await this.lockMedia(req, portraitID);
+          }
+          if (parsed.exp < Date.now()) throw new PublicationConfirmationError("expired", "The profile publication confirmation expired. Prepare the action again.");
+          if (beforeRevision !== parsed.revision) {
+            await this.finishWrite(commitEvent.id, { beforeRevision, objectId: String(person.id), result: "conflict" }, req);
+            await this.finishWrite(confirmationEvent!.id, { beforeRevision, objectId: String(person.id), result: "conflict" }, req);
+            return { kind: "conflict" as const, revision: beforeRevision };
+          }
+          const prepared = await prepareProfilePublication(person, parsed.targetStatus, req);
+          if (prepared.action !== parsed.action) throw new AgentServiceError("CONFIRMATION_INVALID", "The prepared profile publication action is no longer valid.");
+          const committed = await commitProfilePublication(person, parsed.targetStatus, req) as Person;
+          if (committed.profileStatus !== parsed.targetStatus) throw new AgentServiceError("TEMPORARY_FAILURE", "The profile visibility readback did not match the requested state.");
+          const afterRevision = createPersonRevision(committed);
+          const stored: StoredProfilePublicationResult = { action: parsed.action, profileStatus: committed.profileStatus, publicPath: profilePath(committed), revision: afterRevision };
+          await this.finishWrite(confirmationEvent!.id, { afterRevision, beforeRevision, objectId: String(committed.id), result: "success" }, req);
+          await this.finishWrite(commitEvent.id, { afterRevision, beforeRevision, inputFingerprint: storedProfilePublicationFingerprint(fingerprint, stored), objectId: String(committed.id), result: "success" }, req);
+          return { auditId: String(commitEvent.id), kind: "committed" as const, person: committed };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedProfilePublication(idempotencyDigest, fingerprint, user);
+        if (!replay) throw error.original;
+        return agentSuccess(replay, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(parsed.personId), readAfterWrite: true, revision: replay.person.revision } });
+      }
+      if (outcome.kind === "conflict") {
+        throw new AgentServiceError("REVISION_CONFLICT", "The profile changed after this publication action was prepared.", { latestRevision: outcome.revision });
+      }
+      const result = profilePublicationSummary(outcome.person, parsed.action);
+      return agentSuccess(result, { requestId, meta: { auditId: outcome.auditId, idempotencyKey: input.idempotencyKey, objectId: String(outcome.person.id), readAfterWrite: true, revision: result.person.revision } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && ["IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT"].includes(error.code))) {
+        const failureRequestId = auditedFailureRequestId(requestId, error);
+        await this.auditAttempt({ objectId: confirmation ? String(confirmation.personId) : String(this.actor.personId), objectType: "account", requestId: failureRequestId, result: "failed", tool: "my_profile_commit_publication" });
+        return failure(error, failureRequestId);
       }
       return failure(error, requestId);
     }

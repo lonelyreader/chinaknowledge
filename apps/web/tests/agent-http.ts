@@ -386,6 +386,7 @@ function memberServiceFixture(options: {
   accountStatus?: "active" | "paused";
   articles?: Record<number, MockDoc>;
   media?: Record<number, MockDoc>;
+  role?: "author" | "editor" | "super_admin";
 } = {}) {
   const events: MockDoc[] = [];
   const updates: { collection: string; data: MockDoc; id: unknown }[] = [];
@@ -405,8 +406,27 @@ function memberServiceFixture(options: {
       },
     },
     async findByID({ collection, id }: { collection: string; id: number | string }) {
-      if (collection === "agent-connections") return { id, person: 7, state: "active", user: 5 };
-      if (collection === "users") return { accountStatus: options.accountStatus ?? "active", id: 5, role: "author" };
+      if (collection === "agent-connections") return {
+        accessExpiresAt: new Date(Date.now() + 300_000).toISOString(),
+        client: 3,
+        id,
+        person: 7,
+        resource: urls.resource.href,
+        scopes: ["agent:member"],
+        state: "active",
+        user: 5,
+      };
+      if (collection === "agent-oauth-clients") return { disabled: false, expiresAt: null, id: 3 };
+      if (collection === "users") return { accountStatus: options.accountStatus ?? "active", id: 5, role: options.role ?? "author" };
+      if (collection === "people") return {
+        id: 7,
+        languages: ["en"],
+        name: "Fixture Member",
+        profileStatus: "draft",
+        slug: "fixture-member",
+        updatedAt: "2026-08-12T00:00:00.000Z",
+        user: 5,
+      };
       if (collection === "media") {
         const doc = options.media?.[Number(id)];
         if (!doc) throw new APIError("Not Found", 404);
@@ -455,6 +475,27 @@ function memberServiceFixture(options: {
     },
   } as unknown as Payload;
   return { events, mediaCreates, service: AgentMemberService.fromPayload(payload, memberAuth()), updates };
+}
+
+// Discovery reads the current server-side User role, not the stale author
+// role carried in memberAuth(). Profile readback derives the bound Person and
+// returns its preview path without accepting a Person ID.
+{
+  const fixture = memberServiceFixture({ role: "editor" });
+  assert.equal(await fixture.service.currentRole(), "editor");
+  const capabilities = await fixture.service.capabilities();
+  assert.equal(capabilities.ok, true, JSON.stringify(capabilities));
+  assert.equal(capabilities.data?.tools.includes("editorial_article_get"), true);
+  const profile = await fixture.service.myProfileGet();
+  assert.equal(profile.ok, true, JSON.stringify(profile));
+  assert.equal(profile.data?.previewPath, "/en/people/fixture-member?preview=7");
+  assert.equal(profile.data?.profileStatus, "draft");
+  const incompletePublication = await fixture.service.prepareProfilePublication({ revision: profile.meta!.revision!, targetStatus: "public" });
+  assert.equal(incompletePublication.error?.code, "VALIDATION_ERROR");
+  assert.deepEqual(incompletePublication.error?.details?.completeness, {
+    complete: false,
+    missing: ["identity", "introduction", "city", "portrait"],
+  });
 }
 
 const uploadInput = {
