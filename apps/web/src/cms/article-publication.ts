@@ -98,6 +98,15 @@ export async function getLatestDraftArticle(
   fallback: Article,
   req?: PayloadRequest,
 ) {
+  return (await getLatestArticleVersionState(payload, id, fallback, req)).article;
+}
+
+export async function getLatestArticleVersionState(
+  payload: Payload,
+  id: number | string,
+  fallback: Article,
+  req?: PayloadRequest,
+) {
   const versions = await payload.findVersions({
     collection: "articles",
     depth: 0,
@@ -113,8 +122,12 @@ export async function getLatestDraftArticle(
       ],
     },
   });
-  const latest = versions.docs[0]?.version;
-  return latest ? { ...latest, id: fallback.id } as Article : fallback;
+  const record = versions.docs[0] as (typeof versions.docs)[number] & { autosave?: boolean } | undefined;
+  const latest = record?.version;
+  return {
+    article: latest ? { ...latest, id: fallback.id } as Article : fallback,
+    autosave: record?.autosave === true,
+  };
 }
 
 export async function assertArticleBylineOwnership(

@@ -130,6 +130,27 @@ const editorialSitePatchSchema = z.object({
 }).strict().refine((value) => Object.keys(value).some((key) => !["id", "revision", "idempotencyKey"].includes(key)), {
   message: "At least one editorial site field is required.",
 });
+const homepageScheduleInputSchema = z.discriminatedUnion("placement", [
+  z.object({
+    id: z.number().int().positive(),
+    revision: z.string(),
+    placement: z.literal("none"),
+    startsAt: z.null(),
+    endsAt: z.null(),
+  }).strict(),
+  z.object({
+    id: z.number().int().positive(),
+    revision: z.string(),
+    placement: z.enum(["lead", "selected"]),
+    startsAt: z.iso.datetime({ offset: true }),
+    endsAt: z.iso.datetime({ offset: true }),
+  }).strict(),
+]);
+const confirmedEditorialActionSchema = z.object({
+  confirmationRef: z.string().max(2_048),
+  revision: z.string(),
+  idempotencyKey: z.string(),
+}).strict();
 
 function result(value: AgentToolResultV1<unknown>) {
   return {
@@ -286,6 +307,46 @@ export async function createAgentMcpServer(context: McpRequestContext) {
         annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
       },
       async (input) => result(await service.commitSiteSelection(input)),
+    );
+    server.registerTool(
+      "editorial_prepare_homepage_schedule",
+      {
+        title: "Prepare homepage schedule",
+        description: agentToolDescriptions.editorial_prepare_homepage_schedule,
+        inputSchema: homepageScheduleInputSchema,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+      },
+      async (input) => result(await service.prepareHomepageSchedule(input)),
+    );
+    server.registerTool(
+      "editorial_commit_homepage_schedule",
+      {
+        title: "Confirm homepage schedule",
+        description: agentToolDescriptions.editorial_commit_homepage_schedule,
+        inputSchema: confirmedEditorialActionSchema,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+      },
+      async (input) => result(await service.commitHomepageSchedule(input)),
+    );
+    server.registerTool(
+      "editorial_prepare_major_edit_notification",
+      {
+        title: "Prepare author notification",
+        description: agentToolDescriptions.editorial_prepare_major_edit_notification,
+        inputSchema: z.object({ id: z.number().int().positive(), revision: z.string() }).strict(),
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+      },
+      async (input) => result(await service.prepareMajorEditNotification(input)),
+    );
+    server.registerTool(
+      "editorial_commit_major_edit_notification",
+      {
+        title: "Confirm author notification",
+        description: agentToolDescriptions.editorial_commit_major_edit_notification,
+        inputSchema: confirmedEditorialActionSchema,
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: true },
+      },
+      async (input) => result(await service.commitMajorEditNotification(input)),
     );
   }
 

@@ -71,11 +71,11 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 
 ## Acceptance
 
-- [ ] Editor 能对符合门槛的 Article prepare/commit 首页排期或清空排期，获得精确摘要、写后 revision、公开读回和可执行恢复值；pending draft 从未被发布。
+- [x] Editor 能对符合门槛的 Article prepare/commit 首页排期或清空排期，获得精确摘要、写后 revision、公开读回和可执行恢复值；pending draft 从未被发布。
 - [ ] Editor 能 prepare/commit 一次固定 `major_edit` 作者通知；输入无法控制 kind/recipient/copy，Preview 只生成 `not_required` WorkflowEvent 且不发真实邮件。
-- [ ] 通知失败以原 commit 重试同一 WorkflowEvent；并发、重放、provider timeout 和 sent/not_required 读回均不产生第二事件或重复投递。
-- [ ] Member 隔离、当前角色、stale/expired/tampered confirmation、状态变化、审计隐私和恢复负例全部通过；既有站方选择及 selected/removed/needs_recheck 通知行为不变。
-- [ ] 无复核工具、无 010 能力、无 schema/migration、无通用动作/通知平台、无 UI/provider/config diff。
+- [x] 通知失败以原 commit 重试同一 WorkflowEvent；并发、重放、provider timeout 和 sent/not_required 读回均不产生第二事件或重复投递。
+- [x] Member 隔离、当前角色、stale/expired/tampered confirmation、状态变化、审计隐私和恢复负例全部通过；既有站方选择及 selected/removed/needs_recheck 通知行为不变。
+- [x] 无复核工具、无 010 能力、无 schema/migration、无通用动作/通知平台、无 UI/provider/config diff。
 
 ## Validation
 
@@ -90,4 +90,4 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 ## Writeback
 
 - Local PASS 后更新 feature registry、current-state、父级状态和 implementation evidence；一次独立复审 PASS 后 010 才能激活。Production 读回后再归档。
-- 当前门：合同已冻结；008 Local 与独立复审 PASS 并合入本地 `main`（`1648b34`），只剩统一 Preview/release。009 实现尚未开始。
+- 当前门：009 Local 实现与工作项验证 PASS；首页排期、pending autosave 隔离、通知同事件失败重试/并发重放、权限和审计负例均已通过。证据见 [`AGENT-WORKSPACE-009 Local runtime`](../../reference/implementation/agent-workspace-009-local-runtime-2026-08-16.md)。等待一次独立终局复审；Preview/Production 仍进入 011 统一发布门。

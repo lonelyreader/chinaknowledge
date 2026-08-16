@@ -53,7 +53,9 @@ max_lines: 160
 
 `AGENT-WORKSPACE-007` 已完成 Local 实现、工作项验证与独立复审并合入本地 `main`（`4bf7e96`）：Member Agent 可读取和保存本人 Profile 与 X 等外链、从 `my_profile_get` 取得 Person Preview path、以 prepare/commit 改变 Profile 可见状态、分页读取本人媒体和文章、读取翻译配对并建立唯一的另一语言私有 draft；`account_context`、capability 与 MCP discovery 均按当前服务端 User 角色和 connection 状态重检。Local 工具总数为 23，未新增 schema/migration 或 Person UI；统一 Preview、`main` push 与 Production 尚未执行。
 
-`AGENT-WORKSPACE-008` 已在专用分支完成 Local 实现与工作项验证：工具总数增至 26，Editor 可从固定 Needs attention 队列发现 Article、读取严格白名单引用和 Body V2/站方字段，并以 revision、幂等、事务和写后读回保存负责人、format、四类分类、来源、freshness、编辑意见与已批准封面。普通 Editor 只能分配本人或清空，Super Admin 只能分配 active editorial role；Member、越权引用、受保护字段、并发覆盖、site-authored 保存和 curated 不完整保存均失败关闭。未新增 schema/migration、UI、009/010 能力或通知；独立终局复审、Preview、`main` push 与 Production 尚未执行。
+`AGENT-WORKSPACE-008` 已完成 Local 实现、工作项验证、独立复审与 taxonomy 并发定向修复并合入本地 `main`（`1648b34`）：工具总数增至 26，Editor 可从固定 Needs attention 队列发现 Article、读取严格白名单引用和 Body V2/站方字段，并以 revision、幂等、事务和写后读回保存负责人、format、四类分类、来源、freshness、编辑意见与已批准封面。普通 Editor 只能分配本人或清空，Super Admin 只能分配 active editorial role；Member、越权引用、受保护字段、并发覆盖、site-authored 保存和 curated 不完整保存均失败关闭。未新增 schema/migration、UI、009/010 能力或通知；Preview、`main` push 与 Production 尚未执行。
+
+`AGENT-WORKSPACE-009` 已在专用分支完成 Local 实现与工作项验证：工具总数增至 30，Editor / Super Admin 可用 prepare/commit 对 live published + curated Article 设置或清空首页排期，pending autosave 失败关闭且只改三项 homepage 字段；可 prepare/commit 固定 `major_edit` 作者通知，失败或并发重放复用同一 WorkflowEvent、recipient 与 key，`sent/not_required` 不重复发送。Member、当前角色/connection、revision、confirmation、owner、审计隐私与既有策展通知负例通过；未新增 schema/migration、UI、010 能力或通知平台。独立终局复审、Preview、`main` push 与 Production 尚未执行。
 
 ## 当前运行边界
 

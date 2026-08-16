@@ -27,10 +27,15 @@ import {
 import {
   articleRelationID,
   commitMemberPublication,
+  getLatestArticleVersionState,
   getLatestDraftArticle,
   prepareMemberPublication,
 } from "@/cms/article-publication";
 import { createArticleTranslationDraft } from "@/cms/article-translation";
+import {
+  createEditorialNotificationEvent,
+  deliverEditorialNotification,
+} from "@/cms/editorial-notifications";
 import { assertMediaAllowedForMemberPublication, assertMediaApprovedForPublicUse } from "@/cms/media-policy";
 import { uniqueMediaUploadFilename } from "@/cms/media-upload-filename";
 import { isValidEmailProfileLink, isValidWebProfileLink } from "@/cms/profile-links";
@@ -51,16 +56,25 @@ import {
   UnsupportedAgentContentError,
 } from "./content";
 import {
+  createHomepageScheduleConfirmation,
+  createMajorEditNotificationConfirmation,
   createPublicationConfirmation,
   createProfilePublicationConfirmation,
   createSiteSelectionConfirmation,
+  homepageScheduleConfirmationDigest,
+  majorEditNotificationConfirmationDigest,
+  majorEditRecipientDigest,
   PublicationConfirmationError,
   publicationConfirmationDigest,
   profilePublicationConfirmationDigest,
+  readHomepageScheduleConfirmation,
+  readMajorEditNotificationConfirmation,
   readProfilePublicationConfirmation,
   readSiteSelectionConfirmation,
   readPublicationConfirmation,
   siteSelectionConfirmationDigest,
+  type HomepageScheduleConfirmationPayload,
+  type MajorEditNotificationConfirmationPayload,
   type PublicationConfirmationPayload,
   type ProfilePublicationConfirmationPayload,
   type SiteSelectionConfirmationPayload,
@@ -90,7 +104,13 @@ type Actor = {
 
 type WriteContext = {
   idempotencyKey: string;
-  tool: "article_commit_publication" | "article_create_draft" | "article_create_translation_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_site_selection" | "editorial_save_site_fields" | "media_upload" | "my_links_save" | "my_profile_commit_publication" | "my_profile_save";
+  tool: "article_commit_publication" | "article_create_draft" | "article_create_translation_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_homepage_schedule" | "editorial_commit_major_edit_notification" | "editorial_commit_site_selection" | "editorial_save_site_fields" | "media_upload" | "my_links_save" | "my_profile_commit_publication" | "my_profile_save";
+};
+
+export type HomepageScheduleTarget = {
+  endsAt: string | null;
+  placement: "lead" | "none" | "selected";
+  startsAt: string | null;
 };
 
 export type AgentProfilePatch = {
@@ -380,6 +400,96 @@ function readStoredSiteSelectionFingerprint(value: string | null | undefined) {
   } catch {
     return null;
   }
+}
+
+function homepageSchedule(article: Article) {
+  return {
+    placement: article.homepagePlacement ?? "none",
+    startsAt: article.homepageStartsAt ?? null,
+    endsAt: article.homepageEndsAt ?? null,
+  };
+}
+
+function homepageScheduleActiveNow(schedule: ReturnType<typeof homepageSchedule>, now = Date.now()) {
+  if (schedule.placement === "none" || !schedule.startsAt || !schedule.endsAt) return false;
+  return new Date(schedule.startsAt).getTime() <= now && now < new Date(schedule.endsAt).getTime();
+}
+
+function homepageScheduleSummary(
+  article: Article,
+  recovery: ReturnType<typeof homepageSchedule>,
+) {
+  const schedule = homepageSchedule(article);
+  return {
+    action: schedule.placement === "none" ? "clear_homepage" as const : "schedule_homepage" as const,
+    article: articleSummary(article),
+    schedule: { ...schedule, activeNow: homepageScheduleActiveNow(schedule) },
+    recovery,
+    publicEffect: "immediate_public_update" as const,
+    publicPath: `/${article.locale}/posts/${article.slug}`,
+  };
+}
+
+type HomepageScheduleResult = ReturnType<typeof homepageScheduleSummary>;
+
+function storedHomepageScheduleFingerprint(fingerprint: string, result: HomepageScheduleResult) {
+  return `homepage1.${fingerprint}.${Buffer.from(JSON.stringify(result), "utf8").toString("base64url")}`;
+}
+
+function readStoredHomepageScheduleFingerprint(value: string | null | undefined) {
+  if (!value?.startsWith("homepage1.")) return null;
+  const [, fingerprint, encoded, ...rest] = value.split(".");
+  if (!fingerprint || !encoded || rest.length) return null;
+  try {
+    const result = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as HomepageScheduleResult;
+    if (!result || typeof result !== "object" || !result.article || typeof result.article.id !== "number") return null;
+    return { fingerprint, result };
+  } catch {
+    return null;
+  }
+}
+
+type StoredMajorEditNotificationResult = {
+  articleId: number;
+  eventId: number;
+  revision: string;
+};
+
+function storedMajorEditNotificationFingerprint(fingerprint: string, result: StoredMajorEditNotificationResult) {
+  return `notify1.${fingerprint}.${Buffer.from(JSON.stringify(result), "utf8").toString("base64url")}`;
+}
+
+function readStoredMajorEditNotificationFingerprint(value: string | null | undefined) {
+  if (!value?.startsWith("notify1.")) return null;
+  const [, fingerprint, encoded, ...rest] = value.split(".");
+  if (!fingerprint || !encoded || rest.length) return null;
+  try {
+    const result = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as StoredMajorEditNotificationResult;
+    if (!Number.isInteger(result.articleId) || !Number.isInteger(result.eventId) || typeof result.revision !== "string") return null;
+    return { fingerprint, result };
+  } catch {
+    return null;
+  }
+}
+
+function majorEditNotificationKey(confirmationRef: string) {
+  return `agent_major_${createHash("sha256").update(majorEditNotificationConfirmationDigest(confirmationRef)).digest("base64url")}`;
+}
+
+function majorEditNotificationSummary(event: WorkflowEvent) {
+  const status = event.notificationStatus ?? "not_required";
+  return {
+    eventId: Number(event.id),
+    notificationKind: "major_edit" as const,
+    status,
+    attempts: event.notificationAttempts ?? 0,
+    retry: status === "failed" || status === "pending" ? "repeat_same_commit" as const : null,
+  };
+}
+
+function homepageProtectedInvariantSnapshot(article: Article) {
+  return Object.fromEntries(Object.entries(editorialInvariantSnapshot(article)).filter(([key]) =>
+    key !== "homepageEndsAt" && key !== "homepagePlacement" && key !== "homepageStartsAt"));
 }
 
 function errorCode(error: unknown): AgentErrorCode {
@@ -678,6 +788,67 @@ export class AgentMemberService {
     }
   }
 
+  private async homepageScheduleState(id: number, user: User, req?: PayloadRequest) {
+    await this.editorialArticle(id, user, req);
+    let live: Article;
+    try {
+      live = await this.payload.findByID({
+        collection: "articles",
+        id,
+        depth: 0,
+        draft: false,
+        overrideAccess: false,
+        req,
+        user,
+      }) as Article;
+    } catch {
+      throw new AgentServiceError("NOT_FOUND", "Article not found.");
+    }
+    const latestState = await getLatestArticleVersionState(this.payload, live.id, live, req);
+    const latest = latestState.article;
+    if (live.publicationStatus !== "published" || live.curationStatus !== "curated" || live._status !== "published") {
+      throw new AgentServiceError("VALIDATION_ERROR", "Homepage scheduling requires a live, published and site-selected Article.");
+    }
+    if (latestState.autosave || latest._status !== "published") {
+      throw new AgentServiceError("VALIDATION_ERROR", "Homepage scheduling is blocked while the Article has an unpublished pending draft.");
+    }
+    return { latest, live };
+  }
+
+  private homepageScheduleTarget(target: HomepageScheduleTarget) {
+    if (target.placement === "none") {
+      if (target.startsAt !== null || target.endsAt !== null) {
+        throw new AgentServiceError("VALIDATION_ERROR", "Clearing a homepage schedule requires null start and end values.");
+      }
+      return { placement: "none" as const, startsAt: null, endsAt: null };
+    }
+    if ((target.placement !== "lead" && target.placement !== "selected")
+      || typeof target.startsAt !== "string" || typeof target.endsAt !== "string"
+      || !isISODateTime(target.startsAt) || !isISODateTime(target.endsAt)) {
+      throw new AgentServiceError("VALIDATION_ERROR", "Homepage lead and selected schedules require complete RFC 3339 start and end times.");
+    }
+    if (new Date(target.endsAt).getTime() <= new Date(target.startsAt).getTime()) {
+      throw new AgentServiceError("VALIDATION_ERROR", "Homepage scheduling must end after it starts.");
+    }
+    return { placement: target.placement, startsAt: target.startsAt, endsAt: target.endsAt };
+  }
+
+  private async majorEditRecipient(article: Article, req?: PayloadRequest) {
+    if (article.authorshipType !== "member") throw new AgentServiceError("VALIDATION_ERROR", "Only a Member-authored Article has an author account to notify.");
+    const ownerId = articleRelationID(article.owner);
+    if (typeof ownerId !== "number") throw new AgentServiceError("VALIDATION_ERROR", "The Article owner is unavailable for notification.");
+    let owner: User;
+    try {
+      owner = await this.payload.findByID({ collection: "users", id: ownerId, depth: 0, overrideAccess: true, req }) as User;
+    } catch {
+      throw new AgentServiceError("VALIDATION_ERROR", "The Article owner is unavailable for notification.");
+    }
+    if (owner.accountStatus !== "active" || !owner.email?.trim()) {
+      throw new AgentServiceError("VALIDATION_ERROR", "The Article owner is unavailable for notification.");
+    }
+    return owner;
+  }
+
   private async latestArticleRevision(article: Article, req?: PayloadRequest) {
     const latestDraft = await getLatestDraftArticle(this.payload, article.id, article, req);
     return revision(latestDraft);
@@ -711,7 +882,7 @@ export class AgentMemberService {
       await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "capabilities_list" });
       const tools: AgentToolName[] = ["account_context", "capabilities_list", "my_profile_get", "my_profile_save", "my_links_save", "my_profile_prepare_publication", "my_profile_commit_publication", "my_articles_list", "my_media_list", "article_get_working_copy", "article_create_draft", "article_create_translation_draft", "article_save_draft", "media_upload", "article_set_cover", "article_preview", "article_prepare_publication", "article_commit_publication"];
       if (hasEditorialRole(user)) {
-        tools.push("editorial_attention_list", "editorial_reference_options", "editorial_article_get", "editorial_save_site_fields", "editorial_prepare_site_selection", "editorial_commit_site_selection");
+        tools.push("editorial_attention_list", "editorial_reference_options", "editorial_article_get", "editorial_save_site_fields", "editorial_prepare_site_selection", "editorial_commit_site_selection", "editorial_prepare_homepage_schedule", "editorial_commit_homepage_schedule", "editorial_prepare_major_edit_notification", "editorial_commit_major_edit_notification");
       }
       if (isSuperAdmin(user)) tools.push("editorial_release_site_article_batch", "admin_recent_activity");
       return agentSuccess({
@@ -1493,6 +1664,22 @@ export class AgentMemberService {
     return { id: Number(row.id), accountStatus: String(row.account_status) as User["accountStatus"], role: String(row.role) as User["role"] };
   }
 
+  private async lockNotificationOwner(req: PayloadRequest, id: number): Promise<Pick<User, "accountStatus" | "displayName" | "email" | "id">> {
+    const transactionId = await req.transactionID;
+    const db = transactionId
+      ? (this.payload.db.sessions?.[String(transactionId)]?.db as { execute: (query: unknown) => Promise<{ rows?: Record<string, unknown>[] }> } | undefined)
+      : undefined;
+    if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The notification owner transaction is unavailable.");
+    const row = (await db.execute(sql`SELECT id, account_status, display_name, email FROM users WHERE id = ${id} FOR SHARE`)).rows?.[0];
+    if (!row) throw new AgentServiceError("VALIDATION_ERROR", "The Article owner is unavailable for notification.");
+    return {
+      id: Number(row.id),
+      accountStatus: String(row.account_status) as User["accountStatus"],
+      displayName: String(row.display_name),
+      email: String(row.email),
+    };
+  }
+
   private async lockSiteSelectionMedia(req: PayloadRequest, article: Article) {
     const ids = new Set<number>();
     const coverId = articleRelationID(article.coverImage);
@@ -1514,6 +1701,16 @@ export class AgentMemberService {
     if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The publication confirmation transaction is unavailable.");
     const result = await db.execute(sql`SELECT id FROM agent_events WHERE id = ${id} FOR UPDATE`);
     if (!result.rows?.[0]) throw new AgentServiceError("CONFIRMATION_INVALID", "The publication confirmation is invalid.");
+  }
+
+  private async lockWorkflowEvent(req: PayloadRequest, id: number) {
+    const transactionId = await req.transactionID;
+    const db = transactionId
+      ? (this.payload.db.sessions?.[String(transactionId)]?.db as { execute: (query: unknown) => Promise<{ rows?: { id: number }[] }> } | undefined)
+      : undefined;
+    if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The notification delivery transaction is unavailable.");
+    const result = await db.execute(sql`SELECT id FROM workflow_events WHERE id = ${id} FOR UPDATE`);
+    if (!result.rows?.[0]) throw new AgentServiceError("TEMPORARY_FAILURE", "The notification event is unavailable.");
   }
 
   private async lockActorContext(req: PayloadRequest) {
@@ -1693,6 +1890,54 @@ export class AgentMemberService {
     }
   }
 
+  private assertHomepageConfirmationActor(payload: HomepageScheduleConfirmationPayload, user: User) {
+    if (
+      payload.userId !== this.actor.userId
+      || payload.personId !== this.actor.personId
+      || payload.connectionId !== this.actor.connectionId
+      || payload.role !== user.role
+    ) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The homepage schedule confirmation belongs to a different actor or role.");
+    }
+  }
+
+  private assertHomepageConfirmationEvent(event: AgentEvent | undefined, payload: HomepageScheduleConfirmationPayload) {
+    if (!event
+      || event.tool !== "editorial_prepare_homepage_schedule"
+      || event.objectId !== String(payload.articleId)
+      || articleRelationID(event.user) !== payload.userId
+      || articleRelationID(event.connection) !== payload.connectionId
+    ) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The homepage schedule confirmation is invalid.");
+    }
+    if (event.result !== "pending") throw new AgentServiceError("CONFIRMATION_USED", "The homepage schedule confirmation was already used. Prepare the action again.");
+    if (event.beforeRevision !== payload.revision) throw new AgentServiceError("CONFIRMATION_INVALID", "The homepage schedule confirmation revision is invalid.");
+  }
+
+  private assertMajorEditConfirmationActor(payload: MajorEditNotificationConfirmationPayload, user: User) {
+    if (
+      payload.userId !== this.actor.userId
+      || payload.personId !== this.actor.personId
+      || payload.connectionId !== this.actor.connectionId
+      || payload.role !== user.role
+    ) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The major-edit notification confirmation belongs to a different actor or role.");
+    }
+  }
+
+  private assertMajorEditConfirmationEvent(event: AgentEvent | undefined, payload: MajorEditNotificationConfirmationPayload) {
+    if (!event
+      || event.tool !== "editorial_prepare_major_edit_notification"
+      || event.objectId !== String(payload.articleId)
+      || articleRelationID(event.user) !== payload.userId
+      || articleRelationID(event.connection) !== payload.connectionId
+    ) {
+      throw new AgentServiceError("CONFIRMATION_INVALID", "The major-edit notification confirmation is invalid.");
+    }
+    if (event.result !== "pending") throw new AgentServiceError("CONFIRMATION_USED", "The major-edit notification confirmation was already used. Prepare the action again.");
+    if (event.beforeRevision !== payload.revision) throw new AgentServiceError("CONFIRMATION_INVALID", "The major-edit notification confirmation revision is invalid.");
+  }
+
   private async reserveWrite(input: { fingerprint: string; idempotencyDigest?: string; objectType?: "account" | "article"; requestId: string; tool: AgentToolName }, req: PayloadRequest) {
     try {
       return await this.payload.create({
@@ -1831,6 +2076,73 @@ export class AgentMemberService {
       throw new AgentServiceError("TEMPORARY_FAILURE", "The stored site selection result is inconsistent.");
     }
     return stored.result;
+  }
+
+  private async replayedHomepageSchedule(idempotencyDigest: string, fingerprint: string, user: User) {
+    const prior = await this.priorWrite(idempotencyDigest);
+    if (!prior) return null;
+    const stored = readStoredHomepageScheduleFingerprint(prior.inputFingerprint);
+    const priorFingerprint = stored?.fingerprint ?? prior.inputFingerprint;
+    if (priorFingerprint !== fingerprint) throw new AgentServiceError("IDEMPOTENCY_CONFLICT", "The idempotency key was already used with different input.");
+    if (prior.result === "conflict") throw new AgentServiceError("REVISION_CONFLICT", "The Article changed after this homepage schedule was prepared.", { latestRevision: prior.beforeRevision });
+    if (prior.result !== "success" || !prior.objectId || !prior.afterRevision || !stored) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The previous homepage schedule has no readable result.");
+    }
+    await this.editorialArticle(Number(prior.objectId), user);
+    if (stored.result.article.revision !== prior.afterRevision) throw new AgentServiceError("TEMPORARY_FAILURE", "The stored homepage schedule result is inconsistent.");
+    return stored.result;
+  }
+
+  private async replayedMajorEditNotification(
+    idempotencyDigest: string,
+    fingerprint: string,
+    expectedNotificationKey: string,
+    user: User,
+  ) {
+    const prior = await this.priorWrite(idempotencyDigest);
+    if (!prior) return null;
+    const stored = readStoredMajorEditNotificationFingerprint(prior.inputFingerprint);
+    const priorFingerprint = stored?.fingerprint ?? prior.inputFingerprint;
+    if (priorFingerprint !== fingerprint) throw new AgentServiceError("IDEMPOTENCY_CONFLICT", "The idempotency key was already used with different input.");
+    if (prior.result === "conflict") throw new AgentServiceError("REVISION_CONFLICT", "The Article changed after this notification was prepared.", { latestRevision: prior.beforeRevision });
+    if (prior.result !== "success" || !prior.objectId || !prior.afterRevision || !stored) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The previous notification commit has no readable result.");
+    }
+    await this.editorialArticle(stored.result.articleId, user);
+    const event = await this.payload.findByID({ collection: "workflow-events", id: stored.result.eventId, depth: 0, overrideAccess: true }) as WorkflowEvent;
+    if (
+      Number(event.id) !== stored.result.eventId
+      || articleRelationID(event.article) !== stored.result.articleId
+      || event.notificationKind !== "major_edit"
+      || event.notificationKey !== expectedNotificationKey
+      || stored.result.revision !== prior.afterRevision
+    ) {
+      throw new AgentServiceError("TEMPORARY_FAILURE", "The stored notification event is inconsistent.");
+    }
+    return { event, stored: stored.result };
+  }
+
+  private async deliverMajorEditNotificationEvent(event: WorkflowEvent, expectedNotificationKey: string, user: User) {
+    if (event.notificationStatus === "sent" || event.notificationStatus === "not_required") return event;
+    const observedAttempts = event.notificationAttempts ?? 0;
+    return this.withWriteTransaction(user, async (req) => {
+      const lockedUser = await this.lockActorContext(req);
+      if (!hasEditorialRole(lockedUser)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      await this.lockWorkflowEvent(req, Number(event.id));
+      const current = await this.payload.findByID({ collection: "workflow-events", id: event.id, depth: 0, overrideAccess: true, req }) as WorkflowEvent;
+      if (current.notificationKind !== "major_edit" || current.notificationKey !== expectedNotificationKey) {
+        throw new AgentServiceError("TEMPORARY_FAILURE", "The notification event is inconsistent.");
+      }
+      if (current.notificationStatus === "sent" || current.notificationStatus === "not_required") return current;
+      if ((current.notificationAttempts ?? 0) !== observedAttempts) return current;
+      const articleId = articleRelationID(current.article);
+      if (typeof articleId !== "number" || !current.notificationRecipient?.trim()) {
+        throw new AgentServiceError("TEMPORARY_FAILURE", "The notification event cannot be delivered safely.");
+      }
+      const article = await this.editorialArticle(articleId, lockedUser, req);
+      await deliverEditorialNotification(this.payload, current, article, { email: current.notificationRecipient }, req);
+      return this.payload.findByID({ collection: "workflow-events", id: current.id, depth: 0, overrideAccess: true, req }) as Promise<WorkflowEvent>;
+    });
   }
 
   private async replayedProfilePublication(idempotencyDigest: string, fingerprint: string, user: User) {
@@ -2857,6 +3169,303 @@ export class AgentMemberService {
       if (!(error instanceof AgentServiceError && ["IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT"].includes(error.code))) {
         const failureRequestId = auditedFailureRequestId(requestId, error);
         await this.auditAttempt({ objectId: confirmation ? String(confirmation.articleId) : undefined, objectType: "article", requestId: failureRequestId, result: "failed", tool: "editorial_commit_site_selection" });
+        return failure(error, failureRequestId);
+      }
+      return failure(error, requestId);
+    }
+  }
+
+  async prepareHomepageSchedule(input: { id: number; revision: string } & HomepageScheduleTarget) {
+    const requestId = `prep_homepage_${input.placement}_${randomUUID()}`;
+    try {
+      requireRevision(input.revision);
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      const target = this.homepageScheduleTarget(input);
+      const { latest, live } = await this.homepageScheduleState(input.id, user);
+      const currentRevision = revision(latest);
+      if (input.revision !== currentRevision) {
+        throw new AgentServiceError("REVISION_CONFLICT", "The Article changed after this homepage schedule was loaded.", { latestRevision: currentRevision });
+      }
+      const recovery = homepageSchedule(live);
+      const expiresAt = Date.now() + (5 * 60 * 1_000);
+      const confirmationRef = createHomepageScheduleConfirmation({
+        articleId: live.id,
+        connectionId: this.actor.connectionId,
+        endsAt: target.endsAt,
+        exp: expiresAt,
+        jti: randomUUID(),
+        personId: this.actor.personId,
+        placement: target.placement,
+        previousEndsAt: recovery.endsAt,
+        previousPlacement: recovery.placement,
+        previousStartsAt: recovery.startsAt,
+        revision: currentRevision,
+        role: user.role as "editor" | "super_admin",
+        startsAt: target.startsAt,
+        userId: this.actor.userId,
+        v: 1,
+      });
+      const event = await this.payload.create({
+        collection: "agent-events",
+        overrideAccess: true,
+        data: {
+          user: this.actor.userId,
+          connection: this.actor.connectionId,
+          clientFamily: this.actor.clientFamily,
+          tool: "editorial_prepare_homepage_schedule",
+          objectType: "article",
+          objectId: String(live.id),
+          requestId,
+          idempotencyDigest: homepageScheduleConfirmationDigest(confirmationRef),
+          inputFingerprint: inputFingerprint({ articleId: live.id, revision: currentRevision, target, recovery }),
+          result: "pending",
+          beforeRevision: currentRevision,
+          occurredAt: new Date().toISOString(),
+        },
+      });
+      return agentSuccess({
+        article: articleSummary(latest),
+        confirmationRef,
+        expiresAt: new Date(expiresAt).toISOString(),
+        summary: {
+          target: { ...target, activeNow: homepageScheduleActiveNow(target) },
+          current: { ...recovery, activeNow: homepageScheduleActiveNow(recovery) },
+          recovery,
+          publicEffect: "immediate_public_update" as const,
+        },
+      }, { requestId, meta: { auditId: String(event.id), objectId: String(live.id), revision: currentRevision } });
+    } catch (error) {
+      const failureRequestId = auditedFailureRequestId(requestId, error);
+      await this.auditReadFailure("editorial_prepare_homepage_schedule", failureRequestId, error, String(input.id));
+      return failure(error, failureRequestId);
+    }
+  }
+
+  async commitHomepageSchedule(input: { confirmationRef: string; idempotencyKey: string; revision: string }) {
+    let requestId = createAgentRequestId();
+    let idempotencyDigest: string | undefined;
+    let confirmation: HomepageScheduleConfirmationPayload | undefined;
+    try {
+      requireRevision(input.revision);
+      const parsed = readHomepageScheduleConfirmation(input.confirmationRef, { allowExpired: true });
+      confirmation = parsed;
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      this.assertHomepageConfirmationActor(parsed, user);
+      idempotencyDigest = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "editorial_commit_homepage_schedule" });
+      requestId = `${idempotencyDigest}_${parsed.placement}`;
+      if (input.revision !== parsed.revision) throw new AgentServiceError("CONFIRMATION_INVALID", "The homepage schedule confirmation revision does not match this request.");
+      const fingerprint = inputFingerprint({ confirmationDigest: homepageScheduleConfirmationDigest(input.confirmationRef), revision: input.revision });
+      const replay = await this.replayedHomepageSchedule(idempotencyDigest, fingerprint, user);
+      if (replay) {
+        return agentSuccess(replay, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(replay.article.id), readAfterWrite: true, revision: replay.article.revision } });
+      }
+      if (parsed.exp < Date.now()) throw new PublicationConfirmationError("expired", "The homepage schedule confirmation expired. Prepare the action again.");
+      let outcome: { auditId: string; result: HomepageScheduleResult } | { kind: "conflict"; revision: string };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          if (!hasEditorialRole(lockedUser)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+          this.assertHomepageConfirmationActor(parsed, lockedUser);
+          if (parsed.exp < Date.now()) throw new PublicationConfirmationError("expired", "The homepage schedule confirmation expired. Prepare the action again.");
+          const commitEvent = await this.reserveWrite({ fingerprint, idempotencyDigest, requestId, tool: "editorial_commit_homepage_schedule" }, req);
+          const digest = homepageScheduleConfirmationDigest(input.confirmationRef);
+          const located = await this.confirmationEvent(digest, req);
+          if (!located) throw new AgentServiceError("CONFIRMATION_INVALID", "The homepage schedule confirmation is invalid.");
+          await this.lockAgentEvent(req, Number(located.id));
+          const confirmationEvent = await this.confirmationEvent(digest, req);
+          this.assertHomepageConfirmationEvent(confirmationEvent, parsed);
+          await this.lockArticle(req, parsed.articleId);
+          const { latest, live } = await this.homepageScheduleState(parsed.articleId, lockedUser, req);
+          const beforeRevision = revision(latest);
+          if (beforeRevision !== parsed.revision) {
+            await this.finishWrite(commitEvent.id, { beforeRevision, objectId: String(live.id), result: "conflict" }, req);
+            await this.finishWrite(confirmationEvent!.id, { beforeRevision, objectId: String(live.id), result: "conflict" }, req);
+            return { kind: "conflict" as const, revision: beforeRevision };
+          }
+          const recovery = homepageSchedule(live);
+          if (canonicalJSON(recovery) !== canonicalJSON({ placement: parsed.previousPlacement ?? "none", startsAt: parsed.previousStartsAt, endsAt: parsed.previousEndsAt })) {
+            throw new AgentServiceError("CONFIRMATION_INVALID", "The prepared homepage recovery values are no longer current.");
+          }
+          const protectedBefore = homepageProtectedInvariantSnapshot(live);
+          await this.payload.update({
+            collection: "articles",
+            id: live.id,
+            data: { homepagePlacement: parsed.placement, homepageStartsAt: parsed.startsAt, homepageEndsAt: parsed.endsAt },
+            depth: 0,
+            draft: false,
+            overrideAccess: false,
+            req,
+            user: lockedUser,
+          });
+          const after = await this.homepageScheduleState(live.id, lockedUser, req);
+          if (canonicalJSON(homepageProtectedInvariantSnapshot(after.live)) !== canonicalJSON(protectedBefore)) {
+            throw new AgentServiceError("TEMPORARY_FAILURE", "The homepage schedule changed a protected Article field.");
+          }
+          const afterRevision = revision(after.latest);
+          const result = homepageScheduleSummary(after.live, recovery);
+          await this.finishWrite(confirmationEvent!.id, { afterRevision, beforeRevision, objectId: String(live.id), result: "success" }, req);
+          await this.finishWrite(commitEvent.id, { afterRevision, beforeRevision, inputFingerprint: storedHomepageScheduleFingerprint(fingerprint, result), objectId: String(live.id), result: "success" }, req);
+          return { auditId: String(commitEvent.id), result };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedHomepageSchedule(idempotencyDigest, fingerprint, user);
+        if (!replay) throw error.original;
+        return agentSuccess(replay, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(replay.article.id), readAfterWrite: true, revision: replay.article.revision } });
+      }
+      if ("kind" in outcome) throw new AgentServiceError("REVISION_CONFLICT", "The Article changed after this homepage schedule was prepared.", { latestRevision: outcome.revision });
+      return agentSuccess(outcome.result, { requestId, meta: { auditId: outcome.auditId, idempotencyKey: input.idempotencyKey, objectId: String(outcome.result.article.id), readAfterWrite: true, revision: outcome.result.article.revision } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && ["IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT"].includes(error.code))) {
+        const failureRequestId = auditedFailureRequestId(requestId, error);
+        await this.auditAttempt({ objectId: confirmation ? String(confirmation.articleId) : undefined, objectType: "article", requestId: failureRequestId, result: "failed", tool: "editorial_commit_homepage_schedule" });
+        return failure(error, failureRequestId);
+      }
+      return failure(error, requestId);
+    }
+  }
+
+  async prepareMajorEditNotification(input: { id: number; revision: string }) {
+    const requestId = `prep_major_edit_${randomUUID()}`;
+    try {
+      requireRevision(input.revision);
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      const found = await this.editorialArticle(input.id, user);
+      const article = await getLatestDraftArticle(this.payload, found.id, found);
+      const currentRevision = revision(article);
+      if (input.revision !== currentRevision) throw new AgentServiceError("REVISION_CONFLICT", "The Article changed after this notification was loaded.", { latestRevision: currentRevision });
+      const owner = await this.majorEditRecipient(article);
+      const expiresAt = Date.now() + (5 * 60 * 1_000);
+      const confirmationRef = createMajorEditNotificationConfirmation({
+        action: "major_edit",
+        articleId: article.id,
+        connectionId: this.actor.connectionId,
+        exp: expiresAt,
+        jti: randomUUID(),
+        ownerId: owner.id,
+        personId: this.actor.personId,
+        recipientDigest: majorEditRecipientDigest(owner.email),
+        revision: currentRevision,
+        role: user.role as "editor" | "super_admin",
+        userId: this.actor.userId,
+        v: 1,
+      });
+      const event = await this.payload.create({
+        collection: "agent-events",
+        overrideAccess: true,
+        data: {
+          user: this.actor.userId,
+          connection: this.actor.connectionId,
+          clientFamily: this.actor.clientFamily,
+          tool: "editorial_prepare_major_edit_notification",
+          objectType: "article",
+          objectId: String(article.id),
+          requestId,
+          idempotencyDigest: majorEditNotificationConfirmationDigest(confirmationRef),
+          inputFingerprint: inputFingerprint({ action: "major_edit", articleId: article.id, ownerId: owner.id, recipientDigest: majorEditRecipientDigest(owner.email), revision: currentRevision }),
+          result: "pending",
+          beforeRevision: currentRevision,
+          occurredAt: new Date().toISOString(),
+        },
+      });
+      return agentSuccess({
+        article: articleSummary(article),
+        author: { id: owner.id, displayName: owner.displayName },
+        confirmationRef,
+        expiresAt: new Date(expiresAt).toISOString(),
+        summary: { notificationKind: "major_edit" as const, delivery: "account_email" as const },
+      }, { requestId, meta: { auditId: String(event.id), objectId: String(article.id), revision: currentRevision } });
+    } catch (error) {
+      const failureRequestId = auditedFailureRequestId(requestId, error);
+      await this.auditReadFailure("editorial_prepare_major_edit_notification", failureRequestId, error, String(input.id));
+      return failure(error, failureRequestId);
+    }
+  }
+
+  async commitMajorEditNotification(input: { confirmationRef: string; idempotencyKey: string; revision: string }) {
+    let requestId = createAgentRequestId();
+    let idempotencyDigest: string | undefined;
+    let confirmation: MajorEditNotificationConfirmationPayload | undefined;
+    try {
+      requireRevision(input.revision);
+      const parsed = readMajorEditNotificationConfirmation(input.confirmationRef, { allowExpired: true });
+      confirmation = parsed;
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      this.assertMajorEditConfirmationActor(parsed, user);
+      idempotencyDigest = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "editorial_commit_major_edit_notification" });
+      requestId = `${idempotencyDigest}_major_edit`;
+      if (input.revision !== parsed.revision) throw new AgentServiceError("CONFIRMATION_INVALID", "The major-edit notification confirmation revision does not match this request.");
+      const confirmationDigest = majorEditNotificationConfirmationDigest(input.confirmationRef);
+      const fingerprint = inputFingerprint({ confirmationDigest, revision: input.revision });
+      const notificationKey = majorEditNotificationKey(input.confirmationRef);
+      const replay = await this.replayedMajorEditNotification(idempotencyDigest, fingerprint, notificationKey, user);
+      if (replay) {
+        const delivered = await this.deliverMajorEditNotificationEvent(replay.event, notificationKey, user);
+        return agentSuccess(majorEditNotificationSummary(delivered), { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(replay.stored.articleId), readAfterWrite: true, revision: replay.stored.revision } });
+      }
+      if (parsed.exp < Date.now()) throw new PublicationConfirmationError("expired", "The major-edit notification confirmation expired. Prepare the action again.");
+      let outcome: { articleId: number; auditId: string; event: WorkflowEvent; revision: string } | { kind: "conflict"; revision: string };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          if (!hasEditorialRole(lockedUser)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+          this.assertMajorEditConfirmationActor(parsed, lockedUser);
+          if (parsed.exp < Date.now()) throw new PublicationConfirmationError("expired", "The major-edit notification confirmation expired. Prepare the action again.");
+          const commitEvent = await this.reserveWrite({ fingerprint, idempotencyDigest, requestId, tool: "editorial_commit_major_edit_notification" }, req);
+          const located = await this.confirmationEvent(confirmationDigest, req);
+          if (!located) throw new AgentServiceError("CONFIRMATION_INVALID", "The major-edit notification confirmation is invalid.");
+          await this.lockAgentEvent(req, Number(located.id));
+          const confirmationEvent = await this.confirmationEvent(confirmationDigest, req);
+          this.assertMajorEditConfirmationEvent(confirmationEvent, parsed);
+          await this.lockArticle(req, parsed.articleId);
+          const found = await this.editorialArticle(parsed.articleId, lockedUser, req);
+          const article = await getLatestDraftArticle(this.payload, found.id, found, req);
+          const beforeRevision = revision(article);
+          if (beforeRevision !== parsed.revision) {
+            await this.finishWrite(commitEvent.id, { beforeRevision, objectId: String(article.id), result: "conflict" }, req);
+            await this.finishWrite(confirmationEvent!.id, { beforeRevision, objectId: String(article.id), result: "conflict" }, req);
+            return { kind: "conflict" as const, revision: beforeRevision };
+          }
+          if (article.authorshipType !== "member" || articleRelationID(article.owner) !== parsed.ownerId) {
+            throw new AgentServiceError("CONFIRMATION_INVALID", "The prepared notification recipient is no longer valid.");
+          }
+          const owner = await this.lockNotificationOwner(req, parsed.ownerId);
+          if (owner.accountStatus !== "active" || !owner.email.trim() || majorEditRecipientDigest(owner.email) !== parsed.recipientDigest) {
+            throw new AgentServiceError("CONFIRMATION_INVALID", "The prepared notification recipient is no longer valid.");
+          }
+          const workflowEvent = await createEditorialNotificationEvent({
+            article,
+            fromStatus: article.curationStatus ?? "not_selected",
+            kind: "major_edit",
+            notificationKey,
+            deferDelivery: true,
+            req,
+            toStatus: article.curationStatus ?? "not_selected",
+          });
+          if (!workflowEvent) throw new AgentServiceError("VALIDATION_ERROR", "The Member author notification could not be created.");
+          const stored = { articleId: article.id, eventId: Number(workflowEvent.id), revision: beforeRevision };
+          await this.finishWrite(confirmationEvent!.id, { afterRevision: beforeRevision, beforeRevision, objectId: String(article.id), result: "success" }, req);
+          await this.finishWrite(commitEvent.id, { afterRevision: beforeRevision, beforeRevision, inputFingerprint: storedMajorEditNotificationFingerprint(fingerprint, stored), objectId: String(article.id), result: "success" }, req);
+          return { articleId: article.id, auditId: String(commitEvent.id), event: workflowEvent as WorkflowEvent, revision: beforeRevision };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedMajorEditNotification(idempotencyDigest, fingerprint, notificationKey, user);
+        if (!replay) throw error.original;
+        const delivered = await this.deliverMajorEditNotificationEvent(replay.event, notificationKey, user);
+        return agentSuccess(majorEditNotificationSummary(delivered), { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(replay.stored.articleId), readAfterWrite: true, revision: replay.stored.revision } });
+      }
+      if ("kind" in outcome) throw new AgentServiceError("REVISION_CONFLICT", "The Article changed after this notification was prepared.", { latestRevision: outcome.revision });
+      const delivered = await this.deliverMajorEditNotificationEvent(outcome.event, notificationKey, user);
+      return agentSuccess(majorEditNotificationSummary(delivered), { requestId, meta: { auditId: outcome.auditId, idempotencyKey: input.idempotencyKey, objectId: String(outcome.articleId), readAfterWrite: true, revision: outcome.revision } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && ["IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT"].includes(error.code))) {
+        const failureRequestId = auditedFailureRequestId(requestId, error);
+        await this.auditAttempt({ objectId: confirmation ? String(confirmation.articleId) : undefined, objectType: "article", requestId: failureRequestId, result: "failed", tool: "editorial_commit_major_edit_notification" });
         return failure(error, failureRequestId);
       }
       return failure(error, requestId);

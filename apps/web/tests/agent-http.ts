@@ -489,6 +489,10 @@ function memberServiceFixture(options: {
   assert.equal(capabilities.data?.tools.includes("editorial_attention_list"), true);
   assert.equal(capabilities.data?.tools.includes("editorial_reference_options"), true);
   assert.equal(capabilities.data?.tools.includes("editorial_save_site_fields"), true);
+  assert.equal(capabilities.data?.tools.includes("editorial_prepare_homepage_schedule"), true);
+  assert.equal(capabilities.data?.tools.includes("editorial_commit_homepage_schedule"), true);
+  assert.equal(capabilities.data?.tools.includes("editorial_prepare_major_edit_notification"), true);
+  assert.equal(capabilities.data?.tools.includes("editorial_commit_major_edit_notification"), true);
   const assignees = await fixture.service.editorialReferenceOptions({ kind: "assignee" });
   assert.deepEqual(assignees.data?.options, [{ id: 5, label: "Fixture Editor", kind: "assignee" }]);
   const profile = await fixture.service.myProfileGet();
@@ -508,6 +512,9 @@ function memberServiceFixture(options: {
   assert.equal((await fixture.service.editorialAttentionList()).error?.code, "FORBIDDEN");
   assert.equal((await fixture.service.editorialReferenceOptions({ kind: "assignee" })).error?.code, "FORBIDDEN");
   assert.equal((await fixture.service.editorialSaveSiteFields({ id: 21, idempotencyKey: "editorial_0123456789", patch: { format: "analysis" }, revision: createArticleRevision({ id: 21, locale: "en", updatedAt: "2026-08-12T00:00:00.000Z" }) })).error?.code, "FORBIDDEN");
+  const editorialRevision = createArticleRevision({ id: 21, locale: "en", updatedAt: "2026-08-12T00:00:00.000Z" });
+  assert.equal((await fixture.service.prepareHomepageSchedule({ id: 21, placement: "none", startsAt: null, endsAt: null, revision: editorialRevision })).error?.code, "FORBIDDEN");
+  assert.equal((await fixture.service.prepareMajorEditNotification({ id: 21, revision: editorialRevision })).error?.code, "FORBIDDEN");
 }
 
 const uploadInput = {

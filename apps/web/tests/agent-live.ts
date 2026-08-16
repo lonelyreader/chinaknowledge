@@ -847,6 +847,154 @@ try {
   assert.equal(curatedAfterFailure.meta?.revision, curatedEditorRead.meta?.revision);
   assert.equal(curatedAfterFailure.data?.sourceNotes.length, 1);
 
+  // AGENT-WORKSPACE-009: explicit homepage schedule and major-edit author
+  // notification actions. Local notification delivery must remain not_required.
+  const scheduleStartsAt = new Date(Date.now() - 60_000).toISOString();
+  const scheduleEndsAt = new Date(Date.now() + 3_600_000).toISOString();
+  const scheduleVersionsBefore = await payload.countVersions({ collection: "articles", overrideAccess: true, where: { parent: { equals: editorWorkArticle.id } } });
+  const scheduleWorkflowBefore = await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: editorWorkArticle.id } } });
+  const preparedSchedule = await editorService.prepareHomepageSchedule({
+    id: editorWorkArticle.id,
+    placement: "lead",
+    startsAt: scheduleStartsAt,
+    endsAt: scheduleEndsAt,
+    revision: curatedAfterFailure.meta!.revision!,
+  });
+  assert.equal(preparedSchedule.ok, true, JSON.stringify(preparedSchedule));
+  assert.equal(preparedSchedule.data?.summary.target.activeNow, true);
+  assert.deepEqual(preparedSchedule.data?.summary.recovery, { placement: "none", startsAt: null, endsAt: null });
+  assert.equal((await payload.countVersions({ collection: "articles", overrideAccess: true, where: { parent: { equals: editorWorkArticle.id } } })).totalDocs, scheduleVersionsBefore.totalDocs, "Homepage prepare must not create an Article version.");
+  assert.equal((await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: editorWorkArticle.id } } })).totalDocs, scheduleWorkflowBefore.totalDocs, "Homepage prepare must not create a WorkflowEvent.");
+  assert.equal((await serviceB.prepareHomepageSchedule({ id: editorWorkArticle.id, placement: "none", startsAt: null, endsAt: null, revision: curatedAfterFailure.meta!.revision! })).error?.code, "FORBIDDEN");
+  assert.equal((await editorService.prepareHomepageSchedule({ id: editorWorkArticle.id, placement: "lead", startsAt: scheduleEndsAt, endsAt: scheduleStartsAt, revision: curatedAfterFailure.meta!.revision! })).error?.code, "VALIDATION_ERROR");
+  const scheduleKey = `homepage-schedule-${randomUUID()}`;
+  const committedSchedule = await editorService.commitHomepageSchedule({ confirmationRef: preparedSchedule.data!.confirmationRef, idempotencyKey: scheduleKey, revision: curatedAfterFailure.meta!.revision! });
+  assert.equal(committedSchedule.ok, true, JSON.stringify(committedSchedule));
+  assert.equal(committedSchedule.data?.schedule.placement, "lead");
+  assert.equal(committedSchedule.data?.schedule.activeNow, true);
+  assert.deepEqual(committedSchedule.data?.recovery, { placement: "none", startsAt: null, endsAt: null });
+  assert.equal((await payload.countVersions({ collection: "articles", overrideAccess: true, where: { parent: { equals: editorWorkArticle.id } } })).totalDocs > scheduleVersionsBefore.totalDocs, true);
+  assert.equal((await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: editorWorkArticle.id } } })).totalDocs, scheduleWorkflowBefore.totalDocs);
+  const scheduledLive = await payload.findByID({ collection: "articles", id: editorWorkArticle.id, depth: 0, draft: false, overrideAccess: true });
+  assert.equal(scheduledLive.homepagePlacement, "lead");
+  assert.equal(scheduledLive.homepageStartsAt, scheduleStartsAt);
+  assert.equal(scheduledLive.homepageEndsAt, scheduleEndsAt);
+  assert.equal(scheduledLive.publicationStatus, "published");
+  assert.equal(scheduledLive.curationStatus, "curated");
+  assert.equal(scheduledLive._status, "published");
+  const scheduleReplay = await editorService.commitHomepageSchedule({ confirmationRef: preparedSchedule.data!.confirmationRef, idempotencyKey: scheduleKey, revision: curatedAfterFailure.meta!.revision! });
+  assert.equal(scheduleReplay.ok, true, JSON.stringify(scheduleReplay));
+  assert.equal(scheduleReplay.meta?.revision, committedSchedule.meta?.revision);
+  assert.equal((await editorService.commitHomepageSchedule({ confirmationRef: preparedSchedule.data!.confirmationRef, idempotencyKey: scheduleKey, revision: committedSchedule.meta!.revision! })).error?.code, "CONFIRMATION_INVALID");
+
+  const preparedClear = await editorService.prepareHomepageSchedule({ id: editorWorkArticle.id, placement: "none", startsAt: null, endsAt: null, revision: committedSchedule.meta!.revision! });
+  const clearedSchedule = await editorService.commitHomepageSchedule({ confirmationRef: preparedClear.data!.confirmationRef, idempotencyKey: `homepage-clear-${randomUUID()}`, revision: committedSchedule.meta!.revision! });
+  assert.equal(clearedSchedule.ok, true, JSON.stringify(clearedSchedule));
+  assert.deepEqual(clearedSchedule.data?.schedule, { placement: "none", startsAt: null, endsAt: null, activeNow: false });
+  assert.deepEqual(clearedSchedule.data?.recovery, { placement: "lead", startsAt: scheduleStartsAt, endsAt: scheduleEndsAt });
+  const clearedLive = await payload.findByID({ collection: "articles", id: editorWorkArticle.id, depth: 0, draft: false, overrideAccess: true });
+  assert.equal(clearedLive.homepagePlacement, "none");
+  assert.equal(clearedLive.homepageStartsAt, null);
+  assert.equal(clearedLive.homepageEndsAt, null);
+
+  const roleBoundSchedule = await editorService.prepareHomepageSchedule({ id: editorWorkArticle.id, placement: "selected", startsAt: scheduleStartsAt, endsAt: scheduleEndsAt, revision: clearedSchedule.meta!.revision! });
+  await payload.update({ collection: "users", id: editor.user.id, data: { role: "super_admin" }, overrideAccess: true });
+  assert.equal((await editorService.commitHomepageSchedule({ confirmationRef: roleBoundSchedule.data!.confirmationRef, idempotencyKey: `homepage-role-change-${randomUUID()}`, revision: clearedSchedule.meta!.revision! })).error?.code, "CONFIRMATION_INVALID");
+  await payload.update({ collection: "users", id: editor.user.id, data: { role: "editor" }, overrideAccess: true });
+
+  const workflowBeforeNotificationPrepare = await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: editorWorkArticle.id } } });
+  const preparedNotification = await editorService.prepareMajorEditNotification({ id: editorWorkArticle.id, revision: clearedSchedule.meta!.revision! });
+  assert.equal(preparedNotification.ok, true, JSON.stringify(preparedNotification));
+  assert.deepEqual(preparedNotification.data?.summary, { notificationKind: "major_edit", delivery: "account_email" });
+  assert.equal(JSON.stringify(preparedNotification).includes(memberA.user.email), false);
+  assert.equal((await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: editorWorkArticle.id } } })).totalDocs, workflowBeforeNotificationPrepare.totalDocs, "Notification prepare must not create a WorkflowEvent.");
+  assert.equal((await serviceB.prepareMajorEditNotification({ id: editorWorkArticle.id, revision: clearedSchedule.meta!.revision! })).error?.code, "FORBIDDEN");
+  const localNotificationKey = `major-edit-local-${randomUUID()}`;
+  const localNotification = await editorService.commitMajorEditNotification({ confirmationRef: preparedNotification.data!.confirmationRef, idempotencyKey: localNotificationKey, revision: clearedSchedule.meta!.revision! });
+  assert.equal(localNotification.ok, true, JSON.stringify(localNotification));
+  assert.equal(localNotification.data?.status, "not_required");
+  assert.equal(localNotification.data?.attempts, 0);
+  const localNotificationEventId = localNotification.data!.eventId;
+  const localNotificationReplay = await editorService.commitMajorEditNotification({ confirmationRef: preparedNotification.data!.confirmationRef, idempotencyKey: localNotificationKey, revision: clearedSchedule.meta!.revision! });
+  assert.equal(localNotificationReplay.data?.eventId, localNotificationEventId);
+  assert.equal(localNotificationReplay.data?.attempts, 0);
+  assert.equal((await payload.count({ collection: "workflow-events", overrideAccess: true, where: { and: [{ article: { equals: editorWorkArticle.id } }, { notificationKind: { equals: "major_edit" } }] } })).totalDocs, 1);
+
+  const failedNotificationPrepare = await editorService.prepareMajorEditNotification({ id: editorWorkArticle.id, revision: clearedSchedule.meta!.revision! });
+  const concurrentNotificationPrepare = await editorService.prepareMajorEditNotification({ id: editorWorkArticle.id, revision: clearedSchedule.meta!.revision! });
+  const originalNotificationEnv = {
+    APP_ENV: process.env.APP_ENV,
+    PAYLOAD_EMAIL_FROM: process.env.PAYLOAD_EMAIL_FROM,
+    PAYLOAD_PUBLIC_SERVER_URL: process.env.PAYLOAD_PUBLIC_SERVER_URL,
+    RESEND_TRANSACTIONAL_API_KEY: process.env.RESEND_TRANSACTIONAL_API_KEY,
+  };
+  const originalFetch = globalThis.fetch;
+  let providerCalls = 0;
+  try {
+    process.env.APP_ENV = "production";
+    process.env.PAYLOAD_EMAIL_FROM = "notifications@chinainfact.com";
+    process.env.PAYLOAD_PUBLIC_SERVER_URL = "https://chinainfact.com";
+    process.env.RESEND_TRANSACTIONAL_API_KEY = "re_fixture_no_real_delivery";
+    globalThis.fetch = (async () => {
+      providerCalls += 1;
+      if (providerCalls === 1) throw new Error("Synthetic provider timeout");
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      return new Response(JSON.stringify({ id: `synthetic-email-${providerCalls}` }), { status: 200, headers: { "content-type": "application/json" } });
+    }) as typeof fetch;
+
+    const failedKey = `major-edit-failed-${randomUUID()}`;
+    const failedDelivery = await editorService.commitMajorEditNotification({ confirmationRef: failedNotificationPrepare.data!.confirmationRef, idempotencyKey: failedKey, revision: clearedSchedule.meta!.revision! });
+    assert.equal(failedDelivery.ok, true, JSON.stringify(failedDelivery));
+    assert.equal(failedDelivery.data?.status, "failed");
+    assert.equal(failedDelivery.data?.attempts, 1);
+    const failedEventId = failedDelivery.data!.eventId;
+    const retriedDelivery = await editorService.commitMajorEditNotification({ confirmationRef: failedNotificationPrepare.data!.confirmationRef, idempotencyKey: failedKey, revision: clearedSchedule.meta!.revision! });
+    assert.equal(retriedDelivery.data?.eventId, failedEventId);
+    assert.equal(retriedDelivery.data?.status, "sent");
+    assert.equal(retriedDelivery.data?.attempts, 2);
+    const providerCallsAfterSent = providerCalls;
+    const sentReplay = await editorService.commitMajorEditNotification({ confirmationRef: failedNotificationPrepare.data!.confirmationRef, idempotencyKey: failedKey, revision: clearedSchedule.meta!.revision! });
+    assert.equal(sentReplay.data?.eventId, failedEventId);
+    assert.equal(sentReplay.data?.attempts, 2);
+    assert.equal(providerCalls, providerCallsAfterSent, "A sent notification replay must not call the provider.");
+
+    const concurrentKey = `major-edit-concurrent-${randomUUID()}`;
+    const [concurrentA, concurrentB] = await Promise.all([
+      editorService.commitMajorEditNotification({ confirmationRef: concurrentNotificationPrepare.data!.confirmationRef, idempotencyKey: concurrentKey, revision: clearedSchedule.meta!.revision! }),
+      editorService.commitMajorEditNotification({ confirmationRef: concurrentNotificationPrepare.data!.confirmationRef, idempotencyKey: concurrentKey, revision: clearedSchedule.meta!.revision! }),
+    ]);
+    assert.equal(concurrentA.ok, true, JSON.stringify(concurrentA));
+    assert.equal(concurrentB.ok, true, JSON.stringify(concurrentB));
+    assert.equal(concurrentA.data?.eventId, concurrentB.data?.eventId);
+    assert.equal(providerCalls, providerCallsAfterSent + 1, "Concurrent notification commits must make one provider call.");
+  } finally {
+    globalThis.fetch = originalFetch;
+    for (const [key, value] of Object.entries(originalNotificationEnv)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+  const notificationAudits = await payload.find({ collection: "agent-events", depth: 0, limit: 50, overrideAccess: true, pagination: false, showHiddenFields: true, where: { tool: { in: ["editorial_prepare_major_edit_notification", "editorial_commit_major_edit_notification"] } } });
+  assert.equal(JSON.stringify(notificationAudits.docs).includes(memberA.user.email), false);
+  assert.equal(JSON.stringify(notificationAudits.docs).includes("Synthetic provider timeout"), false);
+  assert.equal(JSON.stringify(notificationAudits.docs).includes(preparedNotification.data!.confirmationRef), false);
+
+  await payload.update({
+    collection: "articles",
+    id: editorWorkArticle.id,
+    data: { _status: "draft", title: "Unpublished pending homepage draft" },
+    autosave: true,
+    draft: true,
+    overrideAccess: false,
+    user: memberA.user,
+  });
+  const pendingScheduleRead = await editorService.editorialArticleGet(editorWorkArticle.id, { bodyVersion: "AgentArticleBodyV2" });
+  assert.equal((await editorService.prepareHomepageSchedule({ id: editorWorkArticle.id, placement: "selected", startsAt: scheduleStartsAt, endsAt: scheduleEndsAt, revision: pendingScheduleRead.meta!.revision! })).error?.code, "VALIDATION_ERROR");
+  const pendingLiveReadback = await payload.findByID({ collection: "articles", id: editorWorkArticle.id, depth: 0, draft: false, overrideAccess: true });
+  assert.equal(pendingLiveReadback.title, "Agent Editor workbench fixture");
+  assert.equal(pendingLiveReadback.homepagePlacement, "none");
+  assert.equal(pendingLiveReadback._status, "published");
+
   const siteMaster = await payload.create({
     collection: "editorial-masters",
     data: {
@@ -1714,6 +1862,10 @@ try {
   assert.equal(editorCapabilities.data?.tools.includes("editorial_save_site_fields"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_prepare_site_selection"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_commit_site_selection"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_prepare_homepage_schedule"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_commit_homepage_schedule"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_prepare_major_edit_notification"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_commit_major_edit_notification"), true);
   assert.equal(editorCapabilities.data?.tools.includes("admin_recent_activity"), false);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_release_site_article_batch"), false);
   assert.equal(adminCapabilities.data?.tools.includes("editorial_release_site_article_batch"), true);
@@ -1722,6 +1874,8 @@ try {
   assert.equal(memberCapabilities.data?.tools.includes("editorial_attention_list"), false);
   assert.equal(memberCapabilities.data?.tools.includes("editorial_reference_options"), false);
   assert.equal(memberCapabilities.data?.tools.includes("editorial_save_site_fields"), false);
+  assert.equal(memberCapabilities.data?.tools.includes("editorial_prepare_homepage_schedule"), false);
+  assert.equal(memberCapabilities.data?.tools.includes("editorial_prepare_major_edit_notification"), false);
   assert.equal(memberCapabilities.data?.tools.includes("admin_recent_activity"), false);
   assert.equal(editorCapabilities.data?.role, "editor");
   assert.equal(adminCapabilities.data?.role, "super_admin");
@@ -1794,6 +1948,10 @@ try {
   assert.equal(editorToolNames.includes("editorial_save_site_fields"), true);
   assert.equal(editorToolNames.includes("editorial_prepare_site_selection"), true);
   assert.equal(editorToolNames.includes("editorial_commit_site_selection"), true);
+  assert.equal(editorToolNames.includes("editorial_prepare_homepage_schedule"), true);
+  assert.equal(editorToolNames.includes("editorial_commit_homepage_schedule"), true);
+  assert.equal(editorToolNames.includes("editorial_prepare_major_edit_notification"), true);
+  assert.equal(editorToolNames.includes("editorial_commit_major_edit_notification"), true);
   assert.equal(editorToolNames.includes("admin_recent_activity"), false);
   const protectedEditorialFieldResponse = await gateway(mcpRequest(editorToolToken.access_token, "tools/call", {
     name: "editorial_save_site_fields",
@@ -1802,6 +1960,19 @@ try {
   const protectedEditorialFieldBody = await mcpJSON(protectedEditorialFieldResponse) as { result?: { content?: { text?: string }[]; isError?: boolean } };
   assert.equal(protectedEditorialFieldBody.result?.isError, true, JSON.stringify(protectedEditorialFieldBody));
   assert.match(protectedEditorialFieldBody.result?.content?.[0]?.text ?? "", /Unrecognized key: "title"/);
+  const forgedNotificationResponse = await gateway(mcpRequest(editorToolToken.access_token, "tools/call", {
+    name: "editorial_prepare_major_edit_notification",
+    arguments: { id: articleId, revision: `rev1_${"a".repeat(43)}`, email: "attacker@example.test", notificationKind: "selected" },
+  }, 17));
+  const forgedNotificationBody = await mcpJSON(forgedNotificationResponse) as { result?: { content?: { text?: string }[]; isError?: boolean } };
+  assert.equal(forgedNotificationBody.result?.isError, true, JSON.stringify(forgedNotificationBody));
+  assert.match(forgedNotificationBody.result?.content?.[0]?.text ?? "", /Unrecognized key/);
+  const incompleteScheduleResponse = await gateway(mcpRequest(editorToolToken.access_token, "tools/call", {
+    name: "editorial_prepare_homepage_schedule",
+    arguments: { id: articleId, revision: `rev1_${"a".repeat(43)}`, placement: "lead", startsAt: new Date().toISOString() },
+  }, 18));
+  const incompleteScheduleBody = await mcpJSON(incompleteScheduleResponse) as { result?: { isError?: boolean } };
+  assert.equal(incompleteScheduleBody.result?.isError, true, JSON.stringify(incompleteScheduleBody));
 
   const adminToolToken = await exchangeCode(payload, admin, oauthFixtureClient, "admin-tools", "agent:member");
   const adminToolsResponse = await gateway(mcpRequest(adminToolToken.access_token, "tools/list", {}, 12));
