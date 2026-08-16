@@ -814,7 +814,7 @@ export class AgentMemberService {
     }
   }
 
-  private assertEligibleSiteMaster(master: EditorialMaster, expectedHash?: string) {
+  private assertEligibleSiteMaster(master: EditorialMaster, expectedFingerprint?: string) {
     if (master.rightsStatus !== "cleared" || !["approved", "translated", "released"].includes(master.editorialStatus)) {
       throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master is not approved and rights-cleared.");
     }
@@ -836,13 +836,24 @@ export class AgentMemberService {
     if (!/^[a-f0-9]{64}$/.test(master.contentHash)) {
       throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master content hash is invalid.");
     }
-    if (expectedHash !== undefined && master.contentHash !== expectedHash) {
-      throw new AgentServiceError("REVISION_CONFLICT", "The Chinese master changed after it was read.", { latestContentHash: master.contentHash });
+    const fingerprint = this.siteMasterFingerprint(master);
+    if (expectedFingerprint !== undefined && fingerprint !== expectedFingerprint) {
+      throw new AgentServiceError("REVISION_CONFLICT", "The Chinese master changed after it was read.", { latestMasterFingerprint: fingerprint });
     }
     return master;
   }
 
-  private async eligibleSiteMaster(id: number, user: User, req?: PayloadRequest, expectedHash?: string) {
+  private siteMasterFingerprint(master: EditorialMaster) {
+    const topics = [...new Set((master.topics ?? []).flatMap((value) => {
+      const id = articleRelationID(value);
+      return typeof id === "number" ? [id] : [];
+    }))].sort((left, right) => left - right);
+    return createHash("sha256")
+      .update(`agent-site-master-v1\0${canonicalJSON({ contentHash: master.contentHash, topics })}`)
+      .digest("hex");
+  }
+
+  private async eligibleSiteMaster(id: number, user: User, req?: PayloadRequest, expectedFingerprint?: string) {
     if (!isSuperAdmin(user)) throw new AgentServiceError("FORBIDDEN", "Super Admin access is required.");
     let master: EditorialMaster;
     try {
@@ -850,7 +861,7 @@ export class AgentMemberService {
     } catch {
       throw new AgentServiceError("NOT_FOUND", "Chinese master not found.");
     }
-    return this.assertEligibleSiteMaster(master, expectedHash);
+    return this.assertEligibleSiteMaster(master, expectedFingerprint);
   }
 
   private async siteMasterSummary(master: EditorialMaster, user: User, req?: PayloadRequest, includeBody = false) {
@@ -879,7 +890,7 @@ export class AgentMemberService {
       summaryZh: master.summaryZh,
       editorialStatus: master.editorialStatus,
       rightsStatus: master.rightsStatus,
-      contentHash: master.contentHash,
+      contentHash: this.siteMasterFingerprint(master),
       risk: master.risk,
       purpose: relationSummary(purposeId),
       topics: (master.topics ?? []).flatMap((value) => {
@@ -1485,7 +1496,7 @@ export class AgentMemberService {
         });
         const options = (result.docs as EditorialMaster[]).map((master) => {
           this.assertEligibleSiteMaster(master);
-          return { id: master.id, contentKey: master.contentKey, label: master.titleZh, editorialStatus: master.editorialStatus, contentHash: master.contentHash, kind: input.kind };
+          return { id: master.id, contentKey: master.contentKey, label: master.titleZh, editorialStatus: master.editorialStatus, contentHash: this.siteMasterFingerprint(master), kind: input.kind };
         });
         await this.auditAttempt({ objectId: `reference:${input.kind}`, objectType: "account", requestId, result: "success", tool: "editorial_reference_options" });
         return agentSuccess({ options, page: result.page ?? page, limit, totalDocs: result.totalDocs, totalPages: result.totalPages }, { requestId });
@@ -1568,7 +1579,7 @@ export class AgentMemberService {
     const latestState = await getLatestArticleVersionState(this.payload, article.id, article, req);
     const pending = latestState.autosave || liveRevision !== revision(article);
     return {
-      siteMaster: { id: master.id, contentKey: master.contentKey, contentHash: master.contentHash },
+      siteMaster: { id: master.id, contentKey: master.contentKey, contentHash: this.siteMasterFingerprint(master) },
       workingCopy: {
         pending,
         liveRevision,
@@ -1980,7 +1991,7 @@ export class AgentMemberService {
       if (!title || title.length > 240 || !summary || summary.length > 2_000) throw new AgentServiceError("VALIDATION_ERROR", "A Site Article requires a title and summary within the allowed lengths.");
       if (!/^[a-f0-9]{64}$/.test(input.masterContentHash)) throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master content hash is invalid.");
       const fingerprint = inputFingerprint({ ...input, title, summary });
-      const prior = await this.replayedSiteArticleWrite(requestId, fingerprint, user);
+      const prior = await this.replayedSiteArticleWrite(requestId, fingerprint, user, { fingerprint: input.masterContentHash, id: input.masterId });
       if (prior) {
         const result = await this.siteArticleResult(prior, user);
         return agentSuccess(result, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true, revision: revision(prior) } });
@@ -2033,7 +2044,7 @@ export class AgentMemberService {
         });
       } catch (error) {
         if (!(error instanceof IdempotencyReservationError)) throw error;
-        const replay = await this.replayedSiteArticleWrite(requestId, fingerprint, user);
+        const replay = await this.replayedSiteArticleWrite(requestId, fingerprint, user, { fingerprint: input.masterContentHash, id: input.masterId });
         if (!replay) throw error.original;
         outcome = { article: replay, auditId: "" };
       }
@@ -2057,7 +2068,7 @@ export class AgentMemberService {
       const initialMasterId = articleRelationID(initial.editorialMaster);
       if (initial.authorshipType !== "site" || typeof initialMasterId !== "number") throw new AgentServiceError("FORBIDDEN", "Only a Site Article can use this working-copy save.");
       const fingerprint = inputFingerprint(input);
-      const prior = await this.replayedSiteArticleWrite(requestId, fingerprint, user);
+      const prior = await this.replayedSiteArticleWrite(requestId, fingerprint, user, { fingerprint: input.masterContentHash, id: initialMasterId });
       if (prior) {
         const result = await this.siteArticleResult(prior, user);
         return agentSuccess(result, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true, revision: revision(prior) } });
@@ -2106,7 +2117,7 @@ export class AgentMemberService {
         });
       } catch (error) {
         if (!(error instanceof IdempotencyReservationError)) throw error;
-        const replay = await this.replayedSiteArticleWrite(requestId, fingerprint, user);
+        const replay = await this.replayedSiteArticleWrite(requestId, fingerprint, user, { fingerprint: input.masterContentHash, id: initialMasterId });
         if (!replay) throw error.original;
         outcome = { article: replay, auditId: "", kind: "saved" };
       }
@@ -2515,7 +2526,7 @@ export class AgentMemberService {
     return article;
   }
 
-  private async replayedSiteArticleWrite(requestId: string, fingerprint: string, user: User) {
+  private async replayedSiteArticleWrite(requestId: string, fingerprint: string, user: User, expectedMaster: { fingerprint: string; id: number }) {
     if (!isSuperAdmin(user)) throw new AgentServiceError("FORBIDDEN", "Super Admin access is required.");
     const prior = await this.priorWrite(requestId);
     if (!prior) return null;
@@ -2524,7 +2535,9 @@ export class AgentMemberService {
     if (prior.result !== "success" || !prior.objectId || !prior.afterRevision) throw new AgentServiceError("TEMPORARY_FAILURE", "The previous Site Article write has no readable result.");
     const found = await this.editorialArticle(Number(prior.objectId), user);
     const article = await getLatestDraftArticle(this.payload, found.id, found);
-    if (article.authorshipType !== "site" || articleRelationID(article.editorialMaster) == null) throw new AgentServiceError("TEMPORARY_FAILURE", "The previous Site Article write has an invalid identity.");
+    const masterId = articleRelationID(article.editorialMaster);
+    if (article.authorshipType !== "site" || masterId !== expectedMaster.id) throw new AgentServiceError("TEMPORARY_FAILURE", "The previous Site Article write has an invalid identity.");
+    await this.eligibleSiteMaster(masterId, user, undefined, expectedMaster.fingerprint);
     if (revision(article) !== prior.afterRevision) throw new AgentServiceError("TEMPORARY_FAILURE", "The saved Site Article result changed after the previous write.");
     return article;
   }

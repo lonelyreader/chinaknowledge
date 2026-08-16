@@ -156,11 +156,11 @@ export const agentToolDescriptions = {
   editorial_commit_major_edit_notification:
     "Execute a prepared major-edit author notification. The server derives the recipient and copy, creates or reuses one WorkflowEvent and notification key, and safely reads back or retries that same event without exposing email or sending an already completed notification again.",
   site_article_master_get:
-    "Read one eligible, rights-cleared Chinese Editorial Master for a current Super Admin as Body V2 with the exact content hash and minimal source metadata needed to create a site translation draft. It never changes or approves the master.",
+    "Read one eligible, rights-cleared Chinese Editorial Master for a current Super Admin as Body V2 with the current Agent-facing master fingerprint and minimal source metadata needed to create a site translation draft. It never changes or approves the master.",
   site_article_create_draft:
-    "Create one private EN or ES site-authored Article draft from an eligible Chinese master for a current Super Admin. The server fixes owner, institutional byline, master, translation group, slug and initial states; copies approved source metadata; requires the current master hash and an idempotency key; and never publishes.",
+    "Create one private EN or ES site-authored Article draft from an eligible Chinese master for a current Super Admin. The server fixes owner, institutional byline, master, translation group, slug and initial states; copies approved source metadata; requires the current master fingerprint and an idempotency key; and never publishes.",
   site_article_save_draft:
-    "Save a strict partial working-copy patch on one site-authored Article for a current Super Admin. It rechecks the master hash, identity, revision, taxonomies and approved public media, creates only a draft version, preserves the live page, and reads back the pending working copy.",
+    "Save a strict partial working-copy patch on one site-authored Article for a current Super Admin. It rechecks the master fingerprint, identity, revision, taxonomies and approved public media, creates only a draft version, preserves the live page, and reads back the pending working copy.",
   editorial_release_site_article_batch:
     "Publish and add 1-20 site-authored Articles to the site after the user has explicitly approved that exact batch. Super Admin only. The server processes Articles serially through the normal prepare, confirmation, idempotency, revision and readback gates; it stops on the first failure and never edits article copy.",
   admin_recent_activity:

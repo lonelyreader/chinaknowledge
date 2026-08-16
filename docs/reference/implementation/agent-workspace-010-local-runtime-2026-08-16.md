@@ -19,8 +19,8 @@ max_lines: 100
 ## Site Article working copy
 
 - 只有每次调用实时重检通过的 active Super Admin 能发现和调用三个新工具。Editor/Member 猜测工具名、直接 service 调用或使用 `site_master` kind 均失败。
-- 母稿固定要求 rights cleared、状态 approved/translated/released、中文 title/summary/body、purpose 与完整非 restricted 来源。读取只返回 Body V2、purpose/topics、必要来源元数据和既有 content hash，不返回创建者、复核者、版本、翻译备注或 source check。
-- 现有 Editorial Master content hash 不覆盖 topics。本批不修改公共 hash 语义、不增加第二套 hash：写事务先锁 actor 与母稿行，再在同一事务重读并逐项验证、复制当前 purpose、topics、source notes 与由 checkedAt 推导的 freshness；客户端 hash 仍阻止既有 hash 覆盖字段的 stale 写。该兼容方案无 schema/migration。
+- 母稿固定要求 rights cleared、状态 approved/translated/released、中文 title/summary/body、purpose 与完整非 restricted 来源。读取只返回 Body V2、purpose/topics、必要来源元数据和 Agent-facing master fingerprint，不返回创建者、复核者、版本、翻译备注或 source check。
+- 现有 Editorial Master content hash 不覆盖 topics。本批不修改公共 hash 或 schema；Agent service 生成版本化 SHA-256 master fingerprint，覆盖既有 content hash 与排序去重后的 topic IDs。`site_master` reference、master get 和 Article working-copy 返回同一指纹；create/save 事务及成功幂等重放均重读母稿并复核该指纹，再复制当前 purpose、topics、source notes 与由 checkedAt 推导的 freshness。
 - 创建由服务端固定 `authorshipType=site`、`author=null`、当前 owner、master、group、slug 与初始状态。同一 master 的 EN/ES 共用 group；master 行锁与既有 `(translationGroup, locale)` unique index保证并发同 locale 最多一条。
 - 保存只接受 title、summary、Body V2、format、四类 taxonomy、source/freshness、approved cover 与 SEO title/description。事务重检 master/hash、Article identity、revision、分类和媒体；写后核对 owner/author/master/locale/group/slug 与 live revision。
 - 已公开 Site Article 的普通保存只形成 pending version。逐篇 publication 或既有 batch release 识别 pending autosave，并按 Site promotable whitelist 推广 copy、format、四类 taxonomy、source/freshness、cover、SEO 等字段；最终读回要求 live/latest 一致且无 pending。
@@ -33,7 +33,7 @@ max_lines: 100
 
 ## Local 验证
 
-- 全新专用 `chinaknowledge_agent010_20260816` scratch database 顺序完成 15 条既有 migration，`npm --prefix apps/web run test:agent:live` — PASS。覆盖母稿读取、双语同组、重复/并发 locale、幂等重放、stale hash/revision、Site identity、private/pending/live 隔离、batch promotion、角色 discovery/直调与 activity 分页筛选/隐私。
+- 全新专用 `chinaknowledge_agent010_20260816` scratch database 顺序完成 15 条既有 migration，`npm --prefix apps/web run test:agent:live` — PASS。覆盖 reference/get/working-copy 指纹一致、topics 在读取后变化、底层 content hash 变化后的 create/save replay 失败、双语同组、重复/并发 locale、幂等重放、stale revision、Site identity、private/pending/live 隔离、batch promotion、角色 discovery/直调与 activity 分页筛选/隐私。
 - 独立 fresh scratch `npm --prefix apps/web run test:editorial` — PASS；既有 hooks、共享 publication helper、策展与 009 通知行为无回归。
 - `npm --prefix apps/web run test:cold-start-translations` — PASS；冷启动翻译合同无回归。
 - `npm --prefix apps/web run test:agent` 与 `npm --prefix apps/web run typecheck` — PASS；合同、strict schema、33 工具、HTTP/MCP、route、OAuth 和 no-schema 断言通过。
