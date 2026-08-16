@@ -147,6 +147,14 @@ export const agentToolDescriptions = {
     "Prepare adding one member-public article to the site's editorial selection, or removing that same selected article as recovery. It returns a server-generated impact summary and short-lived one-time confirmation reference without changing the article or public entry.",
   editorial_commit_site_selection:
     "Execute a prepared site-selection action only after the user explicitly confirms the server summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks the current role, connection, article, transition, revision and curation requirements before changing the site entry.",
+  editorial_prepare_homepage_schedule:
+    "Prepare scheduling one already-public, site-selected article for the homepage, or clearing its schedule. It returns the exact target, current values and recovery values with a short-lived confirmation reference, without changing the Article or publishing a pending draft.",
+  editorial_commit_homepage_schedule:
+    "Execute one prepared homepage schedule only after explicit confirmation. It rechecks the current role, connection, Article revision, live publication and curation state, and rejects any pending draft before changing only the three homepage schedule fields.",
+  editorial_prepare_major_edit_notification:
+    "Prepare one fixed major-edit notification for the current owner of a Member Article. The server derives the recipient and copy, returns only a safe account-email impact summary, and creates no WorkflowEvent or external delivery.",
+  editorial_commit_major_edit_notification:
+    "Execute a prepared major-edit author notification. The server derives the recipient and copy, creates or reuses one WorkflowEvent and notification key, and safely reads back or retries that same event without exposing email or sending an already completed notification again.",
   editorial_release_site_article_batch:
     "Publish and add 1-20 site-authored Articles to the site after the user has explicitly approved that exact batch. Super Admin only. The server processes Articles serially through the normal prepare, confirmation, idempotency, revision and readback gates; it stops on the first failure and never edits article copy.",
   admin_recent_activity:

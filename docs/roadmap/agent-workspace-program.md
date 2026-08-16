@@ -86,7 +86,7 @@ flowchart LR
 | `INFRA-AGENT-MEDIA-001` | active（release） | Body V2、图片上传、封面和发布预检进入 Production | 当前 Preview/`main` push/deploy 门 |
 | [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | active（release） | 资料与外链、Profile Preview path/publication、翻译 draft、媒体列表、发现与当前角色 discovery 补齐 Member 闭环 | Local 实现/复审 PASS；统一 Preview 与 release 待执行 |
 | [`AGENT-WORKSPACE-008`](checklists/agent-editor-workbench.md) | active（release） | Needs attention、reference options、Body V2 读取与站方字段普通保存形成 Editor 工作台 | Local/独立复审 PASS；统一 Preview/release 待执行 |
-| [`AGENT-WORKSPACE-009`](checklists/agent-editor-public-actions.md) | active | 首页排期与 `major_edit` 作者通知按公共/外部动作合同上线 | 008 Local/独立复审 PASS；当前实现批 |
+| [`AGENT-WORKSPACE-009`](checklists/agent-editor-public-actions.md) | active（review） | 首页排期与 `major_edit` 作者通知按公共/外部动作合同上线 | Local 实现/工作项验证 PASS；独立复审待执行 |
 | `AGENT-WORKSPACE-010` | queued | 站方 Article 建稿/保存、基础对象只读与可筛选审计 | 009 |
 | `AGENT-WORKSPACE-011` | queued | 三角色真实客户端、权限负例、恢复和 Production 总验收 | 010 |
 
@@ -113,10 +113,10 @@ flowchart LR
 - [x] Agent 能从 Needs attention 找到目标，不要求用户先提供内部 Article ID。
 - [x] Agent 能保存负责人、format、分类、来源、freshness、编辑意见和站方封面，不改变原作者与个人公开决定。
 
-### 当前实现：Editor 公共与外部动作（009）
+### 已完成本地实现：Editor 公共与外部动作（009）
 
-- [ ] 首页排期使用 prepare/commit，不能发布 pending draft；`major_edit` 作者通知失败时重试原 commit 与同一 WorkflowEvent。
-- [ ] 不新增复核工具，不重复既有站方选择或 selected/removed/needs_recheck 通知。
+- [x] 首页排期使用 prepare/commit，不能发布 pending draft；`major_edit` 作者通知失败时重试原 commit 与同一 WorkflowEvent。
+- [x] 不新增复核工具，不重复既有站方选择或 selected/removed/needs_recheck 通知。
 
 ### Super Admin 安全站务
 

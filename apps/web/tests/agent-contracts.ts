@@ -22,12 +22,19 @@ import {
 } from "../src/agent/content";
 import { articleRevisionMatches, createArticleRevision, createPersonRevision, personRevisionMatches } from "../src/agent/revision";
 import {
+  createHomepageScheduleConfirmation,
+  createMajorEditNotificationConfirmation,
   createProfilePublicationConfirmation,
   createPublicationConfirmation,
   createSiteSelectionConfirmation,
+  homepageScheduleConfirmationDigest,
+  majorEditNotificationConfirmationDigest,
+  majorEditRecipientDigest,
   PublicationConfirmationError,
   publicationConfirmationDigest,
   profilePublicationConfirmationDigest,
+  readHomepageScheduleConfirmation,
+  readMajorEditNotificationConfirmation,
   readProfilePublicationConfirmation,
   readPublicationConfirmation,
   readSiteSelectionConfirmation,
@@ -168,7 +175,7 @@ for (const description of Object.values(agentToolDescriptions)) {
   assert.ok(description.length > 40);
   assert.ok(description.length <= 512);
 }
-assert.equal(Object.keys(agentToolDescriptions).length, 26);
+assert.equal(Object.keys(agentToolDescriptions).length, 30);
 assert.ok(agentToolDescriptions.media_upload);
 assert.ok(agentToolDescriptions.article_set_cover);
 assert.ok(agentToolDescriptions.my_profile_get);
@@ -177,6 +184,10 @@ assert.ok(agentToolDescriptions.article_create_translation_draft);
 assert.ok(agentToolDescriptions.editorial_attention_list);
 assert.ok(agentToolDescriptions.editorial_reference_options);
 assert.ok(agentToolDescriptions.editorial_save_site_fields);
+assert.ok(agentToolDescriptions.editorial_prepare_homepage_schedule);
+assert.ok(agentToolDescriptions.editorial_commit_homepage_schedule);
+assert.ok(agentToolDescriptions.editorial_prepare_major_edit_notification);
+assert.ok(agentToolDescriptions.editorial_commit_major_edit_notification);
 
 const editorialRevisionSource = {
   ...source,
@@ -199,6 +210,7 @@ for (const changed of [
   { sourceNotes: [{ id: "source-a", label: "Changed" }] },
   { editorComments: [{ id: "comment-a", anchor: "intro", message: "Changed", resolved: false, createdBy: 9 }] },
   { owner: 99 }, { publicationStatus: "withdrawn" }, { curationStatus: "curated" }, { homepagePlacement: "lead" },
+  { homepageStartsAt: "2026-08-17T00:00:00.000Z" }, { homepageEndsAt: "2026-08-18T00:00:00.000Z" },
 ]) {
   assert.equal(articleRevisionMatches(editorialRevision, { ...editorialRevisionSource, ...changed }), false);
 }
@@ -303,5 +315,60 @@ assert.throws(
   () => readSiteSelectionConfirmation(siteSelectionConfirmation, { now: siteSelectionPayload.exp + 1, secret: confirmationSecret }),
   (error: unknown) => error instanceof PublicationConfirmationError && error.reason === "expired",
 );
+
+const homepageConfirmationPayload = {
+  articleId: 42,
+  connectionId: 7,
+  endsAt: "2026-08-18T00:00:00.000Z",
+  exp: Date.now() + 60_000,
+  jti: randomUUID(),
+  personId: 8,
+  placement: "lead" as const,
+  previousEndsAt: null,
+  previousPlacement: "none" as const,
+  previousStartsAt: null,
+  revision,
+  role: "editor" as const,
+  startsAt: "2026-08-17T00:00:00.000Z",
+  userId: 9,
+  v: 1 as const,
+};
+const homepageConfirmation = createHomepageScheduleConfirmation(homepageConfirmationPayload, confirmationSecret);
+assert.deepEqual(readHomepageScheduleConfirmation(homepageConfirmation, { secret: confirmationSecret }), homepageConfirmationPayload);
+assert.match(homepageScheduleConfirmationDigest(homepageConfirmation), /^homepage_confirm_[A-Za-z0-9_-]{43}$/);
+assert.throws(() => readHomepageScheduleConfirmation(`${homepageConfirmation.slice(0, -1)}x`, { secret: confirmationSecret }), PublicationConfirmationError);
+assert.throws(
+  () => readHomepageScheduleConfirmation(homepageConfirmation, { now: homepageConfirmationPayload.exp + 1, secret: confirmationSecret }),
+  (error: unknown) => error instanceof PublicationConfirmationError && error.reason === "expired",
+);
+assert.throws(() => readMajorEditNotificationConfirmation(homepageConfirmation, { secret: confirmationSecret }), PublicationConfirmationError);
+
+const recipientDigest = majorEditRecipientDigest("member@example.test", confirmationSecret);
+assert.match(recipientDigest, /^recipient_[A-Za-z0-9_-]{43}$/);
+assert.equal(recipientDigest, majorEditRecipientDigest(" MEMBER@example.test ", confirmationSecret));
+const notificationConfirmationPayload = {
+  action: "major_edit" as const,
+  articleId: 42,
+  connectionId: 7,
+  exp: Date.now() + 60_000,
+  jti: randomUUID(),
+  ownerId: 10,
+  personId: 8,
+  recipientDigest,
+  revision,
+  role: "editor" as const,
+  userId: 9,
+  v: 1 as const,
+};
+const notificationConfirmation = createMajorEditNotificationConfirmation(notificationConfirmationPayload, confirmationSecret);
+assert.deepEqual(readMajorEditNotificationConfirmation(notificationConfirmation, { secret: confirmationSecret }), notificationConfirmationPayload);
+assert.match(majorEditNotificationConfirmationDigest(notificationConfirmation), /^notification_confirm_[A-Za-z0-9_-]{43}$/);
+assert.throws(() => readMajorEditNotificationConfirmation(`${notificationConfirmation.slice(0, -1)}x`, { secret: confirmationSecret }), PublicationConfirmationError);
+assert.throws(
+  () => readMajorEditNotificationConfirmation(notificationConfirmation, { now: notificationConfirmationPayload.exp + 1, secret: confirmationSecret }),
+  (error: unknown) => error instanceof PublicationConfirmationError && error.reason === "expired",
+);
+assert.throws(() => readHomepageScheduleConfirmation(notificationConfirmation, { secret: confirmationSecret }), PublicationConfirmationError);
+assert.throws(() => readMajorEditNotificationConfirmation(siteSelectionConfirmation, { secret: confirmationSecret }), PublicationConfirmationError);
 
 console.log("Agent contract tests PASS");

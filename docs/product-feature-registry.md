@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-16
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:9415703a26d26789bdd50cab604c13ce0e9d8f0f87e33ba8e628dbbe1272d5b7
+implementation_fingerprint: sha256:a4fb280d7b2e91b9962570863515adc2e80785bbd1c75d7cc860f075210b182f
 ---
 
 # App 功能登记册
@@ -79,9 +79,9 @@ Editor 负责选择和组织成员已经公开的内容。若 Editor 账户同�
 | EDT-06 | 来源与时效 | 记录来源、核对说明、Freshness 日期和编辑意见 | Article 的 Site 模式；008 Local Agent 可完整读写这些站方字段，核对说明不对匿名读者公开 |
 | EDT-07 | 媒体公开确认 | 核对封面、图片说明和媒体公开使用状态 | Article/Images；008 Local Agent 只列出并保存已获站方确认的封面 |
 | EDT-08 | 站方选择流程 | Select、Editing、Add to site、Remove from site，并在正式加入网站前查看标题、作者、栏目、语言、URL、封面、来源、分类和时效检查；Agent 可对一篇明确的跨作者 Article 读取、确认 Add 并确认 Remove | Production Agent Gateway 仍只开放 exact read 与确认后的站方收录；008 Local 分支增加队列、Body V2/站方字段读取和普通保存，但不改变个人公开或站方选择状态 |
-| EDT-09 | 首页排期 | 设置 Lead/Selected 位置及开始、结束时间；没有人工排期时由合格内容自动回退 | Article 的 Site 模式和首页 |
+| EDT-09 | 首页排期 | 设置 Lead/Selected 位置及开始、结束时间；没有人工排期时由合格内容自动回退 | Article 的 Site 模式和首页；009 Local Agent 对已公开、已策展且无 pending draft 的 Article 提供确认后设置/清空，只改三项首页字段 |
 | EDT-10 | 更新复核 | Member 修改已被选择的文章后，文章自动进入 Needs recheck 并暂离官方入口；Editor 可重新确认 | Needs attention 与 Article |
-| EDT-11 | 作者通知 | 从文章向原作者发送策展相关事务通知；失败会被记录且可重试 | Article 的 Notify author |
+| EDT-11 | 作者通知 | 从文章向原作者发送策展相关事务通知；失败会被记录且可重试 | Article 的 Notify author；009 Local Agent 固定 `major_edit`，服务端决定 owner 邮箱与文案，失败只重试同一 WorkflowEvent，Local/Preview 为 `not_required` |
 | EDT-12 | 编辑/写作模式分离 | 当 Editor 同时是作者时，可在 Writing 与 Site 两个聚焦界面间切换 | 自己的 Article；编辑他人文章时只进入 Site 模式 |
 | EDT-13 | 中文母稿 | 用中文维护站方选题、结构化详细攻略、来源、权利、风险、核验与翻译状态，作为英西稿共同真相 | Chinese masters；只对 Editor/Super Admin 可读，事实提纲不算母稿，批准前必须通过详细攻略结构、来源与权利检查 |
 | EDT-14 | 机构署名内容 | 建立不依附 Member 的站方 Article，并固定显示 `China, in Fact` | Site Article；必须关联同一份已批准中文母稿，不创建虚构 Person，不向作者发送通知 |
@@ -121,7 +121,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-10 | 批量账户准备 | 从受控 JSON 预检或建立 Member/Editor；限制字段、批量规模和冲突 | `cms:provision-accounts`，默认 dry-run |
 | OPS-11 | 搜索索引开关 | 只有明确启用的 Production 可索引；Preview 和预览内容保持 noindex | 环境变量、robots、页面 metadata |
 | OPS-12 | 自动质量门禁 | PR 自动运行治理、功能登记同步、环境、migration、编辑权限、Newsletter、lint、typecheck、依赖审计、build 和公共路由 smoke | GitHub Preview checks |
-| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、本人资料与外链、本人媒体发现、双语 draft、图片上传、封面设置、个人发布、策展和最小审计工具，并随时撤销连接；正文支持文本合同 V1 与含本人图片、YouTube 嵌入的 V2 | Production `/api/agent/*` 仍为 14 个工具；WorkBuddy、Cursor 与 Codex 已完成既有真实客户端兼容验收。Local `main` 在 007 后为 23 个工具并已通过独立复审；008 分支为 26 个，增加固定 Editor 队列、受限 reference、Body V2/站方字段读取和普通保存，Local 工作项 PASS、独立复审待执行。每次调用仍重检当前角色、connection、client、Person、对象归属、revision、幂等与引用权限；不支持 TRAE、静态 API key、任意 CRUD、自动翻译或 Agent 账户管理 |
+| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、本人资料与外链、本人媒体发现、双语 draft、图片上传、封面设置、个人发布、策展和最小审计工具，并随时撤销连接；正文支持文本合同 V1 与含本人图片、YouTube 嵌入的 V2 | Production `/api/agent/*` 仍为 14 个工具；WorkBuddy、Cursor 与 Codex 已完成既有真实客户端兼容验收。Local `main` 在 008 后为 26 个工具并已通过独立复审；009 分支为 30 个，增加首页排期与固定 `major_edit` 作者通知，Local 工作项 PASS、独立复审待执行。每次调用仍重检当前角色、connection、client、Person、对象归属、revision、幂等与引用权限；不支持 TRAE、静态 API key、任意 CRUD、自动翻译或 Agent 账户管理 |
 | OPS-14 | 冷启动批次 | 为空环境补齐六个核心 Purpose，从受控 JSONL 幂等写入通过 `DetailedGuideV1` 门槛的中文母稿，按内容 hash 写入人工批准，再建立英西翻译并检查结构、数字、链接与来源一致性 | `cms:provision-core-taxonomies`、`cms:import-cold-start`、`cms:rebind-cold-start-release`、`cms:apply-cold-start-review`、`cms:build-cold-start-translations` 与 `cms:import-cold-start-translations`；跨环境只在已批准 hash 与译文源一致且中文标题、摘要、正文逐项相同后重绑目标 ID/hash。导入不自动公开；Super Admin 可用 MCP `editorial_release_site_article_batch` 对明确批准的 1–20 条站方 Article 逐篇执行发布、精选、幂等与读回 |
 | OPS-15 | 站点测量 | 以无 cookie 的匿名聚合统计查看站点流量，并经搜索引擎工具监测索引与 sitemap 状态 | Vercel Web Analytics（前台 layout `<Analytics />`，隐私政策如实披露）；GSC 域名资源经 Vercel DNS TXT 验证并已提交 sitemap；Bing 暂缓 |
 

@@ -9,6 +9,7 @@ import { createLocalReq, getPayload, type Payload } from "payload";
 import config from "@payload-config";
 import { getLatestDraftData } from "@/cms/article-publication";
 import { createArticleTranslationDraft } from "@/cms/article-translation";
+import { createEditorialNotificationEvent } from "@/cms/editorial-notifications";
 import { editorialMasterContentHash } from "@/cms/editorial-master-hooks";
 import { buildPublicationSummary } from "@/cms/publication-summary";
 import { isCMSUser } from "@/cms/roles";
@@ -796,6 +797,39 @@ async function main() {
   });
   assert.equal(editorRepublished.publicationStatus, "published");
   assert.equal(relationID(editorRepublished.author), editorPerson.id);
+
+  const scheduleEventsBefore = await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: draft.id } } });
+  const scheduled = await payload.update({
+    collection: "articles",
+    id: draft.id,
+    data: {
+      homepagePlacement: "selected",
+      homepageStartsAt: "2026-08-16T00:00:00.000Z",
+      homepageEndsAt: "2026-08-17T00:00:00.000Z",
+    },
+    depth: 0,
+    draft: false,
+    overrideAccess: false,
+    user: editor,
+  });
+  assert.equal(scheduled.homepagePlacement, "selected");
+  assert.equal(scheduled.publicationStatus, finallyCurated.publicationStatus);
+  assert.equal(scheduled.curationStatus, finallyCurated.curationStatus);
+  assert.equal(scheduled._status, "published");
+  assert.equal((await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: draft.id } } })).totalDocs, scheduleEventsBefore.totalDocs, "Homepage-only saves must not create workflow notifications.");
+
+  const notificationReq = await createLocalReq({ user: editor }, payload);
+  const majorEditEvent = await createEditorialNotificationEvent({
+    article: scheduled,
+    deferDelivery: true,
+    fromStatus: scheduled.curationStatus,
+    kind: "major_edit",
+    notificationKey: `editorial-major-edit-${randomUUID()}`,
+    req: notificationReq,
+    toStatus: scheduled.curationStatus,
+  });
+  assert.equal(majorEditEvent?.notificationStatus, "not_required");
+  assert.equal(majorEditEvent?.notificationAttempts, 0);
 
   const events = await payload.find({ collection: "workflow-events", limit: 100, overrideAccess: true, where: { article: { equals: draft.id } } });
   assert.ok(events.docs.some((event) => event.axis === "publication" && event.toStatus === "published"));

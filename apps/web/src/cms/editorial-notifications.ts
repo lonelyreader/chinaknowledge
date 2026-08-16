@@ -45,10 +45,14 @@ export function transactionalNotificationsEnabled() {
 
 export async function deliverEditorialNotification(
   payload: Payload,
-  event: Pick<WorkflowEvent, "id" | "notificationAttempts" | "notificationKey" | "notificationKind">,
+  event: Pick<WorkflowEvent, "id" | "notificationAttempts" | "notificationKey" | "notificationKind" | "notificationStatus">,
   article: Pick<Article, "id" | "title">,
   recipient: Pick<User, "email">,
+  req?: PayloadRequest,
 ) {
+  if (event.notificationStatus === "sent" || event.notificationStatus === "not_required") {
+    return event.notificationStatus;
+  }
   if (!event.notificationKey || !event.notificationKind || !transactionalNotificationsEnabled()) {
     return "not_required" as const;
   }
@@ -77,6 +81,7 @@ export async function deliverEditorialNotification(
         notificationStatus: "sent",
       },
       overrideAccess: true,
+      req,
     });
     return "sent" as const;
   } catch (error) {
@@ -90,6 +95,7 @@ export async function deliverEditorialNotification(
         notificationStatus: "failed",
       },
       overrideAccess: true,
+      req,
     }).catch(() => undefined);
     return "failed" as const;
   }
@@ -100,13 +106,17 @@ export async function createEditorialNotificationEvent({
   axis = "curation",
   fromStatus,
   kind,
+  notificationKey,
   req,
+  deferDelivery = false,
   toStatus,
 }: {
   article: Article;
   axis?: "curation" | "publication";
+  deferDelivery?: boolean;
   fromStatus?: WorkflowEvent["fromStatus"];
   kind: EditorialNotificationKind;
+  notificationKey?: string;
   req: PayloadRequest;
   toStatus: WorkflowEvent["toStatus"];
 }) {
@@ -129,7 +139,7 @@ export async function createEditorialNotificationEvent({
       actor: req.user ? Number(req.user.id) : undefined,
       axis,
       fromStatus,
-      notificationKey: randomUUID(),
+      notificationKey: notificationKey ?? randomUUID(),
       notificationKind: kind,
       notificationRecipient: owner.email,
       notificationStatus: enabled ? "pending" : "not_required",
@@ -139,8 +149,8 @@ export async function createEditorialNotificationEvent({
     overrideAccess: true,
     req,
   });
-  const notificationStatus = enabled
+  const notificationStatus = enabled && !deferDelivery
     ? await deliverEditorialNotification(req.payload, event, article, owner)
-    : "not_required";
+    : event.notificationStatus ?? (enabled ? "pending" : "not_required");
   return { ...event, notificationStatus };
 }
