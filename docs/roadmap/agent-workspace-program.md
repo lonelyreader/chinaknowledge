@@ -85,7 +85,7 @@ flowchart LR
 | `AGENT-WORKSPACE-001`–`006` | completed | OAuth、Member 文章、策展、最小审计、Production 与客户端基线 | archive |
 | `INFRA-AGENT-MEDIA-001` | active（release） | Body V2、图片上传、封面和发布预检进入 Production | 当前 Preview/`main` push/deploy 门 |
 | [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | active（release） | 资料与外链、Profile Preview path/publication、翻译 draft、媒体列表、发现与当前角色 discovery 补齐 Member 闭环 | Local 实现/复审 PASS；统一 Preview 与 release 待执行 |
-| `AGENT-WORKSPACE-008` | queued | Needs attention、reference options 与站方字段普通保存形成 Editor 工作台 | 007 |
+| [`AGENT-WORKSPACE-008`](checklists/agent-editor-workbench.md) | active | Needs attention、reference options、Body V2 读取与站方字段普通保存形成 Editor 工作台 | 007 Local PASS；当前实现批 |
 | `AGENT-WORKSPACE-009` | queued | 排期、复核与作者通知按公共/外部动作合同上线 | 008 |
 | `AGENT-WORKSPACE-010` | queued | 站方 Article 建稿/保存、基础对象只读与可筛选审计 | 009 |
 | `AGENT-WORKSPACE-011` | queued | 三角色真实客户端、权限负例、恢复和 Production 总验收 | 010 |
@@ -108,10 +108,13 @@ flowchart LR
 - [x] 增加本人媒体列表、本人文章分页/筛选和账户上下文中的 Profile 状态/完整度。
 - [x] 增加从本人 Article 建立另一语言 draft 的受控动作，并证明重复建立和跨人建立失败关闭。
 
-### Editor 完整闭环
+### 当前实现：Editor 工作台（008）
 
 - [ ] Agent 能从 Needs attention 找到目标，不要求用户先提供内部 Article ID。
 - [ ] Agent 能保存负责人、format、分类、来源、freshness、编辑意见和站方封面，不改变原作者与个人公开决定。
+
+### 后续：Editor 公共与外部动作（009）
+
 - [ ] 排期、复核、策展和作者通知分别按风险进入 prepare/commit；通知可读回、可重试、不重复发送。
 
 ### Super Admin 安全站务

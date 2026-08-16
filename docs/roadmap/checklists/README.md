@@ -30,7 +30,8 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 
 当前 active（Agent Workspace）：
 
-- [`AGENT-WORKSPACE-007`](agent-member-completion.md)：Member 资料、外链、Profile 公开、媒体/文章发现与双语 draft 完整闭环（upgraded）；吸收原 queued `INFRA-AGENT-PROFILE-001`，Person Page 为前置。
+- [`AGENT-WORKSPACE-007`](agent-member-completion.md)：Member 完整闭环（upgraded），Local PASS，只剩统一 Preview/release，不再扩代码。
+- [`AGENT-WORKSPACE-008`](agent-editor-workbench.md)：Needs attention、受限 reference options、Body V2 读取与站方字段普通保存（upgraded），当前实现批。
 
 非紧急收尾：
 
