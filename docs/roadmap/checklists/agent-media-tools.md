@@ -73,6 +73,6 @@ approval_gates: preview, production-deploy, commit, merge, push
 - [x] 独立复审 PASS（2026-08-12，非实现者；四类权限负例/归属校验/V1 兼容/白名单一致/审计幂等/无 schema 变更/allowed_paths 全过；5 项不阻断 finding 已路由父级，含 `tests/agent-live.ts` 工具清单断言待 Preview 批次更新）。
 - [x] 本地实现、工作项验证与独立复审完成；本地关闭 verdict 为 `PASS`（2026-08-16）。
 - [x] 合入本地 `main`（2026-08-16）；未推送远端。
-- [ ] Preview 运行验收尚未执行。
-- [ ] `tests/agent-live.ts` 的工具清单断言在后续覆盖该路径的 Preview/总验收批次同步。
+- [x] 统一 Preview 已通过 18/28/33 真实 MCP discovery、角色隔离、本人 Media 列表与封面设置；Production 运行验收仍待执行。
+- [x] `tests/agent-live.ts` 工具清单断言已由后续 007–010 更新，并在 011 release SHA 的 Local/Preview 总验收通过。
 - [ ] `main` push、Production 部署、真实账号回读与恢复确认属于同一发布门，未执行。

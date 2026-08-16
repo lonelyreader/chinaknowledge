@@ -17,9 +17,9 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 
 目标：补齐两个 Super Admin 闭环：从符合门槛的中文 Editorial Master 创建、读取和保存 Site Article 工作副本；为既有 `admin_recent_activity` 增加有限筛选与分页。继续复用当前 Article hooks、版本、发布动作、冷启动翻译合同和 workflow events，不建立通用后台接口。
 
-当前状态：Local 实现、工作项验证与一次独立终局/定向复核均 `PASS`（P0/P1/P2=`0/0/0`），已合入本地 `main`（`c8351ee`）；本清单只剩 011 统一 release，不再扩代码。
+当前状态：Local 实现、工作项验证、一次独立终局/定向复核与 011 统一 Preview 均 `PASS`（P0/P1/P2=`0/0/0`），已合入本地 `main`（`c8351ee`）；本清单只剩 Production release，不再扩代码。
 
-父级：[`Agent Workspace Parent Checklist`](../agent-workspace-program.md)。009 与 010 均已完成 Local/独立复审并合入本地 `main`；011 是唯一 active 执行批。本清单不再授权实现，也不自行执行 Preview/Production。
+父级：[`Agent Workspace Parent Checklist`](../agent-workspace-program.md)。009 与 010 均已完成 Local/独立复审、合入本地 `main` 并通过 011 统一 Preview；当前停在 Production gate。本清单不再授权实现，也不自行执行 Production。
 
 ## Scope
 
@@ -107,5 +107,5 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 
 ## Writeback
 
-- Local 与一次独立终局/定向复核均 PASS（P0/P1/P2=`0/0/0`），feature registry、current、父级与 evidence 已写回；后续只由 011 执行统一 Preview 与生产前交接。
-- 当前门：010 已合入本地 `main`（`c8351ee`）且 release-only；`main` push、merge 与 Production 继续保留。
+- Local、一次独立终局/定向复核与 011 统一 Preview 均 PASS（P0/P1/P2=`0/0/0`），feature registry、current、父级与 evidence 已写回。
+- 当前门：010 已合入本地 `main`（`c8351ee`）且只剩 Production release；`main` push、merge 与 Production 继续保留。

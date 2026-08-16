@@ -106,4 +106,4 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 - [x] `INFRA-PERSON-PAGE-001` 已合入本地 `main`（`4591719`）；其 Preview/Production migration 分别留在对应 release gate。
 - [x] 实现与 Local 工作项验证完成；证据见 [`AGENT-WORKSPACE-007 Local runtime`](../../reference/implementation/agent-workspace-007-local-runtime-2026-08-16.md)。
 - [x] 独立复审的两项 `BLOCK` 已最小修复并定向复核 `PASS`，最终 P0/P1/P2=`0/0/0`（2026-08-16）。
-- [ ] Preview 验收待 011 统一执行；`main` push 与 Production 发布未授权。
+- [x] 011 统一 Preview 已完成 18-tool discovery、Profile/X、Article/cover/publication 与权限负例；`main` push 与 Production 发布未授权。

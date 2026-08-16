@@ -73,5 +73,6 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 - [x] schema 字段设计批准（2026-08-12）：`nameZh`（成员自管）、`editorialBio`/`editorialBioEs`（richText，Editor+）、`verdict`/`verdictEs`（text，Editor+）、`quote`/`quoteEs`（text，成员自管）、`canHelpWith`/`canHelpWithEs`（array(text)，成员自管）；全部可空无回填；近期动态由公开文章聚合不加字段；links 缺 discord 选项则补。
 - [x] 实现完成于分支 `infra/person-page-001`（2026-08-12）：schema、migration 文件、公开页重构、判词名录、cms.ts 单字段映射（ARTICLE-TEMPLATE-001 接口）；本地证据见 [`person-page-001-local-runtime-2026-08-12.md`](../../reference/implementation/person-page-001-local-runtime-2026-08-12.md)。
 - [x] Local 实现、migration recovery、build、桌面/390px 浏览器主流程与独立复审 PASS（2026-08-16）；修复公开 Person 在 My profile 动作区误显示为 Draft 的状态回退。
-- [ ] Preview：在受保护、noindex 环境 apply migration，以虚构 Person 执行 Member 编辑、Editor 判词、EN/ES 匿名读回与 rollback drill；不得复制 Production 个人数据。
+- [x] Preview：已在受保护环境部署并以虚构 Person 完成 migration 独立 apply/down/reapply 与 Agent Profile/X 闭环；未复制 Production 个人数据。
+- [ ] Preview 专项：Member UI 编辑、Editor 判词和 EN/ES 匿名 UI 读回仍待执行，不以 011 的 Agent 验收代替。
 - [ ] Production：migration 前备份、部署、apply、公开 Person 读回与恢复点确认需单独发布授权；本地收口未触碰 Production。

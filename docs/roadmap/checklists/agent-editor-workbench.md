@@ -17,7 +17,7 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 
 目标：让 Editor 不依赖用户提供内部 Article ID，即可从现有 Needs attention 队列找到 Article、读取 Body V2 与站方字段、取得受限引用选项，并按网页后台的普通保存语义更新站方字段。
 
-父级：[`Agent Workspace Parent Checklist`](../agent-workspace-program.md)。007 已完成 Local 实现与复审，只等待统一 Preview/release；它不再获得代码扩项。本批不提前实现 009 的排期、复核和作者通知，也不实现 010 的站方 Article 建稿与安全站务。
+父级：[`Agent Workspace Parent Checklist`](../agent-workspace-program.md)。007 已完成 Local/复审与统一 Preview，只剩 Production release；它不再获得代码扩项。本批不提前实现 009 的排期、复核和作者通知，也不实现 010 的站方 Article 建稿与安全站务。
 
 ## Scope
 
@@ -99,4 +99,4 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 ## Writeback
 
 - Local PASS 后更新 feature registry、current-state、父级状态和 implementation reference；一次独立复审 PASS 后 009 才能激活。Production 回读后再归档本 checklist。
-- 当前门：008 Local 工作项与独立终局复审 PASS，taxonomy dimension 并发 P2 已最小修复并定向复核通过，最终 P0/P1/P2=`0/0/0`；已合入本地 `main`（`1648b34`），合并后 `test:agent` / typecheck PASS。证据见 [`AGENT-WORKSPACE-008 Local runtime`](../../reference/implementation/agent-workspace-008-local-runtime-2026-08-16.md)。本 checklist 只剩统一 Preview/release，不再扩代码。
+- 当前门：008 Local 工作项、独立终局复审与 011 统一 Preview 均 PASS，taxonomy dimension 并发 P2 已最小修复并定向复核通过，最终 P0/P1/P2=`0/0/0`；已合入本地 `main`（`1648b34`）。证据见 [`AGENT-WORKSPACE-008 Local runtime`](../../reference/implementation/agent-workspace-008-local-runtime-2026-08-16.md) 与 [`011 Preview runtime`](../../reference/implementation/agent-workspace-011-preview-runtime-2026-08-16.md)。本 checklist 只剩 Production release，不再扩代码。

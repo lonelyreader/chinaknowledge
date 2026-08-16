@@ -29,7 +29,7 @@ max_lines: 60
 | `AGENT-WORKSPACE-008` | Local/复审 PASS；发布待执行 | [`evidence`](agent-workspace-008-local-runtime-2026-08-16.md) |
 | `AGENT-WORKSPACE-009` | Local/复审 PASS；发布待执行 | [`evidence`](agent-workspace-009-local-runtime-2026-08-16.md) |
 | `AGENT-WORKSPACE-010` | Local/复审 PASS，`0/0/0`；发布待执行 | [`evidence`](agent-workspace-010-local-runtime-2026-08-16.md) |
-| `AGENT-WORKSPACE-011` | 合同冻结；Preview 未执行 | [`contract`](../../roadmap/checklists/agent-workspace-integration-release.md) |
+| `AGENT-WORKSPACE-011` | Preview/恢复/cleanup/复审 PASS，`0/0/0`；Production 未执行 | [`runtime`](agent-workspace-011-preview-runtime-2026-08-16.md)、[`contract`](../../roadmap/checklists/agent-workspace-integration-release.md) |
 | `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |
 | `AUTH-RESET-001` | Production 与复审 PASS | [`evidence`](password-reset-recovery-2026-08-11.md) |
 | `INFRA-BODY-MEDIA-001` | 待复审 | [`evidence`](body-media-security-2026-08-11.md) |
