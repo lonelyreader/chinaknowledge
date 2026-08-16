@@ -17,7 +17,7 @@ max_lines: 260
 MCP 完整，指 Member、Editor 与 Super Admin 能在 Agent 中完成高频、权限内、可恢复的真实任务，从发现对象到读取、修改、预览、确认、执行和读回形成闭环。完整不等于复制 Payload 后台的每个按钮，也不等于开放通用 CRUD。
 
 - Member：维护自己的 Person、外链、媒体、英西文章关系、草稿、预览与个人公开。
-- Editor：找到待处理内容，维护站方字段，完成复核、排期、策展与作者通知。
+- Editor：找到待处理内容，维护站方字段，完成排期、策展与作者通知。
 - Super Admin：处理站方 Article、安全的基础对象读取和审计；账户提权、暂停、删除等特权动作默认留在网页后台。
 - 服务端：继续负责当前身份、角色、所有权、状态机、revision、确认、审计、读回和恢复。
 
@@ -28,10 +28,10 @@ Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册�
 | 能力层 | 已上线 | 主要缺口 |
 |---|---|---|
 | Member（9） | 账户与 capability、本人文章列表、工作副本、建稿、保存、预览、个人发布/撤回 | Person、外链、媒体、封面、正文媒体、翻译关系、列表分页筛选 |
-| Editor（+3） | 精确读取一篇跨作者 Article、确认加入或移出站方入口 | 待处理队列、普通保存、负责人、分类、来源、时效、排期、复核、通知 |
+| Editor（+3） | 精确读取一篇跨作者 Article、确认加入或移出站方入口 | 待处理队列、普通保存、负责人、分类、来源、时效、排期、通知 |
 | Super Admin（+2） | 站方 Article 受控批次公开、最近 20 条 Article 活动 | 站方建稿、基础对象查询、可筛选审计；特权账户动作保持网页入口 |
 
-001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。Media 与 007 已实现、复审并合入本地 `main`；Production 仍是 14 个工具，本地 `main` 为 23 个，尚未完成统一 Preview、`main` push 和 Production deploy。
+001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。Media、007 与 008 已实现、复审并合入本地 `main`；Production 仍是 14 个工具，本地 `main` 为 26 个，尚未完成统一 Preview、`main` push 和 Production deploy。
 
 ## 设计与安全原则
 
@@ -56,7 +56,7 @@ Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册�
 | Person 公开 | `my_profile_prepare_publication`、`my_profile_commit_publication`，覆盖公开和转私有 | 复用 Person 状态机；普通资料保存沿用网页即时保存语义，公开状态只经 prepare/commit 改变 |
 | 双语关系 | 从本人 Article 建立另一 locale 的 translation draft，并读取配对状态 | 服务端固定 owner、author、translation group 和目标 locale；不覆盖既有版本 |
 | Editor 工作台 | 待处理列表；精确读；保存负责人、format、分类、来源、freshness、编辑意见与站方封面 | Draft write；不改 owner、author、locale、translation group 或 Member publication |
-| Editor 公共动作 | 保留站方选择；增加排期、复核和作者通知的 prepare/commit | 公共或外部动作逐次确认；通知失败可安全重试 |
+| Editor 公共动作 | 保留站方选择；增加首页排期和 `major_edit` 作者通知的 prepare/commit | 公共或外部动作逐次确认；失败通知重试原 commit 与同一 WorkflowEvent |
 | 站方与审计 | 站方 Article 建稿/保存；`admin_recent_activity` 增加受限筛选和分页；基础对象只读查询 | Super Admin；不开放通用批量写、账户提权或删除 |
 
 ## 不进入完成条件的网页专属动作
@@ -85,8 +85,8 @@ flowchart LR
 | `AGENT-WORKSPACE-001`–`006` | completed | OAuth、Member 文章、策展、最小审计、Production 与客户端基线 | archive |
 | `INFRA-AGENT-MEDIA-001` | active（release） | Body V2、图片上传、封面和发布预检进入 Production | 当前 Preview/`main` push/deploy 门 |
 | [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | active（release） | 资料与外链、Profile Preview path/publication、翻译 draft、媒体列表、发现与当前角色 discovery 补齐 Member 闭环 | Local 实现/复审 PASS；统一 Preview 与 release 待执行 |
-| [`AGENT-WORKSPACE-008`](checklists/agent-editor-workbench.md) | active（review） | Needs attention、reference options、Body V2 读取与站方字段普通保存形成 Editor 工作台 | Local 工作项 PASS；独立终局复审待执行 |
-| `AGENT-WORKSPACE-009` | queued | 排期、复核与作者通知按公共/外部动作合同上线 | 008 |
+| [`AGENT-WORKSPACE-008`](checklists/agent-editor-workbench.md) | active（release） | Needs attention、reference options、Body V2 读取与站方字段普通保存形成 Editor 工作台 | Local/独立复审 PASS；统一 Preview/release 待执行 |
+| [`AGENT-WORKSPACE-009`](checklists/agent-editor-public-actions.md) | active | 首页排期与 `major_edit` 作者通知按公共/外部动作合同上线 | 008 Local/独立复审 PASS；当前实现批 |
 | `AGENT-WORKSPACE-010` | queued | 站方 Article 建稿/保存、基础对象只读与可筛选审计 | 009 |
 | `AGENT-WORKSPACE-011` | queued | 三角色真实客户端、权限负例、恢复和 Production 总验收 | 010 |
 
@@ -113,9 +113,10 @@ flowchart LR
 - [x] Agent 能从 Needs attention 找到目标，不要求用户先提供内部 Article ID。
 - [x] Agent 能保存负责人、format、分类、来源、freshness、编辑意见和站方封面，不改变原作者与个人公开决定。
 
-### 后续：Editor 公共与外部动作（009）
+### 当前实现：Editor 公共与外部动作（009）
 
-- [ ] 排期、复核、策展和作者通知分别按风险进入 prepare/commit；通知可读回、可重试、不重复发送。
+- [ ] 首页排期使用 prepare/commit，不能发布 pending draft；`major_edit` 作者通知失败时重试原 commit 与同一 WorkflowEvent。
+- [ ] 不新增复核工具，不重复既有站方选择或 selected/removed/needs_recheck 通知。
 
 ### Super Admin 安全站务
 

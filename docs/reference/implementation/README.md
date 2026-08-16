@@ -28,9 +28,9 @@ max_lines: 60
 | `AGENT-WORKSPACE-005` | Gate 2–6 与 Production 只读/撤销验收 PASS | [`intake`](agent-workspace-005-intake-2026-08-01.md)、[`client compatibility`](agent-workspace-005-client-compatibility-2026-08-01.md)、[`Preview runtime`](agent-workspace-005-preview-runtime-2026-08-01.md)、[`operational readiness`](agent-workspace-005-operational-readiness-2026-08-01.md)、[`Production runtime`](agent-workspace-005-production-runtime-2026-08-01.md)、[`independent review`](agent-workspace-005-independent-review-2026-08-01.md) |
 | `AGENT-WORKSPACE-006` | Codex Member 实测与复审 PASS | [`runtime`](agent-workspace-006-codex-member-compatibility-2026-08-02.md)、[`review`](agent-workspace-006-independent-review-2026-08-02.md) |
 | `AGENT-WORKSPACE-007` | Local 与独立复审 PASS；Preview/Production 待执行 | [`evidence`](agent-workspace-007-local-runtime-2026-08-16.md) |
-| `AGENT-WORKSPACE-008` | Local 工作项 PASS；独立终局复审待执行 | [`evidence`](agent-workspace-008-local-runtime-2026-08-16.md) |
+| `AGENT-WORKSPACE-008` | Local/独立复审 PASS；Preview/Production 待执行 | [`evidence`](agent-workspace-008-local-runtime-2026-08-16.md) |
 | `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |
 | `AUTH-RESET-001` | Production 与复审 PASS | [`evidence`](password-reset-recovery-2026-08-11.md) |
 | `INFRA-BODY-MEDIA-001` | 待复审 | [`evidence`](body-media-security-2026-08-11.md) |
-| `INFRA-AGENT-MEDIA-001` | Local 实现、工作项验证与独立复审 PASS；Preview/Production 待执行 | [`evidence`](agent-media-tools-negative-evidence-2026-08-12.md) |
+| `INFRA-AGENT-MEDIA-001` | Local/独立复审 PASS；Preview/Production 待执行 | [`evidence`](agent-media-tools-negative-evidence-2026-08-12.md) |
 | `INFRA-PERSON-PAGE-001` | Local + 复审 PASS；发布 pending | [`evidence`](person-page-001-local-runtime-2026-08-12.md) |

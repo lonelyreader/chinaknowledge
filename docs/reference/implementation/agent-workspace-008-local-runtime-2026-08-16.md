@@ -38,7 +38,8 @@ max_lines: 100
 - `npm --prefix apps/web run lint` — PASS，只有 48 条既有 migration warning，0 error。
 - `npm --prefix apps/web run build` — PASS。
 - `npm run governance:check`（含 change intake）与 `git diff --check` — PASS；13 条变更路径均被 008 合同覆盖。
+- 独立终局复审的 taxonomy dimension 并发 P2 已最小修复并定向复核 PASS，最终 P0/P1/P2=`0/0/0`；合并 `1648b34` 后 `test:agent` / typecheck PASS。
 
 ## 剩余门禁
 
-一次独立终局复审尚未执行；009 继续 queued。Branch push/Preview 已预授权但本批未执行；`main` push、Production deploy、真实账户/数据、公开状态和外部通知继续保留发布门。
+Local 与独立复审已关闭；本批只剩 011 统一 Preview/release。`main` push、Production deploy、真实账户/数据、公开状态和外部通知继续保留发布门。

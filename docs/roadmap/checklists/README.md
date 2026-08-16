@@ -31,7 +31,8 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 当前 active（Agent Workspace）：
 
 - [`AGENT-WORKSPACE-007`](agent-member-completion.md)：Member 完整闭环（upgraded），Local PASS，只剩统一 Preview/release，不再扩代码。
-- [`AGENT-WORKSPACE-008`](agent-editor-workbench.md)：Needs attention、受限 reference options、Body V2 读取与站方字段普通保存（upgraded），当前实现批。
+- [`AGENT-WORKSPACE-008`](agent-editor-workbench.md)：Editor 工作台（upgraded），Local/独立复审 PASS，只剩统一 Preview/release。
+- [`AGENT-WORKSPACE-009`](agent-editor-public-actions.md)：首页排期与 `major_edit` 作者通知的 prepare/commit（upgraded），当前实现批。
 
 非紧急收尾：
 
