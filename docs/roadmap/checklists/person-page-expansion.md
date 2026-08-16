@@ -4,7 +4,7 @@ doc_type: checklist
 authority: execution
 status: active
 scope: person-page-expansion
-last_verified: 2026-08-12
+last_verified: 2026-08-16
 max_lines: 160
 change_id: INFRA-PERSON-PAGE-001
 risk_tier: upgraded
@@ -49,23 +49,29 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 
 ## Acceptance
 
-- [ ] schema 设计经批准后实现；migration 本地 apply + 回滚测试通过。
-- [ ] 成员经 My profile 维护长自述与「我能帮什么」，公开页正确渲染；判词仅 Editor 可写并在索引页呈现。
-- [ ] 未公开 Person 不因新字段泄露；权限负例被拒。
-- [ ] 全部新区块无数据时整体隐藏；桌面与 390px 无溢出；EN/ES 回退正确。
+- [x] schema 设计经批准后实现；migration 本地 apply + 隔离批次 down/reapply 通过（2026-08-16）。
+- [x] 成员经 My profile 维护本人引语与「我能帮什么」，公开页正确读回；编辑传记与判词对 Member 只读，判词在索引页呈现（2026-08-16 API + 浏览器主流程）。
+- [x] 未公开 Person 不因新字段泄露；权限负例被拒（2026-08-12 负例脚本 PASS，见证据）。
+- [x] 全部新区块无数据时整体隐藏；桌面与 390px 无溢出；EN/ES 回退正确（2026-08-16 浏览器验证）。
 
 ## Validation
 
-- lint、typecheck、build、`npm run governance:check`、`git diff --check`。
-- migration recovery 测试；浏览器主流程（成员编辑 → 公开读回）；独立复审 PASS。
+- [x] `npm run lint`（0 error，48 条既有 migration 签名 warning）、`npm run typecheck`、`npm run build`。
+- [x] Person migration 在独立 batch 完成 apply → populated down → reapply；live/version Discord links 降级为 `other`，旧列、`people` 表与 `slug NOT NULL` 保持。
+- [x] 权限负例、未公开与未批准 Media 隔离、EN/ES（含空白回退）映射脚本；桌面 1440px 与移动 390px 成员编辑 → EN/ES 公开读回、索引与无溢出浏览器主流程。
+- [x] 非实现者最终复审 PASS：合同内 P0/P1/P2 finding 为 0（2026-08-16）。
+- [x] `npm run governance:check`、`git diff --check`。
 
 ## Writeback
 
-- feature registry（People 相关条目）与 current-state 写回；本 checklist 归档。
+- [x] feature registry（People 相关条目）与 current-state 写回。
+- [ ] Preview/Production 门完成后归档本 checklist。
 
 ## Current gate
 
 - [x] 用户批准 Batch 2 启动并冻结本批合同（2026-08-12，scope/no-go/invariants 冻结）。
 - [x] schema 字段设计批准（2026-08-12）：`nameZh`（成员自管）、`editorialBio`/`editorialBioEs`（richText，Editor+）、`verdict`/`verdictEs`（text，Editor+）、`quote`/`quoteEs`（text，成员自管）、`canHelpWith`/`canHelpWithEs`（array(text)，成员自管）；全部可空无回填；近期动态由公开文章聚合不加字段；links 缺 discord 选项则补。
-- [ ] migration apply（Preview/Production 分别批准）。
-- [ ] 实现与独立复审完成后，preview/merge/push/production-deploy 分别批准。
+- [x] 实现完成于分支 `infra/person-page-001`（2026-08-12）：schema、migration 文件、公开页重构、判词名录、cms.ts 单字段映射（ARTICLE-TEMPLATE-001 接口）；本地证据见 [`person-page-001-local-runtime-2026-08-12.md`](../../reference/implementation/person-page-001-local-runtime-2026-08-12.md)。
+- [x] Local 实现、migration recovery、build、桌面/390px 浏览器主流程与独立复审 PASS（2026-08-16）；修复公开 Person 在 My profile 动作区误显示为 Draft 的状态回退。
+- [ ] Preview：在受保护、noindex 环境 apply migration，以虚构 Person 执行 Member 编辑、Editor 判词、EN/ES 匿名读回与 rollback drill；不得复制 Production 个人数据。
+- [ ] Production：migration 前备份、部署、apply、公开 Person 读回与恢复点确认需单独发布授权；本地收口未触碰 Production。

@@ -75,6 +75,7 @@ export const People: CollectionConfig = {
           label: "Profile",
           fields: [
             { name: "name", type: "text", required: true },
+            { name: "nameZh", type: "text", label: "Name in Chinese" },
             {
               name: "portrait",
               type: "upload",
@@ -106,6 +107,26 @@ export const People: CollectionConfig = {
             { name: "identity", type: "text", label: "Identity" },
             { name: "city", type: "text", label: "Location" },
             { name: "introduction", type: "textarea", label: "Introduction" },
+            { name: "quote", type: "text", label: "Quote" },
+            {
+              name: "canHelpWith",
+              type: "array",
+              label: "Can help with",
+              maxRows: 8,
+              fields: [{ name: "item", type: "text", required: true }],
+            },
+            {
+              name: "editorialBio",
+              type: "richText",
+              label: "Editorial biography",
+              access: { create: editorialField, update: editorialField },
+            },
+            {
+              name: "verdict",
+              type: "text",
+              label: "Editorial epithet",
+              access: { create: editorialField, update: editorialField },
+            },
           ],
         },
         {
@@ -114,6 +135,26 @@ export const People: CollectionConfig = {
             { name: "identityEs", type: "text", label: "Identidad" },
             { name: "cityEs", type: "text", label: "Ubicación" },
             { name: "introductionEs", type: "textarea", label: "Presentación" },
+            { name: "quoteEs", type: "text", label: "Cita" },
+            {
+              name: "canHelpWithEs",
+              type: "array",
+              label: "Puede ayudar con",
+              maxRows: 8,
+              fields: [{ name: "item", type: "text", required: true }],
+            },
+            {
+              name: "editorialBioEs",
+              type: "richText",
+              label: "Biografía editorial",
+              access: { create: editorialField, update: editorialField },
+            },
+            {
+              name: "verdictEs",
+              type: "text",
+              label: "Epíteto editorial",
+              access: { create: editorialField, update: editorialField },
+            },
           ],
         },
         {
@@ -138,6 +179,7 @@ export const People: CollectionConfig = {
                     { label: "X", value: "x" },
                     { label: "Instagram", value: "instagram" },
                     { label: "GitHub", value: "github" },
+                    { label: "Discord", value: "discord" },
                     { label: "Email", value: "email" },
                     { label: "Other", value: "other" },
                   ],

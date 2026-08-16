@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Locale } from "@/content";
 import type { PublishedCMSPerson } from "@/content/cms";
 import { ui } from "@/content";
-import { CMSPersonRow } from "./cms-person-row";
+import { PersonRosterRow } from "./person/roster-row";
 
 export function CMSPeopleDirectory({ people, locale }: { people: PublishedCMSPerson[]; locale: Locale }) {
   const copy = ui[locale];
@@ -78,8 +78,8 @@ export function CMSPeopleDirectory({ people, locale }: { people: PublishedCMSPer
           </select>
         </label>
       </div>
-      <div className="people-results">
-        {visible.map((person) => <CMSPersonRow key={person.slug} person={person} locale={locale} />)}
+      <div className="people-roster">
+        {visible.map((person) => <PersonRosterRow key={person.slug} person={person} locale={locale} />)}
       </div>
       <div className="pagination" aria-label={locale === "en" ? "Pagination" : "Paginación"}>
         <p>{copy.showing} {start}–{end} / {filtered.length}</p>

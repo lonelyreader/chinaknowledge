@@ -1294,3 +1294,202 @@ p {
   border: 0;
 }
 /* === end INFRA-BODY-MEDIA-001 rich media === */
+
+/* === INFRA-PERSON-PAGE-001 person letter & epithet roster (append-only) === */
+
+/* Person page: narrow "letter of introduction" measure. */
+.person-letter {
+  position: relative;
+  max-width: 660px;
+  padding-bottom: var(--spacing-page-end);
+}
+
+/* Vertical hanzi side mark — quiet punctuation, never information. */
+.person-letter-sidemark {
+  position: absolute;
+  top: var(--spacing-header-top);
+  right: calc(-1 * clamp(3rem, 8vw, 6rem));
+  writing-mode: vertical-rl;
+  font-family: var(--font-hanzi, "Noto Serif SC", "Songti SC", serif);
+  font-size: 1.1rem;
+  letter-spacing: 0.4em;
+  color: var(--color-stone-gray);
+  user-select: none;
+}
+
+.person-letterhead {
+  display: grid;
+  row-gap: 0.9rem;
+  justify-items: start;
+  border-bottom: 1px solid var(--color-charcoal-ink);
+  padding-block: var(--spacing-header-top) 2rem;
+}
+
+.person-letter-portrait {
+  position: relative;
+  width: clamp(120px, 24vw, 168px);
+  aspect-ratio: 3 / 4;
+}
+
+.person-letter-portrait img { object-fit: cover; }
+
+.person-letter-title {
+  display: flex;
+  align-items: baseline;
+  column-gap: 1.5rem;
+  row-gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.person-letter-title h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-heading-person);
+  letter-spacing: var(--tracking-display-sm);
+  font-weight: 400;
+  line-height: 1.05;
+  margin: 0;
+}
+
+.person-letter-links {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.25rem;
+}
+
+.person-letter-links a {
+  font-size: var(--text-ui);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.person-letter-identity { margin: 0; }
+
+.person-letter-topics { margin: 0; }
+
+/* Editorial epithet: signature line with a seal-size cinnabar mark. */
+.person-letter-verdict {
+  font-family: var(--font-display);
+  font-size: var(--text-identity);
+  font-style: italic;
+  color: var(--color-ink-summary);
+  margin: 0;
+}
+
+.person-letter-verdict::before {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  background: var(--color-cinnabar);
+  margin-right: 0.6em;
+}
+
+.person-letter-bio { padding-block: 2.5rem 0; }
+
+.person-letter-bio p {
+  color: var(--color-ink-prose);
+  font-size: var(--text-prose);
+  line-height: 1.85;
+}
+
+.person-letter-bio .rich-media-figure { margin: 2rem 0; }
+
+.person-letter-bio .rich-media-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.person-letter-quote {
+  margin: 2.5rem 0 0;
+  padding-left: 1.5rem;
+  border-left: 1px solid var(--color-hairline-stone);
+}
+
+.person-letter-quote p {
+  font-family: var(--font-display);
+  font-size: var(--text-lede-intro);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.person-letter-work { padding-top: 3.5rem; }
+
+.person-letter-archive { margin-top: 1.5rem; }
+
+.person-letter-help { padding-top: 3.5rem; }
+
+.person-letter-help ul {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+}
+
+.person-letter-help li {
+  border-top: 1px solid var(--color-hairline-stone);
+  padding-block: 0.75rem;
+  font-size: var(--text-body);
+}
+
+/* Member-owned Discord contact line; absent entirely without a discord link. */
+.person-letter-discord {
+  border-top: 1px solid var(--color-charcoal-ink);
+  margin-top: 3.5rem;
+  padding-top: 2rem;
+  font-size: var(--text-body);
+}
+
+.person-letter-discord a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* People index: epithet roster (`epithet — name`), text-first divided rows. */
+.people-roster { padding-block: 1rem 2rem; }
+
+.person-roster-row {
+  display: grid;
+  gap: 0.4rem;
+  justify-items: start;
+  border-top: 1px solid var(--color-hairline-stone);
+  padding-block: 1.25rem;
+}
+
+.person-roster-line {
+  font-family: var(--font-display);
+  font-size: var(--text-title-menu);
+  letter-spacing: var(--tracking-heading-sm);
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.person-roster-verdict {
+  font-style: italic;
+  color: var(--color-ink-summary);
+}
+
+.person-roster-line a { text-decoration: none; }
+
+.person-roster-line a:hover,
+.person-roster-line a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.person-roster-meta { margin: 0; }
+
+.person-roster-work {
+  font-size: var(--text-ui);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+@media (max-width: 980px) {
+  .person-letter-sidemark { display: none; }
+}
+
+/* === end INFRA-PERSON-PAGE-001 person letter & epithet roster === */

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { headers } from "next/headers";
+import { CMSRichText } from "@/components/CMSRichText";
 import { getPerson, kindLabels, localize, locales, people, requireLocale, stories, ui } from "@/content";
 import { articlePath, cmsReadEnabled, getPreviewCMSPerson, getPublishedCMSPerson, getPublishedCMSPersonArticles } from "@/content/cms";
 import { notFound } from "next/navigation";
@@ -29,7 +30,7 @@ export async function generateMetadata({ params, searchParams }: { params: Promi
     ));
     return {
       title: person.name,
-      description: person.identity,
+      description: person.epithet ?? person.identity,
       alternates: { canonical: `/${locale}/people/${slug}`, languages },
     };
   }
@@ -55,24 +56,34 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
     const copy = ui[locale];
     const selected = authored.filter((article) => article.curationStatus === "curated");
     const otherPosts = authored.filter((article) => article.curationStatus !== "curated");
+    const discord = person.links.find((link) => link.type === "discord");
+    const primaryLinks = person.links.filter((link) => link.type !== "discord");
+    // Split the shared contact line so the closing "Discord" word carries the link.
+    const discordAnchorAt = person.discordLine?.lastIndexOf("Discord") ?? -1;
     return (
-      <main className="page-shell author-page">
-        <header className="author-hero">
-          <div className="author-portrait"><Image src={person.image.url} alt={person.image.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 40vw" /></div>
-          <div className="author-identity">
-            <p className="meta">{person.city}</p>
+      <main className="page-shell person-letter">
+        {person.hanziName ? <span className="person-letter-sidemark" aria-hidden="true">{person.hanziName}</span> : null}
+        <header className="person-letterhead">
+          <div className="person-letter-portrait"><Image src={person.image.url} alt={person.image.alt} fill priority unoptimized sizes="(max-width: 767px) 40vw, 180px" /></div>
+          <div className="person-letter-title">
             <h1>{person.name}</h1>
-            <p className="author-role">{person.identity}</p>
-            <p className="author-introduction">{person.introduction}</p>
-            <ul className="topic-list">{person.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul>
-            <div className="author-links">
-              {person.links.map((link) => <a key={`${link.label}-${link.url}`} href={link.url} rel="noreferrer" target="_blank">{link.label} ↗</a>)}
-            </div>
+            {primaryLinks.length ? (
+              <div className="person-letter-links">
+                {primaryLinks.map((link) => <a key={`${link.label}-${link.url}`} href={link.url} rel="noreferrer" target="_blank">{link.label} ↗</a>)}
+              </div>
+            ) : null}
           </div>
+          <p className="meta person-letter-identity">{person.identity} · {person.city}</p>
+          {person.topics.length ? <ul className="topic-list person-letter-topics">{person.topics.map((topic) => <li key={topic}>{topic}</li>)}</ul> : null}
+          {person.epithet ? <p className="person-letter-verdict">{person.epithet}</p> : null}
         </header>
-        {selected.length ? <section className="author-work">
+        <section className="person-letter-bio">
+          {person.editorialBio ? <CMSRichText data={person.editorialBio} /> : <p>{person.introduction}</p>}
+        </section>
+        {person.quote ? <blockquote className="person-letter-quote"><p>{person.quote}</p></blockquote> : null}
+        {selected.length ? <section className="person-letter-work">
           <div className="section-heading"><h2>{copy.selectedWork}</h2></div>
-          <div className="story-stream author-archive">
+          <div className="story-stream person-letter-archive">
             {selected.map((article) => (
               <article className="story-line" key={article.slug}>
                 <p className="meta">{article.publishedAt.slice(0, 10)}</p>
@@ -82,9 +93,9 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
             ))}
           </div>
         </section> : null}
-        {otherPosts.length ? <section className="author-work">
+        {otherPosts.length ? <section className="person-letter-work">
           <div className="section-heading"><h2>{locale === "en" ? "Posts" : "Publicaciones"}</h2></div>
-            <div className="story-stream author-archive">
+            <div className="story-stream person-letter-archive">
               {otherPosts.map((article) => (
                 <article className="story-line" key={article.slug}>
                   <p className="meta">{article.publishedAt.slice(0, 10)}</p>
@@ -94,11 +105,18 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
               ))}
             </div>
         </section> : null}
-        <section className="discord-passage">
-          <p className="meta">Discord</p>
-          <h2>{copy.connect}</h2>
-          <a className="button" href="https://discord.gg/CCUbfaRVd2" target="_blank" rel="noreferrer">Discord ↗</a>
-        </section>
+        {person.canHelpWith.length ? <section className="person-letter-help">
+          <div className="section-heading"><h2>{locale === "en" ? "Can help with" : "Puede ayudar con"}</h2></div>
+          <ul>
+            {person.canHelpWith.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </section> : null}
+        {discord && person.discordLine ? (
+          <p className="person-letter-discord">
+            {discordAnchorAt >= 0 ? person.discordLine.slice(0, discordAnchorAt) : `${person.discordLine} `}
+            <a href={discord.url} rel="noreferrer" target="_blank">Discord ↗</a>
+          </p>
+        ) : null}
       </main>
     );
   }

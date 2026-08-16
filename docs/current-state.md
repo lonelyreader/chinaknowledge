@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-08-11
+last_verified: 2026-08-16
 max_lines: 160
 ---
 
@@ -48,6 +48,8 @@ max_lines: 160
 ## 当前执行线
 
 [`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md)、[`MEDIA-UPLOAD-001`](archive/media-upload-filename-collision.md)、[`MIDGAME-COLD-START-001`](archive/midgame-cold-start.md) 与 [`FAVICON-PROD-001`](archive/favicon-production-release.md) 均已完成并归档。[`INFRA-AGENT-MEDIA-001`](roadmap/checklists/agent-media-tools.md) 的代码实现、工作项验证与独立复审已在 Local `PASS`：Agent 正文合同 V2（本人图片与 YouTube 块）、`media_upload`（复用唯一文件名直传管线）、`article_set_cover` 与 `article_preview` 发布预检就绪，四类权限负例经服务级测试全部拒绝并审计；Preview/Production 运行验收尚未执行。冷启动已在 Production 完成第 14 条 migration、六个 Purpose、60 个中文母稿和 120 条英西 Site Article；60 个双语组各有 EN/ES 两条，全部 Article 为 `published + curated + _status=published`。公开由 Production MCP 分批执行，数据库聚合、三波六个匿名页面、机构署名、Guides、health 与含 122 条 post URL 的 sitemap 均已回读；恢复 run 为 `31405564024`。既有 Member、Person、Media 和 Article 未改写。
+
+`INFRA-PERSON-PAGE-001` 已在 Local 完成正式成员名片 schema、页面与名录实现，并通过隔离 migration recovery、权限/未公开隔离、EN/ES、build、桌面 1440px 与移动 390px 浏览器主流程及独立复审。Preview 与 Production 尚未 apply 本条 migration，也未部署本实现；两环境仍分别受 migration、虚构数据验收、备份与发布门控制。
 
 ## 当前运行边界
 

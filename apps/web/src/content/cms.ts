@@ -17,14 +17,26 @@ export type PublishedCMSImage = {
 };
 
 export type PublishedCMSPerson = {
+  /** Plain-text third-person editorial biography (byline/author-card shape). */
+  bioThirdPerson?: string;
+  canHelpWith: string[];
   city: string;
   contribution?: PublishedCMSArticleSummary;
+  /** Member-owned Discord contact line; absent without a discord link. */
+  discordLine?: string;
+  /** Localized richText editorial biography for the person page renderer. */
+  editorialBio: Person["editorialBio"] | null;
+  /** Localized editorial epithet (roster line, byline, OG description). */
+  epithet?: string;
+  /** Member's hanzi name for the seal/signature system. */
+  hanziName?: string;
   identity: string;
   image: PublishedCMSImage;
   introduction: string;
   languages: ("en" | "es")[];
   links: { label: string; type: string; url: string }[];
   name: string;
+  quote: string | null;
   slug: string;
   spotlightExcluded: boolean;
   spotlightPinnedUntil: string | null;
@@ -121,26 +133,167 @@ function safeExternalURL(value: string, type?: string | null) {
   }
 }
 
-function personBase(person: Person, locale: Locale): Omit<PublishedCMSPerson, "contribution"> | null {
+function richTextNodeHasContent(node: { children?: unknown; text?: unknown; type?: unknown }): boolean {
+  if (typeof node.text === "string" && node.text.trim()) return true;
+  if (node.type === "upload" || node.type === "block") return true;
+  return Array.isArray(node.children)
+    && node.children.some((child) => child && typeof child === "object" && richTextNodeHasContent(child));
+}
+
+function publicRichTextNode(node: unknown): unknown | null {
+  if (!node || typeof node !== "object" || Array.isArray(node)) return node;
+  const value = node as Record<string, unknown>;
+  if (value.type === "upload") {
+    if (value.relationTo !== "media") return null;
+    const media = value.value;
+    if (!media || typeof media !== "object") return null;
+    const document = media as Media;
+    if (!document.memberUsePublishedAt && !document.publicUseApprovedAt) return null;
+    const image = publicImage(document);
+    if (!image) return null;
+    const fields = value.fields && typeof value.fields === "object"
+      ? value.fields as Record<string, unknown>
+      : null;
+    return {
+      ...(fields && typeof fields.caption === "string" ? { fields: { caption: fields.caption } } : {}),
+      relationTo: "media",
+      type: "upload",
+      value: { id: document.id, ...image },
+    };
+  }
+  if (value.type === "text") {
+    return typeof value.text === "string"
+      ? { ...(typeof value.format === "number" ? { format: value.format } : {}), text: value.text, type: "text" }
+      : null;
+  }
+  if (value.type === "linebreak") return { type: "linebreak" };
+  const children = Array.isArray(value.children)
+    ? value.children.flatMap((child) => {
+      const publicChild = publicRichTextNode(child);
+      return publicChild == null ? [] : [publicChild];
+    })
+    : [];
+  if (["root", "paragraph", "quote", "listitem"].includes(String(value.type))) {
+    return { children, type: value.type };
+  }
+  if (value.type === "heading") {
+    return { children, tag: value.tag === "h3" || value.tag === "h4" ? value.tag : "h2", type: "heading" };
+  }
+  if (value.type === "list") {
+    return { children, listType: value.listType === "number" ? "number" : "bullet", type: "list" };
+  }
+  if (value.type === "link" || value.type === "autolink") {
+    return { children, ...(typeof value.url === "string" ? { url: value.url } : {}), type: value.type };
+  }
+  return null;
+}
+
+function publicRichText(value: Person["editorialBio"]) {
+  if (!value?.root) return null;
+  const root = publicRichTextNode(value.root);
+  return root && typeof root === "object"
+    ? { ...value, root } as Person["editorialBio"]
+    : null;
+}
+
+// Localized richText with the site-wide "es falls back to en" rule; empty
+// documents (an empty root produced by touching the editor) count as missing.
+function localizedRichText(
+  en: Person["editorialBio"],
+  es: Person["editorialBio"],
+  locale: Locale,
+  publicOnly: boolean,
+) {
+  const candidates = locale === "es" ? [es, en] : [en];
+  for (const candidate of candidates) {
+    const value = publicOnly ? publicRichText(candidate) : candidate;
+    if (value?.root && richTextNodeHasContent(value.root)) return value;
+  }
+  return null;
+}
+
+function localizedLine(en: string | null | undefined, es: string | null | undefined, locale: Locale) {
+  const enValue = en?.trim() || null;
+  if (locale !== "es") return enValue;
+  return es?.trim() || enValue;
+}
+
+function localizedItems(
+  en: { item: string }[] | null | undefined,
+  es: { item: string }[] | null | undefined,
+  locale: Locale,
+) {
+  const clean = (rows: { item: string }[] | null | undefined) =>
+    (rows ?? []).flatMap((row) => (row.item?.trim() ? [row.item.trim()] : []));
+  const enItems = clean(en);
+  if (locale !== "es") return enItems;
+  const esItems = clean(es);
+  return esItems.length ? esItems : enItems;
+}
+
+function richTextPlainText(node: { children?: unknown; text?: unknown; type?: unknown }): string {
+  if (typeof node.text === "string") return node.text;
+  if (!Array.isArray(node.children)) return "";
+  const parts = node.children
+    .map((child) => (child && typeof child === "object" ? richTextPlainText(child) : ""));
+  // Blocks under the root read as separate sentences; inline nodes concatenate.
+  return node.type === "root"
+    ? parts.map((part) => part.trim()).filter(Boolean).join(" ")
+    : parts.join("");
+}
+
+// Member-owned contact line (DESIGN §5): the member is the subject; the line
+// exists only when the member lists a discord link.
+function discordContactLine(name: string, topics: string[], locale: Locale) {
+  const topicList = topics.slice(0, 3).join(", ");
+  if (locale === "es") {
+    return topicList
+      ? `${name} responde preguntas sobre ${topicList} en Discord.`
+      : `${name} responde preguntas en Discord.`;
+  }
+  return topicList
+    ? `${name} answers questions about ${topicList} on Discord.`
+    : `${name} answers questions on Discord.`;
+}
+
+function personBase(
+  person: Person,
+  locale: Locale,
+  publicOnly = false,
+): Omit<PublishedCMSPerson, "contribution"> | null {
   const image = publicImage(person.portrait);
   if (!image || !person.city || !person.identity || !person.introduction || !person.languages?.length || !person.slug) return null;
+  const editorialBio = localizedRichText(person.editorialBio, person.editorialBioEs, locale, publicOnly);
+  const bioThirdPerson = editorialBio ? richTextPlainText(editorialBio.root).trim() : "";
+  const epithet = localizedLine(person.verdict, person.verdictEs, locale);
+  const hanziName = person.nameZh?.trim();
+  const topics = taxonomyNames(person.topics);
+  const links = (person.links ?? []).flatMap((link) => {
+    const type = link.type || "personal_site";
+    const url = safeExternalURL(link.url, type);
+    const label = locale === "es" ? link.labelEs || link.label : link.label;
+    return url ? [{ label, type, url }] : [];
+  });
+  const hasDiscord = links.some((link) => link.type === "discord");
   return {
+    ...(bioThirdPerson ? { bioThirdPerson } : {}),
+    canHelpWith: localizedItems(person.canHelpWith, person.canHelpWithEs, locale),
     city: locale === "es" ? person.cityEs || person.city : person.city,
+    ...(hasDiscord ? { discordLine: discordContactLine(person.name, topics, locale) } : {}),
+    editorialBio,
+    ...(epithet ? { epithet } : {}),
+    ...(hanziName ? { hanziName } : {}),
     identity: locale === "es" ? person.identityEs || person.identity : person.identity,
     image,
     introduction: locale === "es" ? person.introductionEs || person.introduction : person.introduction,
     languages: person.languages,
-    links: (person.links ?? []).flatMap((link) => {
-      const type = link.type || "personal_site";
-      const url = safeExternalURL(link.url, type);
-      const label = locale === "es" ? link.labelEs || link.label : link.label;
-      return url ? [{ label, type, url }] : [];
-    }),
+    links,
     name: person.name,
+    quote: localizedLine(person.quote, person.quoteEs, locale),
     slug: person.slug,
     spotlightExcluded: person.spotlightExcluded ?? false,
     spotlightPinnedUntil: person.spotlightPinnedUntil ?? null,
-    topics: taxonomyNames(person.topics),
+    topics,
   };
 }
 
@@ -428,7 +581,7 @@ export async function getPublishedCMSPeople(locale: Locale) {
   ]);
 
   return peopleResult.docs.flatMap((person) => {
-    const base = personBase(person, locale);
+    const base = personBase(person, locale, true);
     const contribution = articles.find((article) => article.authorSlug === person.slug);
     return base ? [{ ...base, ...(contribution ? { contribution } : {}) }] : [];
   });

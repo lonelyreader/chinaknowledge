@@ -12,7 +12,7 @@ import * as migration_20260729_030000_profile_localization_and_creator_workspace
 import * as migration_20260729_193000_batch_rollback_barrier from './20260729_193000_batch_rollback_barrier';
 import * as migration_20260730_181300 from './20260730_181300';
 import * as migration_20260803_163331 from './20260803_163331';
-
+import * as migration_20260812_042454_person_page_member_card from './20260812_042454_person_page_member_card';
 export const migrations = [
   {
     up: migration_20260727_054408_p1_editorial_foundation.up,
@@ -82,6 +82,11 @@ export const migrations = [
   {
     up: migration_20260803_163331.up,
     down: migration_20260803_163331.down,
-    name: '20260803_163331'
+    name: '20260803_163331',
+  },
+  {
+    up: migration_20260812_042454_person_page_member_card.up,
+    down: migration_20260812_042454_person_page_member_card.down,
+    name: '20260812_042454_person_page_member_card',
   },
 ];

@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-16
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:74c82939c61b34c02a8a0ac3ed8ba79c04a821435793195f975237e069e1d36b
+implementation_fingerprint: sha256:0d6d8cb27033337618aa8d1c0bd73cc63b59896f7d921b9f4b7cdce1c7aaecf6
 ---
 
 # App 功能登记册
@@ -29,10 +29,10 @@ implementation_fingerprint: sha256:74c82939c61b34c02a8a0ac3ed8ba79c04a8214357931
 | RDR-07 | Places | 浏览地点列表和地点详情，查看与该地点关联的文章和人物 | `/{locale}/places`、`/{locale}/places/{slug}` |
 | RDR-08 | Purpose 入口 | 按 Understand、Visit、Live、Study、Work、Business 找到站方内容 | `/{locale}/purposes/{slug}` |
 | RDR-09 | Topic 入口 | 按主题聚合站方内容 | `/{locale}/topics/{slug}` |
-| RDR-10 | People 目录 | 查看每周稳定轮换的一主两辅人物，并按姓名、主题、地点、语言筛选和分页 | `/{locale}/people`；桌面每页 24 人，移动端每页 12 人 |
-| RDR-11 | Person 主页 | 查看人物头像、身份、地点、介绍、主题、全部公开文章、站方精选和个人外链 | `/{locale}/people/{slug}`；西语资料缺失时回退英语 |
+| RDR-10 | People 目录 | 查看每周稳定轮换的一主两辅人物，并以判词名录行（判词 — 姓名 + 最近作品）浏览成员，可按姓名、主题、地点、语言筛选和分页 | `/{locale}/people`；桌面每页 24 人，移动端每页 12 人；无判词的成员只显示姓名行 |
+| RDR-11 | Person 主页 | 查看成员正式名片：肖像、姓名与汉字侧签、身份、地点、编辑判词、第三人称编辑传记、本人引语、能帮什么、主题、全部公开文章、站方精选和个人外链 | `/{locale}/people/{slug}`；编辑传记缺失回退第一人称介绍；其余新区块无数据整体隐藏；西语资料缺失时回退英语 |
 | RDR-12 | 人物导流 | Member 稿从首页、栏目、文章进入原作者主页；站方稿只在确有相关人物时提供人物入口 | 文章署名区和 Related people；站方稿不生成虚构 Person |
-| RDR-13 | Discord 社群入口 | 从 Person 页面进入平台 Discord | Person 页面底部的 Discord 入口 |
+| RDR-13 | Discord 联系入口 | 从 Person 页面经成员主语联系行进入该成员的 Discord | CMS Person 页底部；成员 links 无 discord 时整行不出现；静态回退 Person 页保留平台 Discord 入口 |
 | RDR-14 | Newsletter 订阅 | 用邮箱和明确同意加入对应语言的邮件名单，收到成功或必要错误状态 | 首页与 `/{locale}/newsletter`；重复邮箱更新语言，不替用户重新开启已取消订阅状态 |
 | RDR-15 | About 与 Privacy | 了解产品定位、Newsletter 数据用途、公开人物资料、跟踪政策和联系邮箱 | `/{locale}/about`、`/{locale}/privacy` |
 | RDR-16 | 搜索引擎入口 | Production 可被索引，并提供 Article JSON-LD、分享信息、sitemap、canonical 和多语言 alternate；Preview 与草稿预览不索引 | `/robots.txt`、`/sitemap.xml` 与页面 metadata；Purpose、Topic 和已公开内容进入 sitemap |
@@ -58,7 +58,7 @@ Member 是有后台账户并关联 Person 的内容作者。文章公开由本�
 | MEM-10 | 原作者身份保护 | 无论站方怎样编辑或分类，公开署名仍指向原 Member，文章仍是一条记录 | 所有 Article；Member 不能把文章改成他人作品 |
 | MEM-11 | 双语文章关联 | 为自己的 English 文章建立 Español 版本，或反向建立 English 版本 | Article 的 Add English/Spanish version；两种语言独立保存和公开 |
 | MEM-12 | My profile | 持久进入自己的 Person 编辑页，不必在 People 全量列表中寻找自己 | 后台主导航 My profile |
-| MEM-13 | 双语个人资料 | 维护共享姓名、头像、语言、主题，以及英语/西语的身份、地点和介绍 | My profile 的 Profile、English、Español 分区 |
+| MEM-13 | 双语个人资料 | 维护共享姓名、汉字姓名、头像、语言、主题，以及英语/西语的身份、地点、介绍、本人引语和「能帮什么」 | My profile 的 Profile、English、Español 分区；编辑传记与判词只由 Editor 维护 |
 | MEM-14 | 头像管理 | 在个人页内上传、预览、替换、编辑或移除头像，并填写图片说明 | My profile；站方是否把媒体用于策展入口由 Editor 另行确认 |
 | MEM-15 | 个人外链 | 最多维护 8 个个人网站、Newsletter、社交、Email 或其他链接；可改标签、顺序和删除 | My profile 的 Links；网页限 http/https，Email 限 mailto |
 | MEM-16 | 个人页公开控制 | 预览、公开或转为不公开自己的 Person | Profile 动作区；有公开文章时需先撤回文章，被 Super Admin 暂停时不能自行恢复 |
