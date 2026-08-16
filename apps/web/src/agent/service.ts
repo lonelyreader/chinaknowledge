@@ -1255,6 +1255,25 @@ export class AgentMemberService {
     return ids;
   }
 
+  private async lockEditorialTaxonomies(
+    req: PayloadRequest,
+    groups: { dimension: "geography" | "purpose" | "situation" | "topic"; ids: number[] }[],
+  ) {
+    for (const { dimension, ids } of groups) {
+      if (ids.length > 50 || ids.some((id) => !Number.isInteger(id) || id <= 0) || new Set(ids).size !== ids.length) {
+        throw new AgentServiceError("VALIDATION_ERROR", `${dimension} IDs must contain at most 50 unique positive integers.`);
+      }
+    }
+    const ids = [...new Set(groups.flatMap(({ ids: groupIDs }) => groupIDs))].sort((left, right) => left - right);
+    if (!ids.length) return;
+    const transactionId = await req.transactionID;
+    const db = transactionId
+      ? (this.payload.db.sessions?.[String(transactionId)]?.db as { execute: (query: unknown) => Promise<{ rows?: { id: number }[] }> } | undefined)
+      : undefined;
+    if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The editorial taxonomy transaction is unavailable.");
+    for (const id of ids) await db.execute(sql`SELECT id FROM taxonomies WHERE id = ${id} FOR SHARE`);
+  }
+
   private editorialSourceNotes(sourceNotes: NonNullable<AgentEditorialSitePatch["sourceNotes"]>, article: Article) {
     if (sourceNotes.length > 50) throw new AgentServiceError("VALIDATION_ERROR", "Source notes may contain at most 50 items.");
     const existingIds = new Set((article.sourceNotes ?? []).map((source) => source.id).filter((id): id is string => Boolean(id)));
@@ -1308,6 +1327,12 @@ export class AgentMemberService {
     const entries = Object.entries(patch).filter(([, value]) => value !== undefined);
     if (!entries.length) throw new AgentServiceError("VALIDATION_ERROR", "At least one editorial site field is required.");
     if (entries.some(([key]) => !allowed.has(key))) throw new AgentServiceError("VALIDATION_ERROR", "The editorial patch contains a protected or unknown field.");
+    await this.lockEditorialTaxonomies(req, [
+      ...(patch.purposeIds === undefined ? [] : [{ dimension: "purpose" as const, ids: patch.purposeIds }]),
+      ...(patch.topicIds === undefined ? [] : [{ dimension: "topic" as const, ids: patch.topicIds }]),
+      ...(patch.geographyIds === undefined ? [] : [{ dimension: "geography" as const, ids: patch.geographyIds }]),
+      ...(patch.situationIds === undefined ? [] : [{ dimension: "situation" as const, ids: patch.situationIds }]),
+    ]);
     const data: Record<string, unknown> = {};
     if (patch.assignedEditorId !== undefined) {
       const assignedEditorId = patch.assignedEditorId;

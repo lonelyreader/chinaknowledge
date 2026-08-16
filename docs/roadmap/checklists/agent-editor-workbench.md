@@ -99,4 +99,4 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 ## Writeback
 
 - Local PASS 后更新 feature registry、current-state、父级状态和 implementation reference；一次独立复审 PASS 后 009 才能激活。Production 回读后再归档本 checklist。
-- 当前门：008 Local 实现与工作项验证 PASS，证据见 [`AGENT-WORKSPACE-008 Local runtime`](../../reference/implementation/agent-workspace-008-local-runtime-2026-08-16.md)；独立终局复审待执行，009 继续 queued，release gates 不变。
+- 当前门：008 Local 实现与工作项验证 PASS；终审提出的 taxonomy dimension 并发 P2 已以事务共享锁和定向 live 负例修复，证据见 [`AGENT-WORKSPACE-008 Local runtime`](../../reference/implementation/agent-workspace-008-local-runtime-2026-08-16.md)。独立终局复核待执行，009 继续 queued，release gates 不变。

@@ -7,7 +7,7 @@ import path from "node:path";
 
 import config from "@payload-config";
 import type { AuthInfo } from "@modelcontextprotocol/server";
-import { createLocalReq, getPayload, type Payload } from "payload";
+import { commitTransaction, createLocalReq, getPayload, initTransaction, killTransaction, type Payload } from "payload";
 
 import { createAgentGateway } from "@/agent/gateway";
 import {
@@ -671,6 +671,12 @@ try {
     overrideAccess: false,
     user: editor.user,
   });
+  const racePurpose = await payload.create({
+    collection: "taxonomies",
+    data: { dimension: "purpose", name: `Agent race purpose ${suffix}`, slug: `agent-race-purpose-${suffix}` },
+    overrideAccess: false,
+    user: editor.user,
+  });
   const editorialBody = agentBodyToLexical({
     version: "AgentArticleBodyV2",
     blocks: [
@@ -784,6 +790,38 @@ try {
   assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-cross-taxonomy-${randomUUID()}`, patch: { purposeIds: [topic.id] }, revision: editorialSaved.meta!.revision! })).error?.code, "VALIDATION_ERROR");
   assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-private-cover-${randomUUID()}`, patch: { coverImageId: ownPortrait.id }, revision: editorialSaved.meta!.revision! })).error?.code, "VALIDATION_ERROR");
   assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-unknown-comment-${randomUUID()}`, patch: { editorComments: [{ id: "unknown-row", anchor: "intro", message: "Forged row" }] }, revision: editorialSaved.meta!.revision! })).error?.code, "VALIDATION_ERROR");
+
+  const taxonomyRaceReq = await createLocalReq({ user: editor.user }, payload);
+  assert.equal(await initTransaction(taxonomyRaceReq), true);
+  let taxonomyRaceOpen = true;
+  try {
+    await payload.update({
+      collection: "taxonomies",
+      id: racePurpose.id,
+      data: { dimension: "topic" },
+      overrideAccess: false,
+      req: taxonomyRaceReq,
+      user: editor.user,
+    });
+    let taxonomySaveSettled = false;
+    const taxonomySave = editorService.editorialSaveSiteFields({
+      id: editorWorkArticle.id,
+      idempotencyKey: `editorial-taxonomy-race-${randomUUID()}`,
+      patch: { purposeIds: [racePurpose.id] },
+      revision: editorialSaved.meta!.revision!,
+    }).finally(() => { taxonomySaveSettled = true; });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    assert.equal(taxonomySaveSettled, false, "Editorial save must wait for the concurrent taxonomy dimension write.");
+    await commitTransaction(taxonomyRaceReq);
+    taxonomyRaceOpen = false;
+    const taxonomyRaceResult = await taxonomySave;
+    assert.equal(taxonomyRaceResult.error?.code, "VALIDATION_ERROR", JSON.stringify(taxonomyRaceResult));
+    const taxonomyRaceReadback = await payload.findByID({ collection: "articles", id: editorWorkArticle.id, depth: 0, draft: false, overrideAccess: true });
+    assert.deepEqual((taxonomyRaceReadback.purposes ?? []).map(relationId), [sitePurpose.id]);
+  } finally {
+    if (taxonomyRaceOpen) await killTransaction(taxonomyRaceReq);
+    await payload.update({ collection: "taxonomies", id: racePurpose.id, data: { dimension: "purpose" }, overrideAccess: true });
+  }
   const assignedByAdmin = await adminService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-admin-assignee-${randomUUID()}`, patch: { assignedEditorId: editorB.user.id }, revision: editorialSaved.meta!.revision! });
   assert.equal(assignedByAdmin.ok, true, JSON.stringify(assignedByAdmin));
   await payload.update({ collection: "users", id: editorB.user.id, data: { accountStatus: "paused" }, overrideAccess: true });
