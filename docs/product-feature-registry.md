@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-16
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:f9dc8c0b0193556f048ccf6f7e3bbb26810d7f3c355b6878e24d5fb2cb986358
+implementation_fingerprint: sha256:71ac2a9855c5634b23d6819fc1a5e586d0953c5a3e7a276910a79fcce82e6681
 ---
 
 # App 功能登记册
@@ -121,7 +121,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-10 | 批量账户准备 | 从受控 JSON 预检或建立 Member/Editor；限制字段、批量规模和冲突 | `cms:provision-accounts`，默认 dry-run |
 | OPS-11 | 搜索索引开关 | 只有明确启用的 Production 可索引；Preview 和预览内容保持 noindex | 环境变量、robots、页面 metadata |
 | OPS-12 | 自动质量门禁 | PR 自动运行治理、功能登记同步、环境、migration、编辑权限、Newsletter、lint、typecheck、依赖审计、build 和公共路由 smoke | GitHub Preview checks |
-| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、本人资料与外链、本人媒体发现、双语 draft、图片上传、封面设置、个人发布、策展和最小审计工具，并随时撤销连接；正文支持文本合同 V1 与含本人图片、YouTube 嵌入的 V2 | Production `/api/agent/*` 仍为 14 个工具；WorkBuddy、Cursor 与 Codex 已完成既有真实客户端兼容验收。Local 010 为 33 个工具，新增 Super Admin-only 母稿读取、Site Article 建稿/working-copy 保存与 activity 有限分页筛选，等待独立复审。每次调用仍重检当前角色、connection、client、Person、对象关系、revision、幂等与引用权限；不支持 TRAE、静态 API key、任意 CRUD、自动翻译或 Agent 账户管理 |
+| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、本人资料与外链、本人媒体发现、双语 draft、图片上传、封面设置、个人发布、策展和最小审计工具，并随时撤销连接；正文支持文本合同 V1 与含本人图片、YouTube 嵌入的 V2 | Production `/api/agent/*` 仍为 14 个工具；WorkBuddy、Cursor 与 Codex 已完成既有真实客户端兼容验收。Local `main` 为 33 个工具，含 Super Admin-only 母稿读取、Site Article 建稿/working-copy 保存与 activity 有限分页筛选，010 终局复审 PASS；统一 Preview/Production 尚未执行。每次调用仍重检当前角色、connection、client、Person、对象关系、revision、幂等与引用权限；不支持 TRAE、静态 API key、任意 CRUD、自动翻译或 Agent 账户管理 |
 | OPS-14 | 冷启动批次 | 为空环境补齐六个核心 Purpose，从受控 JSONL 幂等写入通过 `DetailedGuideV1` 门槛的中文母稿，按内容 hash 写入人工批准，再建立英西翻译并检查结构、数字、链接与来源一致性 | `cms:provision-core-taxonomies`、`cms:import-cold-start`、`cms:rebind-cold-start-release`、`cms:apply-cold-start-review`、`cms:build-cold-start-translations` 与 `cms:import-cold-start-translations`；跨环境只在已批准 hash 与译文源一致且中文标题、摘要、正文逐项相同后重绑目标 ID/hash。导入不自动公开；Super Admin 可用 MCP `editorial_release_site_article_batch` 对明确批准的 1–20 条站方 Article 逐篇执行发布、精选、幂等与读回 |
 | OPS-15 | 站点测量 | 以无 cookie 的匿名聚合统计查看站点流量，并经搜索引擎工具监测索引与 sitemap 状态 | Vercel Web Analytics（前台 layout `<Analytics />`，隐私政策如实披露）；GSC 域名资源经 Vercel DNS TXT 验证并已提交 sitemap；Bing 暂缓 |
 

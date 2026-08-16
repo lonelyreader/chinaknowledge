@@ -57,7 +57,9 @@ max_lines: 160
 
 `AGENT-WORKSPACE-009` 已完成 Local 工作项与独立终局复审并合入本地 `main`（`83ce74f`）：本地工具总数为 30，Editor / Super Admin 可用 prepare/commit 对 live published + curated Article 设置或清空首页排期，pending autosave 失败关闭且只改三项 homepage 字段；可 prepare/commit 固定 `major_edit` 作者通知，失败或并发重放复用同一 WorkflowEvent、recipient 与 key，`sent/not_required` 不重复发送。Member、当前角色/connection、revision、confirmation、owner、审计隐私与既有策展通知负例通过；未新增 schema/migration、UI、010 能力或通知平台。统一 Preview、`main` push 与 Production 尚未执行。
 
-`AGENT-WORKSPACE-010` 已完成 Local 实现与工作项验证，等待独立终局复审：本地工具总数增至 33，Super Admin 可从合格且权利已清的中文母稿读取 Body V2，以覆盖既有 content hash 与规范化 topics 的 Agent 母稿指纹创建同组唯一 EN/ES Site Article 私有 draft，并在 revision、幂等、母稿/Article/引用行锁下保存完整站方 working copy；创建/保存重放也复核当前母稿指纹。已公开 Article 的普通保存只形成 pending version，既有逐篇或批次 release 才会推广全部站方字段。`admin_recent_activity` 保持空输入最新 20 条兼容，同时增加最大 50 条分页、首屏 `asOf` 与四项固定筛选。Editor/Member、降权、重复 locale、过期母稿指纹、伪造身份、跨维度引用、未批准媒体、stale revision、并发创建和任意查询均失败关闭；无 schema/migration、UI、通用 CRUD 或账户管理改动。Preview、`main` push 与 Production 尚未执行。
+`AGENT-WORKSPACE-010` 已完成 Local 实现、工作项验证与一次独立终局/定向复核，P0/P1/P2=`0/0/0`，并合入本地 `main`（`c8351ee`）：本地工具总数增至 33，Super Admin 可从合格且权利已清的中文母稿读取 Body V2，以覆盖既有 content hash 与规范化 topics 的 Agent 母稿指纹创建同组唯一 EN/ES Site Article 私有 draft，并在 revision、幂等、母稿/Article/引用行锁下保存完整站方 working copy；创建/保存重放也复核当前母稿指纹。已公开 Article 的普通保存只形成 pending version，既有逐篇或批次 release 才会推广全部站方字段。`admin_recent_activity` 保持空输入最新 20 条兼容，同时增加最大 50 条分页、首屏 `asOf` 与四项固定筛选。Editor/Member、降权、重复 locale、过期母稿指纹、伪造身份、跨维度引用、未批准媒体、stale revision、并发创建和任意查询均失败关闭；无 schema/migration、UI、通用 CRUD 或账户管理改动。
+
+`AGENT-WORKSPACE-011` 是唯一 active 执行批，已冻结一次性 Preview 集成与生产前交接合同：只允许专用 `codex/agent-workspace-011-preview`、Draft PR、精确 Preview SHA、分批 14/15 migration 恢复、唯一虚构三角色+eligible master 的真实 MCP、临时 SSO/Gateway 开窗及精确 cleanup。合同冻结提交未执行 branch push、PR、Preview、migration、fixture、真实 MCP、`main` push/merge 或 Production。
 
 ## 当前运行边界
 
