@@ -78,6 +78,7 @@ flowchart LR
     E1 --> E2["009<br/>公共与外部动作"]
     E2 --> A["010<br/>安全站务"]
     A --> R["011<br/>Preview 集成与生产前交接"]
+    R --> P["012<br/>Production 发布与本人 X 验收"]
 ```
 
 | ID | 状态 | 唯一交付结果 | 依赖 |
@@ -89,6 +90,7 @@ flowchart LR
 | [`AGENT-WORKSPACE-009`](checklists/agent-editor-public-actions.md) | active（release） | 首页排期与 `major_edit` 作者通知按公共/外部动作合同上线 | Local/复审与统一 Preview PASS；Production 待执行 |
 | [`AGENT-WORKSPACE-010`](checklists/agent-admin-safe-operations.md) | active（release） | 站方 Article 建稿/保存、必要基础对象只读与可筛选审计 | Local/复审与统一 Preview PASS；Production 待执行 |
 | [`AGENT-WORKSPACE-011`](checklists/agent-workspace-integration-release.md) | active（production gate） | 三角色真实 MCP、Preview migration/recovery/cleanup 与 Production 交接 | Preview/复审 PASS；Production no-go |
+| [`AGENT-WORKSPACE-012`](checklists/agent-workspace-production-release.md) | active | 精确候选 Production 发布、14→15 migration、33-tool smoke 与当前用户本人 X 外链验收 | 011 PASS；用户已批准，待执行 |
 
 `queued` 只固定需求边界和依赖，不授权实现。原 queued `INFRA-AGENT-PROFILE-001` 已吸收进 007，不建立第二个 Profile checklist。Agent capability 同一时刻只允许一个 active 实现子级；只剩 release 回读的旧 checklist 不阻断下一子级本地实现。
 
@@ -134,9 +136,15 @@ flowchart LR
 - [x] 用唯一虚构 Member/Editor/Super Admin + eligible 中文 master 完成真实 OAuth/MCP discovery、代表性闭环、权限负例、审计与无邮件调用。
 - [x] fixture/token/connection/env/alias 已精确清理并恢复 SSO/Gateway；一次独立 phase-release 复审与定向复核最终 PASS，仍未进入 Production。
 
+### 当前批次：012 Production 发布与本人 X 外链验收
+
+- [x] 用户于 2026-08-16 明确批准 011 之后冻结的 Production release gate；012 不重复实现或修改产品代码。
+- [ ] 完成 Production backup/隔离恢复、第 15 条 migration、精确 SHA auto-deploy、33-tool 与公共 smoke。
+- [ ] 用当前真实账号只设置并读回本人 X 外链，完成撤销、cleanup、最终 readback 与一次独立 phase-release 复审。
+
 ## 子级合同与验证
 
-每个 007–011 子级都属于 upgraded 工作，开始前必须冻结：目标、allowed paths、no-go、data truth、read/write path、permission boundary、audit、recovery、关键不变量、finding route 和独立复审。最低验证统一包括：
+每个 007–012 子级都属于 upgraded 工作，开始前必须冻结：目标、allowed paths、no-go、data truth、read/write path、permission boundary、audit、recovery、关键不变量、finding route 和独立复审。最低验证统一包括：
 
 1. 合同与 schema 测试、目标服务测试、typecheck、lint、build、governance 和 diff check。
 2. 真实 Payload 权限路径；不以 mock、客户端角色或 tool discovery 代替服务端授权。

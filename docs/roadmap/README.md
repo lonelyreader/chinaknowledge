@@ -31,7 +31,7 @@ max_lines: 100
 
 ## Active：Agent Workspace 完整化
 
-[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 按 Production 当前 14 个工具和本地/Preview 已验证的 33 个工具控制 007–011。Media、007–010 已完成 Local/独立复审并转为 release-only；[`AGENT-WORKSPACE-011 Preview 集成与生产前交接`](checklists/agent-workspace-integration-release.md) 的专用 branch、Draft PR、migration recovery、虚构三角色真实 MCP、cleanup、关闭态恢复与 phase-release 独立复审均 PASS。当前只剩新的 Production 发布门；不 push/merge `main` 或进入 Production。
+[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 按 Production 当前 14 个工具和本地/Preview 已验证的 33 个工具控制 007–012。Media、007–010 已完成 Local/独立复审并转为 release-only；011 的专用 branch、Draft PR、migration recovery、虚构三角色真实 MCP、cleanup、关闭态恢复与 phase-release 独立复审均 PASS。[`AGENT-WORKSPACE-012`](checklists/agent-workspace-production-release.md) 已冻结 Production 14→15 migration、精确 SHA auto-deploy、33-tool smoke 与当前用户本人 X 外链验收；用户已批准，待执行。
 
 ## Non-urgent closeout
 

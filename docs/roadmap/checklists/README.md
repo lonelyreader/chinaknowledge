@@ -35,6 +35,7 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 - [`AGENT-WORKSPACE-009`](agent-editor-public-actions.md)：首页排期与 `major_edit` 作者通知（upgraded），Local/复审与统一 Preview PASS，只剩 Production release。
 - [`AGENT-WORKSPACE-010`](agent-admin-safe-operations.md)：Site Article working-copy 与有限 activity（upgraded），Local/复审与统一 Preview PASS，只剩 Production release。
 - [`AGENT-WORKSPACE-011`](agent-workspace-integration-release.md)：一次性虚构三角色真实 MCP、Preview migration/recovery/cleanup 与 Production 交接（upgraded）；Preview/phase-release 复审 PASS，停在 Production gate。
+- [`AGENT-WORKSPACE-012`](agent-workspace-production-release.md)：把 011 精确候选发布到 Production，完成 14→15 migration、33-tool smoke 与当前用户本人 X 外链读写（upgraded）；用户已批准，待执行。
 
 非紧急收尾：
 
