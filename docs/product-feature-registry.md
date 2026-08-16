@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-16
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:54e0c2ebc4a40da7a1cf91800c0a02c4ede2a4fef06569b970a6168d9907e487
+implementation_fingerprint: sha256:47d3a1d214c936b34d56a46f904decf4c6a6c59cfd0f901f1e960d2d9141a6b6
 ---
 
 # App 功能登记册
@@ -84,7 +84,7 @@ Editor 负责选择和组织成员已经公开的内容。若 Editor 账户同�
 | EDT-11 | 作者通知 | 从文章向原作者发送策展相关事务通知；失败会被记录且可重试 | Article 的 Notify author；009 Local Agent 固定 `major_edit`，服务端决定 owner 邮箱与文案，失败只重试同一 WorkflowEvent，Local/Preview 为 `not_required` |
 | EDT-12 | 编辑/写作模式分离 | 当 Editor 同时是作者时，可在 Writing 与 Site 两个聚焦界面间切换 | 自己的 Article；编辑他人文章时只进入 Site 模式 |
 | EDT-13 | 中文母稿 | 用中文维护站方选题、结构化详细攻略、来源、权利、风险、核验与翻译状态，作为英西稿共同真相 | Chinese masters；只对 Editor/Super Admin 可读，事实提纲不算母稿，批准前必须通过详细攻略结构、来源与权利检查 |
-| EDT-14 | 机构署名内容 | 建立不依附 Member 的站方 Article，并固定显示 `China, in Fact` | Site Article；必须关联同一份已批准中文母稿，不创建虚构 Person，不向作者发送通知 |
+| EDT-14 | 机构署名内容 | 建立不依附 Member 的站方 Article，并固定显示 `China, in Fact` | Site Article；必须关联同一份已批准中文母稿，不创建虚构 Person，不向作者发送通知；010 Local Agent 为 Super Admin 提供合格母稿读取、同组 EN/ES 私有 draft 创建与 pending working-copy 保存，公开仍只经既有 release 动作 |
 
 ## Super Admin（超级管理员）
 
@@ -100,7 +100,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | ADM-06 | Categories 管理 | 维护 Purpose、Topic、Geography、Situation 等分类及英西名称、slug | Categories |
 | ADM-07 | Places 管理 | 维护地点名称、摘要、封面、所属 Geography、英西 slug 与公开状态 | Places；地点页自动聚合相关人物和文章 |
 | ADM-08 | Images 管理 | 查看和管理图片、上传者、图片说明和公开使用状态 | Images；创建、读取、修改和删除均受角色权限控制 |
-| ADM-09 | Activity 审计 | 查看文章发布、策展、通知等工作流事件及操作者、前后状态和时间 | Activity 记录只读；Agent 的 Super Admin-only 最近 20 条最小读取已在 Production 完成真实 OAuth 只读 smoke，不返回输入或私密字段 |
+| ADM-09 | Activity 审计 | 查看文章发布、策展、通知等工作流事件及操作者、前后状态和时间 | Activity 记录只读；Production Agent 仍是最近 20 条最小读取。010 Local Agent 增加最大 50 条分页、首屏 `asOf` 与 axis、Article、通知 kind/status 固定筛选，仍不返回任意查询、正文、邮件或内部错误 |
 | ADM-10 | 全量内容管理 | 访问全部 Chinese masters、Articles、People、Images、Categories、Places 和 Members | 后台主导航；权限仍由服务端执行 |
 
 ## 运营与维护
@@ -121,7 +121,7 @@ Super Admin 包含全部 Editor 能力，并负责账户、权限、全站基础
 | OPS-10 | 批量账户准备 | 从受控 JSON 预检或建立 Member/Editor；限制字段、批量规模和冲突 | `cms:provision-accounts`，默认 dry-run |
 | OPS-11 | 搜索索引开关 | 只有明确启用的 Production 可索引；Preview 和预览内容保持 noindex | 环境变量、robots、页面 metadata |
 | OPS-12 | 自动质量门禁 | PR 自动运行治理、功能登记同步、环境、migration、编辑权限、Newsletter、lint、typecheck、依赖审计、build 和公共路由 smoke | GitHub Preview checks |
-| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、本人资料与外链、本人媒体发现、双语 draft、图片上传、封面设置、个人发布、策展和最小审计工具，并随时撤销连接；正文支持文本合同 V1 与含本人图片、YouTube 嵌入的 V2 | Production `/api/agent/*` 仍为 14 个工具；WorkBuddy、Cursor 与 Codex 已完成既有真实客户端兼容验收。Local `main` 在 009 后为 30 个工具并通过独立复审，增加首页排期与固定 `major_edit` 作者通知。每次调用仍重检当前角色、connection、client、Person、对象归属、revision、幂等与引用权限；不支持 TRAE、静态 API key、任意 CRUD、自动翻译或 Agent 账户管理 |
+| OPS-13 | Agent Gateway | 后台账号可从 Agent 经标准 OAuth/MCP 使用服务器权限内的写作、本人资料与外链、本人媒体发现、双语 draft、图片上传、封面设置、个人发布、策展和最小审计工具，并随时撤销连接；正文支持文本合同 V1 与含本人图片、YouTube 嵌入的 V2 | Production `/api/agent/*` 仍为 14 个工具；WorkBuddy、Cursor 与 Codex 已完成既有真实客户端兼容验收。Local 010 为 33 个工具，新增 Super Admin-only 母稿读取、Site Article 建稿/working-copy 保存与 activity 有限分页筛选，等待独立复审。每次调用仍重检当前角色、connection、client、Person、对象关系、revision、幂等与引用权限；不支持 TRAE、静态 API key、任意 CRUD、自动翻译或 Agent 账户管理 |
 | OPS-14 | 冷启动批次 | 为空环境补齐六个核心 Purpose，从受控 JSONL 幂等写入通过 `DetailedGuideV1` 门槛的中文母稿，按内容 hash 写入人工批准，再建立英西翻译并检查结构、数字、链接与来源一致性 | `cms:provision-core-taxonomies`、`cms:import-cold-start`、`cms:rebind-cold-start-release`、`cms:apply-cold-start-review`、`cms:build-cold-start-translations` 与 `cms:import-cold-start-translations`；跨环境只在已批准 hash 与译文源一致且中文标题、摘要、正文逐项相同后重绑目标 ID/hash。导入不自动公开；Super Admin 可用 MCP `editorial_release_site_article_batch` 对明确批准的 1–20 条站方 Article 逐篇执行发布、精选、幂等与读回 |
 | OPS-15 | 站点测量 | 以无 cookie 的匿名聚合统计查看站点流量，并经搜索引擎工具监测索引与 sitemap 状态 | Vercel Web Analytics（前台 layout `<Analytics />`，隐私政策如实披露）；GSC 域名资源经 Vercel DNS TXT 验证并已提交 sitemap；Bing 暂缓 |
 

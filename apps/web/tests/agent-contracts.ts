@@ -175,7 +175,7 @@ for (const description of Object.values(agentToolDescriptions)) {
   assert.ok(description.length > 40);
   assert.ok(description.length <= 512);
 }
-assert.equal(Object.keys(agentToolDescriptions).length, 30);
+assert.equal(Object.keys(agentToolDescriptions).length, 33);
 assert.ok(agentToolDescriptions.media_upload);
 assert.ok(agentToolDescriptions.article_set_cover);
 assert.ok(agentToolDescriptions.my_profile_get);
@@ -188,6 +188,9 @@ assert.ok(agentToolDescriptions.editorial_prepare_homepage_schedule);
 assert.ok(agentToolDescriptions.editorial_commit_homepage_schedule);
 assert.ok(agentToolDescriptions.editorial_prepare_major_edit_notification);
 assert.ok(agentToolDescriptions.editorial_commit_major_edit_notification);
+assert.ok(agentToolDescriptions.site_article_master_get);
+assert.ok(agentToolDescriptions.site_article_create_draft);
+assert.ok(agentToolDescriptions.site_article_save_draft);
 
 const editorialRevisionSource = {
   ...source,
@@ -211,6 +214,8 @@ for (const changed of [
   { editorComments: [{ id: "comment-a", anchor: "intro", message: "Changed", resolved: false, createdBy: 9 }] },
   { owner: 99 }, { publicationStatus: "withdrawn" }, { curationStatus: "curated" }, { homepagePlacement: "lead" },
   { homepageStartsAt: "2026-08-17T00:00:00.000Z" }, { homepageEndsAt: "2026-08-18T00:00:00.000Z" },
+  { authorshipType: "site" }, { editorialMaster: 17 }, { relatedPeople: [19] },
+  { seo: { title: "Changed", description: "Changed" } },
 ]) {
   assert.equal(articleRevisionMatches(editorialRevision, { ...editorialRevisionSource, ...changed }), false);
 }

@@ -17,6 +17,8 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 
 目标：补齐两个 Super Admin 闭环：从符合门槛的中文 Editorial Master 创建、读取和保存 Site Article 工作副本；为既有 `admin_recent_activity` 增加有限筛选与分页。继续复用当前 Article hooks、版本、发布动作、冷启动翻译合同和 workflow events，不建立通用后台接口。
 
+当前状态：Local 实现与工作项验证 `PASS`，工具总数 30→33；独立终局复审待执行，Preview/Production 仍在 011 门外。
+
 父级：[`Agent Workspace Parent Checklist`](../agent-workspace-program.md)。009 已完成 Local 工作项与一次独立复审并合入本地 `main`（`83ce74f`），只剩统一 release；010 现为唯一实现批。本批不改变 009，也不提前执行 011 的 Preview/Production 总验收。
 
 ## Scope
@@ -87,11 +89,11 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 
 ## Acceptance
 
-- [ ] Super Admin 能发现合格中文母稿、读取 Body V2，以当前 content hash 创建一条私有 EN/ES Site Article draft，并用 `editorial_article_get` 取得可继续保存的 working copy。
-- [ ] Site save 覆盖 copy、format、四类 taxonomy、来源、freshness、cover 与 SEO；revision、幂等、事务、版本恢复、pending draft/live 隔离和写后读回通过。
-- [ ] 同母稿 EN/ES 共享 translation group 且每 locale 唯一；母稿状态/权利/hash 变化、身份伪造、跨对象、并发和媒体/引用越权全部失败关闭。
-- [ ] `admin_recent_activity` 支持有限筛选、最大 50 的分页与 asOf 复用，继续保持 004 权限、最小字段、只读和审计隐私。
-- [ ] 既有 Member/Editor 工具、冷启动导入、Article hooks、逐篇发布与 009 行为无回归；站方批次发布能继续处理新 draft，并按既有门槛推广已公开 Article 的 pending working copy。无 schema/migration、通用 CRUD、账户特权或 011 动作。
+- [x] Super Admin 能发现合格中文母稿、读取 Body V2，以当前 content hash 创建一条私有 EN/ES Site Article draft，并用 `editorial_article_get` 取得可继续保存的 working copy。
+- [x] Site save 覆盖 copy、format、四类 taxonomy、来源、freshness、cover 与 SEO；revision、幂等、事务、版本恢复、pending draft/live 隔离和写后读回通过。
+- [x] 同母稿 EN/ES 共享 translation group 且每 locale 唯一；母稿状态/权利/hash 变化、身份伪造、跨对象、并发和媒体/引用越权全部失败关闭。
+- [x] `admin_recent_activity` 支持有限筛选、最大 50 的分页与 asOf 复用，继续保持 004 权限、最小字段、只读和审计隐私。
+- [x] 既有 Member/Editor 工具、冷启动导入、Article hooks、逐篇发布与 009 行为无回归；站方批次发布能继续处理新 draft，并按既有门槛推广已公开 Article 的 pending working copy。无 schema/migration、通用 CRUD、账户特权或 011 动作。
 
 ## Validation
 
