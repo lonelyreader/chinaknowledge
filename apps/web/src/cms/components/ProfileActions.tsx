@@ -12,9 +12,10 @@ const labels: Record<ProfileStatus, string> = {
 };
 
 export function ProfileActions() {
-  const { id } = useDocumentInfo();
+  const { data, id, initialData } = useDocumentInfo();
   const modified = useFormModified();
-  const statusValue = useFormFields<unknown>(([fields]) => fields.profileStatus?.value);
+  const formStatus = useFormFields<unknown>(([fields]) => fields.profileStatus?.value);
+  const statusValue = formStatus || data?.profileStatus || initialData?.profileStatus;
   const status: ProfileStatus = statusValue === "public" || statusValue === "paused"
     ? statusValue
     : "draft";

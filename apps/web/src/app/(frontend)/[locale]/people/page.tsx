@@ -29,7 +29,10 @@ export default async function PeoplePage({ params }: { params: Promise<{ locale:
             </div>
           </section>
         ) : null}
-        <CMSPeopleDirectory people={cmsPeople} locale={locale} />
+        <CMSPeopleDirectory
+          people={cmsPeople.map((person) => ({ ...person, editorialBio: null }))}
+          locale={locale}
+        />
       </main>
     );
   }

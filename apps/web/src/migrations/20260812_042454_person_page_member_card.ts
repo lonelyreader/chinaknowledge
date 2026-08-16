@@ -9,35 +9,35 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
    ALTER TYPE "public"."enum_people_links_type" ADD VALUE 'discord' BEFORE 'email';
   ALTER TYPE "public"."enum__people_v_version_links_type" ADD VALUE 'discord' BEFORE 'email';
   CREATE TABLE "people_can_help_with" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"item" varchar NOT NULL
+    "_order" integer NOT NULL,
+    "_parent_id" integer NOT NULL,
+    "id" varchar PRIMARY KEY NOT NULL,
+    "item" varchar NOT NULL
   );
-  
+
   CREATE TABLE "people_can_help_with_es" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" varchar PRIMARY KEY NOT NULL,
-  	"item" varchar NOT NULL
+    "_order" integer NOT NULL,
+    "_parent_id" integer NOT NULL,
+    "id" varchar PRIMARY KEY NOT NULL,
+    "item" varchar NOT NULL
   );
-  
+
   CREATE TABLE "_people_v_version_can_help_with" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"item" varchar NOT NULL,
-  	"_uuid" varchar
+    "_order" integer NOT NULL,
+    "_parent_id" integer NOT NULL,
+    "id" serial PRIMARY KEY NOT NULL,
+    "item" varchar NOT NULL,
+    "_uuid" varchar
   );
-  
+
   CREATE TABLE "_people_v_version_can_help_with_es" (
-  	"_order" integer NOT NULL,
-  	"_parent_id" integer NOT NULL,
-  	"id" serial PRIMARY KEY NOT NULL,
-  	"item" varchar NOT NULL,
-  	"_uuid" varchar
+    "_order" integer NOT NULL,
+    "_parent_id" integer NOT NULL,
+    "id" serial PRIMARY KEY NOT NULL,
+    "item" varchar NOT NULL,
+    "_uuid" varchar
   );
-  
+
   ALTER TABLE "people" ADD COLUMN "name_zh" varchar;
   ALTER TABLE "people" ADD COLUMN "quote" varchar;
   ALTER TABLE "people" ADD COLUMN "editorial_bio" jsonb;
@@ -78,12 +78,14 @@ export async function down({ db, payload, req }: MigrateDownArgs): Promise<void>
   DROP TABLE "_people_v_version_can_help_with_es" CASCADE;
   ALTER TABLE "people_links" ALTER COLUMN "type" SET DATA TYPE text;
   ALTER TABLE "people_links" ALTER COLUMN "type" SET DEFAULT 'personal_site'::text;
+  UPDATE "people_links" SET "type" = 'other' WHERE "type" = 'discord';
   DROP TYPE "public"."enum_people_links_type";
   CREATE TYPE "public"."enum_people_links_type" AS ENUM('personal_site', 'newsletter', 'youtube', 'linkedin', 'x', 'instagram', 'github', 'email', 'other');
   ALTER TABLE "people_links" ALTER COLUMN "type" SET DEFAULT 'personal_site'::"public"."enum_people_links_type";
   ALTER TABLE "people_links" ALTER COLUMN "type" SET DATA TYPE "public"."enum_people_links_type" USING "type"::"public"."enum_people_links_type";
   ALTER TABLE "_people_v_version_links" ALTER COLUMN "type" SET DATA TYPE text;
   ALTER TABLE "_people_v_version_links" ALTER COLUMN "type" SET DEFAULT 'personal_site'::text;
+  UPDATE "_people_v_version_links" SET "type" = 'other' WHERE "type" = 'discord';
   DROP TYPE "public"."enum__people_v_version_links_type";
   CREATE TYPE "public"."enum__people_v_version_links_type" AS ENUM('personal_site', 'newsletter', 'youtube', 'linkedin', 'x', 'instagram', 'github', 'email', 'other');
   ALTER TABLE "_people_v_version_links" ALTER COLUMN "type" SET DEFAULT 'personal_site'::"public"."enum__people_v_version_links_type";

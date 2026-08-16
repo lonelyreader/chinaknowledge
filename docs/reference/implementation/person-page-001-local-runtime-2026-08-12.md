@@ -4,7 +4,7 @@ doc_type: reference
 authority: evidence
 status: active
 scope: person-page-001-local-runtime
-last_verified: 2026-08-12
+last_verified: 2026-08-16
 max_lines: 150
 ---
 
@@ -47,8 +47,8 @@ max_lines: 150
 
 文件 `apps/web/src/migrations/20260812_042454_person_page_member_card.ts/.json`。
 
-- `npm run test:migration-recovery` PASS（scratch 库全量 up/down/重建 + 有数据回滚 fail-closed）。
-- 批次隔离：scratch 库先 apply 旧 migrations（batch 1），单独 apply 本 migration（batch 2）→ people 表 7 个新列 + 2×2 `can_help_with` 表 + enum 含 `discord`、`slug` 保持 NOT NULL；`migrate:down`（仅 batch 2）→ 新列/表归零、enum 恢复、people 表完好。
+- 2026-08-16 独立 scratch 库全量 apply 后，将本 migration 隔离为 batch 2；先向 live 与 Person version links 写入 `discord`，`migrate:down` 将其保值降级为 `other` 后重建旧 enum，并确认新增列、两组 `can_help_with` 表被移除，同时 `people` 表、旧 `identity_es` 与 `slug NOT NULL` 保持；随后单条 reapply，新增结构和 migration ledger 恢复，PASS。
+- 通用 `npm run test:migration-recovery` 在全新库把 15 条 migration 记入同一 batch，整批 down 会执行到基础 migration 删除 `payload_migrations`，随后 runner 报 ledger 不存在。该 helper 不能证明本 slice 回滚失败；本条 migration 的隔离 down/reapply 已通过。此既有工具限制不在 Person allowed paths，路由后续修正。
 - 既有漂移记录：生成器另产出 `people.slug DROP NOT NULL`（slug 于 2026-07-29 获得 admin.condition 后快照滞后，本地 push 库已为可空），与本项无关，已从 DDL 中剔除并在 migration 注释中说明；snapshot json 保留生成值。后续 migration 作者与复审者需知悉。
 
 ## 权限负例与读路径（scratch 库 `payload migrate` 后运行）
@@ -63,22 +63,36 @@ DATABASE_URL=... node --import tsx --conditions react-server .../person-page-rea
 
 （`--conditions react-server` 满足 `server-only`/`react.cache`；本地需 `node_modules/server-only` stub 或经 Next 运行时。）
 
-2026-08-12 结果（overrideAccess: false 走真实访问控制）：
+2026-08-16 复跑结果（overrideAccess: false 走真实访问控制）：
 
 - PASS 成员 A 直写成员 B 的 Person 被拒。
 - PASS 成员直写本人 `verdict`/`verdictEs`/`editorialBio`/`editorialBioEs`：请求被接受但字段被剥离，存储值不变（Payload field-access 语义）。
 - PASS Editor 写判词与编辑传记（正例）；成员自管 `nameZh`/`quote`/`canHelpWith` 持久化（正例）。
 - PASS 匿名按 id 读 draft Person 被拒；匿名列表与其他成员视角均不含 draft Person（新字段不泄露）。
 - PASS 公开读路径：draft 不可见→发布后 EN 映射（hanziName/epithet/bioThirdPerson/quote/canHelpWith/discordLine）逐项断言；ES 用 es 值、缺失回退 EN，discordLine 西语句式。
+- PASS 空白 ES 判词、引语与帮助条目按缺失处理并回退 EN。
+- PASS 编辑传记内未获公开批准的 Media 不进入匿名 read model；Editor 批准后只保留公开图像字段，owner、审批字段与嵌套用户不序列化；People client 目录不接收 richText。
 
 ## 常规验证
 
-- `tsc --noEmit` PASS；`eslint` 0 error（新 migration 4 条 unused-vars warning 与既有 migration 签名模式一致）。
+- `npm run typecheck`、`npm run build` PASS（Next.js 16.2.12，77 routes/pages）；`npm run lint` 0 error、48 warning（migration 签名模式，Person migration 占 4 条）。
 - `payload generate:types` 与 `generate:importmap` 已再生成（importMap 仅注册顺序变化，因 People 新增 richText）。
 
-## Pending（本批未完成，需后续门禁）
+## 浏览器主流程与修复（2026-08-16）
 
-1. `npm run build`、Preview/Production migration apply——schema/migration 门禁单独批准后执行。
-2. 浏览器验证（桌面与 390px 无溢出、成员编辑→公开读回主流程）——归合并评审阶段（dev server 在沙箱内因 `uv_interface_addresses` 无法启动，见 `/tmp/pp-dev.log`）。
-3. 独立复审（权限负例、migration 回滚、未公开隔离、EN/ES 回退）。
-4. feature registry 与 current-state 写回、checklist 归档——合并后执行。
+- Local scratch 数据库使用虚构 Member/Person/Media；Member 登录 My profile 后更新本人引语与「我能帮什么」，保存成功；编辑传记与判词保持不可编辑。
+- EN Person 页在 1440×1000 正确读回姓名、汉字侧签、引语、帮助条目、判词、编辑传记与 Discord 联系行；空作品区不渲染，横向溢出为 0。
+- ES Person 页在 390×844 使用西语 identity、引语、帮助条目与 Discord 句式；缺失的判词和编辑传记回退 EN，窄屏汉字侧签隐藏，横向溢出为 0。
+- People 索引在桌面与 390px 均显示 `判词 — 姓名` 名录行及最近作品边界，无横向溢出。
+- Discord 从页首普通 links 排除，只保留页底成员主语联系行；源码断言与修复后 build PASS。
+- 发现公开 Person 的 Member 表单未注册隐藏 `profileStatus`，动作区误显示 `Draft / Publish profile`。`ProfileActions` 现从表单值回退到 Payload `data/initialData`；同一浏览器会话读回为 `Public / Make private`。
+
+## 最终独立复审
+
+2026-08-16 对冻结合同、实现 diff、权限/读路径脚本、含 Discord 数据的隔离 migration recovery、桌面/390px 浏览器证据及修复后 build 完成唯一一轮独立复审：PASS，未解决 P0/P1/P2=`0/0/0`。未改 Agent、Article、Home、Production 数据或 Production schema。
+
+## 剩余发布门
+
+1. Preview：在受保护、noindex 环境以虚构数据 apply migration，复跑 Member/Editor/匿名 EN/ES 主流程与 rollback drill。
+2. Production：单独批准 backup、deploy、migration apply、公开读回与恢复点；本地验证未连接或改写 Production。
+3. merge/push 由父级编排；本分支未 merge、push 或 deploy。Preview/Production 门完成后再归档 checklist。

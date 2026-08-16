@@ -4,10 +4,10 @@ doc_type: current
 authority: canonical
 status: active
 scope: implemented-app-features
-last_verified: 2026-08-11
+last_verified: 2026-08-16
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:461bb7075e4797f8a1cae0d7d6885f28692171fed6905c6c01e625ab33e9b59a
+implementation_fingerprint: sha256:864c4321eacff5c8f480c2d50cbb0a3e84c215275cc1b0f39410d8a688b8d436
 ---
 
 # App 功能登记册
@@ -58,7 +58,7 @@ Member 是有后台账户并关联 Person 的内容作者。文章公开由本�
 | MEM-10 | 原作者身份保护 | 无论站方怎样编辑或分类，公开署名仍指向原 Member，文章仍是一条记录 | 所有 Article；Member 不能把文章改成他人作品 |
 | MEM-11 | 双语文章关联 | 为自己的 English 文章建立 Español 版本，或反向建立 English 版本 | Article 的 Add English/Spanish version；两种语言独立保存和公开 |
 | MEM-12 | My profile | 持久进入自己的 Person 编辑页，不必在 People 全量列表中寻找自己 | 后台主导航 My profile |
-| MEM-13 | 双语个人资料 | 维护共享姓名、头像、语言、主题，以及英语/西语的身份、地点和介绍 | My profile 的 Profile、English、Español 分区 |
+| MEM-13 | 双语个人资料 | 维护共享姓名、汉字姓名、头像、语言、主题，以及英语/西语的身份、地点、介绍、本人引语和「能帮什么」 | My profile 的 Profile、English、Español 分区；编辑传记与判词只由 Editor 维护 |
 | MEM-14 | 头像管理 | 在个人页内上传、预览、替换、编辑或移除头像，并填写图片说明 | My profile；站方是否把媒体用于策展入口由 Editor 另行确认 |
 | MEM-15 | 个人外链 | 最多维护 8 个个人网站、Newsletter、社交、Email 或其他链接；可改标签、顺序和删除 | My profile 的 Links；网页限 http/https，Email 限 mailto |
 | MEM-16 | 个人页公开控制 | 预览、公开或转为不公开自己的 Person | Profile 动作区；有公开文章时需先撤回文章，被 Super Admin 暂停时不能自行恢复 |

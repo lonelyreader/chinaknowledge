@@ -140,19 +140,82 @@ function richTextNodeHasContent(node: { children?: unknown; text?: unknown; type
     && node.children.some((child) => child && typeof child === "object" && richTextNodeHasContent(child));
 }
 
+function publicRichTextNode(node: unknown): unknown | null {
+  if (!node || typeof node !== "object" || Array.isArray(node)) return node;
+  const value = node as Record<string, unknown>;
+  if (value.type === "upload") {
+    if (value.relationTo !== "media") return null;
+    const media = value.value;
+    if (!media || typeof media !== "object") return null;
+    const document = media as Media;
+    if (!document.memberUsePublishedAt && !document.publicUseApprovedAt) return null;
+    const image = publicImage(document);
+    if (!image) return null;
+    const fields = value.fields && typeof value.fields === "object"
+      ? value.fields as Record<string, unknown>
+      : null;
+    return {
+      ...(fields && typeof fields.caption === "string" ? { fields: { caption: fields.caption } } : {}),
+      relationTo: "media",
+      type: "upload",
+      value: { id: document.id, ...image },
+    };
+  }
+  if (value.type === "text") {
+    return typeof value.text === "string"
+      ? { ...(typeof value.format === "number" ? { format: value.format } : {}), text: value.text, type: "text" }
+      : null;
+  }
+  if (value.type === "linebreak") return { type: "linebreak" };
+  const children = Array.isArray(value.children)
+    ? value.children.flatMap((child) => {
+      const publicChild = publicRichTextNode(child);
+      return publicChild == null ? [] : [publicChild];
+    })
+    : [];
+  if (["root", "paragraph", "quote", "listitem"].includes(String(value.type))) {
+    return { children, type: value.type };
+  }
+  if (value.type === "heading") {
+    return { children, tag: value.tag === "h3" || value.tag === "h4" ? value.tag : "h2", type: "heading" };
+  }
+  if (value.type === "list") {
+    return { children, listType: value.listType === "number" ? "number" : "bullet", type: "list" };
+  }
+  if (value.type === "link" || value.type === "autolink") {
+    return { children, ...(typeof value.url === "string" ? { url: value.url } : {}), type: value.type };
+  }
+  return null;
+}
+
+function publicRichText(value: Person["editorialBio"]) {
+  if (!value?.root) return null;
+  const root = publicRichTextNode(value.root);
+  return root && typeof root === "object"
+    ? { ...value, root } as Person["editorialBio"]
+    : null;
+}
+
 // Localized richText with the site-wide "es falls back to en" rule; empty
 // documents (an empty root produced by touching the editor) count as missing.
-function localizedRichText(en: Person["editorialBio"], es: Person["editorialBio"], locale: Locale) {
+function localizedRichText(
+  en: Person["editorialBio"],
+  es: Person["editorialBio"],
+  locale: Locale,
+  publicOnly: boolean,
+) {
   const candidates = locale === "es" ? [es, en] : [en];
-  for (const value of candidates) {
+  for (const candidate of candidates) {
+    const value = publicOnly ? publicRichText(candidate) : candidate;
     if (value?.root && richTextNodeHasContent(value.root)) return value;
   }
   return null;
 }
 
 function localizedLine(en: string | null | undefined, es: string | null | undefined, locale: Locale) {
-  const value = locale === "es" ? es || en : en;
-  return value?.trim() || null;
+  const enValue = en?.trim() || null;
+  if (locale !== "es") return enValue;
+  return es?.trim() || enValue;
 }
 
 function localizedItems(
@@ -160,8 +223,12 @@ function localizedItems(
   es: { item: string }[] | null | undefined,
   locale: Locale,
 ) {
-  const rows = locale === "es" && es?.length ? es : en;
-  return (rows ?? []).flatMap((row) => (row.item?.trim() ? [row.item.trim()] : []));
+  const clean = (rows: { item: string }[] | null | undefined) =>
+    (rows ?? []).flatMap((row) => (row.item?.trim() ? [row.item.trim()] : []));
+  const enItems = clean(en);
+  if (locale !== "es") return enItems;
+  const esItems = clean(es);
+  return esItems.length ? esItems : enItems;
 }
 
 function richTextPlainText(node: { children?: unknown; text?: unknown; type?: unknown }): string {
@@ -189,10 +256,14 @@ function discordContactLine(name: string, topics: string[], locale: Locale) {
     : `${name} answers questions on Discord.`;
 }
 
-function personBase(person: Person, locale: Locale): Omit<PublishedCMSPerson, "contribution"> | null {
+function personBase(
+  person: Person,
+  locale: Locale,
+  publicOnly = false,
+): Omit<PublishedCMSPerson, "contribution"> | null {
   const image = publicImage(person.portrait);
   if (!image || !person.city || !person.identity || !person.introduction || !person.languages?.length || !person.slug) return null;
-  const editorialBio = localizedRichText(person.editorialBio, person.editorialBioEs, locale);
+  const editorialBio = localizedRichText(person.editorialBio, person.editorialBioEs, locale, publicOnly);
   const bioThirdPerson = editorialBio ? richTextPlainText(editorialBio.root).trim() : "";
   const epithet = localizedLine(person.verdict, person.verdictEs, locale);
   const hanziName = person.nameZh?.trim();
@@ -510,7 +581,7 @@ export async function getPublishedCMSPeople(locale: Locale) {
   ]);
 
   return peopleResult.docs.flatMap((person) => {
-    const base = personBase(person, locale);
+    const base = personBase(person, locale, true);
     const contribution = articles.find((article) => article.authorSlug === person.slug);
     return base ? [{ ...base, ...(contribution ? { contribution } : {}) }] : [];
   });

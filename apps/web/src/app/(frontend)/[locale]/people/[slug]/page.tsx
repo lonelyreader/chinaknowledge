@@ -57,6 +57,7 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
     const selected = authored.filter((article) => article.curationStatus === "curated");
     const otherPosts = authored.filter((article) => article.curationStatus !== "curated");
     const discord = person.links.find((link) => link.type === "discord");
+    const primaryLinks = person.links.filter((link) => link.type !== "discord");
     // Split the shared contact line so the closing "Discord" word carries the link.
     const discordAnchorAt = person.discordLine?.lastIndexOf("Discord") ?? -1;
     return (
@@ -66,9 +67,9 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
           <div className="person-letter-portrait"><Image src={person.image.url} alt={person.image.alt} fill priority unoptimized sizes="(max-width: 767px) 40vw, 180px" /></div>
           <div className="person-letter-title">
             <h1>{person.name}</h1>
-            {person.links.length ? (
+            {primaryLinks.length ? (
               <div className="person-letter-links">
-                {person.links.map((link) => <a key={`${link.label}-${link.url}`} href={link.url} rel="noreferrer" target="_blank">{link.label} ↗</a>)}
+                {primaryLinks.map((link) => <a key={`${link.label}-${link.url}`} href={link.url} rel="noreferrer" target="_blank">{link.label} ↗</a>)}
               </div>
             ) : null}
           </div>
