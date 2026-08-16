@@ -578,6 +578,25 @@ async function main() {
     },
     draft: false, overrideAccess: false, user: editor,
   });
+  const ordinaryEventsBefore = await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: draft.id } } });
+  const ordinaryProtectedBefore = await payload.findByID({ collection: "articles", id: draft.id, depth: 0, draft: false, overrideAccess: true });
+  const ordinarySiteSave = await payload.update({
+    collection: "articles", id: draft.id,
+    data: {
+      assignedEditor: editor.id,
+      editorComments: [{ anchor: "intro", createdBy: editor.id, message: "Ordinary site-field save", resolved: false }],
+    },
+    depth: 0, draft: false, overrideAccess: false, user: editor,
+  });
+  assert.equal(relationID(ordinarySiteSave.assignedEditor), editor.id);
+  assert.equal(ordinarySiteSave.curationStatus, ordinaryProtectedBefore.curationStatus);
+  assert.equal(ordinarySiteSave.publicationStatus, ordinaryProtectedBefore.publicationStatus);
+  assert.equal(ordinarySiteSave.workflowStatus, ordinaryProtectedBefore.workflowStatus);
+  assert.equal(relationID(ordinarySiteSave.owner), relationID(ordinaryProtectedBefore.owner));
+  assert.equal(relationID(ordinarySiteSave.author), relationID(ordinaryProtectedBefore.author));
+  assert.equal(ordinarySiteSave.locale, ordinaryProtectedBefore.locale);
+  assert.equal(ordinarySiteSave.translationGroup, ordinaryProtectedBefore.translationGroup);
+  assert.equal((await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: draft.id } } })).totalDocs, ordinaryEventsBefore.totalDocs, "An ordinary site-field save must not create a workflow or notification event.");
   const curated = await payload.update({
     collection: "articles", id: draft.id, data: { curationStatus: "curated" },
     draft: false, overrideAccess: false, user: editor,
@@ -587,6 +606,13 @@ async function main() {
   assert.equal(relationID(curated.author), memberPerson.id);
   assert.equal(buildPublicationSummary(await payload.findByID({ collection: "articles", id: draft.id, depth: 2, draft: true, overrideAccess: true })).url, "/en/posts/member-direct-post");
   assert.equal(prepared.id, curated.id);
+  await expectRejected(() => payload.update({
+    collection: "articles", id: draft.id, data: { sourceNotes: [] },
+    draft: false, overrideAccess: false, user: editor,
+  }), "A curated Article cannot be left incomplete by an ordinary site-field save.");
+  const curatedAfterRejectedSave = await payload.findByID({ collection: "articles", id: draft.id, depth: 0, draft: false, overrideAccess: true });
+  assert.equal(curatedAfterRejectedSave.curationStatus, "curated");
+  assert.equal(curatedAfterRejectedSave.sourceNotes?.length, 1);
   const otherMemberCuratedRead = await payload.findByID({
     collection: "articles", id: draft.id, depth: 0, overrideAccess: false, user: other,
   });

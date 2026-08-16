@@ -7,7 +7,7 @@ import path from "node:path";
 
 import config from "@payload-config";
 import type { AuthInfo } from "@modelcontextprotocol/server";
-import { createLocalReq, getPayload, type Payload } from "payload";
+import { commitTransaction, createLocalReq, getPayload, initTransaction, killTransaction, type Payload } from "payload";
 
 import { createAgentGateway } from "@/agent/gateway";
 import {
@@ -662,6 +662,191 @@ try {
     overrideAccess: false,
     user: editor.user,
   });
+
+  // AGENT-WORKSPACE-008: fixed Needs attention discovery, restricted
+  // reference options, Body V2 editorial read and ordinary site-field save.
+  const editorSituation = await payload.create({
+    collection: "taxonomies",
+    data: { dimension: "situation", name: `Agent situation ${suffix}`, slug: `agent-situation-${suffix}` },
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const racePurpose = await payload.create({
+    collection: "taxonomies",
+    data: { dimension: "purpose", name: `Agent race purpose ${suffix}`, slug: `agent-race-purpose-${suffix}` },
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const editorialBody = agentBodyToLexical({
+    version: "AgentArticleBodyV2",
+    blocks: [
+      { type: "paragraph", children: [{ type: "text", text: "Editorial Body V2 fixture." }] },
+      { type: "image", mediaId: publicationPortrait.id, alt: publicationPortrait.alt },
+    ],
+  }) as NonNullable<Article["body"]>;
+  const editorWorkDraft = await payload.create({
+    collection: "articles",
+    data: {
+      body: editorialBody,
+      coverImage: publicationPortrait.id,
+      locale: "en",
+      summary: "A public Member Article for the Editor workbench.",
+      title: "Agent Editor workbench fixture",
+    },
+    draft: true,
+    overrideAccess: false,
+    user: memberA.user,
+  });
+  const editorWorkArticle = await payload.update({
+    collection: "articles",
+    id: editorWorkDraft.id,
+    context: { memberPublicationConfirmed: true },
+    data: { publicationStatus: "published" },
+    draft: false,
+    overrideAccess: false,
+    user: memberA.user,
+  });
+  const attention = await editorService.editorialAttentionList({ assignee: "unassigned", limit: 1, locale: "en", page: 1 });
+  assert.equal(attention.ok, true, JSON.stringify(attention));
+  assert.equal(attention.data?.articles.some((article) => article.id === editorWorkArticle.id), true, JSON.stringify(attention));
+  assert.equal(attention.data?.articles[0]?.latestWorkflowEvent?.toStatus, "published");
+  assert.equal((await serviceB.editorialAttentionList()).error?.code, "FORBIDDEN");
+  assert.equal((await editorService.editorialAttentionList({ assignee: "someone" as never })).error?.code, "VALIDATION_ERROR");
+
+  const editorAssignees = await editorService.editorialReferenceOptions({ kind: "assignee" });
+  assert.deepEqual(editorAssignees.data?.options, [{ id: editor.user.id, label: editor.user.displayName, kind: "assignee" }]);
+  const adminAssignees = await adminService.editorialReferenceOptions({ kind: "assignee", limit: 50, page: 1 });
+  assert.equal(adminAssignees.ok, true, JSON.stringify(adminAssignees));
+  assert.equal(adminAssignees.data?.options.some((option) => option.id === editor.user.id), true);
+  assert.equal(adminAssignees.data?.options.some((option) => option.id === admin.user.id), true);
+  assert.equal(adminAssignees.data?.options.some((option) => option.id === memberA.user.id), false);
+  assert.equal(adminAssignees.data?.options.every((option) => Object.keys(option).sort().join(",") === "id,kind,label"), true);
+  await payload.update({ collection: "users", id: editorB.user.id, data: { accountStatus: "paused" }, overrideAccess: true });
+  const activeAssignees = await adminService.editorialReferenceOptions({ kind: "assignee", limit: 50, page: 1 });
+  assert.equal(activeAssignees.data?.options.some((option) => option.id === editorB.user.id), false);
+  await payload.update({ collection: "users", id: editorB.user.id, data: { accountStatus: "active" }, overrideAccess: true });
+  const purposeOptions = await editorService.editorialReferenceOptions({ kind: "purpose", query: sitePurpose.name });
+  assert.equal(purposeOptions.data?.options.some((option) => option.id === sitePurpose.id), true);
+  const approvedCovers = await editorService.editorialReferenceOptions({ kind: "approved_cover", query: publicationPortrait.alt });
+  assert.equal(approvedCovers.data?.options.some((option) => option.id === publicationPortrait.id), true);
+  assert.equal(approvedCovers.data?.options.some((option) => option.id === ownPortrait.id), false);
+  assert.equal((await editorService.editorialReferenceOptions({ kind: "users" as never })).error?.code, "VALIDATION_ERROR");
+
+  const editorV2Read = await editorService.editorialArticleGet(editorWorkArticle.id, { bodyVersion: "AgentArticleBodyV2" });
+  assert.equal(editorV2Read.ok, true, JSON.stringify(editorV2Read));
+  assert.deepEqual(editorV2Read.data?.body.blocks.at(-1), { type: "image", mediaId: publicationPortrait.id, alt: publicationPortrait.alt });
+  assert.equal(editorV2Read.data?.publicEffect, "immediate_public_update");
+  const protectedBefore = await payload.findByID({ collection: "articles", id: editorWorkArticle.id, depth: 0, draft: false, overrideAccess: true });
+  const workflowBeforeSave = await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: editorWorkArticle.id } } });
+  const versionBeforeSave = await payload.countVersions({ collection: "articles", overrideAccess: true, where: { parent: { equals: editorWorkArticle.id } } });
+  const editorialPatch = {
+    assignedEditorId: editor.user.id,
+    coverImageId: publicationPortrait.id,
+    editorComments: [{ anchor: "intro", message: "Check the opening.", resolved: false }],
+    format: "guide" as const,
+    freshnessDate: "2027-08-16",
+    geographyIds: [geography.id],
+    purposeIds: [sitePurpose.id],
+    situationIds: [editorSituation.id],
+    sourceNotes: [{ check: "Verified against the official source.", checkedAt: new Date().toISOString(), label: "Official source", url: "https://example.com/editor-source" }],
+    topicIds: [topic.id],
+  };
+  const editorialKey = `editorial-save-${randomUUID()}`;
+  const editorialSaved = await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: editorialKey, patch: editorialPatch, revision: editorV2Read.meta!.revision! });
+  assert.equal(editorialSaved.ok, true, JSON.stringify(editorialSaved));
+  assert.equal(editorialSaved.data?.publicEffect, "immediate_public_update");
+  assert.equal(editorialSaved.data?.assignedEditor?.id, editor.user.id);
+  assert.deepEqual(editorialSaved.data?.classifications.purposes, [{ id: sitePurpose.id, name: sitePurpose.name }]);
+  assert.equal(editorialSaved.data?.sourceNotes[0]?.check, "Verified against the official source.");
+  assert.equal(editorialSaved.data?.editorComments[0]?.createdBy?.id, editor.user.id);
+  const editorialSaveAudit = await payload.findByID({ collection: "agent-events", id: Number(editorialSaved.meta?.auditId), depth: 0, overrideAccess: true, showHiddenFields: true });
+  assert.equal(editorialSaveAudit.tool, "editorial_save_site_fields");
+  assert.equal(editorialSaveAudit.objectId, String(editorWorkArticle.id));
+  assert.equal(JSON.stringify(editorialSaveAudit).includes("Verified against the official source."), false);
+  assert.equal(JSON.stringify(editorialSaveAudit).includes("Check the opening."), false);
+  const referenceAudits = await payload.find({ collection: "agent-events", depth: 0, limit: 20, overrideAccess: true, pagination: false, where: { and: [{ tool: { equals: "editorial_reference_options" } }, { objectId: { equals: "reference:approved_cover" } }] } });
+  assert.equal(referenceAudits.docs.length > 0, true);
+  assert.equal((await payload.count({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: editorWorkArticle.id } } })).totalDocs, workflowBeforeSave.totalDocs, "Ordinary editorial save must not create workflow or notification events.");
+  assert.equal((await payload.countVersions({ collection: "articles", overrideAccess: true, where: { parent: { equals: editorWorkArticle.id } } })).totalDocs > versionBeforeSave.totalDocs, true);
+  const publicEditorialReadback = await payload.findByID({ collection: "articles", id: editorWorkArticle.id, depth: 0, draft: false, overrideAccess: true });
+  assert.equal(publicEditorialReadback.format, "guide");
+  assert.equal(publicEditorialReadback.sourceNotes?.[0]?.check, "Verified against the official source.");
+  assert.equal(relationId(publicEditorialReadback.owner), relationId(protectedBefore.owner));
+  assert.equal(relationId(publicEditorialReadback.author), relationId(protectedBefore.author));
+  assert.equal(publicEditorialReadback.locale, protectedBefore.locale);
+  assert.equal(publicEditorialReadback.translationGroup, protectedBefore.translationGroup);
+  assert.equal(publicEditorialReadback.publicationStatus, protectedBefore.publicationStatus);
+  assert.equal(publicEditorialReadback.curationStatus, protectedBefore.curationStatus);
+  assert.equal(publicEditorialReadback.workflowStatus, protectedBefore.workflowStatus);
+  assert.equal(publicEditorialReadback.homepagePlacement, protectedBefore.homepagePlacement);
+  assert.equal(publicEditorialReadback.title, protectedBefore.title);
+  assert.deepEqual(publicEditorialReadback.body, protectedBefore.body);
+
+  const editorialReplay = await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: editorialKey, patch: editorialPatch, revision: editorV2Read.meta!.revision! });
+  assert.equal(editorialReplay.ok, true, JSON.stringify(editorialReplay));
+  assert.equal(editorialReplay.meta?.revision, editorialSaved.meta?.revision);
+  assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: editorialKey, patch: { format: "analysis" }, revision: editorialSaved.meta!.revision! })).error?.code, "IDEMPOTENCY_CONFLICT");
+  assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-other-assignee-${randomUUID()}`, patch: { assignedEditorId: editorB.user.id }, revision: editorialSaved.meta!.revision! })).error?.code, "FORBIDDEN");
+  assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-cross-taxonomy-${randomUUID()}`, patch: { purposeIds: [topic.id] }, revision: editorialSaved.meta!.revision! })).error?.code, "VALIDATION_ERROR");
+  assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-private-cover-${randomUUID()}`, patch: { coverImageId: ownPortrait.id }, revision: editorialSaved.meta!.revision! })).error?.code, "VALIDATION_ERROR");
+  assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-unknown-comment-${randomUUID()}`, patch: { editorComments: [{ id: "unknown-row", anchor: "intro", message: "Forged row" }] }, revision: editorialSaved.meta!.revision! })).error?.code, "VALIDATION_ERROR");
+
+  const taxonomyRaceReq = await createLocalReq({ user: editor.user }, payload);
+  assert.equal(await initTransaction(taxonomyRaceReq), true);
+  let taxonomyRaceOpen = true;
+  try {
+    await payload.update({
+      collection: "taxonomies",
+      id: racePurpose.id,
+      data: { dimension: "topic" },
+      overrideAccess: false,
+      req: taxonomyRaceReq,
+      user: editor.user,
+    });
+    let taxonomySaveSettled = false;
+    const taxonomySave = editorService.editorialSaveSiteFields({
+      id: editorWorkArticle.id,
+      idempotencyKey: `editorial-taxonomy-race-${randomUUID()}`,
+      patch: { purposeIds: [racePurpose.id] },
+      revision: editorialSaved.meta!.revision!,
+    }).finally(() => { taxonomySaveSettled = true; });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    assert.equal(taxonomySaveSettled, false, "Editorial save must wait for the concurrent taxonomy dimension write.");
+    await commitTransaction(taxonomyRaceReq);
+    taxonomyRaceOpen = false;
+    const taxonomyRaceResult = await taxonomySave;
+    assert.equal(taxonomyRaceResult.error?.code, "VALIDATION_ERROR", JSON.stringify(taxonomyRaceResult));
+    const taxonomyRaceReadback = await payload.findByID({ collection: "articles", id: editorWorkArticle.id, depth: 0, draft: false, overrideAccess: true });
+    assert.deepEqual((taxonomyRaceReadback.purposes ?? []).map(relationId), [sitePurpose.id]);
+  } finally {
+    if (taxonomyRaceOpen) await killTransaction(taxonomyRaceReq);
+    await payload.update({ collection: "taxonomies", id: racePurpose.id, data: { dimension: "purpose" }, overrideAccess: true });
+  }
+  const assignedByAdmin = await adminService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-admin-assignee-${randomUUID()}`, patch: { assignedEditorId: editorB.user.id }, revision: editorialSaved.meta!.revision! });
+  assert.equal(assignedByAdmin.ok, true, JSON.stringify(assignedByAdmin));
+  await payload.update({ collection: "users", id: editorB.user.id, data: { accountStatus: "paused" }, overrideAccess: true });
+  assert.equal((await adminService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-paused-assignee-${randomUUID()}`, patch: { assignedEditorId: editorB.user.id }, revision: assignedByAdmin.meta!.revision! })).error?.code, "VALIDATION_ERROR");
+  await payload.update({ collection: "users", id: editorB.user.id, data: { accountStatus: "active" }, overrideAccess: true });
+
+  const raceRead = await editorService.editorialArticleGet(editorWorkArticle.id, { bodyVersion: "AgentArticleBodyV2" });
+  assert.equal(raceRead.ok, true, JSON.stringify(raceRead));
+  const [editorialRaceA, editorialRaceB] = await Promise.all([
+    editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-race-a-${randomUUID()}`, patch: { format: "analysis" }, revision: raceRead.meta!.revision! }),
+    editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-race-b-${randomUUID()}`, patch: { format: "reporting" }, revision: raceRead.meta!.revision! }),
+  ]);
+  assert.equal([editorialRaceA, editorialRaceB].filter((result) => result.ok).length, 1, JSON.stringify({ editorialRaceA, editorialRaceB }));
+  assert.equal([editorialRaceA, editorialRaceB].filter((result) => result.error?.code === "REVISION_CONFLICT").length, 1, JSON.stringify({ editorialRaceA, editorialRaceB }));
+  assert.equal((await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-stale-${randomUUID()}`, patch: { format: "update" }, revision: raceRead.meta!.revision! })).error?.code, "REVISION_CONFLICT");
+
+  await payload.update({ collection: "articles", id: editorWorkArticle.id, data: { curationStatus: "selected" }, draft: false, overrideAccess: false, user: editor.user });
+  await payload.update({ collection: "articles", id: editorWorkArticle.id, data: { curationStatus: "curated" }, draft: false, overrideAccess: false, user: editor.user });
+  const curatedEditorRead = await editorService.editorialArticleGet(editorWorkArticle.id, { bodyVersion: "AgentArticleBodyV2" });
+  const invalidCuratedSave = await editorService.editorialSaveSiteFields({ id: editorWorkArticle.id, idempotencyKey: `editorial-curated-invalid-${randomUUID()}`, patch: { sourceNotes: [] }, revision: curatedEditorRead.meta!.revision! });
+  assert.equal(invalidCuratedSave.error?.code, "VALIDATION_ERROR", JSON.stringify(invalidCuratedSave));
+  const curatedAfterFailure = await editorService.editorialArticleGet(editorWorkArticle.id, { bodyVersion: "AgentArticleBodyV2" });
+  assert.equal(curatedAfterFailure.meta?.revision, curatedEditorRead.meta?.revision);
+  assert.equal(curatedAfterFailure.data?.sourceNotes.length, 1);
+
   const siteMaster = await payload.create({
     collection: "editorial-masters",
     data: {
@@ -703,6 +888,7 @@ try {
   });
   const siteRead = await adminService.editorialArticleGet(siteArticle.id);
   assert.equal(siteRead.ok, true, JSON.stringify(siteRead));
+  assert.equal((await adminService.editorialSaveSiteFields({ id: siteArticle.id, idempotencyKey: `editorial-site-authored-${randomUUID()}`, patch: { format: "analysis" }, revision: siteRead.meta!.revision! })).error?.code, "FORBIDDEN");
   const siteRevision = siteRead.meta!.revision!;
   assert.equal((await editorService.preparePublication({
     id: siteArticle.id,
@@ -1523,6 +1709,9 @@ try {
   assert.equal(memberCapabilities.ok, true);
   assert.deepEqual(adminCapabilities.data?.tools, [...(editorCapabilities.data?.tools ?? []), "editorial_release_site_article_batch", "admin_recent_activity"]);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_article_get"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_attention_list"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_reference_options"), true);
+  assert.equal(editorCapabilities.data?.tools.includes("editorial_save_site_fields"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_prepare_site_selection"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_commit_site_selection"), true);
   assert.equal(editorCapabilities.data?.tools.includes("admin_recent_activity"), false);
@@ -1530,6 +1719,9 @@ try {
   assert.equal(adminCapabilities.data?.tools.includes("editorial_release_site_article_batch"), true);
   assert.equal(adminCapabilities.data?.tools.includes("admin_recent_activity"), true);
   assert.equal(memberCapabilities.data?.tools.includes("editorial_article_get"), false);
+  assert.equal(memberCapabilities.data?.tools.includes("editorial_attention_list"), false);
+  assert.equal(memberCapabilities.data?.tools.includes("editorial_reference_options"), false);
+  assert.equal(memberCapabilities.data?.tools.includes("editorial_save_site_fields"), false);
   assert.equal(memberCapabilities.data?.tools.includes("admin_recent_activity"), false);
   assert.equal(editorCapabilities.data?.role, "editor");
   assert.equal(adminCapabilities.data?.role, "super_admin");
@@ -1597,9 +1789,19 @@ try {
   const editorToolsBody = await mcpJSON(editorToolsResponse) as { result?: { tools?: { name: string }[] } };
   const editorToolNames = editorToolsBody.result?.tools?.map(({ name }) => name) ?? [];
   assert.equal(editorToolNames.includes("editorial_article_get"), true);
+  assert.equal(editorToolNames.includes("editorial_attention_list"), true);
+  assert.equal(editorToolNames.includes("editorial_reference_options"), true);
+  assert.equal(editorToolNames.includes("editorial_save_site_fields"), true);
   assert.equal(editorToolNames.includes("editorial_prepare_site_selection"), true);
   assert.equal(editorToolNames.includes("editorial_commit_site_selection"), true);
   assert.equal(editorToolNames.includes("admin_recent_activity"), false);
+  const protectedEditorialFieldResponse = await gateway(mcpRequest(editorToolToken.access_token, "tools/call", {
+    name: "editorial_save_site_fields",
+    arguments: { id: articleId, idempotencyKey: `protected-editorial-${randomUUID()}`, revision: `rev1_${"a".repeat(43)}`, title: "Forbidden title" },
+  }, 16));
+  const protectedEditorialFieldBody = await mcpJSON(protectedEditorialFieldResponse) as { result?: { content?: { text?: string }[]; isError?: boolean } };
+  assert.equal(protectedEditorialFieldBody.result?.isError, true, JSON.stringify(protectedEditorialFieldBody));
+  assert.match(protectedEditorialFieldBody.result?.content?.[0]?.text ?? "", /Unrecognized key: "title"/);
 
   const adminToolToken = await exchangeCode(payload, admin, oauthFixtureClient, "admin-tools", "agent:member");
   const adminToolsResponse = await gateway(mcpRequest(adminToolToken.access_token, "tools/list", {}, 12));

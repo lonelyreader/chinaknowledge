@@ -136,7 +136,13 @@ export const agentToolDescriptions = {
   article_commit_publication:
     "Execute a prepared publication action only after the user explicitly confirms the exact prepare summary. Requires the one-time confirmation reference, its revision and a new idempotency key. The server rechecks owner or Super Admin site authority, account state, connection, revision and transition before changing the public page.",
   editorial_article_get:
-    "Return one exact article for a current Editor or Super Admin to assess for site selection. It includes the latest revision and only the content and curation fields needed for this decision. It never grants Member publication control or changes the article.",
+    "Return one exact article for a current Editor or Super Admin with Body V1 or V2, editable site fields, public-effect state and latest revision. It never grants Member publication control or changes the article.",
+  editorial_attention_list:
+    "List a bounded page of member-public articles in the fixed Needs attention queue for a current Editor or Super Admin. Locale and self-derived assignee filters are limited; arbitrary status, owner, where and sort input is not accepted.",
+  editorial_reference_options:
+    "Return one bounded, searchable reference whitelist needed by editorial site-field saves: permitted assignees, one taxonomy dimension or approved public cover media. It never exposes arbitrary collections, private media or unrelated User details.",
+  editorial_save_site_fields:
+    "Save only allowed site fields on one existing member-authored article for a current Editor or Super Admin. It requires the latest revision and an idempotency key, validates every reference, preserves writing, identity and workflow states, sends no notification, and reads back the saved fields.",
   editorial_prepare_site_selection:
     "Prepare adding one member-public article to the site's editorial selection, or removing that same selected article as recovery. It returns a server-generated impact summary and short-lived one-time confirmation reference without changing the article or public entry.",
   editorial_commit_site_selection:

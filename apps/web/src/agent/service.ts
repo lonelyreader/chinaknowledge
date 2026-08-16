@@ -31,7 +31,7 @@ import {
   prepareMemberPublication,
 } from "@/cms/article-publication";
 import { createArticleTranslationDraft } from "@/cms/article-translation";
-import { assertMediaAllowedForMemberPublication } from "@/cms/media-policy";
+import { assertMediaAllowedForMemberPublication, assertMediaApprovedForPublicUse } from "@/cms/media-policy";
 import { uniqueMediaUploadFilename } from "@/cms/media-upload-filename";
 import { isValidEmailProfileLink, isValidWebProfileLink } from "@/cms/profile-links";
 import { collectRichTextUploadMediaIDs } from "@/cms/rich-text-media";
@@ -90,7 +90,7 @@ type Actor = {
 
 type WriteContext = {
   idempotencyKey: string;
-  tool: "article_commit_publication" | "article_create_draft" | "article_create_translation_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_site_selection" | "media_upload" | "my_links_save" | "my_profile_commit_publication" | "my_profile_save";
+  tool: "article_commit_publication" | "article_create_draft" | "article_create_translation_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_site_selection" | "editorial_save_site_fields" | "media_upload" | "my_links_save" | "my_profile_commit_publication" | "my_profile_save";
 };
 
 export type AgentProfilePatch = {
@@ -112,6 +112,21 @@ export type AgentProfilePatch = {
 };
 
 export type AgentProfileLink = NonNullable<Person["links"]>[number];
+
+export type EditorialReferenceKind = "approved_cover" | "assignee" | "geography" | "purpose" | "situation" | "topic";
+
+export type AgentEditorialSitePatch = {
+  assignedEditorId?: number | null;
+  coverImageId?: number | null;
+  editorComments?: Array<{ anchor: string; id?: string; message: string; resolved?: boolean }>;
+  format?: Article["format"];
+  freshnessDate?: string | null;
+  geographyIds?: number[];
+  purposeIds?: number[];
+  situationIds?: number[];
+  sourceNotes?: Array<{ check?: string | null; checkedAt?: string | null; id?: string; label: string; url?: string | null }>;
+  topicIds?: number[];
+};
 
 class AgentServiceError extends Error {
   constructor(readonly code: AgentErrorCode, message: string, readonly details?: Record<string, unknown>) {
@@ -162,6 +177,35 @@ function articleSummary(article: Article) {
     curationStatus: article.curationStatus,
     revision: revision(article),
     updatedAt: article.updatedAt,
+  };
+}
+
+function publicEffect(article: Article) {
+  return article.publicationStatus === "published"
+    ? "immediate_public_update" as const
+    : "private_only" as const;
+}
+
+function editorialInvariantSnapshot(article: Article) {
+  return {
+    author: articleRelationID(article.author),
+    authorshipType: article.authorshipType,
+    body: article.body,
+    curationStatus: article.curationStatus,
+    editorialMaster: articleRelationID(article.editorialMaster),
+    homepageEndsAt: article.homepageEndsAt ?? null,
+    homepagePlacement: article.homepagePlacement ?? null,
+    homepageStartsAt: article.homepageStartsAt ?? null,
+    locale: article.locale,
+    owner: articleRelationID(article.owner),
+    publicationStatus: article.publicationStatus,
+    publishedAt: article.publishedAt ?? null,
+    slug: article.slug,
+    summary: article.summary ?? null,
+    title: article.title,
+    translationGroup: article.translationGroup,
+    workflowStatus: article.workflowStatus,
+    payloadStatus: article._status ?? null,
   };
 }
 
@@ -400,6 +444,16 @@ function canonicalJSON(value: unknown): string {
 
 function inputFingerprint(value: unknown) {
   return createHash("sha256").update(canonicalJSON(value)).digest("base64url");
+}
+
+function isISODate(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
+    && Number.isFinite(new Date(`${value}T00:00:00.000Z`).getTime());
+}
+
+function isISODateTime(value: string) {
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+    && Number.isFinite(new Date(value).getTime());
 }
 
 export class AgentMemberService {
@@ -657,7 +711,7 @@ export class AgentMemberService {
       await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "capabilities_list" });
       const tools: AgentToolName[] = ["account_context", "capabilities_list", "my_profile_get", "my_profile_save", "my_links_save", "my_profile_prepare_publication", "my_profile_commit_publication", "my_articles_list", "my_media_list", "article_get_working_copy", "article_create_draft", "article_create_translation_draft", "article_save_draft", "media_upload", "article_set_cover", "article_preview", "article_prepare_publication", "article_commit_publication"];
       if (hasEditorialRole(user)) {
-        tools.push("editorial_article_get", "editorial_prepare_site_selection", "editorial_commit_site_selection");
+        tools.push("editorial_attention_list", "editorial_reference_options", "editorial_article_get", "editorial_save_site_fields", "editorial_prepare_site_selection", "editorial_commit_site_selection");
       }
       if (isSuperAdmin(user)) tools.push("editorial_release_site_article_batch", "admin_recent_activity");
       return agentSuccess({
@@ -936,7 +990,219 @@ export class AgentMemberService {
     }
   }
 
-  async editorialArticleGet(id: number) {
+  private async editorialSiteFields(article: Article, user: User, req?: PayloadRequest) {
+    const localReq = req ?? await createLocalReq({ user }, this.payload);
+    const authorId = articleRelationID(article.author);
+    const author = typeof authorId === "number"
+      ? await this.payload.findByID({ collection: "people", id: authorId, depth: 0, overrideAccess: false, req: localReq, user })
+      : null;
+    const taxonomyIds = [article.purposes, article.topics, article.geographies, article.situations]
+      .flatMap((values) => (values ?? []).map(articleRelationID))
+      .filter((value): value is number => typeof value === "number");
+    const taxonomies = taxonomyIds.length
+      ? await this.payload.find({ collection: "taxonomies", depth: 0, limit: taxonomyIds.length, overrideAccess: false, pagination: false, req: localReq, user, where: { id: { in: taxonomyIds } } })
+      : { docs: [] };
+    const taxonomyById = new Map(taxonomies.docs.map((taxonomy) => [String(taxonomy.id), taxonomy]));
+    const classifications = (values: Article["purposes"]) => (values ?? []).flatMap((value) => {
+      const id = articleRelationID(value);
+      const taxonomy = id == null ? null : taxonomyById.get(String(id));
+      return taxonomy ? [{ id: taxonomy.id, name: taxonomy.name }] : [];
+    });
+
+    const referencedUserIds = [article.assignedEditor, ...(article.editorComments ?? []).map((comment) => comment.createdBy)]
+      .map(articleRelationID)
+      .filter((value): value is number => typeof value === "number");
+    const userLabels = new Map<string, string>();
+    userLabels.set(String(user.id), user.displayName);
+    if (isSuperAdmin(user) && referencedUserIds.length) {
+      const users = await this.payload.find({
+        collection: "users",
+        depth: 0,
+        limit: referencedUserIds.length,
+        overrideAccess: false,
+        pagination: false,
+        req: localReq,
+        select: { displayName: true },
+        user,
+        where: { id: { in: [...new Set(referencedUserIds)] } },
+      });
+      for (const item of users.docs) userLabels.set(String(item.id), item.displayName);
+    }
+
+    const coverId = articleRelationID(article.coverImage);
+    const cover = typeof coverId === "number"
+      ? await this.payload.findByID({ collection: "media", id: coverId, depth: 0, overrideAccess: false, req: localReq, user })
+      : null;
+    const assignedEditorId = articleRelationID(article.assignedEditor);
+    return {
+      author: author ? { id: author.id, name: author.name, slug: author.slug } : null,
+      assignedEditor: typeof assignedEditorId === "number"
+        ? { id: assignedEditorId, label: userLabels.get(String(assignedEditorId)) ?? null }
+        : null,
+      format: article.format ?? null,
+      classifications: {
+        purposes: classifications(article.purposes),
+        topics: classifications(article.topics),
+        geographies: classifications(article.geographies),
+        situations: classifications(article.situations),
+      },
+      sourceNotes: (article.sourceNotes ?? []).map(({ check, checkedAt, id, label, url }) => ({
+        id: id ?? null,
+        label,
+        url: url ?? null,
+        checkedAt: checkedAt ?? null,
+        check: check ?? null,
+      })),
+      freshnessDate: article.freshnessDate ?? null,
+      editorComments: (article.editorComments ?? []).map(({ anchor, createdBy, id, message, resolved }) => {
+        const createdById = articleRelationID(createdBy);
+        return {
+          id: id ?? null,
+          anchor,
+          message,
+          resolved: Boolean(resolved),
+          createdBy: typeof createdById === "number"
+            ? { id: createdById, label: userLabels.get(String(createdById)) ?? null }
+            : null,
+        };
+      }),
+      cover: cover ? { id: cover.id, alt: cover.alt, approved: Boolean(cover.publicUseApprovedAt) } : null,
+      publicEffect: publicEffect(article),
+    };
+  }
+
+  async editorialAttentionList(input: { assignee?: "all" | "mine" | "unassigned"; limit?: number; locale?: "en" | "es"; page?: number } = {}) {
+    const requestId = createAgentRequestId();
+    try {
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      const page = input.page ?? 1;
+      const limit = input.limit ?? 20;
+      if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 50) {
+        throw new AgentServiceError("VALIDATION_ERROR", "Pagination must use a positive page and a limit from 1 to 50.");
+      }
+      if (input.locale !== undefined && input.locale !== "en" && input.locale !== "es") throw new AgentServiceError("VALIDATION_ERROR", "Locale must be en or es.");
+      if (input.assignee !== undefined && !["all", "mine", "unassigned"].includes(input.assignee)) throw new AgentServiceError("VALIDATION_ERROR", "Assignee filter must be all, mine or unassigned.");
+      const req = await createLocalReq({ user }, this.payload);
+      const where: Where = {
+        and: [
+          { publicationStatus: { equals: "published" } },
+          { or: [{ curationStatus: { equals: "not_selected" } }, { curationStatus: { equals: "needs_recheck" } }] },
+          ...(input.locale ? [{ locale: { equals: input.locale } }] : []),
+          ...(input.assignee === "mine" ? [{ assignedEditor: { equals: user.id } }] : []),
+          ...(input.assignee === "unassigned" ? [{ assignedEditor: { exists: false } }] : []),
+        ],
+      };
+      const result = await this.payload.find({ collection: "articles", depth: 0, limit, page, overrideAccess: false, req, sort: "-updatedAt", user, where });
+      const articles = await Promise.all(result.docs.map((article) => getLatestDraftArticle(this.payload, article.id, article, req)));
+      const authorIds = articles.map((article) => articleRelationID(article.author)).filter((value): value is number => typeof value === "number");
+      const authors = authorIds.length ? await this.payload.find({ collection: "people", depth: 0, limit: authorIds.length, overrideAccess: false, pagination: false, req, select: { name: true }, user, where: { id: { in: [...new Set(authorIds)] } } }) : { docs: [] };
+      const authorNames = new Map(authors.docs.map((author) => [String(author.id), author.name]));
+      const assignedIds = articles.map((article) => articleRelationID(article.assignedEditor)).filter((value): value is number => typeof value === "number");
+      const assigneeNames = new Map<string, string>([[String(user.id), user.displayName]]);
+      if (isSuperAdmin(user) && assignedIds.length) {
+        const users = await this.payload.find({ collection: "users", depth: 0, limit: assignedIds.length, overrideAccess: false, pagination: false, req, select: { displayName: true }, user, where: { id: { in: [...new Set(assignedIds)] } } });
+        for (const item of users.docs) assigneeNames.set(String(item.id), item.displayName);
+      }
+      const eventPages = await Promise.all(articles.map((article) => this.payload.find({ collection: "workflow-events", depth: 0, limit: 1, overrideAccess: false, pagination: false, req, sort: "-occurredAt", user, where: { article: { equals: article.id } } })));
+      const latestEvents = new Map<string, WorkflowEvent>();
+      for (const event of eventPages.flatMap((eventPage) => eventPage.docs)) {
+        const articleId = articleRelationID(event.article);
+        if (articleId != null && !latestEvents.has(String(articleId))) latestEvents.set(String(articleId), event);
+      }
+      await this.auditAttempt({ objectType: "article", requestId, result: "success", tool: "editorial_attention_list" });
+      return agentSuccess({
+        articles: articles.map((article) => {
+          const authorId = articleRelationID(article.author);
+          const assignedEditorId = articleRelationID(article.assignedEditor);
+          const event = latestEvents.get(String(article.id));
+          return {
+            id: article.id,
+            title: article.title,
+            author: typeof authorId === "number" ? { id: authorId, name: authorNames.get(String(authorId)) ?? null } : null,
+            locale: article.locale,
+            assignedEditor: typeof assignedEditorId === "number" ? { id: assignedEditorId, label: assigneeNames.get(String(assignedEditorId)) ?? null } : null,
+            curationStatus: article.curationStatus,
+            latestWorkflowEvent: event ? { axis: event.axis ?? null, fromStatus: event.fromStatus ?? null, toStatus: event.toStatus, occurredAt: event.occurredAt } : null,
+            updatedAt: article.updatedAt,
+            revision: revision(article),
+          };
+        }),
+        page: result.page ?? page,
+        limit,
+        totalDocs: result.totalDocs,
+        totalPages: result.totalPages,
+      }, { requestId });
+    } catch (error) {
+      await this.auditReadFailure("editorial_attention_list", requestId, error);
+      return failure(error, requestId);
+    }
+  }
+
+  async editorialReferenceOptions(input: { kind: EditorialReferenceKind; limit?: number; page?: number; query?: string }) {
+    const requestId = createAgentRequestId();
+    try {
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      const allowedKinds: EditorialReferenceKind[] = ["assignee", "purpose", "topic", "geography", "situation", "approved_cover"];
+      if (!allowedKinds.includes(input.kind)) throw new AgentServiceError("VALIDATION_ERROR", "Unknown editorial reference kind.");
+      const page = input.page ?? 1;
+      const limit = input.limit ?? 20;
+      if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 50) {
+        throw new AgentServiceError("VALIDATION_ERROR", "Pagination must use a positive page and a limit from 1 to 50.");
+      }
+      const query = input.query?.trim() ?? "";
+      if (query.length > 200) throw new AgentServiceError("VALIDATION_ERROR", "Reference search must be at most 200 characters.");
+      const req = await createLocalReq({ user }, this.payload);
+      if (input.kind === "assignee" && !isSuperAdmin(user)) {
+        const matches = !query || user.displayName.toLocaleLowerCase().includes(query.toLocaleLowerCase());
+        const all = matches ? [{ id: user.id, label: user.displayName, kind: input.kind }] : [];
+        const start = (page - 1) * limit;
+        await this.auditAttempt({ objectId: `reference:${input.kind}`, objectType: "account", requestId, result: "success", tool: "editorial_reference_options" });
+        return agentSuccess({ options: all.slice(start, start + limit), page, limit, totalDocs: all.length, totalPages: Math.ceil(all.length / limit) }, { requestId });
+      }
+      if (input.kind === "assignee") {
+        const result = await this.payload.find({
+          collection: "users", depth: 0, limit, page, overrideAccess: false, req,
+          select: { displayName: true }, sort: "displayName", user,
+          where: { and: [
+            { accountStatus: { equals: "active" } },
+            { role: { in: ["editor", "super_admin"] } },
+            ...(query ? [{ displayName: { contains: query } }] : []),
+          ] },
+        });
+        await this.auditAttempt({ objectId: `reference:${input.kind}`, objectType: "account", requestId, result: "success", tool: "editorial_reference_options" });
+        return agentSuccess({ options: result.docs.map((item) => ({ id: item.id, label: item.displayName, kind: input.kind })), page: result.page ?? page, limit, totalDocs: result.totalDocs, totalPages: result.totalPages }, { requestId });
+      }
+      if (input.kind === "approved_cover") {
+        const result = await this.payload.find({
+          collection: "media", depth: 0, limit, page, overrideAccess: false, req,
+          select: { alt: true }, sort: "alt", user,
+          where: { and: [
+            { publicUseApprovedAt: { exists: true } },
+            ...(query ? [{ alt: { contains: query } }] : []),
+          ] },
+        });
+        await this.auditAttempt({ objectId: `reference:${input.kind}`, objectType: "account", requestId, result: "success", tool: "editorial_reference_options" });
+        return agentSuccess({ options: result.docs.map((item) => ({ id: item.id, label: item.alt, kind: input.kind })), page: result.page ?? page, limit, totalDocs: result.totalDocs, totalPages: result.totalPages }, { requestId });
+      }
+      const result = await this.payload.find({
+        collection: "taxonomies", depth: 0, limit, page, overrideAccess: false, req,
+        select: { name: true }, sort: "name", user,
+        where: { and: [
+          { dimension: { equals: input.kind } },
+          ...(query ? [{ name: { contains: query } }] : []),
+        ] },
+      });
+      await this.auditAttempt({ objectId: `reference:${input.kind}`, objectType: "account", requestId, result: "success", tool: "editorial_reference_options" });
+      return agentSuccess({ options: result.docs.map((item) => ({ id: item.id, label: item.name, kind: input.kind })), page: result.page ?? page, limit, totalDocs: result.totalDocs, totalPages: result.totalPages }, { requestId });
+    } catch (error) {
+      await this.auditReadFailure("editorial_reference_options", requestId, error, `reference:${String(input.kind)}`);
+      return failure(error, requestId);
+    }
+  }
+
+  async editorialArticleGet(id: number, options: { bodyVersion?: typeof AGENT_BODY_VERSION | typeof AGENT_BODY_V2_VERSION } = {}) {
     const requestId = createAgentRequestId();
     try {
       const user = await this.currentUser();
@@ -944,51 +1210,235 @@ export class AgentMemberService {
       const latest = await getLatestDraftArticle(this.payload, article.id, article);
       const currentRevision = revision(latest);
       const req = await createLocalReq({ user }, this.payload);
-      const authorId = articleRelationID(latest.author);
-      const author = typeof authorId === "number"
-        ? await this.payload.findByID({ collection: "people", id: authorId, depth: 0, overrideAccess: false, req, user })
-        : null;
-      const taxonomyIds = [latest.purposes, latest.topics, latest.geographies, latest.situations]
-        .flatMap((values) => (values ?? []).map(articleRelationID))
-        .filter((value): value is number => typeof value === "number");
-      const taxonomies = taxonomyIds.length
-        ? await this.payload.find({ collection: "taxonomies", depth: 0, limit: taxonomyIds.length, overrideAccess: false, pagination: false, req, user, where: { id: { in: taxonomyIds } } })
-        : { docs: [] };
-      const taxonomyName = new Map(taxonomies.docs.map((taxonomy) => [String(taxonomy.id), taxonomy.name]));
-      const names = (values: Article["purposes"]) => (values ?? []).flatMap((value) => {
-        const id = articleRelationID(value);
-        const name = id == null ? null : taxonomyName.get(String(id));
-        return name ? [name] : [];
-      });
-      const coverId = articleRelationID(latest.coverImage);
-      const cover = typeof coverId === "number"
-        ? await this.payload.findByID({ collection: "media", id: coverId, depth: 0, overrideAccess: false, req, user })
-        : null;
-      const body = lexicalToAgentBody(latest.body.root);
+      let body: AgentArticleBody;
+      if (options.bodyVersion === AGENT_BODY_V2_VERSION) {
+        const altById = await this.bodyMediaAltById(latest, user);
+        body = lexicalToAgentBodyV2(latest.body.root, { mediaAlt: (mediaId) => altById.get(String(mediaId)) ?? null });
+      } else {
+        body = lexicalToAgentBody(latest.body.root);
+      }
       const curationIssue = await editorialCurationIssue(latest, req);
+      const siteFields = await this.editorialSiteFields(latest, user, req);
       await this.auditAttempt({ objectId: String(latest.id), objectType: "article", requestId, result: "success", tool: "editorial_article_get" });
       return agentSuccess({
         ...articleSummary(latest),
         revision: currentRevision,
-        author: author ? { id: author.id, name: author.name, slug: author.slug } : null,
         body,
         markdown: agentBodyToMarkdown(body),
         summary: latest.summary ?? null,
-        format: latest.format ?? null,
-        cover: cover ? { id: cover.id, approved: Boolean(cover.publicUseApprovedAt) } : null,
-        classifications: {
-          purposes: names(latest.purposes),
-          topics: names(latest.topics),
-          geographies: names(latest.geographies),
-          situations: names(latest.situations),
-        },
-        sources: (latest.sourceNotes ?? []).map(({ label, url }) => ({ label, url: url ?? null })),
-        freshnessDate: latest.freshnessDate ?? null,
+        ...siteFields,
         publicPath: `/${latest.locale}/posts/${latest.slug}`,
         curationIssues: curationIssue ? [curationIssue] : [],
       }, { requestId, meta: { objectId: String(latest.id), revision: currentRevision } });
     } catch (error) {
       await this.auditReadFailure("editorial_article_get", requestId, error, String(id));
+      return failure(error, requestId);
+    }
+  }
+
+  private async editorialTaxonomyIDs(ids: number[], dimension: "geography" | "purpose" | "situation" | "topic", user: User, req: PayloadRequest) {
+    if (ids.length > 50 || ids.some((id) => !Number.isInteger(id) || id <= 0) || new Set(ids).size !== ids.length) {
+      throw new AgentServiceError("VALIDATION_ERROR", `${dimension} IDs must contain at most 50 unique positive integers.`);
+    }
+    if (!ids.length) return [];
+    const result = await this.payload.find({
+      collection: "taxonomies",
+      depth: 0,
+      limit: ids.length,
+      overrideAccess: false,
+      pagination: false,
+      req,
+      user,
+      where: { and: [{ id: { in: ids } }, { dimension: { equals: dimension } }] },
+    });
+    if (result.docs.length !== ids.length) throw new AgentServiceError("VALIDATION_ERROR", `Every ${dimension} ID must reference that taxonomy dimension.`);
+    return ids;
+  }
+
+  private async lockEditorialTaxonomies(
+    req: PayloadRequest,
+    groups: { dimension: "geography" | "purpose" | "situation" | "topic"; ids: number[] }[],
+  ) {
+    for (const { dimension, ids } of groups) {
+      if (ids.length > 50 || ids.some((id) => !Number.isInteger(id) || id <= 0) || new Set(ids).size !== ids.length) {
+        throw new AgentServiceError("VALIDATION_ERROR", `${dimension} IDs must contain at most 50 unique positive integers.`);
+      }
+    }
+    const ids = [...new Set(groups.flatMap(({ ids: groupIDs }) => groupIDs))].sort((left, right) => left - right);
+    if (!ids.length) return;
+    const transactionId = await req.transactionID;
+    const db = transactionId
+      ? (this.payload.db.sessions?.[String(transactionId)]?.db as { execute: (query: unknown) => Promise<{ rows?: { id: number }[] }> } | undefined)
+      : undefined;
+    if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The editorial taxonomy transaction is unavailable.");
+    for (const id of ids) await db.execute(sql`SELECT id FROM taxonomies WHERE id = ${id} FOR SHARE`);
+  }
+
+  private editorialSourceNotes(sourceNotes: NonNullable<AgentEditorialSitePatch["sourceNotes"]>, article: Article) {
+    if (sourceNotes.length > 50) throw new AgentServiceError("VALIDATION_ERROR", "Source notes may contain at most 50 items.");
+    const existingIds = new Set((article.sourceNotes ?? []).map((source) => source.id).filter((id): id is string => Boolean(id)));
+    const seen = new Set<string>();
+    return sourceNotes.map((source) => {
+      if (!source.label.trim() || source.label.length > 500) throw new AgentServiceError("VALIDATION_ERROR", "Every source requires a label of at most 500 characters.");
+      if (source.url != null) {
+        if (source.url.length > 2_048) throw new AgentServiceError("VALIDATION_ERROR", "Source URLs must be at most 2048 characters.");
+        try {
+          const url = new URL(source.url);
+          if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Unsafe source protocol");
+        } catch {
+          throw new AgentServiceError("VALIDATION_ERROR", "Source URLs must use valid http or https URLs.");
+        }
+      }
+      if (source.checkedAt != null && !isISODateTime(source.checkedAt)) throw new AgentServiceError("VALIDATION_ERROR", "Source checkedAt must be an ISO date-time.");
+      if (source.check != null && source.check.length > 10_000) throw new AgentServiceError("VALIDATION_ERROR", "Source checks must be at most 10000 characters.");
+      if (source.id) {
+        if (!existingIds.has(source.id)) throw new AgentServiceError("VALIDATION_ERROR", "A source row ID does not belong to this Article.");
+        if (seen.has(source.id)) throw new AgentServiceError("VALIDATION_ERROR", "Source row IDs must be unique.");
+        seen.add(source.id);
+      }
+      return { id: source.id, label: source.label.trim(), url: source.url ?? null, checkedAt: source.checkedAt ?? null, check: source.check ?? null };
+    });
+  }
+
+  private editorialComments(comments: NonNullable<AgentEditorialSitePatch["editorComments"]>, article: Article, user: User) {
+    if (comments.length > 50) throw new AgentServiceError("VALIDATION_ERROR", "Editor comments may contain at most 50 items.");
+    const existing = new Map<string, NonNullable<Article["editorComments"]>[number]>();
+    for (const comment of article.editorComments ?? []) {
+      if (!comment.id) throw new AgentServiceError("VALIDATION_ERROR", "An existing editor comment has no stable row ID and cannot be replaced safely.");
+      existing.set(comment.id, comment);
+    }
+    const seen = new Set<string>();
+    return comments.map((comment) => {
+      if (!comment.anchor.trim() || comment.anchor.length > 500) throw new AgentServiceError("VALIDATION_ERROR", "Every editor comment requires an anchor of at most 500 characters.");
+      if (!comment.message.trim() || comment.message.length > 10_000) throw new AgentServiceError("VALIDATION_ERROR", "Every editor comment requires a message of at most 10000 characters.");
+      if (comment.id) {
+        const prior = existing.get(comment.id);
+        if (!prior) throw new AgentServiceError("VALIDATION_ERROR", "An editor comment row ID does not belong to this Article.");
+        if (seen.has(comment.id)) throw new AgentServiceError("VALIDATION_ERROR", "Editor comment row IDs must be unique.");
+        seen.add(comment.id);
+        return { id: comment.id, anchor: comment.anchor.trim(), message: comment.message.trim(), resolved: comment.resolved ?? Boolean(prior.resolved), createdBy: articleRelationID(prior.createdBy) };
+      }
+      return { anchor: comment.anchor.trim(), message: comment.message.trim(), resolved: comment.resolved ?? false, createdBy: user.id };
+    });
+  }
+
+  private async editorialSaveData(patch: AgentEditorialSitePatch, article: Article, user: User, req: PayloadRequest) {
+    const allowed = new Set(["assignedEditorId", "coverImageId", "editorComments", "format", "freshnessDate", "geographyIds", "purposeIds", "situationIds", "sourceNotes", "topicIds"]);
+    const entries = Object.entries(patch).filter(([, value]) => value !== undefined);
+    if (!entries.length) throw new AgentServiceError("VALIDATION_ERROR", "At least one editorial site field is required.");
+    if (entries.some(([key]) => !allowed.has(key))) throw new AgentServiceError("VALIDATION_ERROR", "The editorial patch contains a protected or unknown field.");
+    await this.lockEditorialTaxonomies(req, [
+      ...(patch.purposeIds === undefined ? [] : [{ dimension: "purpose" as const, ids: patch.purposeIds }]),
+      ...(patch.topicIds === undefined ? [] : [{ dimension: "topic" as const, ids: patch.topicIds }]),
+      ...(patch.geographyIds === undefined ? [] : [{ dimension: "geography" as const, ids: patch.geographyIds }]),
+      ...(patch.situationIds === undefined ? [] : [{ dimension: "situation" as const, ids: patch.situationIds }]),
+    ]);
+    const data: Record<string, unknown> = {};
+    if (patch.assignedEditorId !== undefined) {
+      const assignedEditorId = patch.assignedEditorId;
+      if (assignedEditorId !== null && (!Number.isInteger(assignedEditorId) || assignedEditorId <= 0)) throw new AgentServiceError("VALIDATION_ERROR", "Assigned Editor must be a positive User ID or null.");
+      if (!isSuperAdmin(user) && assignedEditorId !== null && assignedEditorId !== user.id) throw new AgentServiceError("FORBIDDEN", "An Editor may only assign the Article to themselves or leave it unassigned.");
+      if (assignedEditorId !== null) {
+        let candidate: Pick<User, "accountStatus" | "id" | "role">;
+        if (assignedEditorId === user.id) candidate = user;
+        else candidate = await this.lockEditorialAssignee(req, assignedEditorId);
+        if (candidate.accountStatus !== "active" || (candidate.role !== "editor" && candidate.role !== "super_admin")) {
+          throw new AgentServiceError("VALIDATION_ERROR", "Assigned Editor must be an active Editor or Super Admin.");
+        }
+      }
+      data.assignedEditor = assignedEditorId;
+    }
+    if (patch.format !== undefined) {
+      if (patch.format !== null && !["guide", "reporting", "analysis", "first_person", "update"].includes(patch.format)) throw new AgentServiceError("VALIDATION_ERROR", "Unknown Article format.");
+      data.format = patch.format;
+    }
+    if (patch.purposeIds !== undefined) data.purposes = await this.editorialTaxonomyIDs(patch.purposeIds, "purpose", user, req);
+    if (patch.topicIds !== undefined) data.topics = await this.editorialTaxonomyIDs(patch.topicIds, "topic", user, req);
+    if (patch.geographyIds !== undefined) data.geographies = await this.editorialTaxonomyIDs(patch.geographyIds, "geography", user, req);
+    if (patch.situationIds !== undefined) data.situations = await this.editorialTaxonomyIDs(patch.situationIds, "situation", user, req);
+    if (patch.sourceNotes !== undefined) data.sourceNotes = this.editorialSourceNotes(patch.sourceNotes, article);
+    if (patch.freshnessDate !== undefined) {
+      if (patch.freshnessDate !== null && !isISODate(patch.freshnessDate) && !isISODateTime(patch.freshnessDate)) throw new AgentServiceError("VALIDATION_ERROR", "Freshness date must be an ISO date.");
+      data.freshnessDate = patch.freshnessDate;
+    }
+    if (patch.editorComments !== undefined) data.editorComments = this.editorialComments(patch.editorComments, article, user);
+    if (patch.coverImageId !== undefined) {
+      if (patch.coverImageId !== null) {
+        if (!Number.isInteger(patch.coverImageId) || patch.coverImageId <= 0) throw new AgentServiceError("VALIDATION_ERROR", "Cover image must be a positive Media ID or null.");
+        await this.lockMedia(req, patch.coverImageId);
+        await assertMediaApprovedForPublicUse(patch.coverImageId, req, "Cover image");
+      }
+      data.coverImage = patch.coverImageId;
+    }
+    return data;
+  }
+
+  async editorialSaveSiteFields(input: { id: number; idempotencyKey: string; patch: AgentEditorialSitePatch; revision: string }) {
+    let requestId = createAgentRequestId();
+    try {
+      requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "editorial_save_site_fields" });
+      requireRevision(input.revision);
+      const user = await this.currentUser();
+      if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+      const fingerprint = inputFingerprint(input);
+      const prior = await this.replayedEditorialWrite(requestId, fingerprint, user);
+      if (prior) {
+        const result = { ...articleSummary(prior), ...await this.editorialSiteFields(prior, user), publicPath: `/${prior.locale}/posts/${prior.slug}` };
+        return agentSuccess(result, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true, revision: revision(prior) } });
+      }
+      let outcome: { article: Article; auditId: string; kind: "saved" } | { kind: "conflict"; revision: string };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          if (!hasEditorialRole(lockedUser)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
+          const event = await this.reserveWrite({ fingerprint, requestId, tool: "editorial_save_site_fields" }, req);
+          await this.lockArticle(req, input.id);
+          const found = await this.editorialArticle(input.id, lockedUser, req);
+          const article = await getLatestDraftArticle(this.payload, found.id, found, req);
+          if (article.authorshipType !== "member") throw new AgentServiceError("FORBIDDEN", "Only existing Member-authored Articles can use this editorial save.");
+          const beforeRevision = revision(article);
+          if (input.revision !== beforeRevision) {
+            await this.finishWrite(event.id, { beforeRevision, objectId: String(article.id), result: "conflict" }, req);
+            return { kind: "conflict" as const, revision: beforeRevision };
+          }
+          const invariantSource = article.publicationStatus === "published"
+            ? await this.payload.findByID({ collection: "articles", id: article.id, depth: 0, draft: false, overrideAccess: false, req, user: lockedUser }) as Article
+            : found;
+          const invariants = editorialInvariantSnapshot(invariantSource);
+          const data = await this.editorialSaveData(input.patch, article, lockedUser, req);
+          const saved = await this.payload.update({
+            collection: "articles",
+            id: article.id,
+            data: data as never,
+            depth: 0,
+            draft: false,
+            overrideAccess: false,
+            req,
+            user: lockedUser,
+          }) as Article;
+          const savedInvariants = editorialInvariantSnapshot(saved);
+          if (canonicalJSON(savedInvariants) !== canonicalJSON(invariants)) {
+            const changedFields = Object.keys(invariants).filter((key) => canonicalJSON(invariants[key as keyof typeof invariants]) !== canonicalJSON(savedInvariants[key as keyof typeof savedInvariants]));
+            throw new AgentServiceError("TEMPORARY_FAILURE", "The editorial save changed a protected Article field.", { changedFields });
+          }
+          const afterRevision = revision(saved);
+          await this.finishWrite(event.id, { afterRevision, beforeRevision, objectId: String(saved.id), result: "success" }, req);
+          return { article: saved, auditId: String(event.id), kind: "saved" as const };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedEditorialWrite(requestId, fingerprint, user);
+        if (!replay) throw error.original;
+        outcome = { article: replay, auditId: "", kind: "saved" };
+      }
+      if (outcome.kind === "conflict") throw new AgentServiceError("REVISION_CONFLICT", "The Article changed after the editorial fields were loaded.", { latestRevision: outcome.revision });
+      const saved = outcome.article;
+      const result = { ...articleSummary(saved), ...await this.editorialSiteFields(saved, user), publicPath: `/${saved.locale}/posts/${saved.slug}` };
+      return agentSuccess(result, { requestId, meta: { ...(outcome.auditId ? { auditId: outcome.auditId } : {}), idempotencyKey: input.idempotencyKey, objectId: String(saved.id), readAfterWrite: true, revision: revision(saved) } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && ["IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT"].includes(error.code))) {
+        await this.auditReadFailure("editorial_save_site_fields", requestId, error, String(input.id));
+      }
       return failure(error, requestId);
     }
   }
@@ -1030,6 +1480,17 @@ export class AgentMemberService {
     if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The publication media transaction is unavailable.");
     const result = await db.execute(sql`SELECT id FROM media WHERE id = ${id} FOR UPDATE`);
     if (!result.rows?.[0]) throw new AgentServiceError("VALIDATION_ERROR", "The publication cover image no longer exists.");
+  }
+
+  private async lockEditorialAssignee(req: PayloadRequest, id: number): Promise<Pick<User, "accountStatus" | "id" | "role">> {
+    const transactionId = await req.transactionID;
+    const db = transactionId
+      ? (this.payload.db.sessions?.[String(transactionId)]?.db as { execute: (query: unknown) => Promise<{ rows?: Record<string, unknown>[] }> } | undefined)
+      : undefined;
+    if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The editorial assignee transaction is unavailable.");
+    const row = (await db.execute(sql`SELECT id, account_status, role FROM users WHERE id = ${id} FOR SHARE`)).rows?.[0];
+    if (!row) throw new AgentServiceError("VALIDATION_ERROR", "Assigned Editor was not found.");
+    return { id: Number(row.id), accountStatus: String(row.account_status) as User["accountStatus"], role: String(row.role) as User["role"] };
   }
 
   private async lockSiteSelectionMedia(req: PayloadRequest, article: Article) {
@@ -1281,6 +1742,19 @@ export class AgentMemberService {
     return this.ownedArticle(Number(prior.objectId), user);
   }
 
+  private async replayedEditorialWrite(requestId: string, fingerprint: string, user: User) {
+    const prior = await this.priorWrite(requestId);
+    if (!prior) return null;
+    if (prior.inputFingerprint !== fingerprint) throw new AgentServiceError("IDEMPOTENCY_CONFLICT", "The idempotency key was already used with different input.");
+    if (prior.result === "conflict") throw new AgentServiceError("REVISION_CONFLICT", "The Article changed after the editorial fields were loaded.", { latestRevision: prior.beforeRevision });
+    if (prior.result !== "success" || !prior.objectId || !prior.afterRevision) throw new AgentServiceError("TEMPORARY_FAILURE", "The previous editorial save has no readable result.");
+    const found = await this.editorialArticle(Number(prior.objectId), user);
+    const article = await getLatestDraftArticle(this.payload, found.id, found);
+    if (article.authorshipType !== "member") throw new AgentServiceError("FORBIDDEN", "Only existing Member-authored Articles can use this editorial save.");
+    if (revision(article) !== prior.afterRevision) throw new AgentServiceError("TEMPORARY_FAILURE", "The saved editorial result changed after the previous write.");
+    return article;
+  }
+
   private async replayedProfileWrite(requestId: string, fingerprint: string, user: User) {
     const prior = await this.priorWrite(requestId);
     if (!prior) return null;
@@ -1409,6 +1883,7 @@ export class AgentMemberService {
     const objectType = tool === "account_context"
       || tool === "capabilities_list"
       || tool === "admin_recent_activity"
+      || tool === "editorial_reference_options"
       || tool === "media_upload"
       || tool === "my_media_list"
       || tool.startsWith("my_profile_")

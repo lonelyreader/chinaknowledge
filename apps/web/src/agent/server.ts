@@ -100,6 +100,36 @@ const bodyV2Schema = z.object({
   blocks: z.array(blockV2Schema).max(500),
 }).strict().superRefine(bodySizeLimit) satisfies z.ZodType<AgentArticleBodyV2>;
 const anyBodySchema = z.union([bodySchema, bodyV2Schema]) satisfies z.ZodType<AgentArticleBody>;
+const editorialSourceSchema = z.object({
+  id: z.string().min(1).max(100).optional(),
+  label: z.string().min(1).max(500),
+  url: z.url().max(2_048).refine((value) => value.startsWith("https://") || value.startsWith("http://")).nullable().optional(),
+  checkedAt: z.iso.datetime({ offset: true }).nullable().optional(),
+  check: z.string().max(10_000).nullable().optional(),
+}).strict();
+const editorialCommentSchema = z.object({
+  id: z.string().min(1).max(100).optional(),
+  anchor: z.string().min(1).max(500),
+  message: z.string().min(1).max(10_000),
+  resolved: z.boolean().optional(),
+}).strict();
+const editorialSitePatchSchema = z.object({
+  id: z.number().int().positive(),
+  revision: z.string(),
+  idempotencyKey: z.string(),
+  assignedEditorId: z.number().int().positive().nullable().optional(),
+  format: z.enum(["guide", "reporting", "analysis", "first_person", "update"]).nullable().optional(),
+  purposeIds: z.array(z.number().int().positive()).max(50).optional(),
+  topicIds: z.array(z.number().int().positive()).max(50).optional(),
+  geographyIds: z.array(z.number().int().positive()).max(50).optional(),
+  situationIds: z.array(z.number().int().positive()).max(50).optional(),
+  sourceNotes: z.array(editorialSourceSchema).max(50).optional(),
+  freshnessDate: z.union([z.iso.date(), z.iso.datetime({ offset: true })]).nullable().optional(),
+  editorComments: z.array(editorialCommentSchema).max(50).optional(),
+  coverImageId: z.number().int().positive().nullable().optional(),
+}).strict().refine((value) => Object.keys(value).some((key) => !["id", "revision", "idempotencyKey"].includes(key)), {
+  message: "At least one editorial site field is required.",
+});
 
 function result(value: AgentToolResultV1<unknown>) {
   return {
@@ -190,14 +220,44 @@ export async function createAgentMcpServer(context: McpRequestContext) {
 
   if (editorial) {
     server.registerTool(
+      "editorial_attention_list",
+      {
+        title: "Needs attention",
+        description: agentToolDescriptions.editorial_attention_list,
+        inputSchema: paginationSchema.extend({ locale: z.enum(["en", "es"]).optional(), assignee: z.enum(["all", "mine", "unassigned"]).optional() }).strict(),
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      },
+      async (input) => result(await service.editorialAttentionList(input)),
+    );
+    server.registerTool(
+      "editorial_reference_options",
+      {
+        title: "Editorial references",
+        description: agentToolDescriptions.editorial_reference_options,
+        inputSchema: paginationSchema.extend({ kind: z.enum(["assignee", "purpose", "topic", "geography", "situation", "approved_cover"]), query: z.string().max(200).optional() }).strict(),
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      },
+      async (input) => result(await service.editorialReferenceOptions(input)),
+    );
+    server.registerTool(
       "editorial_article_get",
       {
         title: "Editorial article",
         description: agentToolDescriptions.editorial_article_get,
-        inputSchema: z.object({ id: z.number().int().positive() }),
+        inputSchema: z.object({ id: z.number().int().positive(), bodyVersion: z.enum([AGENT_BODY_VERSION, AGENT_BODY_V2_VERSION]).optional() }).strict(),
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       },
-      async ({ id }) => result(await service.editorialArticleGet(id)),
+      async ({ id, bodyVersion }) => result(await service.editorialArticleGet(id, { bodyVersion })),
+    );
+    server.registerTool(
+      "editorial_save_site_fields",
+      {
+        title: "Save editorial fields",
+        description: agentToolDescriptions.editorial_save_site_fields,
+        inputSchema: editorialSitePatchSchema,
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      },
+      async ({ id, revision, idempotencyKey, ...patch }) => result(await service.editorialSaveSiteFields({ id, revision, idempotencyKey, patch })),
     );
     server.registerTool(
       "editorial_prepare_site_selection",
