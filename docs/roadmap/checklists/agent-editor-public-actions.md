@@ -90,4 +90,4 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 ## Writeback
 
 - Local PASS 后更新 feature registry、current-state、父级状态和 implementation evidence；一次独立复审 PASS 后 010 才能激活。Production 读回后再归档。
-- 当前门：009 Local 实现与工作项验证 PASS；首页排期、pending autosave 隔离、通知同事件失败重试/并发重放、权限和审计负例均已通过。证据见 [`AGENT-WORKSPACE-009 Local runtime`](../../reference/implementation/agent-workspace-009-local-runtime-2026-08-16.md)。等待一次独立终局复审；Preview/Production 仍进入 011 统一发布门。
+- 当前门：009 Local 工作项与独立终局复审 PASS（P0/P1/P2=`0/0/0`），已合入本地 `main`（`83ce74f`）；只剩 011 统一 Preview/release，不再扩代码。证据见 [`AGENT-WORKSPACE-009 Local runtime`](../../reference/implementation/agent-workspace-009-local-runtime-2026-08-16.md)。

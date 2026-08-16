@@ -12,7 +12,7 @@ max_lines: 100
 
 ## 结果
 
-`AGENT-WORKSPACE-009` 在专用分支完成实现与 Local 工作项验证。Agent 注册表由 26 个增至 30 个工具；新增首页排期 prepare/commit 与固定 `major_edit` 作者通知 prepare/commit。本批没有 schema、migration、Payload collection、Admin UI、010、复核工具或通用动作平台改动。
+`AGENT-WORKSPACE-009` 完成实现、Local 工作项验证和一次独立终局复审，P0/P1/P2=`0/0/0`，并合入本地 `main`（`83ce74f`）。Agent 注册表由 26 个增至 30 个工具；新增首页排期 prepare/commit 与固定 `major_edit` 作者通知 prepare/commit。本批没有 schema、migration、Payload collection、Admin UI、010、复核工具或通用动作平台改动。
 
 ## 首页排期边界
 
@@ -41,7 +41,8 @@ max_lines: 100
 - `npm --prefix apps/web run lint` — PASS，只有 48 条既有 migration warning，0 error。
 - `npm --prefix apps/web run build` — PASS。
 - `npm run governance:check`（含 change intake）与 `git diff --check` — PASS；变更路径均被 009 合同覆盖。
+- 未主持实现者独立终局复审 — PASS，P0/P1/P2=`0/0/0`；合入后 `test:agent` / typecheck PASS。
 
 ## 剩余门禁
 
-本批等待一次独立终局复审；Preview、`main` push、Production deploy、真实账户/数据、Production 首页状态和真实外部通知继续保留到 011 统一发布门。
+本批只剩 Preview、`main` push、Production deploy、真实账户/数据、Production 首页状态和真实外部通知，统一进入 011 发布门；009 不再扩代码。
