@@ -16,7 +16,7 @@ max_lines: 60
 |---|---|---|
 | `P1-WEB-001` | 实现者验证与产品负责人复审均通过 | [`p1-public-runnable-slice-2026-07-27.md`](p1-public-runnable-slice-2026-07-27.md) |
 | `P1-EDITORIAL-001` | 实现者验证与产品负责人授权的代理独立复审均通过 | [`p1-editorial-cms-foundation-2026-07-27.md`](p1-editorial-cms-foundation-2026-07-27.md) |
-| `P2-PREVIEW-001` | 实现者验收与第二轮独立复审均 PASS；P0/P1/P2 finding 为零 | [`local preparation`](p2-preview-local-preparation-2026-07-27.md)、[`provider research`](p2-preview-provider-research-2026-07-27.md)、[`migration and recovery plan`](p2-preview-migration-recovery-plan-2026-07-27.md) |
+| `P2-PREVIEW-001` | 验收与复审 PASS，P0/P1/P2 为零 | [`local`](p2-preview-local-preparation-2026-07-27.md)、[`research`](p2-preview-provider-research-2026-07-27.md)、[`recovery`](p2-preview-migration-recovery-plan-2026-07-27.md) |
 | `PROD-LAUNCH-001` | 真实内容、正式域名、恢复演练与独立复审均完成 | [`readiness research`](production-launch-readiness-research-2026-07-27.md)、[`backup and recovery`](production-backup-recovery-2026-07-28.md)、[`public product audit`](production-public-product-audit-2026-07-28.md) |
 | `PUB-CURATION-001` | 成员直接发布、站方同文档策展、聚焦 Editor 工作区、双语 Person/路由、Production 读回、恢复与双重独立复审全部通过 | [`architecture audit`](member-publishing-curation-architecture-audit-2026-07-28.md)、[`closure evidence`](member-publishing-curation-core-slice-2026-07-28.md) |
 | `ADMIN-UI-001` | Payload-native 全 Admin 桌面审计、三视口矩阵、权限负例、双重独立复审和 Production 读回均通过 | [`native baseline and closure`](admin-payload-native-baseline-2026-07-29.md) |
@@ -28,6 +28,7 @@ max_lines: 60
 | `AGENT-WORKSPACE-005` | Gate 2–6 与 Production 只读/撤销验收 PASS | [`intake`](agent-workspace-005-intake-2026-08-01.md)、[`client compatibility`](agent-workspace-005-client-compatibility-2026-08-01.md)、[`Preview runtime`](agent-workspace-005-preview-runtime-2026-08-01.md)、[`operational readiness`](agent-workspace-005-operational-readiness-2026-08-01.md)、[`Production runtime`](agent-workspace-005-production-runtime-2026-08-01.md)、[`independent review`](agent-workspace-005-independent-review-2026-08-01.md) |
 | `AGENT-WORKSPACE-006` | Codex Member 实测与复审 PASS | [`runtime`](agent-workspace-006-codex-member-compatibility-2026-08-02.md)、[`review`](agent-workspace-006-independent-review-2026-08-02.md) |
 | `AGENT-WORKSPACE-007` | Local 与独立复审 PASS；Preview/Production 待执行 | [`evidence`](agent-workspace-007-local-runtime-2026-08-16.md) |
+| `AGENT-WORKSPACE-008` | Local 工作项 PASS；独立终局复审待执行 | [`evidence`](agent-workspace-008-local-runtime-2026-08-16.md) |
 | `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |
 | `AUTH-RESET-001` | Production 与复审 PASS | [`evidence`](password-reset-recovery-2026-08-11.md) |
 | `INFRA-BODY-MEDIA-001` | 待复审 | [`evidence`](body-media-security-2026-08-11.md) |

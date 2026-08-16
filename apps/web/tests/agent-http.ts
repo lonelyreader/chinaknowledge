@@ -417,7 +417,7 @@ function memberServiceFixture(options: {
         user: 5,
       };
       if (collection === "agent-oauth-clients") return { disabled: false, expiresAt: null, id: 3 };
-      if (collection === "users") return { accountStatus: options.accountStatus ?? "active", id: 5, role: options.role ?? "author" };
+      if (collection === "users") return { accountStatus: options.accountStatus ?? "active", displayName: "Fixture Editor", id: 5, role: options.role ?? "author" };
       if (collection === "people") return {
         id: 7,
         languages: ["en"],
@@ -486,6 +486,11 @@ function memberServiceFixture(options: {
   const capabilities = await fixture.service.capabilities();
   assert.equal(capabilities.ok, true, JSON.stringify(capabilities));
   assert.equal(capabilities.data?.tools.includes("editorial_article_get"), true);
+  assert.equal(capabilities.data?.tools.includes("editorial_attention_list"), true);
+  assert.equal(capabilities.data?.tools.includes("editorial_reference_options"), true);
+  assert.equal(capabilities.data?.tools.includes("editorial_save_site_fields"), true);
+  const assignees = await fixture.service.editorialReferenceOptions({ kind: "assignee" });
+  assert.deepEqual(assignees.data?.options, [{ id: 5, label: "Fixture Editor", kind: "assignee" }]);
   const profile = await fixture.service.myProfileGet();
   assert.equal(profile.ok, true, JSON.stringify(profile));
   assert.equal(profile.data?.previewPath, "/en/people/fixture-member?preview=7");
@@ -496,6 +501,13 @@ function memberServiceFixture(options: {
     complete: false,
     missing: ["identity", "introduction", "city", "portrait"],
   });
+}
+
+{
+  const fixture = memberServiceFixture({ role: "author" });
+  assert.equal((await fixture.service.editorialAttentionList()).error?.code, "FORBIDDEN");
+  assert.equal((await fixture.service.editorialReferenceOptions({ kind: "assignee" })).error?.code, "FORBIDDEN");
+  assert.equal((await fixture.service.editorialSaveSiteFields({ id: 21, idempotencyKey: "editorial_0123456789", patch: { format: "analysis" }, revision: createArticleRevision({ id: 21, locale: "en", updatedAt: "2026-08-12T00:00:00.000Z" }) })).error?.code, "FORBIDDEN");
 }
 
 const uploadInput = {

@@ -168,12 +168,44 @@ for (const description of Object.values(agentToolDescriptions)) {
   assert.ok(description.length > 40);
   assert.ok(description.length <= 512);
 }
-assert.equal(Object.keys(agentToolDescriptions).length, 23);
+assert.equal(Object.keys(agentToolDescriptions).length, 26);
 assert.ok(agentToolDescriptions.media_upload);
 assert.ok(agentToolDescriptions.article_set_cover);
 assert.ok(agentToolDescriptions.my_profile_get);
 assert.ok(agentToolDescriptions.my_links_save);
 assert.ok(agentToolDescriptions.article_create_translation_draft);
+assert.ok(agentToolDescriptions.editorial_attention_list);
+assert.ok(agentToolDescriptions.editorial_reference_options);
+assert.ok(agentToolDescriptions.editorial_save_site_fields);
+
+const editorialRevisionSource = {
+  ...source,
+  assignedEditor: 9,
+  coverImage: 31,
+  editorComments: [{ id: "comment-a", anchor: "intro", message: "Check this.", resolved: false, createdBy: 9 }],
+  format: "guide",
+  freshnessDate: "2026-08-16",
+  geographies: [14],
+  homepagePlacement: "none",
+  purposes: [11],
+  situations: [15],
+  sourceNotes: [{ id: "source-a", label: "Official", url: "https://example.test", checkedAt: null, check: "Checked" }],
+  topics: [12],
+};
+const editorialRevision = createArticleRevision(editorialRevisionSource);
+for (const changed of [
+  { assignedEditor: 10 }, { coverImage: 32 }, { format: "analysis" }, { freshnessDate: "2026-08-17" },
+  { geographies: [99] }, { purposes: [99] }, { situations: [99] }, { topics: [99] },
+  { sourceNotes: [{ id: "source-a", label: "Changed" }] },
+  { editorComments: [{ id: "comment-a", anchor: "intro", message: "Changed", resolved: false, createdBy: 9 }] },
+  { owner: 99 }, { publicationStatus: "withdrawn" }, { curationStatus: "curated" }, { homepagePlacement: "lead" },
+]) {
+  assert.equal(articleRevisionMatches(editorialRevision, { ...editorialRevisionSource, ...changed }), false);
+}
+assert.equal(articleRevisionMatches(editorialRevision, {
+  ...editorialRevisionSource,
+  assignedEditor: { id: 9 }, coverImage: { id: 31 }, geographies: [{ id: 14 }], purposes: [{ id: 11 }], situations: [{ id: 15 }], topics: [{ id: 12 }],
+}), true);
 
 const personSource = {
   id: 8,

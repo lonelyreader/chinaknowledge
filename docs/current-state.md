@@ -51,7 +51,9 @@ max_lines: 160
 
 `INFRA-PERSON-PAGE-001` 已在 Local 完成正式成员名片 schema、页面与名录实现，并通过隔离 migration recovery、权限/未公开隔离、EN/ES、build、桌面 1440px 与移动 390px 浏览器主流程及独立复审。Preview 与 Production 尚未 apply 本条 migration，也未部署本实现；两环境仍分别受 migration、虚构数据验收、备份与发布门控制。
 
-`AGENT-WORKSPACE-007` 已在专用分支完成 Local 实现与工作项验证：Member Agent 可读取和保存本人 Profile 与 X 等外链、从 `my_profile_get` 取得 Person Preview path、以 prepare/commit 改变 Profile 可见状态、分页读取本人媒体和文章、读取翻译配对并建立唯一的另一语言私有 draft；`account_context`、capability 与 MCP discovery 均按当前服务端 User 角色和 connection 状态重检。分支工具总数为 23；Local scratch 权限、并发、幂等、确认、角色升降、共享 editorial 回归、lint、typecheck 和 build 均通过，未新增 schema/migration 或 Person UI。独立复审、Preview、`main` push 与 Production 仍未执行。
+`AGENT-WORKSPACE-007` 已完成 Local 实现、工作项验证与独立复审并合入本地 `main`（`4bf7e96`）：Member Agent 可读取和保存本人 Profile 与 X 等外链、从 `my_profile_get` 取得 Person Preview path、以 prepare/commit 改变 Profile 可见状态、分页读取本人媒体和文章、读取翻译配对并建立唯一的另一语言私有 draft；`account_context`、capability 与 MCP discovery 均按当前服务端 User 角色和 connection 状态重检。Local 工具总数为 23，未新增 schema/migration 或 Person UI；统一 Preview、`main` push 与 Production 尚未执行。
+
+`AGENT-WORKSPACE-008` 已在专用分支完成 Local 实现与工作项验证：工具总数增至 26，Editor 可从固定 Needs attention 队列发现 Article、读取严格白名单引用和 Body V2/站方字段，并以 revision、幂等、事务和写后读回保存负责人、format、四类分类、来源、freshness、编辑意见与已批准封面。普通 Editor 只能分配本人或清空，Super Admin 只能分配 active editorial role；Member、越权引用、受保护字段、并发覆盖、site-authored 保存和 curated 不完整保存均失败关闭。未新增 schema/migration、UI、009/010 能力或通知；独立终局复审、Preview、`main` push 与 Production 尚未执行。
 
 ## 当前运行边界
 

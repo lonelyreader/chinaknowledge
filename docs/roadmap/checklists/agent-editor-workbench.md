@@ -81,10 +81,10 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 
 ## Acceptance
 
-- [ ] Editor 能从固定 Needs attention 队列分页找到目标，不需要预先知道 Article ID；筛选与网页后台当前语义一致。
-- [ ] Editor 能取得严格白名单引用，使用 `editorial_article_get` 读取 Body V2 和全部允许站方字段，并以 revision 安全保存后读回。
-- [ ] 保存覆盖 assignee、format、四类分类、来源、freshness、编辑意见和站方封面；Editor assignee 仅本人/`null`、Super Admin 仅 active editorial roles，受保护字段、引用越权、并发与幂等负例全部失败关闭。
-- [ ] Member discovery/直调隔离、Editor/Super Admin 正例、审计字段隔离和版本恢复通过；无 schema/migration、无 UI diff、无 009/010 能力。
+- [x] Editor 能从固定 Needs attention 队列分页找到目标，不需要预先知道 Article ID；筛选与网页后台当前语义一致。
+- [x] Editor 能取得严格白名单引用，使用 `editorial_article_get` 读取 Body V2 和全部允许站方字段，并以 revision 安全保存后读回。
+- [x] 保存覆盖 assignee、format、四类分类、来源、freshness、编辑意见和站方封面；Editor assignee 仅本人/`null`、Super Admin 仅 active editorial roles，受保护字段、引用越权、并发与幂等负例全部失败关闭。
+- [x] Member discovery/直调隔离、Editor/Super Admin 正例、审计字段隔离和版本恢复通过；无 schema/migration、无 UI diff、无 009/010 能力。
 
 ## Validation
 
@@ -99,4 +99,4 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 ## Writeback
 
 - Local PASS 后更新 feature registry、current-state、父级状态和 implementation reference；一次独立复审 PASS 后 009 才能激活。Production 回读后再归档本 checklist。
-- 当前门：合同已冻结；007 Local PASS 并合入本地 `main`（`4bf7e96`），只剩统一 Preview/release。008 实现尚未开始。
+- 当前门：008 Local 实现与工作项验证 PASS，证据见 [`AGENT-WORKSPACE-008 Local runtime`](../../reference/implementation/agent-workspace-008-local-runtime-2026-08-16.md)；独立终局复审待执行，009 继续 queued，release gates 不变。
