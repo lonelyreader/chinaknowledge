@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: implementation-evidence-index
-last_verified: 2026-08-11
+last_verified: 2026-08-16
 max_lines: 60
 ---
 
@@ -30,4 +30,4 @@ max_lines: 60
 | `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |
 | `AUTH-RESET-001` | Production 与复审 PASS | [`evidence`](password-reset-recovery-2026-08-11.md) |
 | `INFRA-BODY-MEDIA-001` | 待复审 | [`evidence`](body-media-security-2026-08-11.md) |
-| `INFRA-AGENT-MEDIA-001` | 待复审 | [`evidence`](agent-media-tools-negative-evidence-2026-08-12.md) |
+| `INFRA-AGENT-MEDIA-001` | Local 实现、工作项验证与独立复审 PASS；Preview/Production 待执行 | [`evidence`](agent-media-tools-negative-evidence-2026-08-12.md) |

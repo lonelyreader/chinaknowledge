@@ -4,7 +4,7 @@ doc_type: checklist
 authority: execution
 status: active
 scope: agent-media-tools
-last_verified: 2026-08-12
+last_verified: 2026-08-16
 max_lines: 160
 change_id: INFRA-AGENT-MEDIA-001
 risk_tier: upgraded
@@ -49,21 +49,27 @@ approval_gates: preview, production-deploy, commit, merge, push
 
 ## Acceptance
 
-- [ ] Agent 可上传图片、以 V2 正文引用并 set cover，`article_preview` 预检返回正确 warning。
-- [ ] 四类权限负例（他人媒体 image、他人媒体 cover、跨成员文章、暂停账户）全部被拒且有审计。
-- [ ] V1 合同回归测试全过；不支持节点显式报错。
-- [ ] 白名单外 embed URL 被拒，与网页侧一致。
+- [x] Agent 可上传图片、以 V2 正文引用并 set cover，`article_preview` 预检返回正确 warning。
+- [x] 四类权限负例（他人媒体 image、他人媒体 cover、跨成员文章、暂停账户）全部被拒且有审计。
+- [x] V1 合同回归测试全过；不支持节点显式报错。
+- [x] 白名单外 embed URL 被拒，与网页侧一致。
 
 ## Validation
 
-- lint、typecheck、build、`npm run governance:check`、`git diff --check`。
-- agent 测试套件（contracts/routes/http/schema）扩展并全过；独立复审 PASS。
+- [x] `npm run test:agent`：contracts / http / routes / fixtures / oauth-model / schema 全过。
+- [x] lint（0 error，44 条既有 migration warning）、typecheck、build 全过。
+- [x] `npm run governance:check`、`git diff --check` 全过。
+- [x] 非原实现者按冻结合同完成一轮独立复审：`PASS`，P0/P1/P2=`0/0/0`（2026-08-16）。
 
 ## Writeback
 
-- feature registry Agent 段与 current-state 写回；负例证据入 reference；本 checklist 归档。
+- [x] feature registry Agent 段与 current-state 写回；权限负例与独立复审证据入 reference。
+- [ ] Preview/Production 回读完成后归档本 checklist。
 
 ## Current gate
 
 - [x] 用户批准 Batch 2 启动并冻结本批合同（2026-08-12，scope/no-go/invariants 冻结）。
-- [ ] 实现与独立复审完成后，preview/merge/push/production-deploy 分别批准。
+- [x] 本地实现、工作项验证与独立复审完成；本地关闭 verdict 为 `PASS`（2026-08-16）。
+- [ ] Preview 运行验收尚未执行。
+- [ ] merge/push 已获用户授权，留给父级编排执行。
+- [ ] Production 部署、真实账号回读与恢复确认仍是发布门，未执行。
