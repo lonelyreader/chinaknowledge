@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 
-import { McpServer, OAuthError, type OAuthTokenVerifier } from "@modelcontextprotocol/server";
-import type { Payload } from "payload";
+import config from "@payload-config";
+import { McpServer, OAuthError, type AuthInfo, type OAuthTokenVerifier } from "@modelcontextprotocol/server";
+import { APIError, type Payload } from "payload";
 
 import { handleAgentAccessGet, handleAgentAccessPost } from "@/agent/access-route";
+import { AGENT_BODY_V2_VERSION } from "@/agent/contracts";
 import { createAgentGateway } from "@/agent/gateway";
+import { createArticleRevision } from "@/agent/revision";
+import { AgentMemberService } from "@/agent/service";
 import {
   agentUrls,
   buildAgentAuthorizationServerMetadata,
@@ -356,5 +360,303 @@ assert.equal(initialized.status, 200);
 const initializedBody = await initialized.text();
 assert.match(initializedBody, /"jsonrpc":"2.0"/);
 assert.match(initializedBody, /"name":"china-in-fact"/);
+
+/*
+ * INFRA-AGENT-MEDIA-001: service-level checks for the media tools with a
+ * mocked Payload — the four permission negatives from the checklist plus the
+ * happy paths for the unique-filename upload pipeline, V2 working copies and
+ * the preview pre-publication warnings.
+ */
+const sanitizedConfig = await config;
+
+function memberAuth(): AuthInfo {
+  return {
+    token: "fixture-token",
+    clientId: "fixture-client",
+    scopes: ["agent:member"],
+    expiresAt: now + 300,
+    resource: urls.resource,
+    extra: { clientFamily: "fixture", connectionId: 11, personId: 7, role: "author", userId: 5 },
+  } as AuthInfo;
+}
+
+type MockDoc = Record<string, unknown>;
+
+function memberServiceFixture(options: {
+  accountStatus?: "active" | "paused";
+  articles?: Record<number, MockDoc>;
+  media?: Record<number, MockDoc>;
+} = {}) {
+  const events: MockDoc[] = [];
+  const updates: { collection: string; data: MockDoc; id: unknown }[] = [];
+  const mediaCreates: { data: MockDoc; file?: { data: Buffer; mimetype: string; name: string; size: number } }[] = [];
+  let mediaSequence = 100;
+  const payload = {
+    config: sanitizedConfig,
+    logger: { error() {}, info() {}, warn() {} },
+    db: {
+      async beginTransaction() {
+        return "tx-fixture";
+      },
+      async commitTransaction() {},
+      async rollbackTransaction() {},
+      sessions: {
+        "tx-fixture": { db: { async execute() { return { rows: [{ id: 1 }] }; } } },
+      },
+    },
+    async findByID({ collection, id }: { collection: string; id: number | string }) {
+      if (collection === "agent-connections") return { id, person: 7, state: "active", user: 5 };
+      if (collection === "users") return { accountStatus: options.accountStatus ?? "active", id: 5, role: "author" };
+      if (collection === "media") {
+        const doc = options.media?.[Number(id)];
+        if (!doc) throw new APIError("Not Found", 404);
+        return doc;
+      }
+      if (collection === "articles") {
+        const doc = options.articles?.[Number(id)];
+        if (!doc) throw new APIError("Not Found", 404);
+        return doc;
+      }
+      throw new Error(`Unexpected findByID collection: ${collection}`);
+    },
+    async find({ collection }: { collection: string }) {
+      if (collection === "people") return { docs: [{ id: 7, user: 5 }] };
+      if (collection === "agent-events") return { docs: [] };
+      if (collection === "media") return { docs: Object.values(options.media ?? {}) };
+      return { docs: [] };
+    },
+    async findVersions() {
+      return { docs: [] };
+    },
+    async create(args: { collection: string; data: MockDoc; file?: { data: Buffer; mimetype: string; name: string; size: number } }) {
+      if (args.collection === "agent-events") {
+        events.push(args.data);
+        return { id: events.length, ...args.data };
+      }
+      if (args.collection === "media") {
+        mediaCreates.push({ data: args.data, file: args.file });
+        mediaSequence += 1;
+        return {
+          id: mediaSequence,
+          alt: args.data.alt,
+          createdAt: "2026-08-12T00:00:00.000Z",
+          filename: args.file?.name ?? null,
+          filesize: args.file?.size ?? null,
+          mimeType: args.file?.mimetype ?? null,
+          updatedAt: "2026-08-12T00:00:00.000Z",
+        };
+      }
+      throw new Error(`Unexpected create collection: ${args.collection}`);
+    },
+    async update(args: { collection: string; data: MockDoc; id: unknown }) {
+      updates.push(args);
+      if (args.collection === "articles") return { ...(options.articles?.[Number(args.id)] ?? {}), ...args.data };
+      return { id: args.id, ...args.data };
+    },
+  } as unknown as Payload;
+  return { events, mediaCreates, service: AgentMemberService.fromPayload(payload, memberAuth()), updates };
+}
+
+const uploadInput = {
+  alt: "A rice terrace at dawn",
+  data: Buffer.from("fixture-image-bytes").toString("base64"),
+  filename: "terrace.png",
+  idempotencyKey: "upload_0123456789abcdef",
+  mimeType: "image/png",
+};
+const ownArticle = {
+  id: 21,
+  body: { root: { type: "root", children: [] } },
+  curationStatus: "none",
+  locale: "en",
+  owner: 5,
+  publicationStatus: "draft",
+  slug: "own-article",
+  title: "Own article",
+  updatedAt: "2026-08-12T00:00:00.000Z",
+};
+const ownMedia = { id: 32, alt: "Own image", publicUseApprovedAt: null, uploadedBy: 5 };
+const foreignMedia = { id: 31, alt: "Foreign image", publicUseApprovedAt: null, uploadedBy: 99 };
+const ownRevision = createArticleRevision(ownArticle);
+
+// Negative 4: a paused account is rejected by both new tools, with audit.
+{
+  const paused = memberServiceFixture({ accountStatus: "paused" });
+  const upload = await paused.service.mediaUpload(uploadInput);
+  assert.equal(upload.ok, false);
+  assert.equal(upload.error?.code, "ACCOUNT_PAUSED");
+  const cover = await paused.service.setCover({ id: 21, idempotencyKey: "cover_0123456789abcdef", mediaId: 32, revision: ownRevision });
+  assert.equal(cover.ok, false);
+  assert.equal(cover.error?.code, "ACCOUNT_PAUSED");
+  assert.deepEqual(
+    paused.events.map((event) => [event.tool, event.result, event.objectType]),
+    [["media_upload", "denied", "account"], ["article_set_cover", "denied", "article"]],
+  );
+  assert.equal(paused.mediaCreates.length, 0);
+  assert.equal(paused.updates.length, 0);
+}
+
+// Negative 1: a V2 body image referencing another member's unapproved media is rejected.
+{
+  const fixture = memberServiceFixture({ media: { 31: foreignMedia } });
+  const draft = await fixture.service.createDraft({
+    body: { version: AGENT_BODY_V2_VERSION, blocks: [{ type: "image", mediaId: 31, alt: "Foreign image" }] },
+    idempotencyKey: "draft_0123456789abcdef",
+    locale: "en",
+    title: "Media ownership",
+  });
+  assert.equal(draft.ok, false);
+  assert.equal(draft.error?.code, "FORBIDDEN");
+  assert.match(draft.error?.message ?? "", /Body image/);
+  assert.deepEqual(fixture.events.map((event) => [event.tool, event.result]), [["article_create_draft", "failed"]]);
+}
+
+// A non-whitelisted embed URL is rejected by the service as well as the schema.
+{
+  const fixture = memberServiceFixture();
+  const draft = await fixture.service.createDraft({
+    body: { version: AGENT_BODY_V2_VERSION, blocks: [{ type: "youtube", url: "https://vimeo.com/123456" }] },
+    idempotencyKey: "draft_0123456789abcdeg",
+    locale: "en",
+    title: "Embed whitelist",
+  });
+  assert.equal(draft.ok, false);
+  assert.equal(draft.error?.code, "VALIDATION_ERROR");
+  assert.match(draft.error?.message ?? "", /Only YouTube video links/);
+}
+
+// Negative 2: article_set_cover pointing at another member's unapproved media is rejected.
+{
+  const fixture = memberServiceFixture({ articles: { 21: ownArticle }, media: { 31: foreignMedia } });
+  const cover = await fixture.service.setCover({ id: 21, idempotencyKey: "cover_0123456789abcdeh", mediaId: 31, revision: ownRevision });
+  assert.equal(cover.ok, false);
+  assert.equal(cover.error?.code, "FORBIDDEN");
+  assert.match(cover.error?.message ?? "", /Cover image/);
+  assert.equal(fixture.updates.some((update) => update.collection === "articles"), false);
+  assert.equal(fixture.events.at(-1)?.result, "denied");
+  assert.equal(fixture.events.at(-1)?.tool, "article_set_cover");
+}
+
+// Negative 3: article_set_cover on another member's article is rejected.
+{
+  const foreignArticle = { ...ownArticle, id: 22, owner: 99 };
+  const fixture = memberServiceFixture({ articles: { 22: foreignArticle }, media: { 32: ownMedia } });
+  const cover = await fixture.service.setCover({ id: 22, idempotencyKey: "cover_0123456789abcdei", mediaId: 32, revision: createArticleRevision(foreignArticle) });
+  assert.equal(cover.ok, false);
+  assert.equal(cover.error?.code, "FORBIDDEN");
+  assert.equal(fixture.updates.some((update) => update.collection === "articles"), false);
+  assert.equal(fixture.events.at(-1)?.result, "denied");
+}
+
+// Upload happy path: unique filename pipeline, owner metadata, audit trail.
+{
+  const fixture = memberServiceFixture();
+  const upload = await fixture.service.mediaUpload(uploadInput);
+  assert.equal(upload.ok, true);
+  assert.equal(upload.data?.alt, uploadInput.alt);
+  assert.equal(upload.data?.publicUseApproved, false);
+  assert.equal(upload.meta?.readAfterWrite, true);
+  const file = fixture.mediaCreates[0]?.file;
+  assert.ok(file);
+  assert.match(file.name, /^terrace-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.png$/);
+  assert.equal(file.mimetype, "image/png");
+  assert.equal(file.data.toString("utf8"), "fixture-image-bytes");
+  assert.deepEqual(fixture.events.map((event) => [event.tool, event.result, event.objectType]), [["media_upload", "pending", "account"]]);
+  assert.equal(fixture.updates.at(-1)?.data.result, "success");
+}
+
+// Upload input validation: bad base64 and non-image types fail fast.
+{
+  const fixture = memberServiceFixture();
+  const badData = await fixture.service.mediaUpload({ ...uploadInput, data: "!!!not-base64!!!" });
+  assert.equal(badData.error?.code, "VALIDATION_ERROR");
+  const badType = await fixture.service.mediaUpload({ ...uploadInput, mimeType: "application/pdf" });
+  assert.equal(badType.error?.code, "VALIDATION_ERROR");
+  assert.equal(fixture.mediaCreates.length, 0);
+}
+
+// Set-cover happy path: own media, matching revision, audited write.
+{
+  const fixture = memberServiceFixture({ articles: { 21: ownArticle }, media: { 32: ownMedia } });
+  const cover = await fixture.service.setCover({ id: 21, idempotencyKey: "cover_0123456789abcdej", mediaId: 32, revision: ownRevision });
+  assert.equal(cover.ok, true);
+  assert.equal(cover.data?.coverMediaId, 32);
+  const articleUpdate = fixture.updates.find((update) => update.collection === "articles");
+  assert.equal(articleUpdate?.data.coverImage, 32);
+  assert.equal(fixture.updates.at(-1)?.data.result, "success");
+}
+
+// Working copy: V2 returns media blocks with owner-readable alt text; the
+// V1 default keeps failing explicitly so existing clients never see drops.
+{
+  const mediaArticle = {
+    ...ownArticle,
+    id: 23,
+    body: {
+      root: {
+        type: "root",
+        children: [
+          { type: "paragraph", children: [{ type: "text", text: "Before.", format: 0 }] },
+          { type: "upload", relationTo: "media", value: 32, fields: { caption: "Own caption" } },
+          { type: "block", fields: { blockType: "youtubeEmbed", url: "https://youtu.be/dQw4w9WgXcQ" } },
+        ],
+      },
+    },
+  };
+  const fixture = memberServiceFixture({ articles: { 23: mediaArticle }, media: { 32: ownMedia } });
+  const v2 = await fixture.service.workingCopy(23, { bodyVersion: AGENT_BODY_V2_VERSION });
+  assert.equal(v2.ok, true);
+  assert.deepEqual(v2.data?.body.blocks, [
+    { type: "paragraph", children: [{ type: "text", text: "Before." }] },
+    { type: "image", mediaId: 32, alt: "Own image", caption: "Own caption" },
+    { type: "youtube", url: "https://youtu.be/dQw4w9WgXcQ" },
+  ]);
+  const v1 = await fixture.service.workingCopy(23);
+  assert.equal(v1.ok, false);
+  assert.equal(v1.error?.code, "UNSUPPORTED_CONTENT");
+}
+
+// Preview returns the structured pre-publication warnings.
+{
+  const warnArticle = {
+    ...ownArticle,
+    id: 24,
+    summary: "  ",
+    body: {
+      root: {
+        type: "root",
+        children: [
+          { type: "heading", tag: "h2", children: [] },
+          { type: "heading", tag: "h4", children: [] },
+          { type: "upload", relationTo: "media", value: 31, fields: {} },
+        ],
+      },
+    },
+  };
+  const fixture = memberServiceFixture({ articles: { 24: warnArticle }, media: { 31: foreignMedia } });
+  const preview = await fixture.service.preview(24);
+  assert.equal(preview.ok, true);
+  assert.deepEqual(preview.data?.warnings, [
+    { code: "missing_cover", message: "The article has no cover image." },
+    { code: "missing_summary", message: "The article has no summary." },
+    { code: "heading_level_jump", message: "Heading level jumps from h2 to h4.", details: { blockIndex: 1, from: 2, to: 4 } },
+    { code: "body_media_ownership", message: "A body image is not media the current member may publish.", details: { mediaId: 31 } },
+  ]);
+}
+
+// A clean article previews with no warnings.
+{
+  const cleanArticle = {
+    ...ownArticle,
+    id: 25,
+    coverImage: 32,
+    summary: "A summary.",
+    body: { root: { type: "root", children: [{ type: "heading", tag: "h2", children: [] }, { type: "heading", tag: "h3", children: [] }] } },
+  };
+  const fixture = memberServiceFixture({ articles: { 25: cleanArticle }, media: { 32: ownMedia } });
+  const preview = await fixture.service.preview(25);
+  assert.equal(preview.ok, true);
+  assert.deepEqual(preview.data?.warnings, []);
+}
 
 console.log("Agent HTTP/MCP spike tests PASS.");

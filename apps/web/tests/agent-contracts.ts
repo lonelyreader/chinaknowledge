@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 
 import {
+  AGENT_BODY_V2_VERSION,
   AGENT_BODY_VERSION,
   AGENT_RESULT_VERSION,
   agentFailure,
@@ -10,11 +11,13 @@ import {
   requireIdempotencyKey,
   requireRevision,
   type AgentArticleBodyV1,
+  type AgentArticleBodyV2,
 } from "../src/agent/contracts";
 import {
   agentBodyToLexical,
   agentBodyToMarkdown,
   lexicalToAgentBody,
+  lexicalToAgentBodyV2,
   UnsupportedAgentContentError,
 } from "../src/agent/content";
 import { articleRevisionMatches, createArticleRevision } from "../src/agent/revision";
@@ -70,6 +73,68 @@ assert.throws(
   UnsupportedAgentContentError,
 );
 
+// INFRA-AGENT-MEDIA-001: AgentArticleBodyV2 adds image and youtube blocks.
+const bodyV2: AgentArticleBodyV2 = {
+  version: AGENT_BODY_V2_VERSION,
+  blocks: [
+    { type: "heading", level: 2, children: [{ type: "text", text: "With media" }] },
+    { type: "image", mediaId: 31, alt: "A rice terrace at dawn", caption: "Yunnan" },
+    { type: "youtube", url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+    { type: "paragraph", children: [{ type: "text", text: "Done." }] },
+  ],
+};
+const lexicalV2 = agentBodyToLexical(bodyV2);
+assert.deepEqual(
+  lexicalToAgentBodyV2(lexicalV2.root, { mediaAlt: (id) => (id === 31 ? "A rice terrace at dawn" : null) }),
+  bodyV2,
+);
+assert.equal(
+  agentBodyToMarkdown(bodyV2),
+  '## With media\n\n![A rice terrace at dawn](media:31 "Yunnan")\n\n[YouTube video](https://www.youtube.com/watch?v=dQw4w9WgXcQ)\n\nDone.',
+);
+// The V1 reader keeps failing explicitly on media nodes — never a silent drop.
+assert.throws(() => lexicalToAgentBody(lexicalV2.root), UnsupportedAgentContentError);
+// The V1 body version cannot smuggle V2 blocks into a write.
+assert.throws(
+  () => agentBodyToLexical({ version: AGENT_BODY_VERSION, blocks: [{ type: "image", mediaId: 31, alt: "x" }] } as never),
+  /AgentArticleBodyV1 does not support "image" blocks/,
+);
+// The V2 reader requires readable media with an alt description.
+assert.throws(
+  () => lexicalToAgentBodyV2(lexicalV2.root, { mediaAlt: () => null }),
+  UnsupportedAgentContentError,
+);
+// Non-whitelisted embed URLs fail in both directions, matching the web editor.
+assert.throws(
+  () => agentBodyToLexical({ version: AGENT_BODY_V2_VERSION, blocks: [{ type: "youtube", url: "https://vimeo.com/123456" }] }),
+  /Only YouTube video links/,
+);
+assert.throws(
+  () => lexicalToAgentBodyV2(
+    { type: "root", children: [{ type: "block", fields: { blockType: "youtubeEmbed", url: "https://vimeo.com/123456" } }] },
+    { mediaAlt: () => null },
+  ),
+  UnsupportedAgentContentError,
+);
+// Non-YouTube block embeds and image blocks without valid media IDs fail explicitly.
+assert.throws(
+  () => lexicalToAgentBodyV2(
+    { type: "root", children: [{ type: "block", fields: { blockType: "otherEmbed", url: "https://example.test" } }] },
+    { mediaAlt: () => null },
+  ),
+  UnsupportedAgentContentError,
+);
+assert.throws(
+  () => agentBodyToLexical({ version: AGENT_BODY_V2_VERSION, blocks: [{ type: "image", mediaId: 0, alt: "x" }] }),
+  /positive media ID/,
+);
+assert.throws(
+  () => agentBodyToLexical({ version: AGENT_BODY_V2_VERSION, blocks: [{ type: "image", mediaId: 31, alt: "  " }] }),
+  /alt description/,
+);
+// V1 bodies keep converting exactly as before through the shared writer.
+assert.deepEqual(lexicalToAgentBody(agentBodyToLexical(body).root), body);
+
 const source = { id: 42, locale: "en", updatedAt: "2026-07-31T09:00:00.000Z" };
 const revision = createArticleRevision(source);
 assert.match(revision, /^rev1_[A-Za-z0-9_-]{43}$/);
@@ -100,7 +165,9 @@ for (const description of Object.values(agentToolDescriptions)) {
   assert.ok(description.length > 40);
   assert.ok(description.length <= 512);
 }
-assert.equal(Object.keys(agentToolDescriptions).length, 14);
+assert.equal(Object.keys(agentToolDescriptions).length, 16);
+assert.ok(agentToolDescriptions.media_upload);
+assert.ok(agentToolDescriptions.article_set_cover);
 
 const confirmationSecret = "fixture-publication-secret-at-least-32-characters";
 const confirmationPayload = {

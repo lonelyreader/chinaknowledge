@@ -1,7 +1,15 @@
+import { randomUUID } from "node:crypto";
+
+import { extractYouTubeVideoID } from "@/collections/Articles";
+
 import {
+  AGENT_BODY_V2_VERSION,
   AGENT_BODY_VERSION,
+  type AgentArticleBody,
   type AgentArticleBodyV1,
+  type AgentArticleBodyV2,
   type AgentBlock,
+  type AgentBlockV2,
   type AgentInline,
   type AgentTextMarks,
 } from "./contracts";
@@ -116,6 +124,61 @@ function blockFromLexical(node: LexicalNode, path: string): AgentBlock {
   throw new UnsupportedAgentContentError(path, String(node.type ?? "missing"));
 }
 
+export type AgentMediaAltResolver = (mediaId: number) => string | null | undefined;
+
+function uploadNodeMediaID(value: unknown): number | null {
+  if (typeof value === "number") return value;
+  if (typeof value === "string" && /^\d+$/.test(value)) return Number(value);
+  if (value && typeof value === "object" && "id" in value) {
+    return uploadNodeMediaID((value as { id: unknown }).id);
+  }
+  return null;
+}
+
+function nodeFieldString(node: LexicalNode, key: string) {
+  const fields = node.fields;
+  if (!fields || typeof fields !== "object") return null;
+  const value = (fields as Record<string, unknown>)[key];
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function blockFromLexicalV2(
+  node: LexicalNode,
+  path: string,
+  mediaAlt: AgentMediaAltResolver,
+): AgentBlockV2 {
+  if (node.type === "upload") {
+    if (node.relationTo !== "media") {
+      throw new UnsupportedAgentContentError(path, `upload-${String(node.relationTo)}`);
+    }
+    const mediaId = uploadNodeMediaID(node.value);
+    if (mediaId == null || !Number.isInteger(mediaId) || mediaId <= 0) {
+      throw new UnsupportedAgentContentError(path, "upload-without-media-id");
+    }
+    const alt = mediaAlt(mediaId);
+    if (typeof alt !== "string" || !alt.trim()) {
+      throw new UnsupportedAgentContentError(path, "upload-without-readable-media");
+    }
+    const caption = nodeFieldString(node, "caption");
+    return { type: "image", mediaId, alt, ...(caption ? { caption } : {}) };
+  }
+  if (node.type === "block") {
+    const blockType = node.fields && typeof node.fields === "object"
+      ? (node.fields as Record<string, unknown>).blockType
+      : undefined;
+    if (blockType !== "youtubeEmbed") {
+      throw new UnsupportedAgentContentError(path, `block-${String(blockType)}`);
+    }
+    const url = nodeFieldString(node, "url");
+    if (!url || !extractYouTubeVideoID(url)) {
+      throw new UnsupportedAgentContentError(path, "youtubeEmbed-with-unsupported-url");
+    }
+    const caption = nodeFieldString(node, "caption");
+    return { type: "youtube", url, ...(caption ? { caption } : {}) };
+  }
+  return blockFromLexical(node, path);
+}
+
 export function lexicalToAgentBody(value: unknown): AgentArticleBodyV1 {
   const root = record(value, "root");
   if (root.type !== "root") throw new UnsupportedAgentContentError("root", String(root.type));
@@ -123,6 +186,19 @@ export function lexicalToAgentBody(value: unknown): AgentArticleBodyV1 {
     version: AGENT_BODY_VERSION,
     blocks: childrenOf(root, "root").map((node, index) =>
       blockFromLexical(node, `root.children[${index}]`)),
+  };
+}
+
+export function lexicalToAgentBodyV2(
+  value: unknown,
+  options: { mediaAlt: AgentMediaAltResolver },
+): AgentArticleBodyV2 {
+  const root = record(value, "root");
+  if (root.type !== "root") throw new UnsupportedAgentContentError("root", String(root.type));
+  return {
+    version: AGENT_BODY_V2_VERSION,
+    blocks: childrenOf(root, "root").map((node, index) =>
+      blockFromLexicalV2(node, `root.children[${index}]`, options.mediaAlt)),
   };
 }
 
@@ -163,13 +239,49 @@ function lexicalParagraph(children: AgentInline[]) {
   };
 }
 
-function lexicalBlock(block: AgentBlock): Record<string, unknown> {
+function lexicalBlock(block: AgentBlockV2): Record<string, unknown> {
   if (block.type === "paragraph") return lexicalParagraph(block.children);
   if (block.type === "heading") {
     return { ...lexicalParagraph(block.children), type: "heading", tag: `h${block.level}` };
   }
   if (block.type === "quote") {
     return { ...lexicalParagraph(block.children), type: "quote" };
+  }
+  if (block.type === "image") {
+    if (!Number.isInteger(block.mediaId) || block.mediaId <= 0) {
+      throw new TypeError("Image blocks require a positive media ID.");
+    }
+    if (typeof block.alt !== "string" || !block.alt.trim()) {
+      throw new TypeError("Image blocks require a non-empty alt description.");
+    }
+    const caption = typeof block.caption === "string" && block.caption.trim() ? block.caption : null;
+    return {
+      type: "upload",
+      version: 3,
+      format: "",
+      id: randomUUID(),
+      relationTo: "media",
+      value: block.mediaId,
+      fields: caption ? { caption } : {},
+    };
+  }
+  if (block.type === "youtube") {
+    if (!extractYouTubeVideoID(block.url)) {
+      throw new TypeError("Only YouTube video links (youtube.com / youtu.be) are allowed in the article body.");
+    }
+    const caption = typeof block.caption === "string" && block.caption.trim() ? block.caption : null;
+    return {
+      type: "block",
+      version: 2,
+      format: "",
+      fields: {
+        id: randomUUID(),
+        blockName: "",
+        blockType: "youtubeEmbed",
+        url: block.url,
+        ...(caption ? { caption } : {}),
+      },
+    };
   }
   return {
     type: "list",
@@ -193,9 +305,16 @@ function lexicalBlock(block: AgentBlock): Record<string, unknown> {
   };
 }
 
-export function agentBodyToLexical(body: AgentArticleBodyV1) {
-  if (body.version !== AGENT_BODY_VERSION) {
-    throw new TypeError(`Unsupported article body version: ${String(body.version)}`);
+export function agentBodyToLexical(body: AgentArticleBody) {
+  if (body.version !== AGENT_BODY_VERSION && body.version !== AGENT_BODY_V2_VERSION) {
+    throw new TypeError(`Unsupported article body version: ${String((body as { version?: unknown }).version)}`);
+  }
+  if (body.version === AGENT_BODY_VERSION) {
+    const unsupported = body.blocks.find((block) =>
+      block.type !== "paragraph" && block.type !== "heading" && block.type !== "quote" && block.type !== "list");
+    if (unsupported) {
+      throw new TypeError(`AgentArticleBodyV1 does not support "${String((unsupported as { type?: unknown }).type)}" blocks. Use AgentArticleBodyV2.`);
+    }
   }
   return {
     root: {
@@ -230,11 +349,18 @@ function childrenMarkdown(children: AgentInline[]) {
   return children.map(inlineMarkdown).join("");
 }
 
-export function agentBodyToMarkdown(body: AgentArticleBodyV1) {
-  return body.blocks.map((block) => {
+export function agentBodyToMarkdown(body: AgentArticleBody) {
+  return body.blocks.map((block: AgentBlockV2) => {
     if (block.type === "paragraph") return childrenMarkdown(block.children);
     if (block.type === "heading") return `${"#".repeat(block.level)} ${childrenMarkdown(block.children)}`;
     if (block.type === "quote") return `> ${childrenMarkdown(block.children)}`;
+    if (block.type === "image") {
+      const caption = block.caption ? ` "${block.caption.replace(/"/g, '\\"')}"` : "";
+      return `![${escapeMarkdown(block.alt)}](media:${block.mediaId}${caption})`;
+    }
+    if (block.type === "youtube") {
+      return `[${escapeMarkdown(block.caption ?? "YouTube video")}](${block.url})`;
+    }
     return block.items.map((item, index) =>
       `${block.style === "number" ? `${index + 1}.` : "-"} ${childrenMarkdown(item.children)}`).join("\n");
   }).join("\n\n");

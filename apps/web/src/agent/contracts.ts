@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 export const AGENT_RESULT_VERSION = "AgentToolResultV1" as const;
 export const AGENT_BODY_VERSION = "AgentArticleBodyV1" as const;
+export const AGENT_BODY_V2_VERSION = "AgentArticleBodyV2" as const;
 
 export const agentErrorCodes = [
   "UNAUTHENTICATED",
@@ -75,6 +76,28 @@ export type AgentArticleBodyV1 = {
   blocks: AgentBlock[];
 };
 
+export type AgentImageBlock = {
+  type: "image";
+  mediaId: number;
+  alt: string;
+  caption?: string;
+};
+
+export type AgentYouTubeBlock = {
+  type: "youtube";
+  url: string;
+  caption?: string;
+};
+
+export type AgentBlockV2 = AgentBlock | AgentImageBlock | AgentYouTubeBlock;
+
+export type AgentArticleBodyV2 = {
+  version: typeof AGENT_BODY_V2_VERSION;
+  blocks: AgentBlockV2[];
+};
+
+export type AgentArticleBody = AgentArticleBodyV1 | AgentArticleBodyV2;
+
 export const agentToolDescriptions = {
   account_context:
     "Return the current China, in Fact account, linked Person, role and account state. This is read-only. The server rechecks the account and Person relationship on every call.",
@@ -83,13 +106,17 @@ export const agentToolDescriptions = {
   my_articles_list:
     "List the current member's own China, in Fact articles with minimal status, locale and revision fields. It never returns another member's private article or hidden editorial fields.",
   article_get_working_copy:
-    "Return one article owned by the current member as an AgentArticleBodyV1 working copy with locale and revision. Unsupported rich-text nodes fail explicitly instead of being silently removed.",
+    "Return one article owned by the current member as a working copy with locale and revision. The default AgentArticleBodyV1 body is text-only; request AgentArticleBodyV2 to include image and YouTube blocks. Unsupported rich-text nodes fail explicitly instead of being silently removed.",
   article_create_draft:
     "Create a private article draft for the current member. The server fixes owner, author, translation identity and initial states. Requires an idempotency key and never publishes content.",
   article_save_draft:
     "Save allowed writing fields on a private article owned by the current member. Requires the latest revision and an idempotency key; stale revisions fail without overwriting newer work.",
   article_preview:
-    "Return an authenticated preview path for an article owned by the current member. This is read-only and never creates or changes a public URL or publication state.",
+    "Return an authenticated preview path for an article owned by the current member, plus structured pre-publication warnings: missing cover, missing summary, heading level jumps and body media the member may not publish. This is read-only and never creates or changes a public URL or publication state.",
+  media_upload:
+    "Upload one image for the current member through the site's standard unique-filename media pipeline. The file becomes a Media item owned by the uploader with the given accessibility description, and the tool returns the media ID plus the member's own read-only metadata. It never approves media for public use and cannot touch another member's media.",
+  article_set_cover:
+    "Set the cover image of an article owned by the current member. The server only accepts media uploaded by that member or media already approved for public use, requires the latest revision and an idempotency key, and never changes publication state or another member's article.",
   article_prepare_publication:
     "Prepare publishing, updating the public version, withdrawing or republishing an article owned by the current member, or a site-authored article when the caller is a Super Admin. This validates the action and returns an exact summary plus a short-lived one-time confirmation reference. It never changes the article or public page.",
   article_commit_publication:
