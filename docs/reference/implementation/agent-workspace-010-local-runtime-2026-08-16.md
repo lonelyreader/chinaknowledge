@@ -12,7 +12,7 @@ max_lines: 100
 
 ## 结果
 
-`AGENT-WORKSPACE-010` 已完成 Local 实现与工作项验证，等待一次独立终局复审。Agent 注册表由 30 个增至 33 个工具：新增合格中文母稿读取、Site Article 私有 draft 创建和 pending working-copy 保存；既有 `editorial_reference_options` 增加 Super Admin-only `site_master`，`admin_recent_activity` 增加有限筛选、分页与首屏 `asOf`。
+`AGENT-WORKSPACE-010` 已完成 Local 实现、工作项验证与一次独立终局/定向复核，结论 `PASS`，P0/P1/P2=`0/0/0`；已合入本地 `main`（`c8351ee`）。Agent 注册表由 30 个增至 33 个工具：新增合格中文母稿读取、Site Article 私有 draft 创建和 pending working-copy 保存；既有 `editorial_reference_options` 增加 Super Admin-only `site_master`，`admin_recent_activity` 增加有限筛选、分页与首屏 `asOf`。
 
 本批没有 schema、migration、Payload collection、Admin UI、账户管理、通用 CRUD、Production、真实数据或外部通知改动。
 
@@ -40,6 +40,7 @@ max_lines: 100
 - `npm --prefix apps/web run lint` — PASS，0 error；48 条既有 migration warning。
 - `npm --prefix apps/web run build` — PASS，77 routes。首次仅因跨 worktree 临时 `node_modules` symlink 被 Turbopack 拒绝；改用 ignored 本地依赖副本后完整构建通过，未修改依赖或 lockfile。
 
-## 剩余门禁
+## 复审与剩余门禁
 
-独立终局复审、Preview、`main` push、Production deploy、真实账户/数据、公共状态和外部通知均未执行。010 复审通过后才可进入 011 的统一三角色真实客户端与发布验收。
+- 未主持实现者完成一次终局复审；合同内问题经定向复核关闭，P0/P1/P2=`0/0/0`。010 不再接受相邻扩项。
+- Preview、`main` push、Production deploy、真实账户/数据、公共状态和外部通知均未执行。后续只进入 011 的一次性虚构三角色真实 MCP、恢复与生产前交接。

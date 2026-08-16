@@ -12,13 +12,13 @@ max_lines: 60
 
 | Slice | 状态 | Evidence |
 |---|---|---|
-| `P1-WEB-001` | 实现者验证与产品负责人复审均通过 | [`p1-public-runnable-slice-2026-07-27.md`](p1-public-runnable-slice-2026-07-27.md) |
-| `P1-EDITORIAL-001` | 实现者验证与产品负责人授权的代理独立复审均通过 | [`p1-editorial-cms-foundation-2026-07-27.md`](p1-editorial-cms-foundation-2026-07-27.md) |
-| `P2-PREVIEW-001` | 验收与复审 PASS，P0/P1/P2 为零 | [`local`](p2-preview-local-preparation-2026-07-27.md)、[`research`](p2-preview-provider-research-2026-07-27.md)、[`recovery`](p2-preview-migration-recovery-plan-2026-07-27.md) |
-| `PROD-LAUNCH-001` | 真实内容、正式域名、恢复演练与独立复审均完成 | [`readiness`](production-launch-readiness-research-2026-07-27.md)、[`recovery`](production-backup-recovery-2026-07-28.md)、[`audit`](production-public-product-audit-2026-07-28.md) |
-| `PUB-CURATION-001` | 成员直接发布、站方同文档策展、聚焦 Editor 工作区、双语 Person/路由、Production 读回、恢复与双重独立复审全部通过 | [`architecture audit`](member-publishing-curation-architecture-audit-2026-07-28.md)、[`closure evidence`](member-publishing-curation-core-slice-2026-07-28.md) |
-| `ADMIN-UI-001` | Payload-native 全 Admin 桌面审计、三视口矩阵、权限负例、双重独立复审和 Production 读回均通过 | [`native baseline and closure`](admin-payload-native-baseline-2026-07-29.md) |
-| `BRAND-WORDMARK-001` | 定稿轮廓字标已接入 Header 与 Footer，桌面、移动、SVG 结构和构建验证均通过 | [`integration evidence`](brand-wordmark-site-integration-2026-07-30.md) |
+| `P1-WEB-001` | 实现/复审 PASS | [`evidence`](p1-public-runnable-slice-2026-07-27.md) |
+| `P1-EDITORIAL-001` | 实现/授权复审 PASS | [`evidence`](p1-editorial-cms-foundation-2026-07-27.md) |
+| `P2-PREVIEW-001` | 验收/复审 PASS，`0/0/0` | [`local`](p2-preview-local-preparation-2026-07-27.md)、[`research`](p2-preview-provider-research-2026-07-27.md)、[`recovery`](p2-preview-migration-recovery-plan-2026-07-27.md) |
+| `PROD-LAUNCH-001` | Production/恢复/复审 PASS | [`readiness`](production-launch-readiness-research-2026-07-27.md)、[`recovery`](production-backup-recovery-2026-07-28.md)、[`audit`](production-public-product-audit-2026-07-28.md) |
+| `PUB-CURATION-001` | Production/恢复/双审 PASS | [`audit`](member-publishing-curation-architecture-audit-2026-07-28.md)、[`closure`](member-publishing-curation-core-slice-2026-07-28.md) |
+| `ADMIN-UI-001` | 桌面/三视口/权限/双审/Production PASS | [`evidence`](admin-payload-native-baseline-2026-07-29.md) |
+| `BRAND-WORDMARK-001` | 集成/桌面/移动/SVG/build PASS | [`evidence`](brand-wordmark-site-integration-2026-07-30.md) |
 | `AGENT-WORKSPACE-001` | Local/Preview OAuth、权限负例、恢复与复审 PASS | [`auth`](agent-workspace-001-auth-design-2026-07-31.md)、[`client`](agent-workspace-001-client-compatibility-2026-07-31.md)、[`pre`](agent-workspace-001-pre-migration-review-2026-07-31.md)、[`Local`](agent-workspace-001-local-runtime-2026-07-31.md)、[`Preview`](agent-workspace-001-preview-runtime-2026-07-31.md)、[`transition`](agent-workspace-001-transition-review-2026-07-31.md)、[`final`](agent-workspace-001-final-review-2026-07-31.md) |
 | `AGENT-WORKSPACE-002` | Local/Preview 发布闭环与最终复审 PASS，`0/0/0` | [`Local`](agent-workspace-002-local-runtime-2026-07-31.md)、[`Preview`](agent-workspace-002-preview-runtime-2026-08-01.md)、[`transition`](agent-workspace-002-transition-review-2026-08-01.md)、[`final`](agent-workspace-002-final-review-2026-08-01.md) |
 | `AGENT-WORKSPACE-003` | Local exact read、Add/Remove 与复审 PASS，Preview 未执行 | [`Local`](agent-workspace-003-local-runtime-2026-08-01.md)、[`review`](agent-workspace-003-independent-review-2026-08-01.md) |
@@ -28,7 +28,8 @@ max_lines: 60
 | `AGENT-WORKSPACE-007` | Local/复审 PASS；发布待执行 | [`evidence`](agent-workspace-007-local-runtime-2026-08-16.md) |
 | `AGENT-WORKSPACE-008` | Local/复审 PASS；发布待执行 | [`evidence`](agent-workspace-008-local-runtime-2026-08-16.md) |
 | `AGENT-WORKSPACE-009` | Local/复审 PASS；发布待执行 | [`evidence`](agent-workspace-009-local-runtime-2026-08-16.md) |
-| `AGENT-WORKSPACE-010` | Local 实现/工作项验证 PASS；独立复审待执行 | [`evidence`](agent-workspace-010-local-runtime-2026-08-16.md) |
+| `AGENT-WORKSPACE-010` | Local/复审 PASS，`0/0/0`；发布待执行 | [`evidence`](agent-workspace-010-local-runtime-2026-08-16.md) |
+| `AGENT-WORKSPACE-011` | 合同冻结；Preview 未执行 | [`contract`](../../roadmap/checklists/agent-workspace-integration-release.md) |
 | `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |
 | `AUTH-RESET-001` | Production 与复审 PASS | [`evidence`](password-reset-recovery-2026-08-11.md) |
 | `INFRA-BODY-MEDIA-001` | 待复审 | [`evidence`](body-media-security-2026-08-11.md) |
