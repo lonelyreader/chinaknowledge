@@ -5,10 +5,16 @@ import path from "node:path";
 const migrationPath = path.resolve(process.cwd(), "src/migrations/20260730_181300.ts");
 const snapshotPath = path.resolve(process.cwd(), "src/migrations/20260730_181300.json");
 const typesPath = path.resolve(process.cwd(), "src/payload-types.ts");
-const [migration, snapshotText, generatedTypes] = await Promise.all([
+const peoplePath = path.resolve(process.cwd(), "src/collections/People.ts");
+const articlesPath = path.resolve(process.cwd(), "src/collections/Articles.ts");
+const eventsPath = path.resolve(process.cwd(), "src/collections/AgentEvents.ts");
+const [migration, snapshotText, generatedTypes, people, articles, events] = await Promise.all([
   readFile(migrationPath, "utf8"),
   readFile(snapshotPath, "utf8"),
   readFile(typesPath, "utf8"),
+  readFile(peoplePath, "utf8"),
+  readFile(articlesPath, "utf8"),
+  readFile(eventsPath, "utf8"),
 ]);
 
 const snapshot = JSON.parse(snapshotText) as {
@@ -39,5 +45,14 @@ assert.doesNotMatch(migration, /ALTER TABLE "people"/);
 assert.doesNotMatch(migration, /ALTER TABLE "articles"/);
 assert.match(generatedTypes, /inputFingerprint\?: string \| null/);
 assert.match(generatedTypes, /'pending' \| 'success' \| 'denied' \| 'conflict' \| 'failed'/);
+
+// AGENT-WORKSPACE-007 intentionally reuses the shipped Person, Article and
+// AgentEvents schema. These assertions guard the exact preconditions instead
+// of introducing an Agent-only collection or migration.
+assert.match(people, /\{ label: "X", value: "x" \}/);
+assert.match(people, /\{ label: "Discord", value: "discord" \}/);
+assert.match(people, /name: "profileStatus"/);
+assert.match(articles, /fields: \["translationGroup", "locale"\]/);
+assert.match(events, /\{ label: "Account", value: "account" \}[\s\S]*\{ label: "Article", value: "article" \}[\s\S]*\{ label: "Connection", value: "connection" \}/);
 
 console.log("Agent schema contract tests PASS.");

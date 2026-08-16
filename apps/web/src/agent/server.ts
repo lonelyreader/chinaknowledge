@@ -4,7 +4,45 @@ import { z } from "zod";
 import { AGENT_BODY_V2_VERSION, AGENT_BODY_VERSION, agentToolDescriptions, type AgentArticleBody, type AgentArticleBodyV1, type AgentArticleBodyV2, type AgentToolResultV1 } from "./contracts";
 import { AgentMemberService } from "./service";
 
-const emptyInput = z.object({});
+const emptyInput = z.object({}).strict();
+const paginationSchema = z.object({
+  page: z.number().int().positive().optional(),
+  limit: z.number().int().min(1).max(50).optional(),
+}).strict();
+const optionalProfileText = z.string().max(10_000).nullable().optional();
+const canHelpWithSchema = z.array(z.string().min(1).max(500)).max(8);
+const profilePatchSchema = z.object({
+  name: z.string().min(1).max(500).optional(),
+  nameZh: z.string().max(500).nullable().optional(),
+  portraitId: z.number().int().positive().nullable().optional(),
+  languages: z.array(z.enum(["en", "es"])).max(2).refine((values) => new Set(values).size === values.length).optional(),
+  topicIds: z.array(z.number().int().positive()).max(50).refine((values) => new Set(values).size === values.length).optional(),
+  identity: optionalProfileText,
+  city: optionalProfileText,
+  introduction: optionalProfileText,
+  quote: optionalProfileText,
+  canHelpWith: canHelpWithSchema.optional(),
+  identityEs: optionalProfileText,
+  cityEs: optionalProfileText,
+  introductionEs: optionalProfileText,
+  quoteEs: optionalProfileText,
+  canHelpWithEs: canHelpWithSchema.optional(),
+  revision: z.string(),
+  idempotencyKey: z.string(),
+}).strict().refine((value) => Object.keys(value).some((key) => key !== "revision" && key !== "idempotencyKey"), {
+  message: "At least one profile field is required.",
+});
+const profileLinkSchema = z.object({
+  type: z.enum(["personal_site", "newsletter", "youtube", "linkedin", "x", "instagram", "github", "discord", "email", "other"]),
+  label: z.string().min(1).max(500),
+  labelEs: z.string().max(500).nullable().optional(),
+  url: z.string().min(1).max(2_048),
+}).strict().superRefine((link, context) => {
+  const valid = link.type === "email"
+    ? /^mailto:[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(link.url)
+    : /^https?:\/\//i.test(link.url);
+  if (!valid) context.addIssue({ code: "custom", message: link.type === "email" ? "Email links must use mailto:." : "Links must use http:// or https://." });
+});
 
 const marksSchema = z.object({
   bold: z.literal(true).optional(),
@@ -75,7 +113,7 @@ export async function createAgentMcpServer(context: McpRequestContext) {
   const server = new McpServer({ name: "china-in-fact", version: "0.1.0" });
   if (!context.authInfo) return server;
   const service = await AgentMemberService.create(context.authInfo);
-  const role = context.authInfo.extra?.role;
+  const role = await service.currentRole();
   const editorial = role === "editor" || role === "super_admin";
   const admin = role === "super_admin";
 
@@ -97,9 +135,16 @@ export async function createAgentMcpServer(context: McpRequestContext) {
     async () => result(await service.capabilities()),
   );
 
-  server.registerTool("my_articles_list", { title: "My articles", description: agentToolDescriptions.my_articles_list, inputSchema: emptyInput, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async () => result(await service.myArticles()));
+  server.registerTool("my_profile_get", { title: "My profile", description: agentToolDescriptions.my_profile_get, inputSchema: emptyInput, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async () => result(await service.myProfileGet()));
+  server.registerTool("my_profile_save", { title: "Save profile", description: agentToolDescriptions.my_profile_save, inputSchema: profilePatchSchema, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async ({ revision, idempotencyKey, ...patch }) => result(await service.myProfileSave({ revision, idempotencyKey, patch })));
+  server.registerTool("my_links_save", { title: "Save profile links", description: agentToolDescriptions.my_links_save, inputSchema: z.object({ links: z.array(profileLinkSchema).max(8), revision: z.string(), idempotencyKey: z.string() }).strict(), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.myLinksSave(input)));
+  server.registerTool("my_profile_prepare_publication", { title: "Prepare profile visibility", description: agentToolDescriptions.my_profile_prepare_publication, inputSchema: z.object({ targetStatus: z.enum(["draft", "public"]), revision: z.string() }).strict(), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } }, async (input) => result(await service.prepareProfilePublication(input)));
+  server.registerTool("my_profile_commit_publication", { title: "Confirm profile visibility", description: agentToolDescriptions.my_profile_commit_publication, inputSchema: z.object({ confirmationRef: z.string().max(2_048), revision: z.string(), idempotencyKey: z.string() }).strict(), annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.commitProfilePublication(input)));
+  server.registerTool("my_articles_list", { title: "My articles", description: agentToolDescriptions.my_articles_list, inputSchema: paginationSchema.extend({ locale: z.enum(["en", "es"]).optional(), publicationStatus: z.enum(["draft", "published", "withdrawn"]).optional() }).strict(), annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.myArticles(input)));
+  server.registerTool("my_media_list", { title: "My media", description: agentToolDescriptions.my_media_list, inputSchema: paginationSchema, annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.myMedia(input)));
   server.registerTool("article_get_working_copy", { title: "Working copy", description: agentToolDescriptions.article_get_working_copy, inputSchema: z.object({ id: z.number().int().positive(), bodyVersion: z.enum([AGENT_BODY_VERSION, AGENT_BODY_V2_VERSION]).optional() }), annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async ({ id, bodyVersion }) => result(await service.workingCopy(id, { bodyVersion })));
   server.registerTool("article_create_draft", { title: "New draft", description: agentToolDescriptions.article_create_draft, inputSchema: z.object({ title: z.string().min(1).max(240), summary: z.string().max(2000).optional(), locale: z.enum(["en", "es"]), body: anyBodySchema, idempotencyKey: z.string() }), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.createDraft(input)));
+  server.registerTool("article_create_translation_draft", { title: "Create translation draft", description: agentToolDescriptions.article_create_translation_draft, inputSchema: z.object({ id: z.number().int().positive(), idempotencyKey: z.string() }).strict(), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.createTranslationDraft(input)));
   server.registerTool("article_save_draft", { title: "Save draft", description: agentToolDescriptions.article_save_draft, inputSchema: z.object({ id: z.number().int().positive(), title: z.string().min(1).max(240), summary: z.string().max(2000).optional(), body: anyBodySchema, revision: z.string(), idempotencyKey: z.string() }), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.saveDraft(input)));
   server.registerTool("media_upload", { title: "Upload image", description: agentToolDescriptions.media_upload, inputSchema: z.object({ filename: z.string().min(1).max(200), mimeType: z.string().regex(/^image\/[\w.+-]+$/), data: z.string().min(1).max(14_000_000), alt: z.string().min(1).max(2_000), idempotencyKey: z.string() }), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.mediaUpload(input)));
   server.registerTool("article_set_cover", { title: "Set cover image", description: agentToolDescriptions.article_set_cover, inputSchema: z.object({ id: z.number().int().positive(), mediaId: z.number().int().positive(), revision: z.string(), idempotencyKey: z.string() }), annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } }, async (input) => result(await service.setCover(input)));

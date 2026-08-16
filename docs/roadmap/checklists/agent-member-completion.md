@@ -76,10 +76,10 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 
 ## Acceptance
 
-- [ ] Member 可经 Agent 读取并保存本人资料与 X 等外链，从 `my_profile_get` 获得 Preview path，并以 prepare/commit 公开或转私有；每次结果含 revision、读回和必要公开影响。
-- [ ] Member 可分页查本人媒体与文章、按受限条件筛选，并从本人 Article 建立唯一的另一语言 draft。
-- [ ] 当前角色 discovery 修复生效；Member、Editor、Super Admin 的工具列表和直调权限都由当前服务端角色证明。
-- [ ] 上述权限、冲突、幂等、确认过期、公开完整性和恢复负例全部通过；无新增 schema/migration、无 Person UI diff。
+- [x] Member 可经 Agent 读取并保存本人资料与 X 等外链，从 `my_profile_get` 获得 Preview path，并以 prepare/commit 公开或转私有；每次结果含 revision、读回和必要公开影响。
+- [x] Member 可分页查本人媒体与文章、按受限条件筛选，并从本人 Article 建立唯一的另一语言 draft。
+- [x] 当前角色 discovery 修复生效；Member、Editor、Super Admin 的工具列表和直调权限都由当前服务端角色证明。
+- [x] 上述权限、冲突、幂等、确认过期、公开完整性和恢复负例已在 Local 通过；无新增 schema/migration、无 Person UI diff。
 
 ## Validation
 
@@ -103,5 +103,6 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 
 - [x] 用户批准把 Profile 与 Member 余项收敛为一个 007 checklist，并预授权本地开发、commit、本地 merge、branch push 与 Preview；`main` push 未授权（2026-08-16）。
 - [x] `INFRA-AGENT-MEDIA-001` 已合入本地 `main`（`f100908`）；其 Preview/Production release 仍由原 checklist 收尾。
-- [ ] `INFRA-PERSON-PAGE-001` 尚需合入本地 `main`；合入前只冻结合同，不开始依赖新 Person 字段的实现，其 Preview/Production migration 分别在对应 release gate 执行。
-- [ ] 实现、Local 验证、一次独立复审和 Preview 验收待执行；Production 发布未授权。
+- [x] `INFRA-PERSON-PAGE-001` 已合入本地 `main`（`4591719`）；其 Preview/Production migration 分别留在对应 release gate。
+- [x] 实现与 Local 工作项验证完成；证据见 [`AGENT-WORKSPACE-007 Local runtime`](../../reference/implementation/agent-workspace-007-local-runtime-2026-08-16.md)。
+- [ ] 一次独立复审和 Preview 验收待执行；`main` push 与 Production 发布未授权。

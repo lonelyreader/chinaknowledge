@@ -1,17 +1,12 @@
 import { APIError, type Endpoint } from "payload";
 
-import { hasEditorialRole, isCMSUser } from "./roles";
+import { commitProfilePublication } from "./profile-publication";
+import { isCMSUser } from "./roles";
 
 type ProfileTransitionBody = {
   confirmed?: boolean;
   status?: unknown;
 };
-
-function relationID(value: unknown) {
-  return value && typeof value === "object" && "id" in value
-    ? (value as { id: unknown }).id
-    : value;
-}
 
 export const transitionProfileEndpoint: Endpoint = {
   path: "/:id/profile-transition",
@@ -34,17 +29,7 @@ export const transitionProfileEndpoint: Endpoint = {
       overrideAccess: true,
       req,
     });
-    if (relationID(profile.user) !== req.user.id && !hasEditorialRole(req.user)) {
-      throw new APIError("Members can only change their own profile.", 403);
-    }
-    const updated = await req.payload.update({
-      collection: "people",
-      context: { profileTransitionConfirmed: true },
-      data: { profileStatus: body.status },
-      id,
-      overrideAccess: false,
-      req,
-    });
+    const updated = await commitProfilePublication(profile, body.status, req);
     return Response.json({ id: updated.id, profileStatus: updated.profileStatus });
   },
 };

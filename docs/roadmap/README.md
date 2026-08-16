@@ -31,7 +31,7 @@ max_lines: 100
 
 ## Active：Agent Workspace 完整化
 
-[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 按 Production 当前 14 个工具和本地 `main` 的 17 个工具控制 007–011 顺序。当前实现项为 [`AGENT-WORKSPACE-007 Member 完整闭环`](checklists/agent-member-completion.md)，已吸收原 queued `INFRA-AGENT-PROFILE-001`；`INFRA-AGENT-MEDIA-001` 仅剩 release 验收。Editor 工作台、安全站务和最终 Production 验收仍为 queued。
+[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 按 Production 当前 14 个工具、本地 `main` 的 16 个工具和 007 分支的 23 个工具控制 007–011 顺序。[`AGENT-WORKSPACE-007 Member 完整闭环`](checklists/agent-member-completion.md) 已完成 Local 实现与验证，正在等待一次独立复审；它已吸收原 queued `INFRA-AGENT-PROFILE-001`。`INFRA-AGENT-MEDIA-001` 仅剩 release 验收；Editor 工作台、安全站务和最终 Production 验收仍为 queued。
 
 ## Non-urgent closeout
 

@@ -8,9 +8,11 @@ import { createLocalReq, getPayload, type Payload } from "payload";
 
 import config from "@payload-config";
 import { getLatestDraftData } from "@/cms/article-publication";
+import { createArticleTranslationDraft } from "@/cms/article-translation";
 import { editorialMasterContentHash } from "@/cms/editorial-master-hooks";
 import { buildPublicationSummary } from "@/cms/publication-summary";
 import { isCMSUser } from "@/cms/roles";
+import { commitProfilePublication, prepareProfilePublication } from "@/cms/profile-publication";
 import { inviteUserEndpoint } from "@/cms/user-endpoints";
 import type { Article, Media, User } from "@/payload-types";
 
@@ -356,10 +358,10 @@ async function main() {
   const otherPerson = await person(payload, editor, other, approvedImage, "acceptance-other");
   const editorPerson = await person(payload, admin, editor, approvedImage, "acceptance-editor");
 
-  const publicProfile = await payload.update({
-    collection: "people", id: memberPerson.id, context: { profileTransitionConfirmed: true }, data: { profileStatus: "public" },
-    overrideAccess: false, user: member,
-  });
+  const memberReq = await createLocalReq({ user: member }, payload);
+  const preparedProfile = await prepareProfilePublication(memberPerson, "public", memberReq);
+  assert.equal(preparedProfile.action, "publish");
+  const publicProfile = await commitProfilePublication(memberPerson, "public", memberReq);
   assert.equal(publicProfile.profileStatus, "public");
   assert.ok(publicProfile.profilePublishedAt);
   const publishedPortrait = await payload.findByID({ collection: "media", id: memberPortrait.id, overrideAccess: true });
@@ -427,13 +429,12 @@ async function main() {
   assert.equal(relationID(forgedCreate.author), memberPerson.id);
   await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: forgedCreate.id } } });
   await payload.delete({ collection: "articles", id: forgedCreate.id, overrideAccess: true });
-  const ownTranslation = await payload.create({
-    collection: "articles",
-    data: { body, locale: "es", slug: "member-direct-post-es", title: "Member direct post ES", translationGroup: "acceptance-member-curation" },
-    draft: true, overrideAccess: false, user: member,
-  });
+  const ownTranslationResult = await createArticleTranslationDraft(draft.id, memberReq);
+  const ownTranslation = ownTranslationResult.article;
+  assert.equal(ownTranslationResult.created, true);
   assert.equal(relationID(ownTranslation.owner), member.id);
   assert.equal(relationID(ownTranslation.author), memberPerson.id);
+  assert.equal((await createArticleTranslationDraft(draft.id, memberReq)).created, false);
   await payload.delete({ collection: "workflow-events", overrideAccess: true, where: { article: { equals: ownTranslation.id } } });
   await payload.delete({ collection: "articles", id: ownTranslation.id, overrideAccess: true });
   await expectRejected(() => payload.create({

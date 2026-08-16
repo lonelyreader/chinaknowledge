@@ -6,6 +6,11 @@ export type ArticleRevisionSource = {
   updatedAt: string;
 };
 
+export type PersonRevisionSource = {
+  id: number | string;
+  updatedAt: string;
+};
+
 function canonicalJSON(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalJSON).join(",")}]`;
   if (value && typeof value === "object") {
@@ -68,4 +73,51 @@ export function createArticleRevision<T extends ArticleRevisionSource>(source: T
 
 export function articleRevisionMatches<T extends ArticleRevisionSource>(revision: string, source: T) {
   return revision === createArticleRevision(source);
+}
+
+export function createPersonRevision<T extends PersonRevisionSource>(source: T) {
+  const person = source as T & Record<string, unknown>;
+  const revisionState = {
+    id: source.id,
+    updatedAt: source.updatedAt,
+    name: person.name ?? null,
+    nameZh: person.nameZh ?? null,
+    portrait: relationID(person.portrait),
+    languages: person.languages ?? null,
+    topics: relationIDs(person.topics),
+    identity: person.identity ?? null,
+    city: person.city ?? null,
+    introduction: person.introduction ?? null,
+    quote: person.quote ?? null,
+    canHelpWith: Array.isArray(person.canHelpWith)
+      ? person.canHelpWith.map((row) => row && typeof row === "object" ? (row as { item?: unknown }).item ?? null : null)
+      : null,
+    identityEs: person.identityEs ?? null,
+    cityEs: person.cityEs ?? null,
+    introductionEs: person.introductionEs ?? null,
+    quoteEs: person.quoteEs ?? null,
+    canHelpWithEs: Array.isArray(person.canHelpWithEs)
+      ? person.canHelpWithEs.map((row) => row && typeof row === "object" ? (row as { item?: unknown }).item ?? null : null)
+      : null,
+    links: Array.isArray(person.links)
+      ? person.links.map((row) => row && typeof row === "object" ? {
+          type: (row as { type?: unknown }).type ?? null,
+          label: (row as { label?: unknown }).label ?? null,
+          labelEs: (row as { labelEs?: unknown }).labelEs ?? null,
+          url: (row as { url?: unknown }).url ?? null,
+        } : null)
+      : null,
+    slug: person.slug ?? null,
+    user: relationID(person.user),
+    profileStatus: person.profileStatus ?? null,
+    profilePublishedAt: person.profilePublishedAt ?? null,
+  };
+  const digest = createHash("sha256")
+    .update(`person\0${canonicalJSON(revisionState)}`)
+    .digest("base64url");
+  return `rev1_${digest}`;
+}
+
+export function personRevisionMatches<T extends PersonRevisionSource>(revision: string, source: T) {
+  return revision === createPersonRevision(source);
 }

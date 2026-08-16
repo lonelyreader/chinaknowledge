@@ -31,7 +31,7 @@ Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册�
 | Editor（+3） | 精确读取一篇跨作者 Article、确认加入或移出站方入口 | 待处理队列、普通保存、负责人、分类、来源、时效、排期、复核、通知 |
 | Super Admin（+2） | 站方 Article 受控批次公开、最近 20 条 Article 活动 | 站方建稿、基础对象查询、可筛选审计；特权账户动作保持网页入口 |
 
-001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。`INFRA-AGENT-MEDIA-001` 已实现、复审并合入本地 `main`；Production 仍是 14 个工具，本地 `main` 为 17 个，尚未完成 Preview、`main` push 和 Production deploy。
+001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。`INFRA-AGENT-MEDIA-001` 已实现、复审并合入本地 `main`；Production 仍是 14 个工具，本地 `main` 为 16 个，尚未完成 Preview、`main` push 和 Production deploy。007 专用分支为 23 个工具，Local 验证已通过，独立复审与发布待执行。
 
 ## 设计与安全原则
 
@@ -84,7 +84,7 @@ flowchart LR
 |---|---|---|---|
 | `AGENT-WORKSPACE-001`–`006` | completed | OAuth、Member 文章、策展、最小审计、Production 与客户端基线 | archive |
 | `INFRA-AGENT-MEDIA-001` | active（release） | Body V2、图片上传、封面和发布预检进入 Production | 当前 Preview/`main` push/deploy 门 |
-| [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | active | 资料与外链、Profile Preview path/publication、翻译 draft、媒体列表、发现与当前角色 discovery 补齐 Member 闭环 | MEDIA 本地已合；PERSON-PAGE 待合入与 migration |
+| [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | active（review） | 资料与外链、Profile Preview path/publication、翻译 draft、媒体列表、发现与当前角色 discovery 补齐 Member 闭环 | Local 实现/验证 PASS；独立复审、Preview 与 release 待执行 |
 | `AGENT-WORKSPACE-008` | queued | Needs attention、reference options 与站方字段普通保存形成 Editor 工作台 | 007 |
 | `AGENT-WORKSPACE-009` | queued | 排期、复核与作者通知按公共/外部动作合同上线 | 008 |
 | `AGENT-WORKSPACE-010` | queued | 站方 Article 建稿/保存、基础对象只读与可筛选审计 | 009 |
@@ -103,10 +103,10 @@ flowchart LR
 
 ### 当前实现：Profile 与 Member 完整闭环（007）
 
-- [ ] 完成 `my_profile_get / my_profile_save / my_links_save`，覆盖姓名、头像关系、语言、主题、英西资料和最多 8 条外链。
-- [ ] `my_profile_get` 返回 Profile Preview path；公开/转私有使用 prepare/commit/readback。
-- [ ] 增加本人媒体列表、本人文章分页/筛选和账户上下文中的 Profile 状态/完整度。
-- [ ] 增加从本人 Article 建立另一语言 draft 的受控动作，并证明重复建立和跨人建立失败关闭。
+- [x] 完成 `my_profile_get / my_profile_save / my_links_save`，覆盖姓名、头像关系、语言、主题、英西资料和最多 8 条外链。
+- [x] `my_profile_get` 返回 Profile Preview path；公开/转私有使用 prepare/commit/readback。
+- [x] 增加本人媒体列表、本人文章分页/筛选和账户上下文中的 Profile 状态/完整度。
+- [x] 增加从本人 Article 建立另一语言 draft 的受控动作，并证明重复建立和跨人建立失败关闭。
 
 ### Editor 完整闭环
 

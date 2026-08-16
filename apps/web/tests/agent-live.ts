@@ -389,6 +389,165 @@ try {
   assert.match(preview.data?.path ?? "", new RegExp(`^/en/posts/.+\\?preview=${articleId}$`));
   assert.equal((await serviceB.preview(articleId)).ok, false);
 
+  // AGENT-WORKSPACE-007: current-Person profile, links, publication, media,
+  // translation and bounded discovery all stay inside the Member boundary.
+  const initialProfile = await serviceA.myProfileGet();
+  assert.equal(initialProfile.ok, true, JSON.stringify(initialProfile));
+  assert.match(initialProfile.data?.previewPath ?? "", new RegExp(`\\?preview=${memberA.person.id}$`));
+  assert.equal(initialProfile.data?.profileStatus, "draft");
+  const ownPortrait = await memberImage(payload, memberA.user, `Agent profile ${suffix}`);
+  const foreignPortrait = await memberImage(payload, memberB.user, `Foreign profile ${suffix}`);
+  const topic = await payload.create({
+    collection: "taxonomies",
+    data: { dimension: "topic", name: `Agent topic ${suffix}`, slug: `agent-topic-${suffix}` },
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const geography = await payload.create({
+    collection: "taxonomies",
+    data: { dimension: "geography", name: `Agent geography ${suffix}`, slug: `agent-geography-${suffix}` },
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const foreignPortraitSave = await serviceA.myProfileSave({
+    idempotencyKey: `profile-foreign-${randomUUID()}`,
+    patch: { portraitId: foreignPortrait.id },
+    revision: initialProfile.meta!.revision!,
+  });
+  assert.equal(foreignPortraitSave.error?.code, "FORBIDDEN", JSON.stringify(foreignPortraitSave));
+  const nonTopicSave = await serviceA.myProfileSave({
+    idempotencyKey: `profile-nontopic-${randomUUID()}`,
+    patch: { topicIds: [geography.id] },
+    revision: initialProfile.meta!.revision!,
+  });
+  assert.equal(nonTopicSave.error?.code, "VALIDATION_ERROR", JSON.stringify(nonTopicSave));
+  const profileKey = `profile-save-${randomUUID()}`;
+  const savedProfile = await serviceA.myProfileSave({
+    idempotencyKey: profileKey,
+    patch: {
+      canHelpWith: ["Research"],
+      city: "Test City",
+      identity: "Fictional member",
+      introduction: "Local Agent profile fixture.",
+      languages: ["en"],
+      name: memberA.user.displayName,
+      portraitId: ownPortrait.id,
+      quote: "A fixture quote",
+      topicIds: [topic.id],
+    },
+    revision: initialProfile.meta!.revision!,
+  });
+  assert.equal(savedProfile.ok, true, JSON.stringify(savedProfile));
+  assert.equal(savedProfile.data?.publicEffect, "private_only");
+  assert.equal(savedProfile.data?.profile.portraitId, ownPortrait.id);
+  const savedProfileReplay = await serviceA.myProfileSave({
+    idempotencyKey: profileKey,
+    patch: {
+      canHelpWith: ["Research"], city: "Test City", identity: "Fictional member",
+      introduction: "Local Agent profile fixture.", languages: ["en"], name: memberA.user.displayName,
+      portraitId: ownPortrait.id, quote: "A fixture quote", topicIds: [topic.id],
+    },
+    revision: initialProfile.meta!.revision!,
+  });
+  assert.equal(savedProfileReplay.ok, true, JSON.stringify(savedProfileReplay));
+  assert.equal((await serviceA.myProfileSave({
+    idempotencyKey: profileKey,
+    patch: { quote: "Different input" },
+    revision: savedProfile.meta!.revision!,
+  })).error?.code, "IDEMPOTENCY_CONFLICT");
+
+  const badLinks = await serviceA.myLinksSave({
+    idempotencyKey: `links-bad-${randomUUID()}`,
+    links: [{ type: "x", label: "X", url: "javascript:alert(1)" }],
+    revision: savedProfile.meta!.revision!,
+  });
+  assert.equal(badLinks.error?.code, "VALIDATION_ERROR");
+  const savedLinks = await serviceA.myLinksSave({
+    idempotencyKey: `links-save-${randomUUID()}`,
+    links: [
+      { type: "x", label: "X", labelEs: "X", url: "https://x.com/fixture" },
+      { type: "email", label: "Email", url: "mailto:fixture@example.test" },
+    ],
+    revision: savedProfile.meta!.revision!,
+  });
+  assert.equal(savedLinks.ok, true, JSON.stringify(savedLinks));
+  assert.equal(savedLinks.data?.links[0]?.type, "x");
+
+  const [profileSaveOne, profileSaveTwo] = await Promise.all([
+    serviceA.myProfileSave({ idempotencyKey: `profile-race-a-${randomUUID()}`, patch: { quote: "Race A" }, revision: savedLinks.meta!.revision! }),
+    serviceA.myProfileSave({ idempotencyKey: `profile-race-b-${randomUUID()}`, patch: { quote: "Race B" }, revision: savedLinks.meta!.revision! }),
+  ]);
+  assert.equal([profileSaveOne, profileSaveTwo].filter((result) => result.ok).length, 1, JSON.stringify({ profileSaveOne, profileSaveTwo }));
+  assert.equal([profileSaveOne, profileSaveTwo].filter((result) => result.error?.code === "REVISION_CONFLICT").length, 1, JSON.stringify({ profileSaveOne, profileSaveTwo }));
+  let currentProfile = await serviceA.myProfileGet();
+  const stalePrepared = await serviceA.prepareProfilePublication({ revision: currentProfile.meta!.revision!, targetStatus: "public" });
+  assert.equal(stalePrepared.ok, true, JSON.stringify(stalePrepared));
+  const profileChangedAfterPrepare = await serviceA.myProfileSave({
+    idempotencyKey: `profile-after-prepare-${randomUUID()}`,
+    patch: { quote: "Changed after prepare" },
+    revision: currentProfile.meta!.revision!,
+  });
+  assert.equal(profileChangedAfterPrepare.ok, true, JSON.stringify(profileChangedAfterPrepare));
+  assert.equal((await serviceA.commitProfilePublication({
+    confirmationRef: stalePrepared.data!.confirmationRef,
+    idempotencyKey: `profile-stale-commit-${randomUUID()}`,
+    revision: currentProfile.meta!.revision!,
+  })).error?.code, "REVISION_CONFLICT");
+
+  currentProfile = await serviceA.myProfileGet();
+  const rolePrepared = await serviceA.prepareProfilePublication({ revision: currentProfile.meta!.revision!, targetStatus: "public" });
+  assert.equal(rolePrepared.ok, true, JSON.stringify(rolePrepared));
+  await payload.update({ collection: "users", id: memberA.user.id, data: { role: "editor" }, overrideAccess: true });
+  assert.equal((await serviceA.commitProfilePublication({
+    confirmationRef: rolePrepared.data!.confirmationRef,
+    idempotencyKey: `profile-role-commit-${randomUUID()}`,
+    revision: currentProfile.meta!.revision!,
+  })).error?.code, "CONFIRMATION_INVALID");
+  await payload.update({ collection: "users", id: memberA.user.id, data: { role: "author" }, overrideAccess: true });
+  currentProfile = await serviceA.myProfileGet();
+  const profilePrepared = await serviceA.prepareProfilePublication({ revision: currentProfile.meta!.revision!, targetStatus: "public" });
+  const profilePublishKey = `profile-publish-${randomUUID()}`;
+  const profilePublished = await serviceA.commitProfilePublication({ confirmationRef: profilePrepared.data!.confirmationRef, idempotencyKey: profilePublishKey, revision: currentProfile.meta!.revision! });
+  assert.equal(profilePublished.ok, true, JSON.stringify(profilePublished));
+  assert.equal(profilePublished.data?.person.profileStatus, "public");
+  assert.equal((await serviceA.commitProfilePublication({ confirmationRef: profilePrepared.data!.confirmationRef, idempotencyKey: profilePublishKey, revision: currentProfile.meta!.revision! })).ok, true);
+  const publicProfileSave = await serviceA.myProfileSave({
+    idempotencyKey: `profile-public-save-${randomUUID()}`,
+    patch: { quote: "Immediately public" },
+    revision: profilePublished.meta!.revision!,
+  });
+  assert.equal(publicProfileSave.ok, true, JSON.stringify(publicProfileSave));
+  assert.equal(publicProfileSave.data?.publicEffect, "immediate_public_update");
+
+  const ownMediaPage = await serviceA.myMedia({ limit: 1, page: 1 });
+  assert.equal(ownMediaPage.ok, true, JSON.stringify(ownMediaPage));
+  assert.equal(ownMediaPage.data?.media.length, 1);
+  assert.equal(ownMediaPage.data?.media.some((media) => media.id === foreignPortrait.id), false);
+  const articlePage = await serviceA.myArticles({ limit: 1, locale: "en", page: 1, publicationStatus: "draft" });
+  assert.equal(articlePage.ok, true, JSON.stringify(articlePage));
+  assert.equal(articlePage.data?.articles.length, 1);
+  assert.equal(articlePage.data?.articles[0]?.translation.paired, false);
+
+  const [translationOne, translationTwo] = await Promise.all([
+    serviceA.createTranslationDraft({ id: articleId, idempotencyKey: `translation-a-${randomUUID()}` }),
+    serviceA.createTranslationDraft({ id: articleId, idempotencyKey: `translation-b-${randomUUID()}` }),
+  ]);
+  assert.equal(translationOne.ok, true, JSON.stringify(translationOne));
+  assert.equal(translationTwo.ok, true, JSON.stringify(translationTwo));
+  assert.equal(translationOne.data?.article.id, translationTwo.data?.article.id);
+  assert.equal(translationOne.data?.article.locale, "es");
+  assert.equal((await serviceB.createTranslationDraft({ id: articleId, idempotencyKey: `translation-cross-${randomUUID()}` })).ok, false);
+  const pairCount = await payload.count({ collection: "articles", overrideAccess: true, where: { translationGroup: { equals: createdArticle.translationGroup } } });
+  assert.equal(pairCount.totalDocs, 2);
+  const profileWithdrawPrepared = await serviceA.prepareProfilePublication({ revision: publicProfileSave.meta!.revision!, targetStatus: "draft" });
+  const profileWithdrawn = await serviceA.commitProfilePublication({
+    confirmationRef: profileWithdrawPrepared.data!.confirmationRef,
+    idempotencyKey: `profile-withdraw-${randomUUID()}`,
+    revision: publicProfileSave.meta!.revision!,
+  });
+  assert.equal(profileWithdrawn.ok, true, JSON.stringify(profileWithdrawn));
+  assert.equal(profileWithdrawn.data?.person.profileStatus, "draft");
+
   const conflictingKey = await serviceA.createDraft({ body, idempotencyKey: key, locale: "en", title: "Different input" });
   assert.equal(conflictingKey.ok, false);
   assert.equal(conflictingKey.error?.code, "IDEMPOTENCY_CONFLICT");
@@ -1391,7 +1550,38 @@ try {
   assert.equal(toolsResponse.status, 200);
   const toolsBody = await mcpJSON(toolsResponse) as { result?: { tools?: { name: string }[] } };
   const toolNames = toolsBody.result?.tools?.map(({ name }) => name) ?? [];
-  assert.deepEqual(toolNames.sort(), ["account_context", "article_commit_publication", "article_create_draft", "article_get_working_copy", "article_prepare_publication", "article_preview", "article_save_draft", "capabilities_list", "my_articles_list"].sort());
+  assert.deepEqual(toolNames.sort(), [
+    "account_context",
+    "capabilities_list",
+    "my_profile_get",
+    "my_profile_save",
+    "my_links_save",
+    "my_profile_prepare_publication",
+    "my_profile_commit_publication",
+    "my_articles_list",
+    "my_media_list",
+    "article_get_working_copy",
+    "article_create_draft",
+    "article_create_translation_draft",
+    "article_save_draft",
+    "media_upload",
+    "article_set_cover",
+    "article_preview",
+    "article_prepare_publication",
+    "article_commit_publication",
+  ].sort());
+
+  // The same access token discovers the current server-side role rather than
+  // the role captured when the token was issued.
+  await payload.update({ collection: "users", id: oauthActor.user.id, data: { role: "editor" }, overrideAccess: true });
+  const promotedToolsResponse = await gateway(mcpRequest(token.access_token, "tools/list", {}, 10));
+  const promotedToolsBody = await mcpJSON(promotedToolsResponse) as { result?: { tools?: { name: string }[] } };
+  const promotedToolNames = promotedToolsBody.result?.tools?.map(({ name }) => name) ?? [];
+  assert.equal(promotedToolNames.includes("editorial_article_get"), true, JSON.stringify(promotedToolsBody));
+  await payload.update({ collection: "users", id: oauthActor.user.id, data: { role: "author" }, overrideAccess: true });
+  const downgradedToolsResponse = await gateway(mcpRequest(token.access_token, "tools/list", {}, 14));
+  const downgradedToolsBody = await mcpJSON(downgradedToolsResponse) as { result?: { tools?: { name: string }[] } };
+  assert.equal((downgradedToolsBody.result?.tools ?? []).some(({ name }) => name === "editorial_article_get"), false, JSON.stringify(downgradedToolsBody));
 
   const editorToolToken = await exchangeCode(payload, editor, oauthFixtureClient, "editor-tools", "agent:member");
   const editorToolsResponse = await gateway(mcpRequest(editorToolToken.access_token, "tools/list", {}, 11));
@@ -1420,6 +1610,18 @@ try {
   const contextBody = await mcpJSON(contextResponse) as { result?: { structuredContent?: { data?: { userId?: number }; ok?: boolean } } };
   assert.equal(contextBody.result?.structuredContent?.ok, true);
   assert.equal(contextBody.result?.structuredContent?.data?.userId, oauthActor.user.id);
+
+  const protectedProfileFieldResponse = await gateway(mcpRequest(token.access_token, "tools/call", {
+    name: "my_profile_save",
+    arguments: {
+      idempotencyKey: `protected-profile-${randomUUID()}`,
+      revision: `rev1_${"a".repeat(43)}`,
+      slug: "forbidden-slug",
+    },
+  }, 15));
+  const protectedProfileFieldBody = await mcpJSON(protectedProfileFieldResponse) as { result?: { content?: { text?: string }[]; isError?: boolean } };
+  assert.equal(protectedProfileFieldBody.result?.isError, true, JSON.stringify(protectedProfileFieldBody));
+  assert.match(protectedProfileFieldBody.result?.content?.[0]?.text ?? "", /Unrecognized key: \"slug\"/);
 
   const gatewayCreateResponse = await gateway(mcpRequest(token.access_token, "tools/call", {
     name: "article_create_draft",
