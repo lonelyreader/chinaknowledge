@@ -130,6 +130,24 @@ const editorialSitePatchSchema = z.object({
 }).strict().refine((value) => Object.keys(value).some((key) => !["id", "revision", "idempotencyKey"].includes(key)), {
   message: "At least one editorial site field is required.",
 });
+const siteArticleSeoSchema = z.object({
+  title: z.string().max(70).nullable().optional(),
+  description: z.string().max(180).nullable().optional(),
+}).strict().refine((value) => Object.keys(value).length > 0, { message: "At least one SEO field is required." });
+const siteArticlePatchSchema = z.object({
+  title: z.string().min(1).max(240).optional(),
+  summary: z.string().max(2_000).nullable().optional(),
+  body: bodyV2Schema.optional(),
+  format: z.enum(["guide", "reporting", "analysis", "first_person", "update"]).nullable().optional(),
+  purposeIds: z.array(z.number().int().positive()).max(50).optional(),
+  topicIds: z.array(z.number().int().positive()).max(50).optional(),
+  geographyIds: z.array(z.number().int().positive()).max(50).optional(),
+  situationIds: z.array(z.number().int().positive()).max(50).optional(),
+  sourceNotes: z.array(editorialSourceSchema).max(50).optional(),
+  freshnessDate: z.union([z.iso.date(), z.iso.datetime({ offset: true })]).nullable().optional(),
+  coverImageId: z.number().int().positive().nullable().optional(),
+  seo: siteArticleSeoSchema.optional(),
+}).strict().refine((value) => Object.keys(value).length > 0, { message: "At least one site working-copy field is required." });
 const homepageScheduleInputSchema = z.discriminatedUnion("placement", [
   z.object({
     id: z.number().int().positive(),
@@ -255,7 +273,7 @@ export async function createAgentMcpServer(context: McpRequestContext) {
       {
         title: "Editorial references",
         description: agentToolDescriptions.editorial_reference_options,
-        inputSchema: paginationSchema.extend({ kind: z.enum(["assignee", "purpose", "topic", "geography", "situation", "approved_cover"]), query: z.string().max(200).optional() }).strict(),
+        inputSchema: paginationSchema.extend({ kind: z.enum(["assignee", "purpose", "topic", "geography", "situation", "approved_cover", "site_master"]), query: z.string().max(200).optional() }).strict(),
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       },
       async (input) => result(await service.editorialReferenceOptions(input)),
@@ -352,6 +370,50 @@ export async function createAgentMcpServer(context: McpRequestContext) {
 
   if (admin) {
     server.registerTool(
+      "site_article_master_get",
+      {
+        title: "Chinese master",
+        description: agentToolDescriptions.site_article_master_get,
+        inputSchema: z.object({ id: z.number().int().positive() }).strict(),
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      },
+      async ({ id }) => result(await service.siteArticleMasterGet(id)),
+    );
+    server.registerTool(
+      "site_article_create_draft",
+      {
+        title: "New site draft",
+        description: agentToolDescriptions.site_article_create_draft,
+        inputSchema: z.object({
+          masterId: z.number().int().positive(),
+          masterContentHash: z.string().regex(/^[a-f0-9]{64}$/),
+          locale: z.enum(["en", "es"]),
+          title: z.string().min(1).max(240),
+          summary: z.string().min(1).max(2_000),
+          body: bodyV2Schema,
+          idempotencyKey: z.string(),
+        }).strict(),
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      },
+      async (input) => result(await service.siteArticleCreateDraft(input)),
+    );
+    server.registerTool(
+      "site_article_save_draft",
+      {
+        title: "Save site draft",
+        description: agentToolDescriptions.site_article_save_draft,
+        inputSchema: z.object({
+          id: z.number().int().positive(),
+          masterContentHash: z.string().regex(/^[a-f0-9]{64}$/),
+          revision: z.string(),
+          idempotencyKey: z.string(),
+          patch: siteArticlePatchSchema,
+        }).strict(),
+        annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+      },
+      async (input) => result(await service.siteArticleSaveDraft(input)),
+    );
+    server.registerTool(
       "editorial_release_site_article_batch",
       {
         title: "Release site article batch",
@@ -370,10 +432,18 @@ export async function createAgentMcpServer(context: McpRequestContext) {
       {
         title: "Recent activity",
         description: agentToolDescriptions.admin_recent_activity,
-        inputSchema: emptyInput,
+        inputSchema: z.object({
+          page: z.number().int().positive().optional(),
+          limit: z.number().int().min(1).max(50).optional(),
+          asOf: z.iso.datetime({ offset: true }).optional(),
+          axis: z.enum(["publication", "curation"]).optional(),
+          articleId: z.number().int().positive().optional(),
+          notificationKind: z.enum(["selected", "major_edit", "needs_recheck", "removed"]).optional(),
+          notificationStatus: z.enum(["not_required", "pending", "sent", "failed"]).optional(),
+        }).strict(),
         annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
       },
-      async () => result(await service.adminRecentActivity()),
+      async (input) => result(await service.adminRecentActivity(input)),
     );
   }
 

@@ -495,6 +495,7 @@ function memberServiceFixture(options: {
   assert.equal(capabilities.data?.tools.includes("editorial_commit_major_edit_notification"), true);
   const assignees = await fixture.service.editorialReferenceOptions({ kind: "assignee" });
   assert.deepEqual(assignees.data?.options, [{ id: 5, label: "Fixture Editor", kind: "assignee" }]);
+  assert.equal((await fixture.service.editorialReferenceOptions({ kind: "site_master" })).error?.code, "FORBIDDEN");
   const profile = await fixture.service.myProfileGet();
   assert.equal(profile.ok, true, JSON.stringify(profile));
   assert.equal(profile.data?.previewPath, "/en/people/fixture-member?preview=7");
@@ -515,6 +516,19 @@ function memberServiceFixture(options: {
   const editorialRevision = createArticleRevision({ id: 21, locale: "en", updatedAt: "2026-08-12T00:00:00.000Z" });
   assert.equal((await fixture.service.prepareHomepageSchedule({ id: 21, placement: "none", startsAt: null, endsAt: null, revision: editorialRevision })).error?.code, "FORBIDDEN");
   assert.equal((await fixture.service.prepareMajorEditNotification({ id: 21, revision: editorialRevision })).error?.code, "FORBIDDEN");
+  assert.equal((await fixture.service.siteArticleMasterGet(1)).error?.code, "FORBIDDEN");
+  assert.equal((await fixture.service.siteArticleCreateDraft({ body: { version: AGENT_BODY_V2_VERSION, blocks: [] }, idempotencyKey: "site_create_0123456789", locale: "en", masterContentHash: "a".repeat(64), masterId: 1, summary: "Summary", title: "Title" })).error?.code, "FORBIDDEN");
+  assert.equal((await fixture.service.adminRecentActivity()).error?.code, "FORBIDDEN");
+}
+
+{
+  const fixture = memberServiceFixture({ role: "super_admin" });
+  const capabilities = await fixture.service.capabilities();
+  assert.equal(capabilities.data?.tools.includes("site_article_master_get"), true);
+  assert.equal(capabilities.data?.tools.includes("site_article_create_draft"), true);
+  assert.equal(capabilities.data?.tools.includes("site_article_save_draft"), true);
+  assert.equal((await fixture.service.adminRecentActivity({ where: {} } as never)).error?.code, "VALIDATION_ERROR");
+  assert.equal((await fixture.service.siteArticleCreateDraft({ body: { version: AGENT_BODY_V2_VERSION, blocks: [] }, idempotencyKey: "site_create_unknown_01", locale: "en", masterContentHash: "a".repeat(64), masterId: 1, owner: 9, summary: "Summary", title: "Title" } as never)).error?.code, "VALIDATION_ERROR");
 }
 
 const uploadInput = {

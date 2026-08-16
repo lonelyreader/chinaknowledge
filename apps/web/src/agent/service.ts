@@ -15,7 +15,7 @@ import {
   type PayloadRequest,
 } from "payload";
 
-import type { AgentEvent, Article, Media, Person, User, WorkflowEvent } from "@/payload-types";
+import type { AgentEvent, Article, EditorialMaster, Media, Person, User, WorkflowEvent } from "@/payload-types";
 import { extractYouTubeVideoID } from "@/collections/Articles";
 import {
   commitEditorialSiteSelection,
@@ -88,6 +88,7 @@ import {
   requireIdempotencyKey,
   requireRevision,
   type AgentArticleBody,
+  type AgentArticleBodyV2,
   type AgentErrorCode,
   type AgentToolName,
 } from "./contracts";
@@ -104,7 +105,7 @@ type Actor = {
 
 type WriteContext = {
   idempotencyKey: string;
-  tool: "article_commit_publication" | "article_create_draft" | "article_create_translation_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_homepage_schedule" | "editorial_commit_major_edit_notification" | "editorial_commit_site_selection" | "editorial_save_site_fields" | "media_upload" | "my_links_save" | "my_profile_commit_publication" | "my_profile_save";
+  tool: "article_commit_publication" | "article_create_draft" | "article_create_translation_draft" | "article_save_draft" | "article_set_cover" | "editorial_commit_homepage_schedule" | "editorial_commit_major_edit_notification" | "editorial_commit_site_selection" | "editorial_save_site_fields" | "media_upload" | "my_links_save" | "my_profile_commit_publication" | "my_profile_save" | "site_article_create_draft" | "site_article_save_draft";
 };
 
 export type HomepageScheduleTarget = {
@@ -133,7 +134,7 @@ export type AgentProfilePatch = {
 
 export type AgentProfileLink = NonNullable<Person["links"]>[number];
 
-export type EditorialReferenceKind = "approved_cover" | "assignee" | "geography" | "purpose" | "situation" | "topic";
+export type EditorialReferenceKind = "approved_cover" | "assignee" | "geography" | "purpose" | "site_master" | "situation" | "topic";
 
 export type AgentEditorialSitePatch = {
   assignedEditorId?: number | null;
@@ -146,6 +147,31 @@ export type AgentEditorialSitePatch = {
   situationIds?: number[];
   sourceNotes?: Array<{ check?: string | null; checkedAt?: string | null; id?: string; label: string; url?: string | null }>;
   topicIds?: number[];
+};
+
+export type AgentSiteArticlePatch = {
+  body?: AgentArticleBodyV2;
+  coverImageId?: number | null;
+  format?: Article["format"];
+  freshnessDate?: string | null;
+  geographyIds?: number[];
+  purposeIds?: number[];
+  seo?: { description?: string | null; title?: string | null };
+  situationIds?: number[];
+  sourceNotes?: NonNullable<AgentEditorialSitePatch["sourceNotes"]>;
+  summary?: string | null;
+  title?: string;
+  topicIds?: number[];
+};
+
+type AdminActivityInput = {
+  articleId?: number;
+  asOf?: string;
+  axis?: NonNullable<WorkflowEvent["axis"]>;
+  limit?: number;
+  notificationKind?: NonNullable<WorkflowEvent["notificationKind"]>;
+  notificationStatus?: NonNullable<WorkflowEvent["notificationStatus"]>;
+  page?: number;
 };
 
 class AgentServiceError extends Error {
@@ -788,6 +814,95 @@ export class AgentMemberService {
     }
   }
 
+  private assertEligibleSiteMaster(master: EditorialMaster, expectedFingerprint?: string) {
+    if (master.rightsStatus !== "cleared" || !["approved", "translated", "released"].includes(master.editorialStatus)) {
+      throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master is not approved and rights-cleared.");
+    }
+    if (!master.titleZh.trim() || !master.summaryZh.trim() || !master.bodyZh?.root || articleRelationID(master.purpose) == null || !master.sourceNotes?.length) {
+      throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master is incomplete.");
+    }
+    for (const source of master.sourceNotes) {
+      if (!source.label.trim() || !source.url.trim() || !source.checkedAt || source.rights === "restricted") {
+        throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master has an incomplete or restricted source.");
+      }
+      try {
+        const url = new URL(source.url);
+        if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Unsafe source protocol");
+      } catch {
+        throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master source URL is invalid.");
+      }
+      if (!isISODateTime(source.checkedAt)) throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master source verification time is invalid.");
+    }
+    if (!/^[a-f0-9]{64}$/.test(master.contentHash)) {
+      throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master content hash is invalid.");
+    }
+    const fingerprint = this.siteMasterFingerprint(master);
+    if (expectedFingerprint !== undefined && fingerprint !== expectedFingerprint) {
+      throw new AgentServiceError("REVISION_CONFLICT", "The Chinese master changed after it was read.", { latestMasterFingerprint: fingerprint });
+    }
+    return master;
+  }
+
+  private siteMasterFingerprint(master: EditorialMaster) {
+    const topics = [...new Set((master.topics ?? []).flatMap((value) => {
+      const id = articleRelationID(value);
+      return typeof id === "number" ? [id] : [];
+    }))].sort((left, right) => left - right);
+    return createHash("sha256")
+      .update(`agent-site-master-v1\0${canonicalJSON({ contentHash: master.contentHash, topics })}`)
+      .digest("hex");
+  }
+
+  private async eligibleSiteMaster(id: number, user: User, req?: PayloadRequest, expectedFingerprint?: string) {
+    if (!isSuperAdmin(user)) throw new AgentServiceError("FORBIDDEN", "Super Admin access is required.");
+    let master: EditorialMaster;
+    try {
+      master = await this.payload.findByID({ collection: "editorial-masters", id, depth: 0, draft: true, overrideAccess: false, req, user }) as EditorialMaster;
+    } catch {
+      throw new AgentServiceError("NOT_FOUND", "Chinese master not found.");
+    }
+    return this.assertEligibleSiteMaster(master, expectedFingerprint);
+  }
+
+  private async siteMasterSummary(master: EditorialMaster, user: User, req?: PayloadRequest, includeBody = false) {
+    const taxonomyIds = [master.purpose, ...(master.topics ?? [])]
+      .map(articleRelationID)
+      .filter((value): value is number => typeof value === "number");
+    const localReq = req ?? await createLocalReq({ user }, this.payload);
+    const taxonomies = taxonomyIds.length
+      ? await this.payload.find({ collection: "taxonomies", depth: 0, limit: taxonomyIds.length, overrideAccess: false, pagination: false, req: localReq, select: { dimension: true, name: true }, user, where: { id: { in: taxonomyIds } } })
+      : { docs: [] };
+    const taxonomyById = new Map(taxonomies.docs.map((taxonomy) => [String(taxonomy.id), taxonomy]));
+    const purposeId = articleRelationID(master.purpose);
+    const relationSummary = (id: number | null | undefined) => {
+      const taxonomy = id == null ? null : taxonomyById.get(String(id));
+      return taxonomy ? { id: taxonomy.id, name: taxonomy.name } : null;
+    };
+    let body: AgentArticleBodyV2 | undefined;
+    if (includeBody) {
+      const altById = await this.bodyMediaAltByValue(master.bodyZh, user, localReq);
+      body = lexicalToAgentBodyV2(master.bodyZh.root, { mediaAlt: (mediaId) => altById.get(String(mediaId)) ?? null });
+    }
+    return {
+      id: master.id,
+      contentKey: master.contentKey,
+      titleZh: master.titleZh,
+      summaryZh: master.summaryZh,
+      editorialStatus: master.editorialStatus,
+      rightsStatus: master.rightsStatus,
+      contentHash: this.siteMasterFingerprint(master),
+      risk: master.risk,
+      purpose: relationSummary(purposeId),
+      topics: (master.topics ?? []).flatMap((value) => {
+        const topic = relationSummary(articleRelationID(value));
+        return topic ? [topic] : [];
+      }),
+      sources: master.sourceNotes.map(({ capturedAt, checkedAt, label, rights, url }) => ({ label, url, capturedAt: capturedAt ?? null, checkedAt: checkedAt ?? null, rights })),
+      ...(body ? { body, markdown: agentBodyToMarkdown(body) } : {}),
+      updatedAt: master.updatedAt,
+    };
+  }
+
   private async homepageScheduleState(id: number, user: User, req?: PayloadRequest) {
     await this.editorialArticle(id, user, req);
     let live: Article;
@@ -884,7 +999,7 @@ export class AgentMemberService {
       if (hasEditorialRole(user)) {
         tools.push("editorial_attention_list", "editorial_reference_options", "editorial_article_get", "editorial_save_site_fields", "editorial_prepare_site_selection", "editorial_commit_site_selection", "editorial_prepare_homepage_schedule", "editorial_commit_homepage_schedule", "editorial_prepare_major_edit_notification", "editorial_commit_major_edit_notification");
       }
-      if (isSuperAdmin(user)) tools.push("editorial_release_site_article_batch", "admin_recent_activity");
+      if (isSuperAdmin(user)) tools.push("site_article_master_get", "site_article_create_draft", "site_article_save_draft", "editorial_release_site_article_batch", "admin_recent_activity");
       return agentSuccess({
         tools,
         role: user.role,
@@ -909,22 +1024,45 @@ export class AgentMemberService {
     }
   }
 
-  async adminRecentActivity() {
+  async adminRecentActivity(input: AdminActivityInput = {}) {
     const requestId = createAgentRequestId();
     try {
       const user = await this.currentSuperAdmin();
+      const allowedInput = new Set(["articleId", "asOf", "axis", "limit", "notificationKind", "notificationStatus", "page"]);
+      if (Object.keys(input).some((key) => !allowedInput.has(key))) throw new AgentServiceError("VALIDATION_ERROR", "The activity request contains an unknown filter.");
+      const page = input.page ?? 1;
+      const limit = input.limit ?? 20;
+      if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 50) {
+        throw new AgentServiceError("VALIDATION_ERROR", "Pagination must use a positive page and a limit from 1 to 50.");
+      }
+      if (page > 1 && !input.asOf) throw new AgentServiceError("VALIDATION_ERROR", "Later activity pages require the first page asOf value.");
+      if (input.articleId !== undefined && (!Number.isInteger(input.articleId) || input.articleId <= 0)) {
+        throw new AgentServiceError("VALIDATION_ERROR", "The activity Article filter must be a positive ID.");
+      }
+      if (input.axis !== undefined && input.axis !== "publication" && input.axis !== "curation") throw new AgentServiceError("VALIDATION_ERROR", "Unknown activity axis.");
+      if (input.notificationKind !== undefined && !["selected", "major_edit", "needs_recheck", "removed"].includes(input.notificationKind)) throw new AgentServiceError("VALIDATION_ERROR", "Unknown notification kind.");
+      if (input.notificationStatus !== undefined && !["not_required", "pending", "sent", "failed"].includes(input.notificationStatus)) throw new AgentServiceError("VALIDATION_ERROR", "Unknown notification status.");
+      const requestedAsOf = input.asOf;
+      if (requestedAsOf !== undefined && !isISODateTime(requestedAsOf)) throw new AgentServiceError("VALIDATION_ERROR", "Activity asOf must be an RFC 3339 date-time.");
+      const asOfTime = requestedAsOf ? new Date(requestedAsOf).getTime() : Date.now();
+      if (asOfTime > Date.now()) throw new AgentServiceError("VALIDATION_ERROR", "Activity asOf cannot be in the future.");
       const req = await createLocalReq({ user }, this.payload);
-      const asOf = new Date().toISOString();
+      const asOf = requestedAsOf ? new Date(requestedAsOf).toISOString() : new Date(asOfTime).toISOString();
+      const conditions: Where[] = [{ occurredAt: { less_than_equal: asOf } }];
+      if (input.axis) conditions.push({ axis: { equals: input.axis } });
+      if (input.articleId) conditions.push({ article: { equals: input.articleId } });
+      if (input.notificationKind) conditions.push({ notificationKind: { equals: input.notificationKind } });
+      if (input.notificationStatus) conditions.push({ notificationStatus: { equals: input.notificationStatus } });
       const result = await this.payload.find({
         collection: "workflow-events",
         depth: 0,
-        limit: 20,
+        limit,
+        page,
         overrideAccess: false,
-        pagination: false,
         req,
-        sort: "-occurredAt",
+        sort: ["-occurredAt", "-id"],
         user,
-        where: { occurredAt: { less_than_equal: asOf } },
+        where: { and: conditions },
       });
       const events = result.docs as WorkflowEvent[];
       const articleIds = [...new Set(events.map((event) => articleRelationID(event.article)).filter((id): id is number => typeof id === "number"))];
@@ -962,7 +1100,17 @@ export class AgentMemberService {
         };
       });
       await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "admin_recent_activity" });
-      return agentSuccess({ asOf, count: items.length, items }, { requestId });
+      return agentSuccess({
+        asOf,
+        count: items.length,
+        items,
+        page: result.page ?? page,
+        limit,
+        totalDocs: result.totalDocs,
+        totalPages: result.totalPages,
+        hasNextPage: result.hasNextPage,
+        hasPrevPage: result.hasPrevPage,
+      }, { requestId });
     } catch (error) {
       await this.auditReadFailure("admin_recent_activity", requestId, error);
       return failure(error, requestId);
@@ -984,11 +1132,14 @@ export class AgentMemberService {
       const released: ReturnType<typeof articleSummary>[] = [];
       for (const id of ids) {
         let article = await this.editorialArticle(id, user);
-        let latest = await getLatestDraftArticle(this.payload, article.id, article);
+        let latestState = await getLatestArticleVersionState(this.payload, article.id, article);
+        let latest = latestState.article;
         if (latest.authorshipType !== "site") {
           throw new AgentServiceError("FORBIDDEN", "Batch release only accepts site-authored Articles.", { articleId: id });
         }
-        if (latest.publicationStatus !== "published") {
+        const liveBefore = await this.payload.findByID({ collection: "articles", id: article.id, depth: 0, draft: false, overrideAccess: false, user }) as Article;
+        const pendingWorkingCopy = latestState.autosave || revision(liveBefore) !== revision(latest);
+        if (latest.publicationStatus !== "published" || pendingWorkingCopy) {
           const prepared = await this.preparePublication({ id, revision: revision(latest), targetStatus: "published" });
           if (!prepared.ok || !prepared.data) throw new AgentServiceError(prepared.error?.code ?? "INTERNAL_ERROR", prepared.error?.message ?? "Publication preparation failed.", { articleId: id });
           const committed = await this.commitPublication({
@@ -999,7 +1150,8 @@ export class AgentMemberService {
           if (!committed.ok) throw new AgentServiceError(committed.error?.code ?? "INTERNAL_ERROR", committed.error?.message ?? "Publication commit failed.", { articleId: id });
         }
         article = await this.editorialArticle(id, user);
-        latest = await getLatestDraftArticle(this.payload, article.id, article);
+        latestState = await getLatestArticleVersionState(this.payload, article.id, article);
+        latest = latestState.article;
         if (latest.curationStatus !== "curated") {
           const prepared = await this.prepareSiteSelection({ id, revision: revision(latest), targetStatus: "curated" });
           if (!prepared.ok || !prepared.data) throw new AgentServiceError(prepared.error?.code ?? "INTERNAL_ERROR", prepared.error?.message ?? "Site selection preparation failed.", { articleId: id });
@@ -1011,8 +1163,10 @@ export class AgentMemberService {
           if (!committed.ok) throw new AgentServiceError(committed.error?.code ?? "INTERNAL_ERROR", committed.error?.message ?? "Site selection commit failed.", { articleId: id });
         }
         article = await this.editorialArticle(id, user);
-        latest = await getLatestDraftArticle(this.payload, article.id, article);
-        if (latest.publicationStatus !== "published" || latest.curationStatus !== "curated") {
+        latestState = await getLatestArticleVersionState(this.payload, article.id, article);
+        latest = latestState.article;
+        const live = await this.payload.findByID({ collection: "articles", id: article.id, depth: 0, draft: false, overrideAccess: false, user }) as Article;
+        if (latestState.autosave || revision(live) !== revision(latest) || latest.publicationStatus !== "published" || latest.curationStatus !== "curated") {
           throw new AgentServiceError("INTERNAL_ERROR", "Article release readback did not match the requested state.", { articleId: id });
         }
         released.push(articleSummary(latest));
@@ -1116,23 +1270,27 @@ export class AgentMemberService {
     }
   }
 
-  private async bodyMediaAltById(article: Article, user: User) {
+  private async bodyMediaAltByValue(body: unknown, user: User, req?: PayloadRequest) {
     const altById = new Map<string, string>();
-    const mediaIds = collectRichTextUploadMediaIDs(article.body);
+    const mediaIds = collectRichTextUploadMediaIDs(body);
     if (!mediaIds.length) return altById;
-    const req = await createLocalReq({ user }, this.payload);
+    const localReq = req ?? await createLocalReq({ user }, this.payload);
     const media = await this.payload.find({
       collection: "media",
       depth: 0,
       limit: mediaIds.length,
       overrideAccess: false,
       pagination: false,
-      req,
+      req: localReq,
       user,
       where: { id: { in: mediaIds } },
     });
     for (const doc of media.docs) altById.set(String(doc.id), doc.alt);
     return altById;
+  }
+
+  private bodyMediaAltById(article: Article, user: User, req?: PayloadRequest) {
+    return this.bodyMediaAltByValue(article.body, user, req);
   }
 
   async workingCopy(id: number, options: { bodyVersion?: typeof AGENT_BODY_VERSION | typeof AGENT_BODY_V2_VERSION } = {}) {
@@ -1315,7 +1473,7 @@ export class AgentMemberService {
     try {
       const user = await this.currentUser();
       if (!hasEditorialRole(user)) throw new AgentServiceError("FORBIDDEN", "Editor access is required.");
-      const allowedKinds: EditorialReferenceKind[] = ["assignee", "purpose", "topic", "geography", "situation", "approved_cover"];
+      const allowedKinds: EditorialReferenceKind[] = ["assignee", "purpose", "topic", "geography", "situation", "approved_cover", "site_master"];
       if (!allowedKinds.includes(input.kind)) throw new AgentServiceError("VALIDATION_ERROR", "Unknown editorial reference kind.");
       const page = input.page ?? 1;
       const limit = input.limit ?? 20;
@@ -1325,6 +1483,24 @@ export class AgentMemberService {
       const query = input.query?.trim() ?? "";
       if (query.length > 200) throw new AgentServiceError("VALIDATION_ERROR", "Reference search must be at most 200 characters.");
       const req = await createLocalReq({ user }, this.payload);
+      if (input.kind === "site_master") {
+        if (!isSuperAdmin(user)) throw new AgentServiceError("FORBIDDEN", "Only a Super Admin can list Chinese masters.");
+        const result = await this.payload.find({
+          collection: "editorial-masters", depth: 0, draft: true, limit, page, overrideAccess: false, req,
+          sort: "titleZh", user,
+          where: { and: [
+            { rightsStatus: { equals: "cleared" } },
+            { editorialStatus: { in: ["approved", "translated", "released"] } },
+            ...(query ? [{ or: [{ titleZh: { contains: query } }, { contentKey: { contains: query } }] }] : []),
+          ] },
+        });
+        const options = (result.docs as EditorialMaster[]).map((master) => {
+          this.assertEligibleSiteMaster(master);
+          return { id: master.id, contentKey: master.contentKey, label: master.titleZh, editorialStatus: master.editorialStatus, contentHash: this.siteMasterFingerprint(master), kind: input.kind };
+        });
+        await this.auditAttempt({ objectId: `reference:${input.kind}`, objectType: "account", requestId, result: "success", tool: "editorial_reference_options" });
+        return agentSuccess({ options, page: result.page ?? page, limit, totalDocs: result.totalDocs, totalPages: result.totalPages }, { requestId });
+      }
       if (input.kind === "assignee" && !isSuperAdmin(user)) {
         const matches = !query || user.displayName.toLocaleLowerCase().includes(query.toLocaleLowerCase());
         const all = matches ? [{ id: user.id, label: user.displayName, kind: input.kind }] : [];
@@ -1373,6 +1549,45 @@ export class AgentMemberService {
     }
   }
 
+  async siteArticleMasterGet(id: number) {
+    const requestId = createAgentRequestId();
+    try {
+      const user = await this.currentSuperAdmin();
+      const req = await createLocalReq({ user }, this.payload);
+      const master = await this.eligibleSiteMaster(id, user, req);
+      const result = await this.siteMasterSummary(master, user, req, true);
+      await this.auditAttempt({ objectId: `master:${master.id}`, objectType: "account", requestId, result: "success", tool: "site_article_master_get" });
+      return agentSuccess(result, { requestId, meta: { objectId: String(master.id) } });
+    } catch (error) {
+      await this.auditReadFailure("site_article_master_get", requestId, error, `master:${id}`);
+      return failure(error, requestId);
+    }
+  }
+
+  private async siteArticleWorkingCopyState(article: Article, user: User, req: PayloadRequest) {
+    const masterId = articleRelationID(article.editorialMaster);
+    if (article.authorshipType !== "site" || typeof masterId !== "number") throw new AgentServiceError("FORBIDDEN", "Only a site-authored Article has a Chinese-master working copy.");
+    const master = await this.eligibleSiteMaster(masterId, user, req);
+    let live: Article | null = null;
+    try {
+      live = await this.payload.findByID({ collection: "articles", id: article.id, depth: 0, draft: false, overrideAccess: false, req, user }) as Article;
+    } catch {
+      live = null;
+    }
+    const livePublished = live?.publicationStatus === "published" && live._status === "published";
+    const liveRevision = live ? revision(live) : null;
+    const latestState = await getLatestArticleVersionState(this.payload, article.id, article, req);
+    const pending = latestState.autosave || liveRevision !== revision(article);
+    return {
+      siteMaster: { id: master.id, contentKey: master.contentKey, contentHash: this.siteMasterFingerprint(master) },
+      workingCopy: {
+        pending,
+        liveRevision,
+        publicEffect: livePublished ? pending ? "pending_release" as const : "live_current" as const : "private_only" as const,
+      },
+    };
+  }
+
   async editorialArticleGet(id: number, options: { bodyVersion?: typeof AGENT_BODY_VERSION | typeof AGENT_BODY_V2_VERSION } = {}) {
     const requestId = createAgentRequestId();
     try {
@@ -1390,6 +1605,9 @@ export class AgentMemberService {
       }
       const curationIssue = await editorialCurationIssue(latest, req);
       const siteFields = await this.editorialSiteFields(latest, user, req);
+      const siteWorkingCopy = latest.authorshipType === "site" && isSuperAdmin(user)
+        ? await this.siteArticleWorkingCopyState(latest, user, req)
+        : null;
       await this.auditAttempt({ objectId: String(latest.id), objectType: "article", requestId, result: "success", tool: "editorial_article_get" });
       return agentSuccess({
         ...articleSummary(latest),
@@ -1398,6 +1616,7 @@ export class AgentMemberService {
         markdown: agentBodyToMarkdown(body),
         summary: latest.summary ?? null,
         ...siteFields,
+        ...(siteWorkingCopy ?? {}),
         publicPath: `/${latest.locale}/posts/${latest.slug}`,
         curationIssues: curationIssue ? [curationIssue] : [],
       }, { requestId, meta: { objectId: String(latest.id), revision: currentRevision } });
@@ -1544,6 +1763,118 @@ export class AgentMemberService {
     return data;
   }
 
+  private normalizeSiteTaxonomyIDs(ids: number[], dimension: "geography" | "purpose" | "situation" | "topic") {
+    if (ids.length > 50 || ids.some((id) => !Number.isInteger(id) || id <= 0)) {
+      throw new AgentServiceError("VALIDATION_ERROR", `${dimension} IDs must contain at most 50 positive integers.`);
+    }
+    return [...new Set(ids)];
+  }
+
+  private async assertSiteBodyAndMedia(body: AgentArticleBodyV2, req: PayloadRequest, extraMediaIds: number[] = []) {
+    if (body.version !== AGENT_BODY_V2_VERSION) throw new AgentServiceError("VALIDATION_ERROR", "Site Article bodies must use AgentArticleBodyV2.");
+    for (const block of body.blocks) {
+      if (block.type === "youtube" && !extractYouTubeVideoID(block.url)) {
+        throw new AgentServiceError("VALIDATION_ERROR", "Only YouTube video links are allowed in a Site Article body.");
+      }
+    }
+    const mediaIds = [...new Set([
+      ...body.blocks.flatMap((block) => block.type === "image" ? [block.mediaId] : []),
+      ...extraMediaIds,
+    ])].sort((left, right) => left - right);
+    for (const id of mediaIds) {
+      if (!Number.isInteger(id) || id <= 0) throw new AgentServiceError("VALIDATION_ERROR", "Site Article media IDs must be positive integers.");
+      await this.lockMedia(req, id);
+      await assertMediaApprovedForPublicUse(id, req, "Site Article media");
+    }
+  }
+
+  private async siteMasterArticleBaseline(master: EditorialMaster, user: User, req: PayloadRequest) {
+    const purposeId = articleRelationID(master.purpose);
+    if (typeof purposeId !== "number") throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master purpose is unavailable.");
+    const purposeIds = [purposeId];
+    const topicIds = this.normalizeSiteTaxonomyIDs((master.topics ?? []).flatMap((value) => {
+      const id = articleRelationID(value);
+      return typeof id === "number" ? [id] : [];
+    }), "topic");
+    await this.lockEditorialTaxonomies(req, [
+      { dimension: "purpose", ids: purposeIds },
+      { dimension: "topic", ids: topicIds },
+    ]);
+    await this.editorialTaxonomyIDs(purposeIds, "purpose", user, req);
+    await this.editorialTaxonomyIDs(topicIds, "topic", user, req);
+    const sourceNotes = master.sourceNotes.map(({ checkedAt, label, url }) => ({ label: label.trim(), url, checkedAt: checkedAt!, check: null }));
+    const checkedTimes = sourceNotes.map((source) => new Date(source.checkedAt).getTime()).filter(Number.isFinite);
+    if (!checkedTimes.length) throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master has no valid source verification time.");
+    return {
+      freshnessDate: new Date(Math.max(...checkedTimes)).toISOString(),
+      purposeIds,
+      sourceNotes,
+      topicIds,
+    };
+  }
+
+  private async siteArticlePatchData(patch: AgentSiteArticlePatch, article: Article, user: User, req: PayloadRequest) {
+    const allowed = new Set(["body", "coverImageId", "format", "freshnessDate", "geographyIds", "purposeIds", "seo", "situationIds", "sourceNotes", "summary", "title", "topicIds"]);
+    const entries = Object.entries(patch).filter(([, value]) => value !== undefined);
+    if (!entries.length) throw new AgentServiceError("VALIDATION_ERROR", "At least one Site Article working-copy field is required.");
+    if (entries.some(([key]) => !allowed.has(key))) throw new AgentServiceError("VALIDATION_ERROR", "The Site Article patch contains a protected or unknown field.");
+    const purposeIds = patch.purposeIds === undefined ? undefined : this.normalizeSiteTaxonomyIDs(patch.purposeIds, "purpose");
+    const topicIds = patch.topicIds === undefined ? undefined : this.normalizeSiteTaxonomyIDs(patch.topicIds, "topic");
+    const geographyIds = patch.geographyIds === undefined ? undefined : this.normalizeSiteTaxonomyIDs(patch.geographyIds, "geography");
+    const situationIds = patch.situationIds === undefined ? undefined : this.normalizeSiteTaxonomyIDs(patch.situationIds, "situation");
+    await this.lockEditorialTaxonomies(req, [
+      ...(purposeIds === undefined ? [] : [{ dimension: "purpose" as const, ids: purposeIds }]),
+      ...(topicIds === undefined ? [] : [{ dimension: "topic" as const, ids: topicIds }]),
+      ...(geographyIds === undefined ? [] : [{ dimension: "geography" as const, ids: geographyIds }]),
+      ...(situationIds === undefined ? [] : [{ dimension: "situation" as const, ids: situationIds }]),
+    ]);
+    const existingBodyMediaAlt = patch.body === undefined
+      ? await this.bodyMediaAltByValue(article.body, user, req)
+      : new Map<string, string>();
+    const resultingBody = patch.body ?? lexicalToAgentBodyV2(article.body.root, {
+      mediaAlt: (mediaId) => existingBodyMediaAlt.get(String(mediaId)) ?? null,
+    });
+    const resultingCoverId = patch.coverImageId === undefined ? articleRelationID(article.coverImage) : patch.coverImageId;
+    await this.assertSiteBodyAndMedia(resultingBody, req, resultingCoverId == null ? [] : [resultingCoverId]);
+    const data: Record<string, unknown> = {};
+    if (patch.title !== undefined) {
+      const title = patch.title.trim();
+      if (!title || title.length > 240) throw new AgentServiceError("VALIDATION_ERROR", "Title is required and must be at most 240 characters.");
+      data.title = title;
+    }
+    if (patch.summary !== undefined) {
+      if (patch.summary !== null && patch.summary.length > 2_000) throw new AgentServiceError("VALIDATION_ERROR", "Summary must be at most 2000 characters.");
+      data.summary = patch.summary?.trim() ?? null;
+    }
+    if (patch.body !== undefined) data.body = agentBodyToLexical(patch.body);
+    if (patch.format !== undefined) {
+      if (patch.format !== null && !["guide", "reporting", "analysis", "first_person", "update"].includes(patch.format)) throw new AgentServiceError("VALIDATION_ERROR", "Unknown Article format.");
+      data.format = patch.format;
+    }
+    if (purposeIds !== undefined) data.purposes = await this.editorialTaxonomyIDs(purposeIds, "purpose", user, req);
+    if (topicIds !== undefined) data.topics = await this.editorialTaxonomyIDs(topicIds, "topic", user, req);
+    if (geographyIds !== undefined) data.geographies = await this.editorialTaxonomyIDs(geographyIds, "geography", user, req);
+    if (situationIds !== undefined) data.situations = await this.editorialTaxonomyIDs(situationIds, "situation", user, req);
+    if (patch.sourceNotes !== undefined) data.sourceNotes = this.editorialSourceNotes(patch.sourceNotes, article);
+    if (patch.freshnessDate !== undefined) {
+      if (patch.freshnessDate !== null && !isISODate(patch.freshnessDate) && !isISODateTime(patch.freshnessDate)) throw new AgentServiceError("VALIDATION_ERROR", "Freshness date must be an ISO date.");
+      data.freshnessDate = patch.freshnessDate;
+    }
+    if (patch.coverImageId !== undefined) data.coverImage = patch.coverImageId;
+    if (patch.seo !== undefined) {
+      const seoEntries = Object.entries(patch.seo).filter(([, value]) => value !== undefined);
+      if (!seoEntries.length || seoEntries.some(([key]) => key !== "title" && key !== "description")) throw new AgentServiceError("VALIDATION_ERROR", "The SEO patch contains a protected or unknown field.");
+      if (patch.seo.title != null && patch.seo.title.length > 70) throw new AgentServiceError("VALIDATION_ERROR", "SEO title must be at most 70 characters.");
+      if (patch.seo.description != null && patch.seo.description.length > 180) throw new AgentServiceError("VALIDATION_ERROR", "SEO description must be at most 180 characters.");
+      data.seo = {
+        title: patch.seo.title === undefined ? article.seo?.title ?? null : patch.seo.title,
+        description: patch.seo.description === undefined ? article.seo?.description ?? null : patch.seo.description,
+        image: articleRelationID(article.seo?.image) ?? null,
+      };
+    }
+    return data;
+  }
+
   async editorialSaveSiteFields(input: { id: number; idempotencyKey: string; patch: AgentEditorialSitePatch; revision: string }) {
     let requestId = createAgentRequestId();
     try {
@@ -1614,6 +1945,191 @@ export class AgentMemberService {
     }
   }
 
+  private async siteArticleResult(article: Article, user: User, req?: PayloadRequest) {
+    const localReq = req ?? await createLocalReq({ user }, this.payload);
+    const latest = await getLatestDraftArticle(this.payload, article.id, article, localReq);
+    const altById = await this.bodyMediaAltById(latest, user, localReq);
+    const body = lexicalToAgentBodyV2(latest.body.root, { mediaAlt: (mediaId) => altById.get(String(mediaId)) ?? null });
+    const pair = await this.payload.find({
+      collection: "articles", depth: 0, draft: true, limit: 2, overrideAccess: false, pagination: false, req: localReq,
+      sort: "locale", user,
+      where: { translationGroup: { equals: latest.translationGroup } },
+    });
+    return {
+      ...articleSummary(latest),
+      slug: latest.slug,
+      authorshipType: latest.authorshipType,
+      authorId: articleRelationID(latest.author) ?? null,
+      ownerId: articleRelationID(latest.owner) ?? null,
+      editorialMasterId: articleRelationID(latest.editorialMaster) ?? null,
+      summary: latest.summary ?? null,
+      seo: {
+        title: latest.seo?.title ?? null,
+        description: latest.seo?.description ?? null,
+      },
+      body,
+      markdown: agentBodyToMarkdown(body),
+      ...await this.editorialSiteFields(latest, user, localReq),
+      ...await this.siteArticleWorkingCopyState(latest, user, localReq),
+      translationPair: {
+        translationGroup: latest.translationGroup,
+        articles: pair.docs.map((item) => ({ id: item.id, locale: item.locale, publicationStatus: item.publicationStatus, revision: revision(item) })),
+      },
+      publicPath: `/${latest.locale}/posts/${latest.slug}`,
+    };
+  }
+
+  async siteArticleCreateDraft(input: { body: AgentArticleBodyV2; idempotencyKey: string; locale: "en" | "es"; masterContentHash: string; masterId: number; summary: string; title: string }) {
+    let requestId = createAgentRequestId();
+    try {
+      requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "site_article_create_draft" });
+      const user = await this.currentSuperAdmin();
+      const allowedInput = new Set(["body", "idempotencyKey", "locale", "masterContentHash", "masterId", "summary", "title"]);
+      if (Object.keys(input).some((key) => !allowedInput.has(key))) throw new AgentServiceError("VALIDATION_ERROR", "The Site Article create request contains a protected or unknown field.");
+      const title = input.title.trim();
+      const summary = input.summary.trim();
+      if (!title || title.length > 240 || !summary || summary.length > 2_000) throw new AgentServiceError("VALIDATION_ERROR", "A Site Article requires a title and summary within the allowed lengths.");
+      if (!/^[a-f0-9]{64}$/.test(input.masterContentHash)) throw new AgentServiceError("VALIDATION_ERROR", "The Chinese master content hash is invalid.");
+      const fingerprint = inputFingerprint({ ...input, title, summary });
+      const prior = await this.replayedSiteArticleWrite(requestId, fingerprint, user, { fingerprint: input.masterContentHash, id: input.masterId });
+      if (prior) {
+        const result = await this.siteArticleResult(prior, user);
+        return agentSuccess(result, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true, revision: revision(prior) } });
+      }
+      let outcome: { article: Article; auditId: string };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          if (!isSuperAdmin(lockedUser)) throw new AgentServiceError("FORBIDDEN", "Super Admin access is required.");
+          const event = await this.reserveWrite({ fingerprint, requestId, tool: "site_article_create_draft" }, req);
+          await this.lockEditorialMaster(req, input.masterId);
+          const master = await this.eligibleSiteMaster(input.masterId, lockedUser, req, input.masterContentHash);
+          const grouped = await this.payload.find({
+            collection: "articles", depth: 0, draft: true, limit: 3, overrideAccess: true, pagination: false, req,
+            where: { editorialMaster: { equals: master.id } },
+          });
+          const existing = grouped.docs as Article[];
+          if (existing.some((article) => article.authorshipType !== "site" || articleRelationID(article.editorialMaster) !== master.id)) {
+            throw new AgentServiceError("TEMPORARY_FAILURE", "The existing Site Article group is inconsistent.");
+          }
+          const groups = [...new Set(existing.map((article) => article.translationGroup))];
+          if (groups.length > 1) throw new AgentServiceError("TEMPORARY_FAILURE", "The existing Site translations do not share one group.");
+          if (existing.some((article) => article.locale === input.locale)) throw new AgentServiceError("VALIDATION_ERROR", "This Chinese master already has a Site Article in that language.");
+          const baseline = await this.siteMasterArticleBaseline(master, lockedUser, req);
+          await this.assertSiteBodyAndMedia(input.body, req);
+          const created = await this.payload.create({
+            collection: "articles", draft: true, overrideAccess: false, req, user: lockedUser,
+            data: {
+              authorshipType: "site",
+              author: null,
+              body: agentBodyToLexical(input.body),
+              editorialMaster: master.id,
+              freshnessDate: baseline.freshnessDate,
+              homepagePlacement: "none",
+              locale: input.locale,
+              purposes: baseline.purposeIds,
+              sourceNotes: baseline.sourceNotes,
+              summary,
+              title,
+              topics: baseline.topicIds,
+              translationGroup: groups[0] ?? `site:${master.contentKey}`,
+            } as never,
+          }) as Article;
+          if (created.authorshipType !== "site" || articleRelationID(created.author) != null || articleRelationID(created.owner) !== lockedUser.id || articleRelationID(created.editorialMaster) !== master.id || created.locale !== input.locale || created.publicationStatus !== "draft" || created.curationStatus !== "not_selected" || created._status !== "draft") {
+            throw new AgentServiceError("TEMPORARY_FAILURE", "The Site Article draft identity readback failed.");
+          }
+          const afterRevision = revision(created);
+          await this.finishWrite(event.id, { afterRevision, objectId: String(created.id), result: "success" }, req);
+          return { article: created, auditId: String(event.id) };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedSiteArticleWrite(requestId, fingerprint, user, { fingerprint: input.masterContentHash, id: input.masterId });
+        if (!replay) throw error.original;
+        outcome = { article: replay, auditId: "" };
+      }
+      const result = await this.siteArticleResult(outcome.article, user);
+      return agentSuccess(result, { requestId, meta: { ...(outcome.auditId ? { auditId: outcome.auditId } : {}), idempotencyKey: input.idempotencyKey, objectId: String(outcome.article.id), readAfterWrite: true, revision: revision(outcome.article) } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && error.code === "IDEMPOTENCY_CONFLICT")) await this.auditReadFailure("site_article_create_draft", requestId, error, `master:${input.masterId}`);
+      return failure(error, requestId);
+    }
+  }
+
+  async siteArticleSaveDraft(input: { id: number; idempotencyKey: string; masterContentHash: string; patch: AgentSiteArticlePatch; revision: string }) {
+    let requestId = createAgentRequestId();
+    try {
+      requestId = idempotentRequestId(this.actor, { idempotencyKey: input.idempotencyKey, tool: "site_article_save_draft" });
+      requireRevision(input.revision);
+      const user = await this.currentSuperAdmin();
+      const allowedInput = new Set(["id", "idempotencyKey", "masterContentHash", "patch", "revision"]);
+      if (Object.keys(input).some((key) => !allowedInput.has(key))) throw new AgentServiceError("VALIDATION_ERROR", "The Site Article save request contains a protected or unknown field.");
+      const initial = await this.editorialArticle(input.id, user);
+      const initialMasterId = articleRelationID(initial.editorialMaster);
+      if (initial.authorshipType !== "site" || typeof initialMasterId !== "number") throw new AgentServiceError("FORBIDDEN", "Only a Site Article can use this working-copy save.");
+      const fingerprint = inputFingerprint(input);
+      const prior = await this.replayedSiteArticleWrite(requestId, fingerprint, user, { fingerprint: input.masterContentHash, id: initialMasterId });
+      if (prior) {
+        const result = await this.siteArticleResult(prior, user);
+        return agentSuccess(result, { requestId, meta: { idempotencyKey: input.idempotencyKey, objectId: String(prior.id), readAfterWrite: true, revision: revision(prior) } });
+      }
+      let outcome: { article: Article; auditId: string; kind: "saved" } | { kind: "conflict"; revision: string };
+      try {
+        outcome = await this.withWriteTransaction(user, async (req) => {
+          const lockedUser = await this.lockActorContext(req);
+          if (!isSuperAdmin(lockedUser)) throw new AgentServiceError("FORBIDDEN", "Super Admin access is required.");
+          const event = await this.reserveWrite({ fingerprint, requestId, tool: "site_article_save_draft" }, req);
+          await this.lockEditorialMaster(req, initialMasterId);
+          await this.lockArticle(req, input.id);
+          const found = await this.editorialArticle(input.id, lockedUser, req);
+          const article = await getLatestDraftArticle(this.payload, found.id, found, req);
+          if (article.authorshipType !== "site" || articleRelationID(article.editorialMaster) !== initialMasterId) throw new AgentServiceError("FORBIDDEN", "The Site Article master binding changed.");
+          await this.eligibleSiteMaster(initialMasterId, lockedUser, req, input.masterContentHash);
+          const beforeRevision = revision(article);
+          if (beforeRevision !== input.revision) {
+            await this.finishWrite(event.id, { beforeRevision, objectId: String(article.id), result: "conflict" }, req);
+            return { kind: "conflict" as const, revision: beforeRevision };
+          }
+          let liveRevisionBefore: string | null = null;
+          if (article.publicationStatus === "published") {
+            const live = await this.payload.findByID({ collection: "articles", id: article.id, depth: 0, draft: false, overrideAccess: false, req, user: lockedUser }) as Article;
+            liveRevisionBefore = revision(live);
+          }
+          const identityBefore = canonicalJSON({
+            author: articleRelationID(article.author), authorshipType: article.authorshipType, editorialMaster: articleRelationID(article.editorialMaster),
+            locale: article.locale, owner: articleRelationID(article.owner), slug: article.slug, translationGroup: article.translationGroup,
+          });
+          const data = await this.siteArticlePatchData(input.patch, article, lockedUser, req);
+          const saved = await this.payload.update({ collection: "articles", id: article.id, data: data as never, depth: 0, draft: true, overrideAccess: false, req, user: lockedUser }) as Article;
+          const latest = await getLatestDraftArticle(this.payload, saved.id, saved, req);
+          const identityAfter = canonicalJSON({
+            author: articleRelationID(latest.author), authorshipType: latest.authorshipType, editorialMaster: articleRelationID(latest.editorialMaster),
+            locale: latest.locale, owner: articleRelationID(latest.owner), slug: latest.slug, translationGroup: latest.translationGroup,
+          });
+          if (identityAfter !== identityBefore) throw new AgentServiceError("TEMPORARY_FAILURE", "The Site Article save changed a protected identity field.");
+          if (liveRevisionBefore) {
+            const liveAfter = await this.payload.findByID({ collection: "articles", id: article.id, depth: 0, draft: false, overrideAccess: false, req, user: lockedUser }) as Article;
+            if (revision(liveAfter) !== liveRevisionBefore) throw new AgentServiceError("TEMPORARY_FAILURE", "The Site Article working-copy save changed the live Article.");
+          }
+          const afterRevision = revision(latest);
+          await this.finishWrite(event.id, { afterRevision, beforeRevision, objectId: String(latest.id), result: "success" }, req);
+          return { article: latest, auditId: String(event.id), kind: "saved" as const };
+        });
+      } catch (error) {
+        if (!(error instanceof IdempotencyReservationError)) throw error;
+        const replay = await this.replayedSiteArticleWrite(requestId, fingerprint, user, { fingerprint: input.masterContentHash, id: initialMasterId });
+        if (!replay) throw error.original;
+        outcome = { article: replay, auditId: "", kind: "saved" };
+      }
+      if (outcome.kind === "conflict") throw new AgentServiceError("REVISION_CONFLICT", "The Site Article changed after its working copy was loaded.", { latestRevision: outcome.revision });
+      const result = await this.siteArticleResult(outcome.article, user);
+      return agentSuccess(result, { requestId, meta: { ...(outcome.auditId ? { auditId: outcome.auditId } : {}), idempotencyKey: input.idempotencyKey, objectId: String(outcome.article.id), readAfterWrite: true, revision: revision(outcome.article) } });
+    } catch (error) {
+      if (!(error instanceof AgentServiceError && ["IDEMPOTENCY_CONFLICT", "REVISION_CONFLICT"].includes(error.code))) await this.auditReadFailure("site_article_save_draft", requestId, error, String(input.id));
+      return failure(error, requestId);
+    }
+  }
+
   private async priorWrite(requestId: string, req?: PayloadRequest) {
     const result = await this.payload.find({ collection: "agent-events", depth: 0, limit: 1, overrideAccess: true, pagination: false, req, showHiddenFields: true, where: { idempotencyDigest: { equals: requestId } } });
     return result.docs[0] as AgentEvent | undefined;
@@ -1641,6 +2157,16 @@ export class AgentMemberService {
     if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The article write transaction is unavailable.");
     const result = await db.execute(sql`SELECT id FROM articles WHERE id = ${id} FOR UPDATE`);
     if (!result.rows?.[0]) throw new AgentServiceError("NOT_FOUND", "Article not found.");
+  }
+
+  private async lockEditorialMaster(req: PayloadRequest, id: number) {
+    const transactionId = await req.transactionID;
+    const db = transactionId
+      ? (this.payload.db.sessions?.[String(transactionId)]?.db as { execute: (query: unknown) => Promise<{ rows?: { id: number }[] }> } | undefined)
+      : undefined;
+    if (!db) throw new AgentServiceError("TEMPORARY_FAILURE", "The Chinese master transaction is unavailable.");
+    const result = await db.execute(sql`SELECT id FROM editorial_masters WHERE id = ${id} FOR UPDATE`);
+    if (!result.rows?.[0]) throw new AgentServiceError("NOT_FOUND", "Chinese master not found.");
   }
 
   private async lockMedia(req: PayloadRequest, id: number) {
@@ -2000,6 +2526,22 @@ export class AgentMemberService {
     return article;
   }
 
+  private async replayedSiteArticleWrite(requestId: string, fingerprint: string, user: User, expectedMaster: { fingerprint: string; id: number }) {
+    if (!isSuperAdmin(user)) throw new AgentServiceError("FORBIDDEN", "Super Admin access is required.");
+    const prior = await this.priorWrite(requestId);
+    if (!prior) return null;
+    if (prior.inputFingerprint !== fingerprint) throw new AgentServiceError("IDEMPOTENCY_CONFLICT", "The idempotency key was already used with different input.");
+    if (prior.result === "conflict") throw new AgentServiceError("REVISION_CONFLICT", "The Site Article changed after this working copy was loaded.", { latestRevision: prior.beforeRevision });
+    if (prior.result !== "success" || !prior.objectId || !prior.afterRevision) throw new AgentServiceError("TEMPORARY_FAILURE", "The previous Site Article write has no readable result.");
+    const found = await this.editorialArticle(Number(prior.objectId), user);
+    const article = await getLatestDraftArticle(this.payload, found.id, found);
+    const masterId = articleRelationID(article.editorialMaster);
+    if (article.authorshipType !== "site" || masterId !== expectedMaster.id) throw new AgentServiceError("TEMPORARY_FAILURE", "The previous Site Article write has an invalid identity.");
+    await this.eligibleSiteMaster(masterId, user, undefined, expectedMaster.fingerprint);
+    if (revision(article) !== prior.afterRevision) throw new AgentServiceError("TEMPORARY_FAILURE", "The saved Site Article result changed after the previous write.");
+    return article;
+  }
+
   private async replayedProfileWrite(requestId: string, fingerprint: string, user: User) {
     const prior = await this.priorWrite(requestId);
     if (!prior) return null;
@@ -2196,6 +2738,7 @@ export class AgentMemberService {
       || tool === "capabilities_list"
       || tool === "admin_recent_activity"
       || tool === "editorial_reference_options"
+      || tool === "site_article_master_get"
       || tool === "media_upload"
       || tool === "my_media_list"
       || tool.startsWith("my_profile_")

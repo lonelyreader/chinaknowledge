@@ -1015,6 +1015,269 @@ try {
     overrideAccess: false,
     user: editor.user,
   });
+
+  // AGENT-WORKSPACE-010: Super Admin-only Site Article working copies keep the
+  // Chinese master as the locked source baseline and never mutate the live row.
+  const siteBodyV2 = {
+    version: "AgentArticleBodyV2" as const,
+    blocks: [{ type: "paragraph" as const, children: [{ type: "text" as const, text: "Site working-copy body." }] }],
+  };
+  assert.equal((await editorService.editorialReferenceOptions({ kind: "site_master", limit: 10, page: 1 })).error?.code, "FORBIDDEN");
+  assert.equal((await editorService.siteArticleMasterGet(siteMaster.id)).error?.code, "FORBIDDEN");
+  const siteMasterOptions = await adminService.editorialReferenceOptions({ kind: "site_master", limit: 50, page: 1, query: siteMaster.contentKey });
+  assert.equal(siteMasterOptions.ok, true, JSON.stringify(siteMasterOptions));
+  const siteMasterOption = siteMasterOptions.data?.options.find((option) => option.id === siteMaster.id) as { contentHash?: string } | undefined;
+  const siteMasterRead = await adminService.siteArticleMasterGet(siteMaster.id);
+  assert.equal(siteMasterRead.ok, true, JSON.stringify(siteMasterRead));
+  const siteMasterFingerprint = siteMasterRead.data!.contentHash;
+  assert.equal(siteMasterOption?.contentHash, siteMasterFingerprint);
+  assert.equal(siteMasterRead.data?.body?.version, "AgentArticleBodyV2");
+  for (const forbiddenField of ["createdBy", "reviewedBy", "translationNotes", "check"]) {
+    assert.equal(JSON.stringify(siteMasterRead).includes(`"${forbiddenField}":`), false, `Site master output leaked ${forbiddenField}.`);
+  }
+
+  const workingMaster = await payload.create({
+    collection: "editorial-masters",
+    data: {
+      batchId: "agent-live",
+      bodyZh: cmsBody,
+      contentHash: "pending",
+      contentKey: `agent-working-master-${randomUUID()}`,
+      createdBy: editor.user.id,
+      editorialStatus: "approved",
+      purpose: sitePurpose.id,
+      risk: "evergreen",
+      rightsStatus: "cleared",
+      sourceNotes: [{ checkedAt: "2026-07-01T00:00:00.000Z", label: "Working source", rights: "official", url: "https://example.com/working-source" }],
+      summaryZh: "验证站方工作副本。",
+      titleZh: "站方工作副本验收",
+    },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const workingMasterBeforeTopics = await adminService.siteArticleMasterGet(workingMaster.id);
+  let workingMasterFingerprint = workingMasterBeforeTopics.data!.contentHash;
+  const workingMasterAfterTopics = await payload.update({
+    collection: "editorial-masters",
+    id: workingMaster.id,
+    data: { topics: [topic.id] },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  assert.equal(workingMasterAfterTopics.contentHash, workingMaster.contentHash, "The collection contentHash fixture intentionally does not cover topics.");
+  assert.equal((await adminService.siteArticleCreateDraft({
+    body: siteBodyV2,
+    idempotencyKey: `site-create-stale-topics-${randomUUID()}`,
+    locale: "en",
+    masterContentHash: workingMasterFingerprint,
+    masterId: workingMaster.id,
+    summary: "Stale topics fingerprint.",
+    title: "Stale topics fingerprint",
+  })).error?.code, "REVISION_CONFLICT");
+  const workingMasterAfterTopicsRead = await adminService.siteArticleMasterGet(workingMaster.id);
+  assert.notEqual(workingMasterAfterTopicsRead.data?.contentHash, workingMasterFingerprint);
+  workingMasterFingerprint = workingMasterAfterTopicsRead.data!.contentHash;
+  const createSiteKey = `site-create-${randomUUID()}`;
+  const createdSiteEn = await adminService.siteArticleCreateDraft({
+    body: siteBodyV2,
+    idempotencyKey: createSiteKey,
+    locale: "en",
+    masterContentHash: workingMasterFingerprint,
+    masterId: workingMaster.id,
+    summary: "English Site working copy.",
+    title: "English Site working copy",
+  });
+  assert.equal(createdSiteEn.ok, true, JSON.stringify(createdSiteEn));
+  assert.equal(createdSiteEn.data?.authorshipType, "site");
+  assert.equal(createdSiteEn.data?.authorId, null);
+  assert.equal(createdSiteEn.data?.ownerId, admin.user.id);
+  assert.equal(createdSiteEn.data?.editorialMasterId, workingMaster.id);
+  assert.equal(createdSiteEn.data?.publicationStatus, "draft");
+  assert.equal(createdSiteEn.data?.workingCopy.publicEffect, "private_only");
+  assert.equal(createdSiteEn.data?.freshnessDate, "2026-07-01T00:00:00.000Z");
+  const createdSiteReplay = await adminService.siteArticleCreateDraft({
+    body: siteBodyV2,
+    idempotencyKey: createSiteKey,
+    locale: "en",
+    masterContentHash: workingMasterFingerprint,
+    masterId: workingMaster.id,
+    summary: "English Site working copy.",
+    title: "English Site working copy",
+  });
+  assert.equal(createdSiteReplay.data?.id, createdSiteEn.data?.id);
+  assert.equal(createdSiteReplay.data?.siteMaster.contentHash, workingMasterFingerprint);
+  const workingMasterAfterCreate = await payload.update({
+    collection: "editorial-masters",
+    id: workingMaster.id,
+    data: { titleZh: "站方工作副本验收（更新）" },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  assert.notEqual(workingMasterAfterCreate.contentHash, workingMasterAfterTopics.contentHash);
+  assert.equal((await adminService.siteArticleCreateDraft({
+    body: siteBodyV2,
+    idempotencyKey: createSiteKey,
+    locale: "en",
+    masterContentHash: workingMasterFingerprint,
+    masterId: workingMaster.id,
+    summary: "English Site working copy.",
+    title: "English Site working copy",
+  })).error?.code, "REVISION_CONFLICT");
+  workingMasterFingerprint = (await adminService.siteArticleMasterGet(workingMaster.id)).data!.contentHash;
+  assert.equal((await adminService.siteArticleCreateDraft({
+    body: siteBodyV2,
+    idempotencyKey: `site-create-duplicate-${randomUUID()}`,
+    locale: "en",
+    masterContentHash: workingMasterFingerprint,
+    masterId: workingMaster.id,
+    summary: "Duplicate Site working copy.",
+    title: "Duplicate Site working copy",
+  })).error?.code, "VALIDATION_ERROR");
+  const createdSiteEs = await adminService.siteArticleCreateDraft({
+    body: siteBodyV2,
+    idempotencyKey: `site-create-es-${randomUUID()}`,
+    locale: "es",
+    masterContentHash: workingMasterFingerprint,
+    masterId: workingMaster.id,
+    summary: "Borrador institucional en español.",
+    title: "Borrador institucional en español",
+  });
+  assert.equal(createdSiteEs.ok, true, JSON.stringify(createdSiteEs));
+  assert.equal(createdSiteEs.data?.translationPair.translationGroup, createdSiteEn.data?.translationPair.translationGroup);
+  assert.deepEqual(createdSiteEs.data?.translationPair.articles.map(({ locale }) => locale).sort(), ["en", "es"]);
+  const concurrentMaster = await payload.create({
+    collection: "editorial-masters",
+    data: {
+      batchId: "agent-live",
+      bodyZh: cmsBody,
+      contentHash: "pending",
+      contentKey: `agent-concurrent-master-${randomUUID()}`,
+      createdBy: editor.user.id,
+      editorialStatus: "approved",
+      purpose: sitePurpose.id,
+      risk: "evergreen",
+      rightsStatus: "cleared",
+      sourceNotes: [{ checkedAt: "2026-07-02T00:00:00.000Z", label: "Concurrent source", rights: "official", url: "https://example.com/concurrent-source" }],
+      summaryZh: "并发创建门禁。",
+      titleZh: "并发创建门禁",
+    },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  const concurrentCreateInput = {
+    body: siteBodyV2,
+    locale: "en" as const,
+    masterContentHash: (await adminService.siteArticleMasterGet(concurrentMaster.id)).data!.contentHash,
+    masterId: concurrentMaster.id,
+    summary: "Concurrent Site draft.",
+    title: "Concurrent Site draft",
+  };
+  const [concurrentSiteA, concurrentSiteB] = await Promise.all([
+    adminService.siteArticleCreateDraft({ ...concurrentCreateInput, idempotencyKey: `site-concurrent-a-${randomUUID()}` }),
+    adminService.siteArticleCreateDraft({ ...concurrentCreateInput, idempotencyKey: `site-concurrent-b-${randomUUID()}` }),
+  ]);
+  assert.equal([concurrentSiteA, concurrentSiteB].filter((result) => result.ok).length, 1, JSON.stringify({ concurrentSiteA, concurrentSiteB }));
+  assert.equal([concurrentSiteA, concurrentSiteB].filter((result) => result.error?.code === "VALIDATION_ERROR").length, 1, JSON.stringify({ concurrentSiteA, concurrentSiteB }));
+  assert.equal((await payload.count({ collection: "articles", overrideAccess: true, where: { editorialMaster: { equals: concurrentMaster.id } } })).totalDocs, 1);
+  assert.equal((await adminService.siteArticleCreateDraft({
+    body: siteBodyV2,
+    idempotencyKey: `site-create-stale-master-${randomUUID()}`,
+    locale: "en",
+    masterContentHash: "a".repeat(64),
+    masterId: siteMaster.id,
+    summary: "Stale master hash.",
+    title: "Stale master hash",
+  })).error?.code, "REVISION_CONFLICT");
+
+  const createdSiteId = Number(createdSiteEn.data?.id);
+  const initialSiteWorkingRead = await adminService.editorialArticleGet(createdSiteId, { bodyVersion: "AgentArticleBodyV2" });
+  assert.equal(initialSiteWorkingRead.data?.siteMaster?.contentHash, workingMasterFingerprint);
+  const privateSiteSaveInput = {
+    id: createdSiteId,
+    idempotencyKey: `site-working-private-save-${randomUUID()}`,
+    masterContentHash: workingMasterFingerprint,
+    patch: { format: "guide" as const },
+    revision: initialSiteWorkingRead.meta!.revision!,
+  };
+  const preparedPrivateSiteDraft = await adminService.siteArticleSaveDraft(privateSiteSaveInput);
+  assert.equal(preparedPrivateSiteDraft.ok, true, JSON.stringify(preparedPrivateSiteDraft));
+  assert.equal(preparedPrivateSiteDraft.data?.workingCopy.publicEffect, "private_only");
+  assert.equal((await adminService.siteArticleSaveDraft(privateSiteSaveInput)).ok, true);
+  const workingMasterAfterSave = await payload.update({
+    collection: "editorial-masters",
+    id: workingMaster.id,
+    data: { summaryZh: "验证站方工作副本及保存重放。" },
+    draft: false,
+    overrideAccess: false,
+    user: editor.user,
+  });
+  assert.notEqual(workingMasterAfterSave.contentHash, workingMasterAfterCreate.contentHash);
+  assert.equal((await adminService.siteArticleSaveDraft(privateSiteSaveInput)).error?.code, "REVISION_CONFLICT");
+  workingMasterFingerprint = (await adminService.siteArticleMasterGet(workingMaster.id)).data!.contentHash;
+  const firstSiteRelease = await adminService.releaseSiteArticleBatch({
+    ids: [createdSiteId],
+    approval: "PUBLISH_AND_CURATE_SITE_ARTICLES",
+    idempotencyKey: `site-working-release-${randomUUID()}`,
+  });
+  assert.equal(firstSiteRelease.ok, true, JSON.stringify(firstSiteRelease));
+  const liveBeforeSiteSave = await payload.findByID({ collection: "articles", id: createdSiteId, depth: 0, draft: false, overrideAccess: true });
+  const siteWorkingRead = await adminService.editorialArticleGet(createdSiteId, { bodyVersion: "AgentArticleBodyV2" });
+  const savedSiteDraft = await adminService.siteArticleSaveDraft({
+    id: createdSiteId,
+    idempotencyKey: `site-working-save-${randomUUID()}`,
+    masterContentHash: workingMasterFingerprint,
+    patch: { format: "analysis", seo: { description: "Pending Site SEO description", title: "Pending Site SEO" }, topicIds: [] },
+    revision: siteWorkingRead.meta!.revision!,
+  });
+  assert.equal(savedSiteDraft.ok, true, JSON.stringify(savedSiteDraft));
+  assert.equal(savedSiteDraft.data?.workingCopy.pending, true);
+  assert.equal(savedSiteDraft.data?.workingCopy.publicEffect, "pending_release");
+  assert.equal(savedSiteDraft.data?.format, "analysis");
+  assert.equal(savedSiteDraft.data?.seo.title, "Pending Site SEO");
+  const liveAfterSiteSave = await payload.findByID({ collection: "articles", id: createdSiteId, depth: 0, draft: false, overrideAccess: true });
+  assert.equal(liveAfterSiteSave.format, liveBeforeSiteSave.format);
+  assert.deepEqual(liveAfterSiteSave.seo, liveBeforeSiteSave.seo);
+  const savedSiteMediaDraft = await adminService.siteArticleSaveDraft({
+    id: createdSiteId,
+    idempotencyKey: `site-working-media-${randomUUID()}`,
+    masterContentHash: workingMasterFingerprint,
+    patch: { body: { version: "AgentArticleBodyV2", blocks: [{ type: "image", mediaId: publicationPortrait.id, alt: publicationPortrait.alt }] } },
+    revision: savedSiteDraft.meta!.revision!,
+  });
+  assert.equal(savedSiteMediaDraft.ok, true, JSON.stringify(savedSiteMediaDraft));
+  await payload.update({ collection: "media", id: publicationPortrait.id, data: { publicUseApprovedAt: null }, overrideAccess: true });
+  assert.equal((await adminService.siteArticleSaveDraft({
+    id: createdSiteId,
+    idempotencyKey: `site-working-revoked-media-${randomUUID()}`,
+    masterContentHash: workingMasterFingerprint,
+    patch: { title: "Must not save with revoked media" },
+    revision: savedSiteMediaDraft.meta!.revision!,
+  })).error?.code, "VALIDATION_ERROR");
+  await payload.update({ collection: "media", id: publicationPortrait.id, data: { publicUseApprovedAt: new Date().toISOString() }, overrideAccess: true });
+  assert.equal((await adminService.siteArticleSaveDraft({
+    id: createdSiteId,
+    idempotencyKey: `site-working-stale-${randomUUID()}`,
+    masterContentHash: workingMasterFingerprint,
+    patch: { title: "Must not overwrite" },
+    revision: siteWorkingRead.meta!.revision!,
+  })).error?.code, "REVISION_CONFLICT");
+  const promotedSiteDraft = await adminService.releaseSiteArticleBatch({
+    ids: [createdSiteId],
+    approval: "PUBLISH_AND_CURATE_SITE_ARTICLES",
+    idempotencyKey: `site-working-rerelease-${randomUUID()}`,
+  });
+  assert.equal(promotedSiteDraft.ok, true, JSON.stringify(promotedSiteDraft));
+  const livePromotedSite = await payload.findByID({ collection: "articles", id: createdSiteId, depth: 0, draft: false, overrideAccess: true });
+  assert.equal(livePromotedSite.format, "analysis");
+  assert.equal(livePromotedSite.seo?.title, "Pending Site SEO");
+  const promotedSiteRead = await adminService.editorialArticleGet(createdSiteId, { bodyVersion: "AgentArticleBodyV2" });
+  assert.equal(promotedSiteRead.data?.workingCopy?.pending, false);
+  assert.equal(promotedSiteRead.data?.workingCopy?.publicEffect, "live_current");
+
   const siteArticle = await payload.create({
     collection: "articles",
     data: {
@@ -1642,7 +1905,7 @@ try {
   const agentEventCountBeforeActivityRead = await payload.count({ collection: "agent-events", overrideAccess: true });
   const adminActivity = await adminService.adminRecentActivity();
   assert.equal(adminActivity.ok, true, JSON.stringify(adminActivity));
-  assert.deepEqual(Object.keys(adminActivity.data ?? {}).sort(), ["asOf", "count", "items"]);
+  assert.deepEqual(Object.keys(adminActivity.data ?? {}).sort(), ["asOf", "count", "hasNextPage", "hasPrevPage", "items", "limit", "page", "totalDocs", "totalPages"]);
   assert.equal(adminActivity.data?.count, 20);
   assert.equal(adminActivity.data?.items.length, 20);
   assert.deepEqual(adminActivity.data?.items.map(({ id }) => id), activityEvents.slice(1).reverse().map(({ id }) => id));
@@ -1694,6 +1957,30 @@ try {
   assert.equal(activityReadAudit.docs[0]?.objectId, null);
   assert.equal(activityReadAudit.docs[0]?.inputFingerprint, null);
   assert.equal(JSON.stringify(activityReadAudit.docs).includes("agent004-secret"), false);
+
+  const activityPageOne = await adminService.adminRecentActivity({ limit: 5, page: 1 });
+  assert.equal(activityPageOne.ok, true, JSON.stringify(activityPageOne));
+  assert.equal(activityPageOne.data?.items.length, 5);
+  assert.equal(activityPageOne.data?.page, 1);
+  assert.equal(activityPageOne.data?.hasNextPage, true);
+  const activityPageTwo = await adminService.adminRecentActivity({ asOf: activityPageOne.data!.asOf, limit: 5, page: 2 });
+  assert.equal(activityPageTwo.ok, true, JSON.stringify(activityPageTwo));
+  assert.equal(activityPageTwo.data?.page, 2);
+  assert.equal(activityPageTwo.data?.items.length, 5);
+  assert.equal(activityPageTwo.data?.items.some(({ id }) => activityPageOne.data!.items.some((first) => first.id === id)), false);
+  const filteredActivity = await adminService.adminRecentActivity({
+    articleId,
+    axis: "curation",
+    limit: 50,
+    notificationKind: "selected",
+    notificationStatus: "failed",
+    page: 1,
+  });
+  assert.equal(filteredActivity.ok, true, JSON.stringify(filteredActivity));
+  assert.equal(filteredActivity.data?.items.every((item) => item.article?.id === articleId && item.axis === "curation" && item.notificationKind === "selected" && item.notificationStatus === "failed"), true);
+  assert.equal((await adminService.adminRecentActivity({ limit: 5, page: 2 })).error?.code, "VALIDATION_ERROR");
+  assert.equal((await adminService.adminRecentActivity({ asOf: new Date(Date.now() + 60_000).toISOString() })).error?.code, "VALIDATION_ERROR");
+  assert.equal((await adminService.adminRecentActivity({ page: 1, where: { axis: { equals: "curation" } } } as never)).error?.code, "VALIDATION_ERROR");
 
   assert.equal((await editorService.adminRecentActivity()).error?.code, "FORBIDDEN");
   assert.equal((await serviceB.adminRecentActivity()).error?.code, "FORBIDDEN");
@@ -1855,7 +2142,7 @@ try {
   assert.equal(editorCapabilities.ok, true);
   assert.equal(adminCapabilities.ok, true);
   assert.equal(memberCapabilities.ok, true);
-  assert.deepEqual(adminCapabilities.data?.tools, [...(editorCapabilities.data?.tools ?? []), "editorial_release_site_article_batch", "admin_recent_activity"]);
+  assert.deepEqual(adminCapabilities.data?.tools, [...(editorCapabilities.data?.tools ?? []), "site_article_master_get", "site_article_create_draft", "site_article_save_draft", "editorial_release_site_article_batch", "admin_recent_activity"]);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_article_get"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_attention_list"), true);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_reference_options"), true);
@@ -1868,6 +2155,12 @@ try {
   assert.equal(editorCapabilities.data?.tools.includes("editorial_commit_major_edit_notification"), true);
   assert.equal(editorCapabilities.data?.tools.includes("admin_recent_activity"), false);
   assert.equal(editorCapabilities.data?.tools.includes("editorial_release_site_article_batch"), false);
+  assert.equal(editorCapabilities.data?.tools.includes("site_article_master_get"), false);
+  assert.equal(editorCapabilities.data?.tools.includes("site_article_create_draft"), false);
+  assert.equal(editorCapabilities.data?.tools.includes("site_article_save_draft"), false);
+  assert.equal(adminCapabilities.data?.tools.includes("site_article_master_get"), true);
+  assert.equal(adminCapabilities.data?.tools.includes("site_article_create_draft"), true);
+  assert.equal(adminCapabilities.data?.tools.includes("site_article_save_draft"), true);
   assert.equal(adminCapabilities.data?.tools.includes("editorial_release_site_article_batch"), true);
   assert.equal(adminCapabilities.data?.tools.includes("admin_recent_activity"), true);
   assert.equal(memberCapabilities.data?.tools.includes("editorial_article_get"), false);
@@ -1952,7 +2245,16 @@ try {
   assert.equal(editorToolNames.includes("editorial_commit_homepage_schedule"), true);
   assert.equal(editorToolNames.includes("editorial_prepare_major_edit_notification"), true);
   assert.equal(editorToolNames.includes("editorial_commit_major_edit_notification"), true);
+  assert.equal(editorToolNames.includes("site_article_master_get"), false);
+  assert.equal(editorToolNames.includes("site_article_create_draft"), false);
+  assert.equal(editorToolNames.includes("site_article_save_draft"), false);
   assert.equal(editorToolNames.includes("admin_recent_activity"), false);
+  const guessedAdminToolResponse = await gateway(mcpRequest(editorToolToken.access_token, "tools/call", {
+    name: "site_article_master_get",
+    arguments: { id: siteMaster.id },
+  }, 19));
+  const guessedAdminToolBody = await mcpJSON(guessedAdminToolResponse) as { result?: { isError?: boolean }; error?: unknown };
+  assert.equal(Boolean(guessedAdminToolBody.error) || guessedAdminToolBody.result?.isError === true, true, JSON.stringify(guessedAdminToolBody));
   const protectedEditorialFieldResponse = await gateway(mcpRequest(editorToolToken.access_token, "tools/call", {
     name: "editorial_save_site_fields",
     arguments: { id: articleId, idempotencyKey: `protected-editorial-${randomUUID()}`, revision: `rev1_${"a".repeat(43)}`, title: "Forbidden title" },
@@ -1979,7 +2281,33 @@ try {
   assert.equal(adminToolsResponse.status, 200);
   const adminToolsBody = await mcpJSON(adminToolsResponse) as { result?: { tools?: { name: string }[] } };
   const adminToolNames = adminToolsBody.result?.tools?.map(({ name }) => name) ?? [];
+  assert.equal(adminToolNames.includes("site_article_master_get"), true);
+  assert.equal(adminToolNames.includes("site_article_create_draft"), true);
+  assert.equal(adminToolNames.includes("site_article_save_draft"), true);
   assert.equal(adminToolNames.includes("admin_recent_activity"), true);
+  const forgedSiteCreateResponse = await gateway(mcpRequest(adminToolToken.access_token, "tools/call", {
+    name: "site_article_create_draft",
+    arguments: {
+      body: siteBodyV2,
+      idempotencyKey: `forged-site-create-${randomUUID()}`,
+      locale: "en",
+      masterContentHash: siteMasterFingerprint,
+      masterId: siteMaster.id,
+      owner: memberB.user.id,
+      summary: "Forged owner",
+      title: "Forged owner",
+    },
+  }, 20));
+  const forgedSiteCreateBody = await mcpJSON(forgedSiteCreateResponse) as { result?: { content?: { text?: string }[]; isError?: boolean } };
+  assert.equal(forgedSiteCreateBody.result?.isError, true, JSON.stringify(forgedSiteCreateBody));
+  assert.match(forgedSiteCreateBody.result?.content?.[0]?.text ?? "", /Unrecognized key/);
+  const forgedActivityResponse = await gateway(mcpRequest(adminToolToken.access_token, "tools/call", {
+    name: "admin_recent_activity",
+    arguments: { where: { axis: { equals: "curation" } } },
+  }, 21));
+  const forgedActivityBody = await mcpJSON(forgedActivityResponse) as { result?: { content?: { text?: string }[]; isError?: boolean } };
+  assert.equal(forgedActivityBody.result?.isError, true, JSON.stringify(forgedActivityBody));
+  assert.match(forgedActivityBody.result?.content?.[0]?.text ?? "", /Unrecognized key/);
   const adminActivityResponse = await gateway(mcpRequest(adminToolToken.access_token, "tools/call", { name: "admin_recent_activity", arguments: {} }, 13));
   assert.equal(adminActivityResponse.status, 200);
   const adminActivityBody = await mcpJSON(adminActivityResponse) as { result?: { structuredContent?: { data?: { count?: number }; ok?: boolean } } };

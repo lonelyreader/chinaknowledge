@@ -88,7 +88,7 @@ export async function getLatestDraftData(
 ) {
   const article = await getLatestDraftArticle(payload, id, fallback, req);
   return axis === "publication"
-    ? memberPromotableArticleData(article)
+    ? article.authorshipType === "site" ? editorialPromotableArticleData(article) : memberPromotableArticleData(article)
     : editorialPromotableArticleData(article);
 }
 

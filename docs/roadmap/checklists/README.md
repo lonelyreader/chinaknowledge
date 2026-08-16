@@ -33,7 +33,7 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 - [`AGENT-WORKSPACE-007`](agent-member-completion.md)：Member 完整闭环（upgraded），Local PASS，只剩统一 Preview/release，不再扩代码。
 - [`AGENT-WORKSPACE-008`](agent-editor-workbench.md)：Editor 工作台（upgraded），Local/独立复审 PASS，只剩统一 Preview/release。
 - [`AGENT-WORKSPACE-009`](agent-editor-public-actions.md)：首页排期与 `major_edit` 作者通知（upgraded），Local/独立复审 PASS，只剩统一 Preview/release。
-- [`AGENT-WORKSPACE-010`](agent-admin-safe-operations.md)：Site Article working-copy 与有限 activity 查询（upgraded），合同已冻结，当前实现批。
+- [`AGENT-WORKSPACE-010`](agent-admin-safe-operations.md)：Site Article working-copy 与有限 activity 查询（upgraded），Local 实现/工作项验证 PASS，等待独立终局复审。
 
 非紧急收尾：
 
