@@ -185,6 +185,20 @@ function mediaSummary(media: Media) {
   };
 }
 
+function memberMediaSummary(media: Pick<Media, "alt" | "id" | "memberUsePublishedAt" | "publicUseApprovedAt" | "updatedAt" | "url">) {
+  return {
+    id: media.id,
+    alt: media.alt,
+    url: media.url ?? null,
+    status: media.publicUseApprovedAt
+      ? "public_approved" as const
+      : media.memberUsePublishedAt
+        ? "member_published" as const
+        : "private" as const,
+    updatedAt: media.updatedAt,
+  };
+}
+
 function profileCompleteness(person: Person) {
   const missing = [
     !person.name.trim() ? "name" : null,
@@ -418,7 +432,7 @@ export class AgentMemberService {
     if (
       connection.state !== "active"
       || articleRelationID(connection.user) !== this.actor.userId
-      || (connectionPersonId != null && connectionPersonId !== this.actor.personId)
+      || connectionPersonId !== this.actor.personId
       || connection.resource !== this.actor.resource
       || !connection.scopes.includes("agent:member")
       || !Number.isFinite(accessExpiresAt)
@@ -850,13 +864,20 @@ export class AgentMemberService {
         page,
         overrideAccess: false,
         req,
+        select: {
+          alt: true,
+          memberUsePublishedAt: true,
+          publicUseApprovedAt: true,
+          updatedAt: true,
+          url: true,
+        },
         sort: "-updatedAt",
         user,
         where: { uploadedBy: { equals: user.id } },
       });
       await this.auditAttempt({ objectType: "account", requestId, result: "success", tool: "my_media_list" });
       return agentSuccess({
-        media: result.docs.map(mediaSummary),
+        media: result.docs.map(memberMediaSummary),
         page: result.page ?? page,
         limit,
         totalDocs: result.totalDocs,
@@ -1051,7 +1072,8 @@ export class AgentMemberService {
       !connection
       || connection.state !== "active"
       || Number(connection.user_id) !== this.actor.userId
-      || (connection.person_id != null && Number(connection.person_id) !== this.actor.personId)
+      || connection.person_id == null
+      || Number(connection.person_id) !== this.actor.personId
       || connection.resource !== this.actor.resource
       || connection.access_expires_at == null
       || !Number.isFinite(new Date(String(connection.access_expires_at)).getTime())

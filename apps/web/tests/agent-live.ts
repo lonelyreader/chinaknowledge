@@ -523,6 +523,8 @@ try {
   assert.equal(ownMediaPage.ok, true, JSON.stringify(ownMediaPage));
   assert.equal(ownMediaPage.data?.media.length, 1);
   assert.equal(ownMediaPage.data?.media.some((media) => media.id === foreignPortrait.id), false);
+  assert.deepEqual(Object.keys(ownMediaPage.data!.media[0]!).sort(), ["alt", "id", "status", "updatedAt", "url"].sort());
+  assert.equal(["member_published", "private", "public_approved"].includes(ownMediaPage.data!.media[0]!.status), true);
   const articlePage = await serviceA.myArticles({ limit: 1, locale: "en", page: 1, publicationStatus: "draft" });
   assert.equal(articlePage.ok, true, JSON.stringify(articlePage));
   assert.equal(articlePage.data?.articles.length, 1);
@@ -1368,7 +1370,13 @@ try {
   assert.equal((await adminService.adminRecentActivity()).error?.code, "ACCOUNT_PAUSED");
   await payload.update({ collection: "users", id: admin.user.id, data: { accountStatus: "active" }, overrideAccess: true });
   await payload.update({ collection: "users", id: noPerson.user.id, data: { role: "super_admin" }, overrideAccess: true });
-  assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).adminRecentActivity()).error?.code, "NO_PERSON");
+  const clearedPersonService = AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id));
+  assert.equal((await clearedPersonService.adminRecentActivity()).error?.code, "CONNECTION_REVOKED");
+  assert.equal((await clearedPersonService.capabilities()).error?.code, "CONNECTION_REVOKED");
+  await payload.update({ collection: "agent-connections", id: connectionNoPerson.id, data: { person: memberB.person.id }, overrideAccess: true });
+  const reboundPersonService = AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id));
+  assert.equal((await reboundPersonService.capabilities()).error?.code, "CONNECTION_REVOKED");
+  assert.equal((await reboundPersonService.myProfileGet()).error?.code, "CONNECTION_REVOKED");
   await payload.update({ collection: "users", id: noPerson.user.id, data: { role: "author" }, overrideAccess: true });
   const revokedActivityConnection = await connection(payload, admin, oauthClient);
   const revokedActivityService = AgentMemberService.fromPayload(payload, auth(admin, oauthClient, revokedActivityConnection.id));
@@ -1503,10 +1511,10 @@ try {
     revision: beforePauseWorking.meta!.revision!,
   })).error?.code, "ACCOUNT_PAUSED");
   assert.equal(errorCode(await serviceA.accountContext()), "ACCOUNT_PAUSED");
-  assert.equal(errorCode(await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).accountContext()), "NO_PERSON");
+  assert.equal(errorCode(await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).accountContext()), "CONNECTION_REVOKED");
   assert.equal((await serviceA.preparePublication({ id: articleId, revision: republished.meta!.revision!, targetStatus: "published" })).error?.code, "ACCOUNT_PAUSED");
-  assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).preparePublication({ id: articleId, revision: republished.meta!.revision!, targetStatus: "published" })).error?.code, "NO_PERSON");
-  assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).prepareSiteSelection({ id: articleId, revision: republished.meta!.revision!, targetStatus: "curated" })).error?.code, "NO_PERSON");
+  assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).preparePublication({ id: articleId, revision: republished.meta!.revision!, targetStatus: "published" })).error?.code, "CONNECTION_REVOKED");
+  assert.equal((await AgentMemberService.fromPayload(payload, auth(noPerson, oauthClient, connectionNoPerson.id)).prepareSiteSelection({ id: articleId, revision: republished.meta!.revision!, targetStatus: "curated" })).error?.code, "CONNECTION_REVOKED");
   const editorCapabilities = await AgentMemberService.fromPayload(payload, auth(editor, oauthClient, connectionEditor.id)).capabilities();
   const adminCapabilities = await AgentMemberService.fromPayload(payload, auth(admin, oauthClient, connectionAdmin.id)).capabilities();
   const memberCapabilities = await serviceB.capabilities();

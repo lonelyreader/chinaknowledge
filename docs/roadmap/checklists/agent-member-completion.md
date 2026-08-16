@@ -105,4 +105,4 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 - [x] `INFRA-AGENT-MEDIA-001` 已合入本地 `main`（`f100908`）；其 Preview/Production release 仍由原 checklist 收尾。
 - [x] `INFRA-PERSON-PAGE-001` 已合入本地 `main`（`4591719`）；其 Preview/Production migration 分别留在对应 release gate。
 - [x] 实现与 Local 工作项验证完成；证据见 [`AGENT-WORKSPACE-007 Local runtime`](../../reference/implementation/agent-workspace-007-local-runtime-2026-08-16.md)。
-- [ ] 一次独立复审和 Preview 验收待执行；`main` push 与 Production 发布未授权。
+- [ ] 独立复审提出的 connection–Person 严格绑定和 Media 最小投影两项 `BLOCK` 已定向修复，等待一次对应复核；Preview 验收待执行，`main` push 与 Production 发布未授权。
