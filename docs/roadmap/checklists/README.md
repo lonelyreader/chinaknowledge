@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: active-checklists
-last_verified: 2026-08-11
+last_verified: 2026-08-16
 max_lines: 80
 ---
 
@@ -27,6 +27,10 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 - [`INFRA-AGENT-MEDIA-001`](agent-media-tools.md)：Agent 媒体工具与正文 V2（upgraded）。
 - [`INFRA-PERSON-PAGE-001`](person-page-expansion.md)：Person 页扩展与正式名片（upgraded）。
 - [`INFRA-FEEDS-001`](feeds-structured-data.md)：Feed 与结构化数据。
+
+当前 active（Agent Workspace）：
+
+- [`AGENT-WORKSPACE-007`](agent-member-completion.md)：Member 资料、外链、Profile 公开、媒体/文章发现与双语 draft 完整闭环（upgraded）；吸收原 queued `INFRA-AGENT-PROFILE-001`，Person Page 为前置。
 
 非紧急收尾：
 

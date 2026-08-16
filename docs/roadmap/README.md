@@ -27,11 +27,11 @@ max_lines: 100
 | [`INFRA-PERSON-PAGE-001`](checklists/person-page-expansion.md) | Person 页扩展与正式名片 |
 | [`INFRA-FEEDS-001`](checklists/feeds-structured-data.md) | RSS/JSON Feed 与结构化数据 |
 
-其余 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
+除下方已启动的 `AGENT-WORKSPACE-007` 外，其余 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
 
-## Planning：Agent Workspace 完整化
+## Active：Agent Workspace 完整化
 
-[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 已按 Production 当前 14 个工具重新整理完整需求、网页专属安全边界和 007–011 执行顺序。当前只执行已登记的 `INFRA-AGENT-MEDIA-001`；Profile、Member 完整闭环、Editor 工作台、安全站务和最终 Production 验收均为 queued，不构成实现或发布授权。
+[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 按 Production 当前 14 个工具和本地 `main` 的 17 个工具控制 007–011 顺序。当前实现项为 [`AGENT-WORKSPACE-007 Member 完整闭环`](checklists/agent-member-completion.md)，已吸收原 queued `INFRA-AGENT-PROFILE-001`；`INFRA-AGENT-MEDIA-001` 仅剩 release 验收。Editor 工作台、安全站务和最终 Production 验收仍为 queued。
 
 ## Non-urgent closeout
 

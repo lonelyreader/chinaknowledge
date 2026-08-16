@@ -45,7 +45,7 @@ approval_gates: preview, production-deploy, commit, merge, push
 - `recovery`：工具注册回退即恢复 V1 行为；已上传 media 沿既有媒体治理，无需数据回滚。
 - `independent_review`：非实现者按本合同复核权限负例、上传管道复用正确性、V1 兼容与不支持节点显式报错，给出 PASS/BLOCK。
 - `key_invariants`：V1 客户端行为不变；不支持的节点显式报错不静默丢弃；封面与正文媒体语义与网页侧一致；审计不缺失。
-- `finding_route`：`my_profile_*` 相邻需求属 AGENT-PROFILE-001；发布管道问题路由 BODY-MEDIA-002 验收或父级登记。
+- `finding_route`：`my_profile_*` 相邻需求进入 `AGENT-WORKSPACE-007`；发布管道问题路由 BODY-MEDIA-002 验收或父级登记。
 
 ## Acceptance
 

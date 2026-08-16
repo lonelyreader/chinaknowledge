@@ -4,7 +4,7 @@ doc_type: contract
 authority: canonical
 status: active
 scope: site-infrastructure-program-control
-last_verified: 2026-08-11
+last_verified: 2026-08-16
 max_lines: 240
 ---
 
@@ -37,7 +37,7 @@ flowchart LR
     subgraph B3["Batch 3"]
       O["HOME-001<br/>首页重组"]
       I["PROJECTS-001<br/>Member Projects"]
-      J["AGENT-PROFILE-001<br/>MCP 个人资料工具"]
+      J["AGENT-WORKSPACE-007<br/>Member MCP 闭环"]
       L["SEARCH-001<br/>站内搜索"]
       N["OUTBOUND-001<br/>出站点击计量"]
     end
@@ -48,6 +48,7 @@ flowchart LR
     C --> E
     B --> F
     C --> G
+    G --> J
     D --> H
     B --> O
     D --> O
@@ -75,7 +76,7 @@ flowchart LR
 | `INFRA-FEEDS-001` | 2 | active | RSS/JSON Feed、Person 与文章结构化数据补全，[checklist](checklists/feeds-structured-data.md) | 无（页面注入部分合并顺序最后） |
 | `INFRA-HOME-001` | 3 | queued | 首页重组：人物权重、社群模块、Hero 组合 | TOKENS、DESIGN-DIRECTION、ARTICLE-TEMPLATE |
 | `INFRA-PROJECTS-001` | 3 | queued | Member Projects 一等对象与展示入口 | PERSON-PAGE |
-| `INFRA-AGENT-PROFILE-001` | 3 | queued | MCP `my_profile_*` 与外链维护工具 | PERSON-PAGE |
+| [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | 3 | active | 资料/外链、Profile 公开、媒体/文章发现与双语 draft 的 Member MCP 闭环；吸收原 `INFRA-AGENT-PROFILE-001` | AGENT-MEDIA 本地已合；PERSON-PAGE 待合入与 migration |
 | `INFRA-SEARCH-001` | 3 | queued | 站内搜索（Postgres 全文检索 + 搜索页） | TOKENS |
 | `INFRA-OUTBOUND-001` | 3 | queued | 作者外链、Discord、项目外链出站点击计量 | 无（MEASURE 已完成） |
 | `OPS-SOCIAL-PIPELINE-001` | 外部 | queued | codex-ops 侧社交素材流水线，不进本仓库 | 无（UTM 约定已就绪） |
@@ -94,7 +95,7 @@ flowchart LR
 - 一个分支和 PR 对应一个子级 checklist；跨子级顺手修改一律进入对方 checklist 的 finding_route，不扩大当前 diff。
 - 每批关闭条件：本批全部子级归档、feature registry 与 current-state 写回、下一批进入条件复核。
 
-## Mini-specs（queued 子级的建立依据）
+## Mini-specs（子级建立与路由依据）
 
 ### INFRA-ARTICLE-TEMPLATE-001（upgraded：公开渲染面）
 
@@ -142,10 +143,10 @@ flowchart LR
 - 目标：`member-projects` collection（名称、一句话、封面、成员关系、外链、公开状态）+ Person 页项目区 + 独立入口页；成员自管、站方可精选。
 - 关键路径：新 collection、migration、前端页面；权限模型比照 Person 自管规则。
 
-### INFRA-AGENT-PROFILE-001（upgraded：Agent 写路径扩面）
+### AGENT-WORKSPACE-007（upgraded：Member Agent 完整闭环）
 
-- 目标：MCP 增加 `my_profile_get / my_profile_save / my_links_save`，复用 Person 版本、锁定与权限模型；负例含暂停账户与跨人修改拒绝。
-- 关键路径：`apps/web/src/agent/**`。
+- 目标：由唯一 active [`007 checklist`](checklists/agent-member-completion.md) 交付 `my_profile_*`、Profile 公开确认、本人媒体/文章发现、双语 draft 与当前角色 discovery；原 `INFRA-AGENT-PROFILE-001` 不再建立独立 checklist。
+- 关键路径与 no-go 以 007 的冻结合同为准；Person Page UI、schema 与 migration 不进入 Agent diff。
 
 ### INFRA-SEARCH-001（base，视实现可升级）
 

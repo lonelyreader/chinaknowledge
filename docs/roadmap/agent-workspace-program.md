@@ -31,7 +31,7 @@ Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册�
 | Editor（+3） | 精确读取一篇跨作者 Article、确认加入或移出站方入口 | 待处理队列、普通保存、负责人、分类、来源、时效、排期、复核、通知 |
 | Super Admin（+2） | 站方 Article 受控批次公开、最近 20 条 Article 活动 | 站方建稿、基础对象查询、可筛选审计；特权账户动作保持网页入口 |
 
-001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。`INFRA-AGENT-MEDIA-001` 已在分支实现并复审通过，尚未完成 Preview、merge、push 和 Production deploy。
+001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。`INFRA-AGENT-MEDIA-001` 已实现、复审并合入本地 `main`；Production 仍是 14 个工具，本地 `main` 为 17 个，尚未完成 Preview、`main` push 和 Production deploy。
 
 ## 设计与安全原则
 
@@ -52,8 +52,8 @@ Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册�
 |---|---|---|
 | 上下文与发现 | `account_context` 增加 Person 状态、完整度和公开路径；`my_articles_list` 增加分页/筛选；`editorial_attention_list`；受限 reference options | Read；字段白名单、稳定游标或页码 |
 | 文章与媒体 | 保留现有文章工具；上线 Body V2、`media_upload`、`article_set_cover`、`my_media_list` | 本人媒体或已公开媒体；不提供删除 |
-| Person 与外链 | `my_profile_get`、`my_profile_save`、`my_links_save`、Profile preview | 只改本人；链接类型、协议、数量和顺序由服务端校验 |
-| Person 公开 | `my_profile_prepare_publication`、`my_profile_commit_publication`，覆盖公开、更新和转私有 | 复用 Person 状态机；公开文章、必填资料和媒体条件在 prepare/commit 重检 |
+| Person 与外链 | `my_profile_get`（含 Preview path）、`my_profile_save`、`my_links_save` | 只改本人；链接类型、协议、数量和顺序由服务端校验 |
+| Person 公开 | `my_profile_prepare_publication`、`my_profile_commit_publication`，覆盖公开和转私有 | 复用 Person 状态机；普通资料保存沿用网页即时保存语义，公开状态只经 prepare/commit 改变 |
 | 双语关系 | 从本人 Article 建立另一 locale 的 translation draft，并读取配对状态 | 服务端固定 owner、author、translation group 和目标 locale；不覆盖既有版本 |
 | Editor 工作台 | 待处理列表；精确读；保存负责人、format、分类、来源、freshness、编辑意见与站方封面 | Draft write；不改 owner、author、locale、translation group 或 Member publication |
 | Editor 公共动作 | 保留站方选择；增加排期、复核和作者通知的 prepare/commit | 公共或外部动作逐次确认；通知失败可安全重试 |
@@ -73,8 +73,7 @@ Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册�
 ```mermaid
 flowchart LR
     B["001–006<br/>已完成基础"] --> M["AGENT-MEDIA<br/>媒体与正文 V2"]
-    M --> P["AGENT-PROFILE<br/>资料与外链"]
-    P --> C["007<br/>Member 完整闭环"]
+    M --> C["007<br/>Member 完整闭环"]
     C --> E1["008<br/>Editor 工作台"]
     E1 --> E2["009<br/>公共与外部动作"]
     E2 --> A["010<br/>安全站务"]
@@ -84,28 +83,28 @@ flowchart LR
 | ID | 状态 | 唯一交付结果 | 依赖 |
 |---|---|---|---|
 | `AGENT-WORKSPACE-001`–`006` | completed | OAuth、Member 文章、策展、最小审计、Production 与客户端基线 | archive |
-| `INFRA-AGENT-MEDIA-001` | active | Body V2、图片上传、封面和发布预检进入 Production | 当前 Preview/merge/push/deploy 门 |
-| `INFRA-AGENT-PROFILE-001` | queued | 本人资料与外链的 get/save；不含公开状态 | `INFRA-PERSON-PAGE-001` |
-| `AGENT-WORKSPACE-007` | queued | Profile preview/publication、翻译 draft、媒体列表和本人文章发现补齐 Member 闭环 | MEDIA + PROFILE |
+| `INFRA-AGENT-MEDIA-001` | active（release） | Body V2、图片上传、封面和发布预检进入 Production | 当前 Preview/`main` push/deploy 门 |
+| [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | active | 资料与外链、Profile Preview path/publication、翻译 draft、媒体列表、发现与当前角色 discovery 补齐 Member 闭环 | MEDIA 本地已合；PERSON-PAGE 待合入与 migration |
 | `AGENT-WORKSPACE-008` | queued | Needs attention、reference options 与站方字段普通保存形成 Editor 工作台 | 007 |
 | `AGENT-WORKSPACE-009` | queued | 排期、复核与作者通知按公共/外部动作合同上线 | 008 |
 | `AGENT-WORKSPACE-010` | queued | 站方 Article 建稿/保存、基础对象只读与可筛选审计 | 009 |
 | `AGENT-WORKSPACE-011` | queued | 三角色真实客户端、权限负例、恢复和 Production 总验收 | 010 |
 
-`queued` 只固定需求边界和依赖，不授权实现。Agent capability 同一时刻只允许一个 active 子级；Site Infrastructure 已存在的 MEDIA/PROFILE 工作项继续由其原 checklist 管理，不重复建项。
+`queued` 只固定需求边界和依赖，不授权实现。原 queued `INFRA-AGENT-PROFILE-001` 已吸收进 007，不建立第二个 Profile checklist。Agent capability 同一时刻只允许一个 active 实现子级；只剩 release 回读的旧 checklist 不阻断下一子级本地实现。
 
 ## 分阶段清单
 
 ### 当前批次：媒体
 
 - [x] Body V2、`media_upload`、`article_set_cover` 与预检已实现并通过独立复审。
+- [x] 合入本地 `main`（`f100908`）；不再接受相邻代码扩项。
 - [ ] 完成 Preview 权限矩阵和真实 MCP discovery。
-- [ ] 分别批准 merge、push、Production deploy，并读回 Production 新工具。
+- [ ] 经发布门完成 `main` push、Production deploy，并读回 Production 新工具。
 
-### Profile 与 Member 完整闭环
+### 当前实现：Profile 与 Member 完整闭环（007）
 
 - [ ] 完成 `my_profile_get / my_profile_save / my_links_save`，覆盖姓名、头像关系、语言、主题、英西资料和最多 8 条外链。
-- [ ] 增加 Profile preview 与公开/更新/转私有的 prepare/commit/readback。
+- [ ] `my_profile_get` 返回 Profile Preview path；公开/转私有使用 prepare/commit/readback。
 - [ ] 增加本人媒体列表、本人文章分页/筛选和账户上下文中的 Profile 状态/完整度。
 - [ ] 增加从本人 Article 建立另一语言 draft 的受控动作，并证明重复建立和跨人建立失败关闭。
 
@@ -142,7 +141,7 @@ flowchart LR
 ## Program Rules
 
 - 父级不持有代码 `allowed_paths`，不绕过子级 ChangeContract。
-- 一个 capability 子级未关闭时，不启动下一个；不把相邻缺口顺手并入当前 diff。
+- 一个 capability 实现子级未关闭时，不启动下一个；已完成实现、只等待 release 的旧 checklist 可以并存，但不再获得扩代码授权。
 - schema、migration、Preview、Production、真实个人数据、公开状态、外部通知、merge 和 push 分别批准。
 - 不为预想复用提前抽共享 SDK，不开发没有真实客户端需求的 CLI fallback。
 - 每阶段结束都用当前运行、权限和用户任务证据重估后续范围；可以删减无实际价值的工具。

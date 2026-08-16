@@ -31,7 +31,7 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 ## No-go
 
 - 不改 Person 公开/撤回语义、版本历史、锁定与权限模型；新字段沿用既有字段级权限模式。
-- 不做 Member Projects（属 PROJECTS-001）；不做 Agent 工具（属 AGENT-PROFILE-001）。
+- 不做 Member Projects（属 PROJECTS-001）；不做 Agent 工具（属 `AGENT-WORKSPACE-007`）。
 - 不改文章页与首页；不动既有 Person 数据（新字段全部可空，无回填）。
 - richText 新字段渲染复用 `CMSRichText` 只读调用，不修改该文件。
 
@@ -45,7 +45,7 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 - `recovery`：字段可空、无回填，migration 逐条可回滚；页面 revert 即恢复。
 - `independent_review`：非实现者复核权限负例、migration 回滚、未公开 Person 隔离、EN/ES 回退，给出 PASS/BLOCK。
 - `key_invariants`：既有 Person 页 URL 与公开语义不变；自动保存与并发行为不变；空字段页面不出现空壳区块；EN/ES 回退规则一致。
-- `finding_route`：Projects 与 Agent profile 需求分别路由 PROJECTS-001 / AGENT-PROFILE-001；首页人物模块路由 HOME-001。
+- `finding_route`：Projects 与 Agent profile 需求分别路由 PROJECTS-001 / `AGENT-WORKSPACE-007`；首页人物模块路由 HOME-001。
 
 ## Acceptance
 
