@@ -71,7 +71,7 @@ flowchart LR
 
 ## Acceptance
 
-- [x] 首批三个来源完成 Map 与 9 份样本，原文提取可读且能回到源网页；证据见 [`Pilot 001`](/Volumes/External/service/china-in-fact-materials/guide-foundation/pilot-001/README.md)。
+- [x] 首批三个来源完成 Map 与 9 份样本，原文提取可读且能回到源网页；证据位于 `/Volumes/External/service/china-in-fact-materials/guide-foundation/pilot-001/README.md`。
 - [x] Batch 002 的 15 个 Crawl 任务与中文官方候选完成；`17,706` 条进入统一索引，URL 与正文 hash 可去重，失败和噪声有独立标记。
 - [x] 中文审查入口可本地打开，能够筛选、随机抽样、阅读原文、查看中文辅助内容和保存人工标记。
 - [x] Pilot 001 的 9 条记录已有中文标题与短说明；完整中文翻译继续保持按需生成，不要求全库预翻译。
