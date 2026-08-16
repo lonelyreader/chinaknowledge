@@ -9,27 +9,28 @@ max_lines: 140
 change_id: AGENT-WORKSPACE-012
 risk_tier: upgraded
 validation_profile: phase_release
-allowed_paths: .github/workflows/production-backup.yml, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-production-release.md, docs/roadmap/checklists/guide-foundation-research-corpus.md, docs/current-state.md, docs/product-feature-registry.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-012-production-runtime-2026-08-16.md, docs/archive/README.md, docs/archive/agent-workspace-production-release.md
+allowed_paths: .github/workflows/production-backup.yml, apps/web/package.json, apps/web/package-lock.json, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-workspace-production-release.md, docs/roadmap/checklists/guide-foundation-research-corpus.md, docs/current-state.md, docs/product-feature-registry.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-012-production-runtime-2026-08-16.md, docs/archive/README.md, docs/archive/agent-workspace-production-release.md
 approval_gates: main-push, production-backup, production-migration, production-deploy, production-public-enable, real-account, real-data
 ---
 
 # AGENT-WORKSPACE-012 Production 发布与本人 X 外链验收
 
-目标：将 011 已通过 Preview 和独立复审的同一批 33 个工具发布到 Production，完成第 15 条 Person migration、公共与权限 smoke，并用用户当前真实账号只修改和读回本人的 X 外链。本批不实现或修复代码。
+目标：将 011 已通过 Preview 和独立复审的同一批 33 个工具发布到 Production，完成第 15 条 Person migration、公共与权限 smoke，并用用户当前真实账号只修改和读回本人的 X 外链。本批不实现产品代码。
 
 授权：用户于 2026-08-16 在 011 Production gate 后明确回复“批准”，覆盖本合同冻结的 `main` push、Production backup/migration/deploy/public enable，以及当前账号本人 X 外链的一次受控写入与恢复。授权不覆盖下列 No-go。
 
 ## Scope
 
-- 唯一候选来自 011：Preview 验收 SHA `af2ffbf5755c397221660bc658e630f7b75eb0b2`，Draft PR #2；发布 SHA 可包含已审核 docs-only closure，但产品 tree 必须与该 SHA 精确一致。
+- 唯一候选来自 011：Preview 验收 SHA `af2ffbf5755c397221660bc658e630f7b75eb0b2`，Draft PR #2；发布 SHA 只可增加已审核 docs/backup 门禁和下述精确依赖安全升级，其他应用源码与该 SHA 精确一致。
 - Production 预期基线为 14/15 migrations、Super Admin 14 tools；执行前必须现场只读确认 Vercel project/root/repo/production branch=`main`、Production deployment/env/Gateway/SSO、数据库 ledger/关键计数和 Git fast-forward。
 - 唯一领域写入是用户当前账号本人 Person 的 X 外链；先保存原 links/revision，使用现有 `my_links_save`，写后用 `my_profile_get` 及数据库最小 readback 核对 owner 与值。
 - 其余动作仅为既有 release、OAuth/MCP discovery/read、备份、migration、开关、审计和精确 cleanup；不创建业务 fixture。
 - 发布前只允许两项直接门禁修复：把 GUIDE 外部本机证据链接改为非链接路径文本；把既有 Production backup restore 的 schema/migration 断言先同步到 live 45/14，再在第 15 条迁移后同步到 49/15。不改 backup/export/upload/retention/provider 行为。
+- 若 CI production audit 因 011 验收后新公布的 advisory 阻断，只允许一次锁步 Payload `3.86.0→3.87.1` 安全升级，以及 `dompurify@3.4.13`、`fast-uri@3.1.5`、`js-yaml@4.3.1`、`nanoid@3.3.18` 精确 override；不得执行自动 audit fix、升级 Next/React 或引入其他依赖。升级后须 fresh install、完整 Local 门禁、scratch migration/read-path 与 Preview CI 全过，否则停止发布。
 
 ## No-go
 
-- 不改应用代码、migration、依赖、schema 定义、Vercel project/provider/WAF 规则、DNS、付费项、密钥或 Git 配置；backup workflow 只允许上述精确断言更新。
+- 不改应用代码、migration、schema 定义、Vercel project/provider/WAF 规则、DNS、付费项、密钥或 Git 配置；依赖只允许上述 CI advisory 的精确安全升级，backup workflow 只允许上述精确断言更新。
 - 不修改其他真实账号、Person、Article、Media、母稿、首页或公开状态；不批量内容、不公开内容、不触发 `major_edit` 或任何真实外部通知。
 - 不调用通用/高风险站务写入，不邀请、提权、暂停、恢复或删除账号；不以 Production 发现的问题临场扩项修复。
 - 不复用 Preview token、client、connection、dump 或 fixture；不把 token、cookie、email、DB URL、正文、confirmation 或外链原值写入日志和 evidence。
@@ -37,8 +38,8 @@ approval_gates: main-push, production-backup, production-migration, production-d
 
 ## Release path
 
-1. [ ] 冻结完整 `RELEASE_SHA`，证明其产品 tree 等于 011 Preview SHA，worktree 无无关改动；读取 remote `main` 与 Vercel live 配置，确认一次 `main` fast-forward push 会触发唯一 Production auto-deploy。
-2. [ ] 关闭 PR `verify` 的 GUIDE 本机绝对链接失败；把连续失败的 backup restore 断言按 live `45 tables / 14 migrations` 精确更新并在 release branch 运行成功，恢复每日备份门后才继续。
+1. [ ] 冻结完整 `RELEASE_SHA`，证明其应用源码等于 011 Preview SHA、仅含合同允许的依赖与门禁差异，worktree 无无关改动；读取 remote `main` 与 Vercel live 配置，确认一次 `main` fast-forward push 会触发唯一 Production auto-deploy。
+2. [ ] 关闭 PR `verify` 的 GUIDE 本机绝对链接和 production audit 失败；把连续失败的 backup restore 断言按 live `45 tables / 14 migrations` 精确更新并在 release branch 运行成功，恢复 CI 与每日备份门后才继续。
 3. [ ] 记录 Production migration ledger、关键业务/OAuth/event 计数和当前部署/Gateway；运行现有 Production backup，保存 dump SHA，并在隔离 PostgreSQL 完整恢复后读回 ledger/schema/关键计数。
 4. [ ] 只应用 repo 既有第 15 条 `20260812_042454_person_page_member_card`，预期 Production `14→15` 且独立新 batch；读回新增 Person schema、ledger 与迁移前业务计数不变，再把 backup restore 断言同步到 `49/15` 并完成迁移后备份恢复。
 5. [ ] 以精确 ref 执行一次 `git push origin RELEASE_SHA:main`；不另跑 `vercel --prod/promote`。等待 GitHub→Vercel auto-deploy，断言 target=`production`、state=`READY`、git SHA=`RELEASE_SHA`、正式 alias 指向该 deployment。
@@ -59,7 +60,7 @@ approval_gates: main-push, production-backup, production-migration, production-d
 
 ## Acceptance
 
-- [ ] `RELEASE_SHA` 产品 tree 等于 011 Preview 候选；一次 fast-forward `main` push 只产生一个精确 SHA 的 READY Production deployment。
+- [ ] `RELEASE_SHA` 除合同允许的依赖与门禁差异外等于 011 Preview 候选；一次 fast-forward `main` push 只产生一个精确 SHA 的 READY Production deployment。
 - [ ] Production 备份 SHA、隔离恢复、14→15 独立 migration、ledger/schema/data readback 全部 PASS，恢复点可用。
 - [ ] Production Super Admin discovery 为 33；当前角色、服务端权限、撤销和旧 token `401` 闭合；未创建其他账号或 fixture。
 - [ ] 当前用户本人 X 外链经 `my_links_save → my_profile_get → DB` 三方一致读回；其他 links/Person/内容/公开状态不变，审计无敏感值。
