@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-08-11
+last_verified: 2026-08-16
 max_lines: 100
 ---
 
@@ -29,13 +29,17 @@ max_lines: 100
 
 其余 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
 
+## Planning：Agent Workspace 完整化
+
+[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 已按 Production 当前 14 个工具重新整理完整需求、网页专属安全边界和 007–011 执行顺序。当前只执行已登记的 `INFRA-AGENT-MEDIA-001`；Profile、Member 完整闭环、Editor 工作台、安全站务和最终 Production 验收均为 queued，不构成实现或发布授权。
+
 ## Non-urgent closeout
 
 | 工作项 | 当前门禁 |
 |---|---|
 | [`GUIDE-FOUNDATION-001`](checklists/guide-foundation-research-corpus.md) | `17,706` 条统一索引与抽样已完成；只等待报告写回和归档，不与冷启动争用优先级，不公开原文 |
 
-`MIDGAME-COLD-START-001`、`FAVICON-PROD-001` 与 `AUTH-RESET-001` 均已部署 Production 并移入 [`archive`](../archive/README.md)。Agent Workspace 001–006 与仓库收敛也已归档；其父级控制见 [`Agent Workspace Parent Checklist`](agent-workspace-program.md)。
+`MIDGAME-COLD-START-001`、`FAVICON-PROD-001` 与 `AUTH-RESET-001` 均已部署 Production 并移入 [`archive`](../archive/README.md)。Agent Workspace 001–006 与仓库收敛也已归档；后续能力补全由上面的父级清单继续控制。
 
 ## Deferred
 

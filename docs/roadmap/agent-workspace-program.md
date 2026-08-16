@@ -4,140 +4,155 @@ doc_type: contract
 authority: canonical
 status: active
 scope: agent-workspace-program-control
-last_verified: 2026-08-02
-max_lines: 220
+last_verified: 2026-08-16
+max_lines: 260
 ---
 
 # Agent Workspace Parent Checklist
 
-本页是 Agent Workspace 的父级控制清单。它记录终局、阶段关系和转换门槛，不直接授权代码、配置、schema、migration、部署或真实数据操作。任何实现只能由当时唯一 active 的子级 `ChangeContractV1` 授权。
+本页是 Agent Workspace 的唯一执行规划。稳定需求见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)；历史验收见 001–006 archive。本文定义剩余能力、顺序、门禁和完成条件，不直接授权代码、schema、migration、部署或真实数据动作。每个实现项开始前仍须建立独立 active `ChangeContractV1`。
 
-稳定产品合同见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)。001–006 已完成并归档，当前没有 implementation active 子级。
+## 完整的含义
 
-## Program Goal
+MCP 完整，指 Member、Editor 与 Super Admin 能在 Agent 中完成高频、权限内、可恢复的真实任务，从发现对象到读取、修改、预览、确认、执行和读回形成闭环。完整不等于复制 Payload 后台的每个按钮，也不等于开放通用 CRUD。
 
-让已有后台账户的人在自己选择的 Agent 中，通过同一远程 MCP Gateway 用自然语言完成服务器判定的权限内任务；Member、Editor、Super Admin 分阶段开放，身份、状态、版本、确认和审计始终留在 China, in Fact 服务端。
+- Member：维护自己的 Person、外链、媒体、英西文章关系、草稿、预览与个人公开。
+- Editor：找到待处理内容，维护站方字段，完成复核、排期、策展与作者通知。
+- Super Admin：处理站方 Article、安全的基础对象读取和审计；账户提权、暂停、删除等特权动作默认留在网页后台。
+- 服务端：继续负责当前身份、角色、所有权、状态机、revision、确认、审计、读回和恢复。
+
+## 当前基线（2026-08-16）
+
+Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册表一致，不是运行时漏注册。
+
+| 能力层 | 已上线 | 主要缺口 |
+|---|---|---|
+| Member（9） | 账户与 capability、本人文章列表、工作副本、建稿、保存、预览、个人发布/撤回 | Person、外链、媒体、封面、正文媒体、翻译关系、列表分页筛选 |
+| Editor（+3） | 精确读取一篇跨作者 Article、确认加入或移出站方入口 | 待处理队列、普通保存、负责人、分类、来源、时效、排期、复核、通知 |
+| Super Admin（+2） | 站方 Article 受控批次公开、最近 20 条 Article 活动 | 站方建稿、基础对象查询、可筛选审计；特权账户动作保持网页入口 |
+
+001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。`INFRA-AGENT-MEDIA-001` 已在分支实现并复审通过，尚未完成 Preview、merge、push 和 Production deploy。
+
+## 设计与安全原则
+
+1. 工具按用户任务命名；不提供 `raw_query`、`run_sql`、`payload_update` 或任意 collection CRUD。
+2. 优先扩展现有查询的筛选、分页和结果字段；只有独立业务动作才新增工具。
+3. 读取最小字段；普通写入使用 revision、幂等键和写后读回。
+4. 改变公开状态、排期或联系外部人员时使用 `prepare → 用户确认 → commit → readback`。
+5. 角色、暂停/恢复、删除、migration、部署、密钥和无边界批量操作不进入普通 MCP。
+6. 每次调用重新读取服务端账户、Person、连接、角色和对象关系；客户端 tool list 不授予权限。
+7. 每个写工具记录 actor、connection、tool、object、request、前后 revision 和结果，不记录 token、完整私密正文或无关个人数据。
+8. 不为一个字段建立新平台；复用现有 Payload access、hooks、版本、媒体和状态转换逻辑。
+
+## 目标能力合同
+
+工具名是规划基线；每个子级冻结合同时可做小幅命名校正，但不能削弱用户任务和安全边界。
+
+| 任务族 | 最小能力 | 风险与边界 |
+|---|---|---|
+| 上下文与发现 | `account_context` 增加 Person 状态、完整度和公开路径；`my_articles_list` 增加分页/筛选；`editorial_attention_list`；受限 reference options | Read；字段白名单、稳定游标或页码 |
+| 文章与媒体 | 保留现有文章工具；上线 Body V2、`media_upload`、`article_set_cover`、`my_media_list` | 本人媒体或已公开媒体；不提供删除 |
+| Person 与外链 | `my_profile_get`、`my_profile_save`、`my_links_save`、Profile preview | 只改本人；链接类型、协议、数量和顺序由服务端校验 |
+| Person 公开 | `my_profile_prepare_publication`、`my_profile_commit_publication`，覆盖公开、更新和转私有 | 复用 Person 状态机；公开文章、必填资料和媒体条件在 prepare/commit 重检 |
+| 双语关系 | 从本人 Article 建立另一 locale 的 translation draft，并读取配对状态 | 服务端固定 owner、author、translation group 和目标 locale；不覆盖既有版本 |
+| Editor 工作台 | 待处理列表；精确读；保存负责人、format、分类、来源、freshness、编辑意见与站方封面 | Draft write；不改 owner、author、locale、translation group 或 Member publication |
+| Editor 公共动作 | 保留站方选择；增加排期、复核和作者通知的 prepare/commit | 公共或外部动作逐次确认；通知失败可安全重试 |
+| 站方与审计 | 站方 Article 建稿/保存；`admin_recent_activity` 增加受限筛选和分页；基础对象只读查询 | Super Admin；不开放通用批量写、账户提权或删除 |
+
+## 不进入完成条件的网页专属动作
+
+- 邀请或重发邀请、角色调整、暂停与恢复账户。
+- 删除 User、Person、Article、Media、Category、Place 或审计记录。
+- 任意 Person 代写、任意 Payload CRUD、SQL、migration、部署、DNS、密钥和备份恢复。
+- 自动翻译、自动事实批准、自动公开或绕过作者和编辑的两个公开决定。
+
+若以后有真实高频需求，必须建立独立 upgraded checklist，重新设计 step-up、确认、通知、恢复和 Production 负例；本计划不预先承诺开放。
+
+## 执行路线
 
 ```mermaid
 flowchart LR
-    P["Parent checklist<br/>阶段、依赖、转换决定"] --> A1["001<br/>Member foundation"]
-    A1 --> R["Transition review<br/>根据真实证据重估"]
-    R --> A2["002 completed<br/>Member publication"]
-    A2 --> A3["003 completed<br/>Local one-Article site selection"]
-    A3 --> A4["004 completed<br/>Super Admin activity read"]
-    A4 --> A5["005 completed<br/>Production enabled"]
-    A5 --> A6["006 completed<br/>Codex Member compatibility"]
+    B["001–006<br/>已完成基础"] --> M["AGENT-MEDIA<br/>媒体与正文 V2"]
+    M --> P["AGENT-PROFILE<br/>资料与外链"]
+    P --> C["007<br/>Member 完整闭环"]
+    C --> E1["008<br/>Editor 工作台"]
+    E1 --> E2["009<br/>公共与外部动作"]
+    E2 --> A["010<br/>安全站务"]
+    A --> R["011<br/>Production 完整验收"]
 ```
 
-实线表示 transition review 推荐的下一步，仍不构成执行授权；虚线表示后续候选关系。
-
-## Program Status
-
-| ID | 当前状态 | 候选结果 | 进入条件 |
+| ID | 状态 | 唯一交付结果 | 依赖 |
 |---|---|---|---|
-| `AGENT-WORKSPACE-001` | completed；Local + Preview Cursor real-client PASS | OAuth、远程 MCP、Member read/draft/preview | 已归档；WorkBuddy 转 005；TRAE 后续从适配目标删除 |
-| `AGENT-WORKSPACE-002` | completed；Local + Preview Cursor + final review PASS | Member publication 的 prepare/confirm/commit/readback、重放、撤回与过期拒绝 | 已归档；confirmation primitive 可供 003 intake 复用，Production 未开启 |
-| `AGENT-WORKSPACE-003` | completed；Local work-item + final review PASS | 精确读取一篇跨作者 Article；确认后 Add to site，并以确认后的 Remove 恢复 | 已归档；专用 fixture 已删除，Preview 未开启 |
-| `AGENT-WORKSPACE-004` | completed；Local work-item + independent review PASS | Super Admin-only 最近 20 条 Article workflow activity 最小读取 | 已归档；专用 fixture 已删除，Preview 未执行；高风险账户/身份动作保持网页或新 checklist |
-| `AGENT-WORKSPACE-005` | completed；Gate 2–6 independent review PASS | WorkBuddy/Cursor 真实兼容、运营保护、恢复与 Production release | 已归档；Gateway 公开启用，smoke + cleanup 完成，TRAE 不在范围 |
-| `AGENT-WORKSPACE-006` | completed；Production Codex Member + independent review PASS | Codex CLI Member 只读真实兼容、角色隔离、撤销与清理 | 已归档；没有写工具、产品代码或真实内容改动 |
+| `AGENT-WORKSPACE-001`–`006` | completed | OAuth、Member 文章、策展、最小审计、Production 与客户端基线 | archive |
+| `INFRA-AGENT-MEDIA-001` | active | Body V2、图片上传、封面和发布预检进入 Production | 当前 Preview/merge/push/deploy 门 |
+| `INFRA-AGENT-PROFILE-001` | queued | 本人资料与外链的 get/save；不含公开状态 | `INFRA-PERSON-PAGE-001` |
+| `AGENT-WORKSPACE-007` | queued | Profile preview/publication、翻译 draft、媒体列表和本人文章发现补齐 Member 闭环 | MEDIA + PROFILE |
+| `AGENT-WORKSPACE-008` | queued | Needs attention、reference options 与站方字段普通保存形成 Editor 工作台 | 007 |
+| `AGENT-WORKSPACE-009` | queued | 排期、复核与作者通知按公共/外部动作合同上线 | 008 |
+| `AGENT-WORKSPACE-010` | queued | 站方 Article 建稿/保存、基础对象只读与可筛选审计 | 009 |
+| `AGENT-WORKSPACE-011` | queued | 三角色真实客户端、权限负例、恢复和 Production 总验收 | 010 |
 
-`provisional` 只保留问题和候选结果，不是仓库通用 checklist 状态，也不构成实现授权。子级真正开始时只能使用仓库允许的 `active` 状态。
+`queued` 只固定需求边界和依赖，不授权实现。Agent capability 同一时刻只允许一个 active 子级；Site Infrastructure 已存在的 MEDIA/PROFILE 工作项继续由其原 checklist 管理，不重复建项。
 
-## Parent Checklist
+## 分阶段清单
 
-- [x] 建立完整 Agent Workspace 产品需求，固定远程 MCP、服务器权限和多客户端方向。
-- [x] 建立 `AGENT-WORKSPACE-001`，只交付 Member read/draft/preview 基础。
-- [x] 完成 001 的实现、Local/Preview 验证、独立复审、证据写回与 closure。
-- [x] 完成正式 transition review，以 Cursor Preview 运行和撤权证据重新估算 002–005。
-- [x] 记录决定：002 `keep + narrow`，003 `keep` 且排在 002 后，004 `split`，005 `keep + expand`。
-- [x] 只为下一条得到批准的结果创建一个 active 子级 checklist；其余继续停留在本页。
-- [x] 最终 closure 复审 PASS 后归档 002，并确认实际结果、遗留风险、可复用 confirmation 合同和 003–005 进入条件。
-- [x] 建立 003 active intake，把首批收窄为一个跨作者 Article、Add to site 和对应 Remove 恢复；不含普通保存、队列或其他策展能力。
-- [x] 完成 003 的 Local 实现、权限与恢复矩阵、独立复审、fixture 清理和 closure；`P0/P1/P2 = 0/0/0`，Preview 未执行。
-- [x] 建立 004 active intake，把首批收窄为 Super Admin-only 的 Article workflow activity 只读工具；不含账户、身份、邀请或写动作。
-- [x] 完成 004 Local 实现、权限与字段隔离矩阵、领域不变读回、Agent 审计、001–003 回归、独立复审、fixture 清理和 closure；`P0/P1/P2 = 0/0/0`，Preview 未执行。
-- [x] 建立 005 active phase-release intake，把首个执行门收窄为 WorkBuddy 真实兼容与 Cursor 回归，并把运营保护、migration 和 Production 分立设门；TRAE 已从当前适配要求删除。
-- [x] 005 最终独立复审 PASS 后，更新实际结果、遗留风险和下一阶段进入条件并归档。
-- [x] 005 以 phase-release 子级完成客户端兼容、运营保护、恢复、Production migration/staged deployment、公开启用和单账号只读 smoke；真实内容写入未执行。
-- [x] 完成 006 的 Codex CLI Member 只读真实兼容、权限负例、撤销、精确清理和独立复审；`P0/P1/P2 = 0/0/0`。
+### 当前批次：媒体
 
-## Transition Review After 001
+- [x] Body V2、`media_upload`、`article_set_cover` 与预检已实现并通过独立复审。
+- [ ] 完成 Preview 权限矩阵和真实 MCP discovery。
+- [ ] 分别批准 merge、push、Production deploy，并读回 Production 新工具。
 
-正式证据见 [`Agent Workspace 001 Transition Review`](../reference/implementation/agent-workspace-001-transition-review-2026-07-31.md)。结论是保持 `002 → 003 → 004 → 005` 的推荐顺序，但只有 002 是下一候选，任何阶段都须另建 active checklist。
+### Profile 与 Member 完整闭环
 
-001 关闭后至少回答：
+- [ ] 完成 `my_profile_get / my_profile_save / my_links_save`，覆盖姓名、头像关系、语言、主题、英西资料和最多 8 条外链。
+- [ ] 增加 Profile preview 与公开/更新/转私有的 prepare/commit/readback。
+- [ ] 增加本人媒体列表、本人文章分页/筛选和账户上下文中的 Profile 状态/完整度。
+- [ ] 增加从本人 Article 建立另一语言 draft 的受控动作，并证明重复建立和跨人建立失败关闭。
 
-1. Cursor 已证明的真实连接合同能否复用；WorkBuddy 因 001 无账号而转入 005，是否需要在下一 capability 子级前增加兼容预检。TRAE 的 001 未验证记录保留为历史，但不再是当前支持目标。
-2. OAuth、撤销、capability、revision、幂等和审计合同是否已经稳定。
-3. Member 实际更需要本地 Markdown 工作副本，还是更直接的结构化写作工具。
-4. 保存草稿的延迟、错误和冲突是否足以支持公开状态动作。
-5. `prepare → confirm → commit` 应先在 Member publication 还是 Editor curation 上验证。
-6. Editor 是否需要独立工具，还是可以复用文章工具加更严格 capability。
-7. 哪些 Super Admin 动作适合 Agent，哪些应永久保留在网页后台。
-8. 非 MCP Agent 的真实需求是否足以支持 CLI fallback；没有证据时不开发。
-9. Gateway 是否仍适合同域部署；没有运行证据时不拆服务。
-10. 下一阶段应是 002、003，还是一个重新编号和收窄的新切片。
+### Editor 完整闭环
 
-Transition review 的结果必须写入 implementation reference 或 accepted decision，再修改本页和创建下一子级。聊天结论不能代替写回。
+- [ ] Agent 能从 Needs attention 找到目标，不要求用户先提供内部 Article ID。
+- [ ] Agent 能保存负责人、format、分类、来源、freshness、编辑意见和站方封面，不改变原作者与个人公开决定。
+- [ ] 排期、复核、策展和作者通知分别按风险进入 prepare/commit；通知可读回、可重试、不重复发送。
 
-## Transition Review After 002
+### Super Admin 安全站务
 
-正式证据见 [`Agent Workspace 002 Transition Review`](../reference/implementation/agent-workspace-002-transition-review-2026-08-01.md)。Cursor Preview 已证明 confirmation、revision、幂等、撤回、过期和匿名读回合同，也暴露了工作区 server 初次启用、callback 端口占用和长任务 re-auth 三项真实客户端问题。
+- [ ] Super Admin 能创建和保存站方 Article，并继续使用现有受控发布清单。
+- [ ] 基础对象提供完成任务所需的只读查询；不把 collection CRUD 暴露给 Agent。
+- [ ] Activity 支持有限筛选和分页，同时继续隔离邮件、token、正文和内部错误详情。
+- [ ] 账户提权、暂停、删除和任意代写的直调负例全部失败关闭。
 
-结论：003 保留但首批必须收窄，按普通跨作者 read/save 与需 confirmation 的公共策展动作分级；004 继续拆分且不把 confirmation 证明外推到提权、删除、migration、密钥、Production 或批量公开；005 增加 callback、token renewal、长任务恢复和失败 OAuth client 清理。CLI fallback 仍无开发依据。
+### 最终发布
 
-## Child Draft Boundaries
+- [ ] Member、Editor、Super Admin 分别用真实客户端完成一条代表性闭环；低角色 discovery 不出现高角色工具。
+- [ ] 覆盖 paused、missing Person、跨 owner、降权、撤销连接、disabled client、stale revision、过期确认、重复请求和超时读回。
+- [ ] Preview、Production、真实账户、真实数据、公开状态和外部通知分别授权、执行、读回和恢复。
+- [ ] Current、feature registry、roadmap、reference 与 archive 写回一致，Production capability list 与文档一致。
 
-### 002 — Member publication candidate
+## 子级合同与验证
 
-- 候选目标：让 Member 通过 Agent 安全改变个人公开状态。
-- 必须重新验证：公开前摘要、用户确认、对象 revision、重复 commit、公共 URL、撤回与恢复。
-- 当前不决定：是否包含翻译、媒体、Person 公开或真实成员接入。
+每个 007–011 子级都属于 upgraded 工作，开始前必须冻结：目标、allowed paths、no-go、data truth、read/write path、permission boundary、audit、recovery、关键不变量、finding route 和独立复审。最低验证统一包括：
 
-### 003 — Completed Editor curation slice
-
-- 实际结果：Editor/Super Admin 可精确读取一篇跨作者 Article，经确认加入站方公共入口，并经另一份确认移除；Member publication、canonical、owner、原作者和公开署名不变。
-- 已证明边界：服务端角色、revision、confirmation、一次消费、事务重检、幂等、审计、匿名 readback 与恢复；没有新增 schema、migration、依赖或 Preview 能力。
-- 仍未覆盖：普通保存、Needs attention 列表、负责人、分类、来源、排期、复核、通知和批量操作；如需继续必须建立新的 Editor 子级，不回开 003。
-
-### 004 — Completed Super Admin activity read
-
-- 实际结果：只有 Super Admin 能发现并读取最近 20 条 Article publication/curation/notification workflow activity；结果使用字段白名单并写最小 Agent read audit。
-- 已证明边界：固定排序与 20 条上限、MCP discovery/call、Editor/Member/降权/暂停/缺 Person/撤销连接/禁用 client 负例、私密字段隔离、workflow 与领域对象不变；独立复审 `PASS`，专用 fixture 已删除。
-- 账户与身份动作：邀请、重发邀请、角色、暂停/恢复、Person 和删除均不进入本批；如果以后确有需求，必须用新的 upgraded checklist 重新设计 step-up、双重确认与恢复。
-
-### 005 — Completed compatibility and release
-
-- 当前目标：收口得到真实使用证明的客户端，并以 phase-release 合同完成可运营的 Production release；docs-only intake 与 Gate 1 只读预检已经完成。
-- 当前门：WorkBuddy 5.3.5 已完成真实 OAuth、9 tools、私有 draft、跨作者拒绝、re-auth、撤销和 publication prepare 确认呈现；Cursor 3.13.25 已完成 callback、授权、9 tools discovery 和 `account_context + capabilities_list` 实际调用。没有 commit 或公共状态变化，Preview 已恢复。
-- 首个执行门：Gate 2–5 均独立复审 `PASS`；Gate 6 已完成 Production public enable、现有 Super Admin 只读 smoke、权限负例、撤销、限流、日志与精确 cleanup。
-- closure：Gate 6 未主持执行者最终复审 `PASS`，Production Gateway 保持公开启用，临时 client/connection/event、凭据和运行脚本已清理；TRAE 不构成 005 gate 或父级 closure 条件。
-- 发布归属：005 持有 release 编排，但 Production 部署、真实账户、真实数据和公开启用仍是相互独立的批准门禁。
-- CLI fallback 只有在非 MCP Agent 的真实需求成立时进入；编号不保证它一定实现。
-
-### 006 — Completed Codex Member compatibility
-
-- 目标：用本机 Codex CLI 对 Production Gateway 完成单一现有 Member 的 OAuth、9-tool discovery、三项只读调用、隐藏高角色工具、撤销和精确清理。
-- 边界：不调用任何写工具，不读取或记录内容字段，不创建或修改账号，不改产品代码、schema、env、WAF 或 deployment。
-- 结果：三项真实只读调用和 9-tool Member 隔离 PASS；旧凭据以 `invalid_token` 失败关闭，临时 `1/2/8` Agent 记录与本机 MCP 精确清理后读回 `0/0/0`，独立复审 `PASS`。
+1. 合同与 schema 测试、目标服务测试、typecheck、lint、build、governance 和 diff check。
+2. 真实 Payload 权限路径；不以 mock、客户端角色或 tool discovery 代替服务端授权。
+3. 正例、越权负例、revision 冲突、幂等重放、审计字段隔离和写后读回。
+4. 公共或外部动作的 prepare 摘要、人工确认、短期凭证、commit、匿名/外部读回与恢复。
+5. 未主持实现者最终 `PASS` 后才进入下一道门。
 
 ## Program Rules
 
-- 同一时刻只允许一个实现型 active 子级 checklist。
-- 父级清单不持有代码 `allowed_paths`，不绕过子级 ChangeContract。
-- 后续编号是导航预留，不是已接受设计或承诺交付。
-- 一个子级未关闭时，不为下一个子级修改代码、schema 或 Production 状态。
-- 每次阶段转换都用刚完成的运行、权限、客户端和用户证据重新估算。
-- 不为预想的 Astria 复用提前抽共享 SDK；出现第二个真实实现点后再决定。
-- 不建设大陆网络封锁适配、区域中继或境内镜像。
+- 父级不持有代码 `allowed_paths`，不绕过子级 ChangeContract。
+- 一个 capability 子级未关闭时，不启动下一个；不把相邻缺口顺手并入当前 diff。
+- schema、migration、Preview、Production、真实个人数据、公开状态、外部通知、merge 和 push 分别批准。
+- 不为预想复用提前抽共享 SDK，不开发没有真实客户端需求的 CLI fallback。
+- 每阶段结束都用当前运行、权限和用户任务证据重估后续范围；可以删减无实际价值的工具。
 
 ## Program Closure
 
 只有在以下事实成立后才能关闭父级清单：
 
-- 必要角色已经通过真实 Agent 完成其被批准的完整任务。
-- 客户端范围以真实使用收敛，不再依赖未经验证的配置假设。
-- 身份、权限、确认、审计、恢复和撤销均有 Production 证据。
-- 未实现的候选能力已明确取消或转入新的产品决定，不以“以后再做”留在 active 状态。
-- Current、feature registry、decisions、reference 和 archive 已完成最终写回。
+- Member 能完成含图片、封面、双语关系、个人资料、外链和个人公开的完整任务。
+- Editor 能从队列开始完成普通编辑、策展、排期、复核和通知，不依赖内部 ID 或网页补最后一步。
+- Super Admin 能完成已接受的安全站务；网页专属特权边界被清楚记录并有直调负例。
+- 身份、权限、确认、审计、恢复、撤销和幂等均有 Production 证据。
+- 所有 queued 能力已完成、取消或写成明确决定；不存在无归属的“以后再做”。
