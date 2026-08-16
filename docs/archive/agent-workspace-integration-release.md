@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-workspace-integration-release
 last_verified: 2026-08-16
 max_lines: 180
@@ -17,7 +17,7 @@ approval_gates: main-push, merge, production-backup, production-migration, produ
 
 目标：把 Media 与 007–010 已通过 Local/独立复审的能力，在一个受保护 Preview 中用虚构三角色、真实 OAuth/MCP 客户端完成一次集成验收、迁移恢复和精确清理，产出可审核的 Production 交接包。本批不实现新工具、不改 schema、不进入 Production。
 
-当前状态：Preview 集成、migration recovery、三角色真实 MCP、精确 cleanup 与一次 phase-release 独立复审均 `PASS`，P0/P1/P2=`0/0/0`；关闭态已恢复 SSO `302` / Gateway-off `404`。007–010 均为 release-only，Production 保持 no-go。
+当前状态：Preview 集成、migration recovery、三角色真实 MCP、精确 cleanup 与一次 phase-release 独立复审均 `PASS`，P0/P1/P2=`0/0/0`；关闭态已恢复 SSO `302` / Gateway-off `404`。后续 012 Production 发布与终审也已 PASS，本清单归档。
 
 ## Scope
 
@@ -106,4 +106,4 @@ approval_gates: main-push, merge, production-backup, production-migration, produ
 
 - 执行证据写入唯一 `docs/reference/implementation/agent-workspace-011-preview-runtime-2026-08-16.md` 并由 evidence router 挂载；current/feature registry 只写已经发生的运行事实。
 - 只有上述 acceptance 与一次独立复审全部 PASS，才能请求新的 `main` push/merge 与 Production 批准。Production 必须另行备份、migration、deploy、真实角色与恢复，不沿用 Preview token/fixture/临时 env。
-- 本批已执行 branch push、Draft PR、Preview deploy、migration recovery、SSO/Gateway 开窗、虚构 fixture 与真实 MCP；`main` push、merge 与一切 Production 动作仍保留。
+- 本批已执行 branch push、Draft PR、Preview deploy、migration recovery、SSO/Gateway 开窗、虚构 fixture 与真实 MCP；012 随后完成独立 Production backup/migration/deploy/33-tool、本人 X 验收与 phase-release 终审，本清单归档。

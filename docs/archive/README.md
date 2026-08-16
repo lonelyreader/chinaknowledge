@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: archive-index
-last_verified: 2026-08-11
+last_verified: 2026-08-16
 max_lines: 80
 ---
 
@@ -24,12 +24,8 @@ max_lines: 80
 | `FEATURE-REGISTRY-001` | 功能登记册与实现指纹同步门禁建立 | [`app-feature-registry.md`](app-feature-registry.md) |
 | `ADMIN-UI-001` | Admin UI 已按 Payload 原生能力重构并上线 | [`admin-payload-native-ui-reconstruction.md`](admin-payload-native-ui-reconstruction.md) |
 | `BRAND-WORDMARK-001` | 定稿轮廓字标已接入公共 Header 与 Footer，SVG、构建、桌面和移动视觉验证通过 | [`brand-wordmark-site-integration.md`](brand-wordmark-site-integration.md) |
-| `AGENT-WORKSPACE-001` | 远程 OAuth/MCP 与 Member 读/草稿/预览基础、负例与独立复审通过 | [`agent-workspace-member-foundation.md`](agent-workspace-member-foundation.md) |
-| `AGENT-WORKSPACE-002` | Member publication 发布/撤回与复审通过 | [`agent-workspace-member-publication.md`](agent-workspace-member-publication.md) |
-| `AGENT-WORKSPACE-003` | Editor 单篇跨作者策展 exact read/Add/Remove、权限负例与独立复审通过；Preview 未执行 | [`agent-workspace-editor-site-curation.md`](agent-workspace-editor-site-curation.md) |
-| `AGENT-WORKSPACE-004` | Super Admin-only 最近 20 条 activity 最小读取、权限/隐私负例与独立复审通过；Preview 未执行 | [`agent-workspace-super-admin-activity-read.md`](agent-workspace-super-admin-activity-read.md) |
-| `AGENT-WORKSPACE-005` | WorkBuddy/Cursor 兼容与 Production 发布通过 | [`agent-workspace-compatibility-release.md`](agent-workspace-compatibility-release.md) |
-| `AGENT-WORKSPACE-006` | Codex CLI Member 只读兼容、权限隔离与独立复审通过 | [`agent-workspace-codex-member-compatibility.md`](agent-workspace-codex-member-compatibility.md) |
+| `AGENT-WORKSPACE-001–006` | OAuth/MCP、Member、策展、审计、客户端兼容与 Production 基线通过 | [`001`](agent-workspace-member-foundation.md)、[`002`](agent-workspace-member-publication.md)、[`003`](agent-workspace-editor-site-curation.md)、[`004`](agent-workspace-super-admin-activity-read.md)、[`005`](agent-workspace-compatibility-release.md)、[`006`](agent-workspace-codex-member-compatibility.md) |
+| `AGENT-WORKSPACE-007–012` | 33-tool Member/Editor/Admin 闭环、Preview recovery、Production 15 migrations、本人 X 与终审通过 | [`007`](agent-workspace-member-completion.md)、[`008`](agent-editor-workbench.md)、[`009`](agent-editor-public-actions.md)、[`010`](agent-admin-safe-operations.md)、[`011`](agent-workspace-integration-release.md)、[`012`](agent-workspace-production-release.md) |
 | `GOV-INDEPENDENT-REVIEW-001` | Upgraded 批次合同、独立复审阻断证据、后续路由与三轮范围校准已写入长期治理 | [`independent-review-boundary-governance.md`](independent-review-boundary-governance.md) |
 | `REPO-CONSOLIDATION-001` | 仓库历史与 refs/worktrees 收敛到唯一 clean `main`，用户路径保全 | [`repository-main-consolidation.md`](repository-main-consolidation.md) |
 | `MEDIA-UPLOAD-001` | 同名 Media 唯一不可覆盖 pathname 已在 Production 验证与清理 | [`media-upload-filename-collision.md`](media-upload-filename-collision.md) |

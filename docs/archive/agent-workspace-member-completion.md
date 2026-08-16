@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-member-completion
 last_verified: 2026-08-16
 max_lines: 180
@@ -17,7 +17,7 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 
 目标：在现有 Agent Gateway 上补齐 Member 的资料、外链、媒体发现、双语文章和对象发现闭环；吸收原 queued `INFRA-AGENT-PROFILE-001`，只保留本 checklist，不建立第二条 Profile 实现线。
 
-父级：[`Agent Workspace Parent Checklist`](../agent-workspace-program.md)。Person 字段前置由 `INFRA-PERSON-PAGE-001` 交付；Agent 正文与媒体写入前置已由 `INFRA-AGENT-MEDIA-001` 合入本地 `main`。
+父级：[`Agent Workspace Parent Checklist`](../roadmap/agent-workspace-program.md)。Person 字段前置由 `INFRA-PERSON-PAGE-001` 交付；Agent 正文与媒体写入前置已由 `INFRA-AGENT-MEDIA-001` 合入本地 `main`。
 
 ## Scope
 
@@ -104,6 +104,6 @@ approval_gates: main-push, production-deploy, real-account, real-data, public-st
 - [x] 用户批准把 Profile 与 Member 余项收敛为一个 007 checklist，并预授权本地开发、commit、本地 merge、branch push 与 Preview；`main` push 未授权（2026-08-16）。
 - [x] `INFRA-AGENT-MEDIA-001` 已合入本地 `main`（`f100908`）；其 Preview/Production release 仍由原 checklist 收尾。
 - [x] `INFRA-PERSON-PAGE-001` 已合入本地 `main`（`4591719`）；其 Preview/Production migration 分别留在对应 release gate。
-- [x] 实现与 Local 工作项验证完成；证据见 [`AGENT-WORKSPACE-007 Local runtime`](../../reference/implementation/agent-workspace-007-local-runtime-2026-08-16.md)。
+- [x] 实现与 Local 工作项验证完成；证据见 [`AGENT-WORKSPACE-007 Local runtime`](../reference/implementation/agent-workspace-007-local-runtime-2026-08-16.md)。
 - [x] 独立复审的两项 `BLOCK` 已最小修复并定向复核 `PASS`，最终 P0/P1/P2=`0/0/0`（2026-08-16）。
-- [x] 011 统一 Preview 已完成 18-tool discovery、Profile/X、Article/cover/publication 与权限负例；`main` push 与 Production 发布未授权。
+- [x] 011 统一 Preview 已完成 18-tool discovery、Profile/X、Article/cover/publication 与权限负例；012 已完成 Production 33-tool 发布、Person migration 与当前用户本人 X 三方读回，phase-release 独立复审最终 P0/P1/P2=`0/0/0`，本清单归档。

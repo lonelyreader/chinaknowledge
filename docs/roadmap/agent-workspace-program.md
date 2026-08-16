@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: contract
 authority: canonical
-status: active
+status: completed
 scope: agent-workspace-program-control
 last_verified: 2026-08-16
 max_lines: 260
@@ -10,7 +10,7 @@ max_lines: 260
 
 # Agent Workspace Parent Checklist
 
-本页是 Agent Workspace 的唯一执行规划。稳定需求见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)；历史验收见 001–006 archive。本文定义剩余能力、顺序、门禁和完成条件，不直接授权代码、schema、migration、部署或真实数据动作。每个实现项开始前仍须建立独立 active `ChangeContractV1`。
+本页记录已完成的 Agent Workspace 规划。稳定需求见 [`Agent Workspace Requirements`](../agent-workspace-requirements.md)；历史验收见 001–012 archive。本文保留能力、顺序、门禁和完成条件，不再授权代码、schema、migration、部署或真实数据动作。
 
 ## 完整的含义
 
@@ -23,15 +23,15 @@ MCP 完整，指 Member、Editor 与 Super Admin 能在 Agent 中完成高频、
 
 ## 当前基线（2026-08-16）
 
-Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册表一致，不是运行时漏注册。
+Production 当前 Super Admin 常驻连接返回 33 个工具；Member/Editor/Super Admin 的完整 discovery 边界为 18/28/33。
 
-| 能力层 | 已上线 | 主要缺口 |
+| 能力层 | Production 状态 | 保留边界 |
 |---|---|---|
-| Member（9） | 账户与 capability、本人文章列表、工作副本、建稿、保存、预览、个人发布/撤回 | Person、外链、媒体、封面、正文媒体、翻译关系、列表分页筛选 |
-| Editor（+3） | 精确读取一篇跨作者 Article、确认加入或移出站方入口 | 待处理队列、普通保存、负责人、分类、来源、时效、排期、通知 |
-| Super Admin（+2） | 站方 Article 受控批次公开、最近 20 条 Article 活动 | 站方建稿、基础对象查询、可筛选审计；特权账户动作保持网页入口 |
+| Member（18） | 账户、Profile/links、媒体、文章/翻译、正文/封面、预览与个人公开闭环已上线 | 只能操作本人对象；当前真实账号只验收 X |
+| Editor（28） | 队列、引用、站方字段、策展、排期与固定作者通知已上线 | 真实内容/排期/通知未在 012 重演 |
+| Super Admin（33） | 站方母稿读取、Article working copy、受限 activity 与既有批次公开已上线 | 账户提权、暂停、删除和通用 CRUD 仍只在网页后台 |
 
-001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。Media、007–010 已实现、复审并合入本地 `main`；010 一次终局/定向复核 `PASS`（P0/P1/P2=`0/0/0`）。Production 仍是 14 个工具，本地与统一 Preview 已验证 33 个；011 的 migration recovery、三角色真实 MCP、cleanup、关闭态恢复与 phase-release 独立复审均 PASS，不 push/merge `main` 或进入 Production。
+001–010 已完成实现与分级复审；011 完成 Preview migration recovery、三角色真实 MCP、cleanup 与 phase-release 复审。012 已完成 Production 前后恢复点、第 15 条 migration、单次 `main` auto-deploy、33-tool discovery、当前用户本人 X 三方读回与最终 phase-release 独立复审；007–012 已归档，最终 P0/P1/P2=`0/0/0`。
 
 ## 设计与安全原则
 
@@ -84,13 +84,13 @@ flowchart LR
 | ID | 状态 | 唯一交付结果 | 依赖 |
 |---|---|---|---|
 | `AGENT-WORKSPACE-001`–`006` | completed | OAuth、Member 文章、策展、最小审计、Production 与客户端基线 | archive |
-| `INFRA-AGENT-MEDIA-001` | active（release） | Body V2、图片上传、封面和发布预检进入 Production | Local/复审与统一 Preview PASS；Production 待执行 |
-| [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | active（release） | 资料与外链、Profile Preview path/publication、翻译 draft、媒体列表、发现与当前角色 discovery 补齐 Member 闭环 | Local/复审与统一 Preview PASS；Production 待执行 |
-| [`AGENT-WORKSPACE-008`](checklists/agent-editor-workbench.md) | active（release） | Needs attention、reference options、Body V2 读取与站方字段普通保存形成 Editor 工作台 | Local/复审与统一 Preview PASS；Production 待执行 |
-| [`AGENT-WORKSPACE-009`](checklists/agent-editor-public-actions.md) | active（release） | 首页排期与 `major_edit` 作者通知按公共/外部动作合同上线 | Local/复审与统一 Preview PASS；Production 待执行 |
-| [`AGENT-WORKSPACE-010`](checklists/agent-admin-safe-operations.md) | active（release） | 站方 Article 建稿/保存、必要基础对象只读与可筛选审计 | Local/复审与统一 Preview PASS；Production 待执行 |
-| [`AGENT-WORKSPACE-011`](checklists/agent-workspace-integration-release.md) | active（production gate） | 三角色真实 MCP、Preview migration/recovery/cleanup 与 Production 交接 | Preview/复审 PASS；Production no-go |
-| [`AGENT-WORKSPACE-012`](checklists/agent-workspace-production-release.md) | active | 精确候选 Production 发布、14→15 migration、33-tool smoke 与当前用户本人 X 外链验收 | 011 PASS；用户已批准，待执行 |
+| `INFRA-AGENT-MEDIA-001` | active（专项验收） | Body V2、图片上传、封面和发布预检已进入 Production | Local/Preview/部署/discovery PASS；真实 media 写入专项 pending |
+| [`AGENT-WORKSPACE-007`](../archive/agent-workspace-member-completion.md) | completed | Profile/links、翻译、媒体与 Member 闭环 | Local/Preview/Production + 本人 X PASS |
+| [`AGENT-WORKSPACE-008`](../archive/agent-editor-workbench.md) | completed | Editor 队列、引用、Body V2 与站方字段保存 | Local/Preview/Production deploy PASS |
+| [`AGENT-WORKSPACE-009`](../archive/agent-editor-public-actions.md) | completed | 首页排期与 `major_edit` 作者通知 | Local/Preview/Production deploy PASS；无真实通知 |
+| [`AGENT-WORKSPACE-010`](../archive/agent-admin-safe-operations.md) | completed | Site Article working copy 与受限 activity | Local/Preview/Production 33-tool PASS |
+| [`AGENT-WORKSPACE-011`](../archive/agent-workspace-integration-release.md) | completed | Preview migration/recovery/三角色/cleanup 与交接 | Preview/复审 PASS；候选已由 012 发布 |
+| [`AGENT-WORKSPACE-012`](../archive/agent-workspace-production-release.md) | completed | Production 14→15、精确部署、33-tool 与本人 X | Runtime/独立复审 PASS，`0/0/0` |
 
 `queued` 只固定需求边界和依赖，不授权实现。原 queued `INFRA-AGENT-PROFILE-001` 已吸收进 007，不建立第二个 Profile checklist。Agent capability 同一时刻只允许一个 active 实现子级；只剩 release 回读的旧 checklist 不阻断下一子级本地实现。
 
@@ -101,7 +101,7 @@ flowchart LR
 - [x] Body V2、`media_upload`、`article_set_cover` 与预检已实现并通过独立复审。
 - [x] 合入本地 `main`（`f100908`）；不再接受相邻代码扩项。
 - [x] 通过 011 完成 Preview 权限矩阵、18/28/33 真实 MCP discovery 与代表性媒体读写边界。
-- [ ] 经发布门完成 `main` push、Production deploy，并读回 Production 新工具。
+- [x] 经发布门完成 `main` push、Production deploy，并读回 Production 33 个工具；真实 media 写入专项仍由原 checklist 收尾。
 
 ### 已完成本地实现：Profile 与 Member 完整闭环（007）
 
@@ -127,20 +127,21 @@ flowchart LR
 - [x] Activity 支持最大 50 条、首屏 `asOf`、固定排序和四项白名单筛选，同时继续隔离邮件、token、正文和内部错误详情。
 - [x] Editor/Member、降权、重复 locale、stale hash/revision、伪造身份、并发创建和任意查询均失败关闭。
 
-010 已完成 Local 工作项、一次独立终局/定向复核、合入本地 `main`（`c8351ee`）与 011 统一 Preview，P0/P1/P2=`0/0/0`；只剩 Production release，不再扩代码。
+010 已完成 Local 工作项、一次独立终局/定向复核、011 统一 Preview 与 012 Production 33-tool 部署/discovery，未创建真实 Site Article。
 
-### 当前批次：011 Preview 集成与生产前交接
+### 已完成：011 Preview 集成与生产前交接
 
 - [x] 在 `codex/agent-workspace-011-preview` 建 Draft PR，先断言 Vercel project/root/repo/production branch，再绑定精确 Preview SHA；未 push/merge `main` 或运行 `--prod`。
 - [x] Preview 现场为 14/15；在 release SHA 单独 apply、down/reapply Person 第 15 条，未 reset 或跨 batch rollback。
 - [x] 用唯一虚构 Member/Editor/Super Admin + eligible 中文 master 完成真实 OAuth/MCP discovery、代表性闭环、权限负例、审计与无邮件调用。
-- [x] fixture/token/connection/env/alias 已精确清理并恢复 SSO/Gateway；一次独立 phase-release 复审与定向复核最终 PASS，仍未进入 Production。
+- [x] fixture/token/connection/env/alias 已精确清理并恢复 SSO/Gateway；一次独立 phase-release 复审与定向复核最终 PASS，候选随后由 012 发布。
 
-### 当前批次：012 Production 发布与本人 X 外链验收
+### 已完成：012 Production 发布与本人 X 外链验收
 
 - [x] 用户于 2026-08-16 明确批准 011 之后冻结的 Production release gate；012 不重复实现或修改产品代码。
-- [ ] 完成 Production backup/隔离恢复、第 15 条 migration、精确 SHA auto-deploy、33-tool 与公共 smoke。
-- [ ] 用当前真实账号只设置并读回本人 X 外链，完成撤销、cleanup、最终 readback 与一次独立 phase-release 复审。
+- [x] 完成 Production 前后 backup/隔离恢复、第 15 条 migration、精确 SHA auto-deploy、33-tool 与公共 smoke。
+- [x] 用当前真实账号只设置并读回本人 X 外链；未创建本批 DCR/connection，常驻连接保留，其他领域计数不变。
+- [x] 完成本地临时物 cleanup 与一次独立 phase-release 复审，P0/P1/P2=`0/0/0`；007–012 已归档。
 
 ## 子级合同与验证
 

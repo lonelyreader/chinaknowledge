@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-editor-public-actions
 last_verified: 2026-08-16
 max_lines: 180
@@ -17,7 +17,7 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 
 目标：在既有 Agent Gateway 上增加两项明确动作的 `prepare → explicit confirmation → commit → readback`：已公开且已策展 Article 的首页排期，以及 Member Article 的 `major_edit` 作者通知。失败通知只重试原 commit 和同一 WorkflowEvent。
 
-父级：[`Agent Workspace Parent Checklist`](../agent-workspace-program.md)。008 已完成 Local/复审与统一 Preview，只剩 Production release，不再扩代码。本批不新增“复核”工具，不重复既有站方选择或自动策展通知，也不提前实现 010。
+父级：[`Agent Workspace Parent Checklist`](../roadmap/agent-workspace-program.md)。008 已完成 Local、统一 Preview 与 012 Production 发布并归档，不再扩代码。本批不新增“复核”工具，不重复既有站方选择或自动策展通知，也不提前实现 010。
 
 ## Scope
 
@@ -72,7 +72,7 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 ## Acceptance
 
 - [x] Editor 能对符合门槛的 Article prepare/commit 首页排期或清空排期，获得精确摘要、写后 revision、公开读回和可执行恢复值；pending draft 从未被发布。
-- [ ] Editor 能 prepare/commit 一次固定 `major_edit` 作者通知；输入无法控制 kind/recipient/copy，Preview 只生成 `not_required` WorkflowEvent 且不发真实邮件。
+- [x] Editor 能 prepare/commit 一次固定 `major_edit` 作者通知；输入无法控制 kind/recipient/copy，Preview 只生成 `not_required` WorkflowEvent 且不发真实邮件。
 - [x] 通知失败以原 commit 重试同一 WorkflowEvent；并发、重放、provider timeout 和 sent/not_required 读回均不产生第二事件或重复投递。
 - [x] Member 隔离、当前角色、stale/expired/tampered confirmation、状态变化、审计隐私和恢复负例全部通过；既有站方选择及 selected/removed/needs_recheck 通知行为不变。
 - [x] 无复核工具、无 010 能力、无 schema/migration、无通用动作/通知平台、无 UI/provider/config diff。
@@ -90,4 +90,4 @@ approval_gates: main-push, production-deploy, real-account, real-data, productio
 ## Writeback
 
 - Local PASS 后更新 feature registry、current-state、父级状态和 implementation evidence；一次独立复审 PASS 后 010 才能激活。Production 读回后再归档。
-- 当前门：009 Local 工作项、独立终局复审与 011 统一 Preview 均 PASS（P0/P1/P2=`0/0/0`），已合入本地 `main`（`83ce74f`）；只剩 Production release，不再扩代码。证据见 [`AGENT-WORKSPACE-009 Local runtime`](../../reference/implementation/agent-workspace-009-local-runtime-2026-08-16.md) 与 [`011 Preview runtime`](../../reference/implementation/agent-workspace-011-preview-runtime-2026-08-16.md)。
+- 当前门：009 Local/独立复审、011 统一 Preview、012 Production 部署与 phase-release 独立复审均 PASS；Production 按 no-go 未触发真实排期或外部通知。证据见 [`Local`](../reference/implementation/agent-workspace-009-local-runtime-2026-08-16.md)、[`Preview`](../reference/implementation/agent-workspace-011-preview-runtime-2026-08-16.md) 与 [`Production`](../reference/implementation/agent-workspace-012-production-runtime-2026-08-16.md)；本清单归档。

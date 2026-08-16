@@ -28,19 +28,10 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 - [`INFRA-PERSON-PAGE-001`](person-page-expansion.md)：Person 页扩展与正式名片（upgraded）。
 - [`INFRA-FEEDS-001`](feeds-structured-data.md)：Feed 与结构化数据。
 
-当前 active（Agent Workspace）：
-
-- [`AGENT-WORKSPACE-007`](agent-member-completion.md)：Member 完整闭环（upgraded），Local/复审与统一 Preview PASS，只剩 Production release。
-- [`AGENT-WORKSPACE-008`](agent-editor-workbench.md)：Editor 工作台（upgraded），Local/复审与统一 Preview PASS，只剩 Production release。
-- [`AGENT-WORKSPACE-009`](agent-editor-public-actions.md)：首页排期与 `major_edit` 作者通知（upgraded），Local/复审与统一 Preview PASS，只剩 Production release。
-- [`AGENT-WORKSPACE-010`](agent-admin-safe-operations.md)：Site Article working-copy 与有限 activity（upgraded），Local/复审与统一 Preview PASS，只剩 Production release。
-- [`AGENT-WORKSPACE-011`](agent-workspace-integration-release.md)：一次性虚构三角色真实 MCP、Preview migration/recovery/cleanup 与 Production 交接（upgraded）；Preview/phase-release 复审 PASS，停在 Production gate。
-- [`AGENT-WORKSPACE-012`](agent-workspace-production-release.md)：把 011 精确候选发布到 Production，完成 14→15 migration、33-tool smoke 与当前用户本人 X 外链读写（upgraded）；用户已批准，待执行。
-
 非紧急收尾：
 
 - [`GUIDE-FOUNDATION-001`](guide-foundation-research-corpus.md)：语料采集与抽样已经完成，只等待报告写回和归档，不占用当前执行优先级。
 
-已完成的 [`INFRA-MEASURE-001`](../../archive/site-measurement-foundation.md)、[`INFRA-TOKENS-001`](../../archive/design-token-architecture.md)、[`DESIGN-DIRECTION-001`](../../archive/design-direction-revision.md)、[`AUTH-RESET-001`](../../archive/password-reset-recovery.md)、[`FAVICON-PROD-001`](../../archive/favicon-production-release.md)、[`MIDGAME-COLD-START-001`](../../archive/midgame-cold-start.md)、[`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](../../archive/agent-workspace-codex-member-compatibility.md)、[`MEDIA-UPLOAD-001`](../../archive/media-upload-filename-collision.md)、[`CI-DOC-LINKS-001`](../../archive/ci-portable-evidence-links.md)、[`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 与 [`REPO-CONSOLIDATION-001`](../../archive/repository-main-consolidation.md) 位于 archive。
+已完成的 [`INFRA-MEASURE-001`](../../archive/site-measurement-foundation.md)、[`INFRA-TOKENS-001`](../../archive/design-token-architecture.md)、[`DESIGN-DIRECTION-001`](../../archive/design-direction-revision.md)、[`AUTH-RESET-001`](../../archive/password-reset-recovery.md)、[`FAVICON-PROD-001`](../../archive/favicon-production-release.md)、[`MIDGAME-COLD-START-001`](../../archive/midgame-cold-start.md)、[`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-012`](../../archive/agent-workspace-production-release.md)、[`MEDIA-UPLOAD-001`](../../archive/media-upload-filename-collision.md)、[`CI-DOC-LINKS-001`](../../archive/ci-portable-evidence-links.md)、[`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 与 [`REPO-CONSOLIDATION-001`](../../archive/repository-main-consolidation.md) 位于 archive。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`；已有清单覆盖当前工作时不重复创建。

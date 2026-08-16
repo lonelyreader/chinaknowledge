@@ -65,7 +65,7 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 ## Writeback
 
 - [x] feature registry（People 相关条目）与 current-state 写回。
-- [ ] Preview/Production 门完成后归档本 checklist。
+- [ ] Preview/Production migration、部署与本人 X 公开读回已完成；剩余专项 UI 验收后归档。
 
 ## Current gate
 
@@ -75,4 +75,5 @@ approval_gates: schema, migration, preview, production-deploy, commit, merge, pu
 - [x] Local 实现、migration recovery、build、桌面/390px 浏览器主流程与独立复审 PASS（2026-08-16）；修复公开 Person 在 My profile 动作区误显示为 Draft 的状态回退。
 - [x] Preview：已在受保护环境部署并以虚构 Person 完成 migration 独立 apply/down/reapply 与 Agent Profile/X 闭环；未复制 Production 个人数据。
 - [ ] Preview 专项：Member UI 编辑、Editor 判词和 EN/ES 匿名 UI 读回仍待执行，不以 011 的 Agent 验收代替。
-- [ ] Production：migration 前备份、部署、apply、公开 Person 读回与恢复点确认需单独发布授权；本地收口未触碰 Production。
+- [x] Production：前后 R2 backup/checksum/隔离 restore、Person 第 15 条独立 batch、精确 SHA 部署、本人的 MCP X 写入及 EN/ES 匿名 Person 读回均 PASS；其他 Profile 字段与公开状态不变。
+- [ ] Preview/Production 专项：Member UI 编辑、Editor 判词与完整 EN/ES UI 流程仍待执行，不以 012 的 MCP X 验收代替。

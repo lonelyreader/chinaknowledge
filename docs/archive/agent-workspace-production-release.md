@@ -2,14 +2,14 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: agent-workspace-production-release
 last_verified: 2026-08-16
 max_lines: 140
 change_id: AGENT-WORKSPACE-012
 risk_tier: upgraded
 validation_profile: phase_release
-allowed_paths: .github/workflows/production-backup.yml, apps/web/package.json, apps/web/package-lock.json, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-media-tools.md, docs/roadmap/checklists/person-page-expansion.md, docs/roadmap/checklists/agent-member-completion.md, docs/roadmap/checklists/agent-editor-workbench.md, docs/roadmap/checklists/agent-editor-public-actions.md, docs/roadmap/checklists/agent-admin-safe-operations.md, docs/roadmap/checklists/agent-workspace-integration-release.md, docs/roadmap/checklists/agent-workspace-production-release.md, docs/roadmap/checklists/guide-foundation-research-corpus.md, docs/current-state.md, docs/product-feature-registry.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-012-production-runtime-2026-08-16.md, docs/archive/README.md, docs/archive/agent-workspace-member-completion.md, docs/archive/agent-editor-workbench.md, docs/archive/agent-editor-public-actions.md, docs/archive/agent-admin-safe-operations.md, docs/archive/agent-workspace-integration-release.md, docs/archive/agent-workspace-production-release.md
+allowed_paths: .github/workflows/production-backup.yml, apps/web/package.json, apps/web/package-lock.json, docs/roadmap/README.md, docs/roadmap/agent-workspace-program.md, docs/roadmap/site-infrastructure-program.md, docs/roadmap/checklists/README.md, docs/roadmap/checklists/agent-media-tools.md, docs/roadmap/checklists/person-page-expansion.md, docs/roadmap/checklists/agent-member-completion.md, docs/roadmap/checklists/agent-editor-workbench.md, docs/roadmap/checklists/agent-editor-public-actions.md, docs/roadmap/checklists/agent-admin-safe-operations.md, docs/roadmap/checklists/agent-workspace-integration-release.md, docs/roadmap/checklists/agent-workspace-production-release.md, docs/roadmap/checklists/guide-foundation-research-corpus.md, docs/current-state.md, docs/product-feature-registry.md, docs/reference/implementation/README.md, docs/reference/implementation/agent-workspace-012-production-runtime-2026-08-16.md, docs/archive/README.md, docs/archive/agent-workspace-member-completion.md, docs/archive/agent-editor-workbench.md, docs/archive/agent-editor-public-actions.md, docs/archive/agent-admin-safe-operations.md, docs/archive/agent-workspace-integration-release.md, docs/archive/agent-workspace-production-release.md
 approval_gates: main-push, production-backup, production-migration, production-deploy, production-public-enable, real-account, real-data
 ---
 
@@ -38,17 +38,17 @@ approval_gates: main-push, production-backup, production-migration, production-d
 
 ## Release path
 
-1. [ ] 冻结完整 `RELEASE_SHA`，证明其应用源码等于 011 Preview SHA、仅含合同允许的依赖与门禁差异，worktree 无无关改动；读取 remote `main` 与 Vercel live 配置，确认一次 `main` fast-forward push 会触发唯一 Production auto-deploy。
-2. [ ] 关闭 PR `verify` 的 GUIDE 本机绝对链接和 production audit 失败；把连续失败的 backup restore 断言按 live `45 tables / 14 migrations` 精确更新并在 release branch 运行成功，恢复 CI 与每日备份门后才继续。
-3. [ ] 记录 Production migration ledger、关键业务/OAuth/event 计数和当前部署/Gateway；运行现有 Production backup，保存 dump SHA，并在隔离 PostgreSQL 完整恢复后读回 ledger/schema/关键计数。
-4. [ ] 只应用 repo 既有第 15 条 `20260812_042454_person_page_member_card`，预期 Production `14→15` 且独立新 batch；读回新增 Person schema、ledger 与迁移前业务计数不变，再把 backup restore 断言同步到 `49/15` 并完成迁移后备份恢复。
-5. [ ] 以精确 ref 执行一次 `git push origin RELEASE_SHA:main`；不另跑 `vercel --prod/promote`。等待 GitHub→Vercel auto-deploy，断言 target=`production`、state=`READY`、git SHA=`RELEASE_SHA`、正式 alias 指向该 deployment。
-6. [ ] Gateway 关闭态先验证公共首页、代表性文章、CMS/登录和 health；Agent route 保持关闭。再按现有 Production 配置公开 Gateway，不改变 SSO/WAF/provider。
-7. [ ] 用户当前真实账号完成 DCR/PKCE/OAuth，读回当前 User/Person/role/connection；Super Admin discovery 精确为 33，server identity/protocol 与 011 一致。Preview 的 Member 18 / Editor 28 权限证据随同 exact product tree，不在 Production 新建其他真实角色或 fixture 重演。
-8. [ ] 调用 `account_context`、`capabilities_list` 与最小公共 read smoke；猜测高权限工具、任意 Person target 或跨人写入无入口/失败关闭。公共网页、CMS、既有内容计数和公开状态不变。
-9. [ ] 保存本人当前 links/revision 后，用 `my_links_save` 只设置用户明确提供/当前登录 X 账号的规范 `https://x.com/<handle>`；`my_profile_get` 与数据库按本人 Person ID 最小读回一致，Agent audit 只含 actor/tool/object/revision/result。
-10. [ ] 撤销本次 connection，旧 token 返回 `401`；精确删除本次 DCR client/connection 与可删除的临时 Agent events，或按既有 retention 留存最小审计并记录计数差。删除本地 token、callback、manifest、dump 和隔离数据库。
-11. [ ] 运行 Local changed-path gates、Production 公共/Agent/Gateway/DB/部署最终 readback；未主持执行者完成一次 phase-release 独立复审，最终 P0/P1/P2 必须为 `0/0/0` 才写 current/evidence/registry 并归档。
+1. [x] 冻结完整 `RELEASE_SHA`，证明其应用源码等于 011 Preview SHA、仅含合同允许的依赖与门禁差异，worktree 无无关改动；读取 remote `main` 与 Vercel live 配置，确认一次 `main` fast-forward push 会触发唯一 Production auto-deploy。
+2. [x] 关闭 PR `verify` 的 GUIDE 本机绝对链接和 production audit 失败；把连续失败的 backup restore 断言按 live `45 tables / 14 migrations` 精确更新并在 release branch 运行成功，恢复 CI 与每日备份门后才继续。
+3. [x] 记录 Production migration ledger、关键业务/OAuth/event 计数和当前部署/Gateway；运行现有 Production backup，并在隔离 PostgreSQL 完整恢复后读回 ledger/schema/关键计数。
+4. [x] 只应用 repo 既有第 15 条 `20260812_042454_person_page_member_card`，Production `14→15` 且独立为 batch 8；读回 Person schema、ledger 与业务计数不变，再把 backup restore 断言同步到 `49/15` 并完成迁移后备份恢复。
+5. [x] 以精确 ref 执行一次 `git push origin RELEASE_SHA:main`；未另跑 `vercel --prod/promote`。GitHub→Vercel auto-deploy 为精确 SHA 的 `READY / production`，正式 alias 已指向它。
+6. [x] 现场确认 Gateway 已按既有 Production 配置公开开启，因此未为本批反复切换；公共首页、代表性文章、CMS/登录、health、OAuth metadata 与未授权 MCP `401` 全部通过，SSO/WAF/provider 未变。
+7. [x] 复用用户既有常驻 MCP connection，读回当前 User/Person/role；Super Admin discovery 精确为 33。Preview Member 18 / Editor 28 权限证据随同同一应用源码，Production 未新建其他真实角色或 fixture。
+8. [x] 调用 `account_context`、`capabilities_list` 与最小公共 read smoke；工具无任意 Person target，公共网页、CMS、既有内容计数和公开状态不变。
+9. [x] 保存本人当前 links/revision 后，用 `my_links_save` 只设置 `https://x.com/WorldlyGeXu`；MCP、数据库与 EN/ES 匿名页读回一致，Agent audit 只含 actor/tool/object/revision/result。
+10. [x] 本批未创建 DCR、token、client 或 connection，因此不撤销用户既有常驻连接；最小 Agent audit 按既有 retention 保留，未生成本地 token、callback、manifest 或 Production dump。
+11. [x] 运行 Local changed-path gates、Production 公共/Agent/Gateway/DB/部署最终 readback；未主持执行者完成一次 phase-release 独立复审，最终 P0/P1/P2=`0/0/0`，current/evidence/registry 已写回并归档。
 
 ## Stop 与 recovery
 
@@ -60,12 +60,12 @@ approval_gates: main-push, production-backup, production-migration, production-d
 
 ## Acceptance
 
-- [ ] `RELEASE_SHA` 除合同允许的依赖与门禁差异外等于 011 Preview 候选；一次 fast-forward `main` push 只产生一个精确 SHA 的 READY Production deployment。
-- [ ] Production 备份 SHA、隔离恢复、14→15 独立 migration、ledger/schema/data readback 全部 PASS，恢复点可用。
-- [ ] Production Super Admin discovery 为 33；当前角色、服务端权限、撤销和旧 token `401` 闭合；未创建其他账号或 fixture。
-- [ ] 当前用户本人 X 外链经 `my_links_save → my_profile_get → DB` 三方一致读回；其他 links/Person/内容/公开状态不变，审计无敏感值。
-- [ ] 公共首页/文章/CMS/health 与 Gateway off/on smoke PASS；无内容公开、批量操作、真实通知、DNS/付费/provider 变更。
-- [ ] `test:agent`、typecheck、lint、build、`npm run governance:check`、`git diff --check`、Production 最终 readback和一次独立复审 PASS。
+- [x] `RELEASE_SHA` 除合同允许的依赖与门禁差异外等于 011 Preview 候选；一次 fast-forward `main` push 只产生一个精确 SHA 的 READY Production deployment。
+- [x] Production checksum、隔离恢复、14→15 独立 migration、ledger/schema/data readback 全部 PASS，前后恢复点可用。
+- [x] Production Super Admin discovery 为 33；当前角色与服务端权限读回一致，且未创建本批 token/client/connection、其他账号或 fixture。
+- [x] 当前用户本人 X 外链经 `my_links_save → my_profile_get → DB → EN/ES anonymous` 一致读回；其他 links/Person/内容/公开状态不变，审计无敏感值。
+- [x] 公共首页/文章/CMS/health、OAuth metadata 与 Gateway 未授权 `401` smoke PASS；无内容公开、批量操作、真实通知、DNS/付费/provider 变更。
+- [x] `test:agent`、typecheck、lint、build、`npm run governance:check`、`git diff --check`、Production 最终 readback 和一次独立复审 PASS，P0/P1/P2=`0/0/0`。
 
 ## Validation
 

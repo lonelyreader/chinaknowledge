@@ -25,13 +25,11 @@ max_lines: 60
 | `AGENT-WORKSPACE-004` | Local activity 权限、隐私、审计与复审 PASS，Preview 未执行 | [`Local`](agent-workspace-004-local-runtime-2026-08-01.md)、[`review`](agent-workspace-004-independent-review-2026-08-01.md) |
 | `AGENT-WORKSPACE-005` | Gate 2–6 与 Production 只读/撤销验收 PASS | [`intake`](agent-workspace-005-intake-2026-08-01.md)、[`client`](agent-workspace-005-client-compatibility-2026-08-01.md)、[`Preview`](agent-workspace-005-preview-runtime-2026-08-01.md)、[`readiness`](agent-workspace-005-operational-readiness-2026-08-01.md)、[`Production`](agent-workspace-005-production-runtime-2026-08-01.md)、[`review`](agent-workspace-005-independent-review-2026-08-01.md) |
 | `AGENT-WORKSPACE-006` | Codex Member 实测与复审 PASS | [`runtime`](agent-workspace-006-codex-member-compatibility-2026-08-02.md)、[`review`](agent-workspace-006-independent-review-2026-08-02.md) |
-| `AGENT-WORKSPACE-007` | Local/复审 PASS；发布待执行 | [`evidence`](agent-workspace-007-local-runtime-2026-08-16.md) |
-| `AGENT-WORKSPACE-008` | Local/复审 PASS；发布待执行 | [`evidence`](agent-workspace-008-local-runtime-2026-08-16.md) |
-| `AGENT-WORKSPACE-009` | Local/复审 PASS；发布待执行 | [`evidence`](agent-workspace-009-local-runtime-2026-08-16.md) |
-| `AGENT-WORKSPACE-010` | Local/复审 PASS，`0/0/0`；发布待执行 | [`evidence`](agent-workspace-010-local-runtime-2026-08-16.md) |
-| `AGENT-WORKSPACE-011` | Preview/恢复/cleanup/复审 PASS，`0/0/0`；Production 未执行 | [`runtime`](agent-workspace-011-preview-runtime-2026-08-16.md)、[`contract`](../../roadmap/checklists/agent-workspace-integration-release.md) |
+| `AGENT-WORKSPACE-007–010` | Local/Preview/Production 33-tool 与本人 X PASS | [`007`](agent-workspace-007-local-runtime-2026-08-16.md)、[`008`](agent-workspace-008-local-runtime-2026-08-16.md)、[`009`](agent-workspace-009-local-runtime-2026-08-16.md)、[`010`](agent-workspace-010-local-runtime-2026-08-16.md)、[`Production`](agent-workspace-012-production-runtime-2026-08-16.md) |
+| `AGENT-WORKSPACE-011` | Preview/恢复/cleanup/复审 PASS，`0/0/0`；候选已由 012 发布 | [`runtime`](agent-workspace-011-preview-runtime-2026-08-16.md)、[`Production`](agent-workspace-012-production-runtime-2026-08-16.md) |
+| `AGENT-WORKSPACE-012` | Production migration/deploy/33-tool/本人 X/独立复审 PASS，`0/0/0` | [`runtime`](agent-workspace-012-production-runtime-2026-08-16.md) |
 | `MEDIA-UPLOAD-001` | Production 与复审 PASS | [`evidence`](media-upload-filename-collision-2026-08-10.md) |
 | `AUTH-RESET-001` | Production 与复审 PASS | [`evidence`](password-reset-recovery-2026-08-11.md) |
 | `INFRA-BODY-MEDIA-001` | 待复审 | [`evidence`](body-media-security-2026-08-11.md) |
-| `INFRA-AGENT-MEDIA-001` | Local/独立复审 PASS；Preview/Production 待执行 | [`evidence`](agent-media-tools-negative-evidence-2026-08-12.md) |
-| `INFRA-PERSON-PAGE-001` | Local + 复审 PASS；发布 pending | [`evidence`](person-page-001-local-runtime-2026-08-12.md) |
+| `INFRA-AGENT-MEDIA-001` | 已部署；Production 写入专项 pending | [`evidence`](agent-media-tools-negative-evidence-2026-08-12.md)、[`Production`](agent-workspace-012-production-runtime-2026-08-16.md) |
+| `INFRA-PERSON-PAGE-001` | Production migration/X PASS；UI 专项 pending | [`evidence`](person-page-001-local-runtime-2026-08-12.md)、[`Production`](agent-workspace-012-production-runtime-2026-08-16.md) |

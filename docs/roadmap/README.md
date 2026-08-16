@@ -27,11 +27,11 @@ max_lines: 100
 | [`INFRA-PERSON-PAGE-001`](checklists/person-page-expansion.md) | Person 页扩展与正式名片 |
 | [`INFRA-FEEDS-001`](checklists/feeds-structured-data.md) | RSS/JSON Feed 与结构化数据 |
 
-除下方已启动的 `AGENT-WORKSPACE-007` 外，其余 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
+其余尚未启动的 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
 
-## Active：Agent Workspace 完整化
+## Completed：Agent Workspace 完整化
 
-[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 按 Production 当前 14 个工具和本地/Preview 已验证的 33 个工具控制 007–012。Media、007–010 已完成 Local/独立复审并转为 release-only；011 的专用 branch、Draft PR、migration recovery、虚构三角色真实 MCP、cleanup、关闭态恢复与 phase-release 独立复审均 PASS。[`AGENT-WORKSPACE-012`](checklists/agent-workspace-production-release.md) 已冻结 Production 14→15 migration、精确 SHA auto-deploy、33-tool smoke 与当前用户本人 X 外链验收；用户已批准，待执行。
+[`Agent Workspace Parent Checklist`](agent-workspace-program.md) 的 007–012 已完成实现、分级复审、统一 Preview、Production 运行验收与最终 phase-release 独立复审：Production 现为 15 migrations / 33 tools，当前用户本人 X 已经 MCP、数据库与 EN/ES 匿名页读回。007–012 已移入 [`archive`](../archive/README.md)。
 
 ## Non-urgent closeout
 
