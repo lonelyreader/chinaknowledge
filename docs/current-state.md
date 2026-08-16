@@ -55,7 +55,7 @@ max_lines: 160
 
 `AGENT-WORKSPACE-008` 已完成 Local 实现、工作项验证、独立复审与 taxonomy 并发定向修复并合入本地 `main`（`1648b34`）：工具总数增至 26，Editor 可从固定 Needs attention 队列发现 Article、读取严格白名单引用和 Body V2/站方字段，并以 revision、幂等、事务和写后读回保存负责人、format、四类分类、来源、freshness、编辑意见与已批准封面。普通 Editor 只能分配本人或清空，Super Admin 只能分配 active editorial role；Member、越权引用、受保护字段、并发覆盖、site-authored 保存和 curated 不完整保存均失败关闭。未新增 schema/migration、UI、009/010 能力或通知；Preview、`main` push 与 Production 尚未执行。
 
-`AGENT-WORKSPACE-009` 已在专用分支完成 Local 实现与工作项验证：工具总数增至 30，Editor / Super Admin 可用 prepare/commit 对 live published + curated Article 设置或清空首页排期，pending autosave 失败关闭且只改三项 homepage 字段；可 prepare/commit 固定 `major_edit` 作者通知，失败或并发重放复用同一 WorkflowEvent、recipient 与 key，`sent/not_required` 不重复发送。Member、当前角色/connection、revision、confirmation、owner、审计隐私与既有策展通知负例通过；未新增 schema/migration、UI、010 能力或通知平台。独立终局复审、Preview、`main` push 与 Production 尚未执行。
+`AGENT-WORKSPACE-009` 已完成 Local 工作项与独立终局复审并合入本地 `main`（`83ce74f`）：本地工具总数为 30，Editor / Super Admin 可用 prepare/commit 对 live published + curated Article 设置或清空首页排期，pending autosave 失败关闭且只改三项 homepage 字段；可 prepare/commit 固定 `major_edit` 作者通知，失败或并发重放复用同一 WorkflowEvent、recipient 与 key，`sent/not_required` 不重复发送。Member、当前角色/connection、revision、confirmation、owner、审计隐私与既有策展通知负例通过；未新增 schema/migration、UI、010 能力或通知平台。统一 Preview、`main` push 与 Production 尚未执行。
 
 ## 当前运行边界
 

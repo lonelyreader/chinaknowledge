@@ -31,7 +31,7 @@ Production 当前 Super Admin 连接返回 14 个工具；这与主分支注册�
 | Editor（+3） | 精确读取一篇跨作者 Article、确认加入或移出站方入口 | 待处理队列、普通保存、负责人、分类、来源、时效、排期、通知 |
 | Super Admin（+2） | 站方 Article 受控批次公开、最近 20 条 Article 活动 | 站方建稿、基础对象查询、可筛选审计；特权账户动作保持网页入口 |
 
-001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。Media、007 与 008 已实现、复审并合入本地 `main`；Production 仍是 14 个工具，本地 `main` 为 26 个，尚未完成统一 Preview、`main` push 和 Production deploy。
+001–006 已完成 OAuth、远程 MCP、Member 文章闭环、单篇策展、最小审计、Production Gateway 和真实客户端兼容。Media、007–009 已实现、复审并合入本地 `main`；Production 仍是 14 个工具，本地 `main` 为 30 个，尚未完成统一 Preview、`main` push 和 Production deploy。
 
 ## 设计与安全原则
 
@@ -86,8 +86,8 @@ flowchart LR
 | `INFRA-AGENT-MEDIA-001` | active（release） | Body V2、图片上传、封面和发布预检进入 Production | 当前 Preview/`main` push/deploy 门 |
 | [`AGENT-WORKSPACE-007`](checklists/agent-member-completion.md) | active（release） | 资料与外链、Profile Preview path/publication、翻译 draft、媒体列表、发现与当前角色 discovery 补齐 Member 闭环 | Local 实现/复审 PASS；统一 Preview 与 release 待执行 |
 | [`AGENT-WORKSPACE-008`](checklists/agent-editor-workbench.md) | active（release） | Needs attention、reference options、Body V2 读取与站方字段普通保存形成 Editor 工作台 | Local/独立复审 PASS；统一 Preview/release 待执行 |
-| [`AGENT-WORKSPACE-009`](checklists/agent-editor-public-actions.md) | active（review） | 首页排期与 `major_edit` 作者通知按公共/外部动作合同上线 | Local 实现/工作项验证 PASS；独立复审待执行 |
-| `AGENT-WORKSPACE-010` | queued | 站方 Article 建稿/保存、基础对象只读与可筛选审计 | 009 |
+| [`AGENT-WORKSPACE-009`](checklists/agent-editor-public-actions.md) | active（release） | 首页排期与 `major_edit` 作者通知按公共/外部动作合同上线 | Local/独立复审 PASS；统一 Preview/release 待执行 |
+| [`AGENT-WORKSPACE-010`](checklists/agent-admin-safe-operations.md) | active | 站方 Article 建稿/保存、必要基础对象只读与可筛选审计 | 009 PASS/合入；合同冻结，当前实现批 |
 | `AGENT-WORKSPACE-011` | queued | 三角色真实客户端、权限负例、恢复和 Production 总验收 | 010 |
 
 `queued` 只固定需求边界和依赖，不授权实现。原 queued `INFRA-AGENT-PROFILE-001` 已吸收进 007，不建立第二个 Profile checklist。Agent capability 同一时刻只允许一个 active 实现子级；只剩 release 回读的旧 checklist 不阻断下一子级本地实现。
@@ -118,12 +118,14 @@ flowchart LR
 - [x] 首页排期使用 prepare/commit，不能发布 pending draft；`major_edit` 作者通知失败时重试原 commit 与同一 WorkflowEvent。
 - [x] 不新增复核工具，不重复既有站方选择或 selected/removed/needs_recheck 通知。
 
-### Super Admin 安全站务
+### 当前实现：Super Admin 安全站务（010）
 
 - [ ] Super Admin 能创建和保存站方 Article，并继续使用现有受控发布清单。
 - [ ] 基础对象提供完成任务所需的只读查询；不把 collection CRUD 暴露给 Agent。
 - [ ] Activity 支持有限筛选和分页，同时继续隔离邮件、token、正文和内部错误详情。
 - [ ] 账户提权、暂停、删除和任意代写的直调负例全部失败关闭。
+
+010 合同已冻结；009 Local/独立复审 PASS 并合入本地 `main`，当前只允许按 010 白名单实现。
 
 ### 最终发布
 
