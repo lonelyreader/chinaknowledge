@@ -28,14 +28,14 @@ export function getGuide(slug: string) {
 
 export const ui = {
   en: {
-    nav: ["Stories", "Guides", "Places", "People"],
+    nav: ["People", "Stories", "Guides", "Places"],
     purpose: ["Understand", "Visit", "Live", "Study", "Work", "Business"],
     selected: "Selected by the editors",
     recent: "Recently updated",
     latest: "Latest",
     people: "People to know",
     allPeople: "All people",
-    subscribe: "Subscribe",
+    subscribe: "Join Discord",
     newsletter: "Letters from China, written by people who live it",
     email: "Email address",
     join: "Join the newsletter",
@@ -70,14 +70,14 @@ export const ui = {
     connect: "Continue with China, in Fact",
   },
   es: {
-    nav: ["Historias", "Guías", "Lugares", "Personas"],
+    nav: ["Personas", "Historias", "Guías", "Lugares"],
     purpose: ["Comprender", "Visitar", "Vivir", "Estudiar", "Trabajar", "Negocios"],
     selected: "Selección editorial",
     recent: "Actualizadas recientemente",
     latest: "Últimas publicaciones",
     people: "Personas para conocer",
     allPeople: "Todas las personas",
-    subscribe: "Suscribirse",
+    subscribe: "Unirse a Discord",
     newsletter: "Cartas desde China, escritas por quienes la viven",
     email: "Correo electrónico",
     join: "Recibir el boletín",

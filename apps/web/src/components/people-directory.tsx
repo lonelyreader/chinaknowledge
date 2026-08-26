@@ -5,9 +5,9 @@ import type { Locale, Person } from "@/content";
 import { localize, ui } from "@/content";
 import { PersonRow } from "./person-row";
 
-export function PeopleDirectory({ people, locale }: { people: Person[]; locale: Locale }) {
+export function PeopleDirectory({ people, locale, initialQuery = "" }: { people: Person[]; locale: Locale; initialQuery?: string }) {
   const copy = ui[locale];
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [topic, setTopic] = useState("");
   const [place, setPlace] = useState("");
   const [page, setPage] = useState(1);
@@ -24,7 +24,13 @@ export function PeopleDirectory({ people, locale }: { people: Person[]; locale: 
   const topics = useMemo(() => Array.from(new Set(people.flatMap((person) => person.topics.map((value) => localize(value, locale))))).sort(), [people, locale]);
   const places = useMemo(() => Array.from(new Set(people.map((person) => localize(person.city, locale)))).sort(), [people, locale]);
   const filtered = useMemo(() => people.filter((person) => {
-    const nameMatch = person.name.toLowerCase().includes(query.toLowerCase());
+    const searchText = [
+      person.name,
+      localize(person.identity, locale),
+      localize(person.city, locale),
+      ...person.topics.map((value) => localize(value, locale)),
+    ].join(" ").toLowerCase();
+    const nameMatch = searchText.includes(query.trim().toLowerCase());
     const topicMatch = !topic || person.topics.some((value) => localize(value, locale) === topic);
     const placeMatch = !place || localize(person.city, locale) === place;
     return nameMatch && topicMatch && placeMatch;
@@ -33,23 +39,17 @@ export function PeopleDirectory({ people, locale }: { people: Person[]; locale: 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount);
   const visible = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const start = filtered.length ? (safePage - 1) * pageSize + 1 : 0;
-  const end = Math.min(safePage * pageSize, filtered.length);
-
   function resetPage() {
     setPage(1);
   }
 
   return (
-    <section className="people-directory" aria-labelledby="all-people">
-      <div className="section-heading section-heading--inline">
-        <h2 id="all-people">{copy.allPeople}</h2>
-        <p>{filtered.length}</p>
-      </div>
+    <section className="people-directory community-directory" aria-labelledby="all-people">
+      <h2 className="community-directory__title" id="all-people">{copy.allPeople}</h2>
       <div className="people-filters">
         <label>
-          <span>{copy.search}</span>
-          <input type="search" value={query} onChange={(event) => { setQuery(event.target.value); resetPage(); }} />
+          <span className="sr-only">{copy.search}</span>
+          <input aria-label={copy.search} placeholder={copy.search} type="search" value={query} onChange={(event) => { setQuery(event.target.value); resetPage(); }} />
         </label>
         <label>
           <span>{copy.topic}</span>
@@ -65,25 +65,19 @@ export function PeopleDirectory({ people, locale }: { people: Person[]; locale: 
             {places.map((item) => <option key={item}>{item}</option>)}
           </select>
         </label>
-        <label>
-          <span>{copy.language}</span>
-          <select defaultValue={locale.toUpperCase()}>
-            <option>EN</option>
-            <option>ES</option>
-          </select>
-        </label>
       </div>
-      <div className="people-results">
+      <div className="people-roster community-person-list">
         {visible.map((person) => <PersonRow key={person.slug} person={person} locale={locale} />)}
       </div>
-      <div className="pagination" aria-label={locale === "en" ? "Pagination" : "Paginación"}>
-        <p>{copy.showing} {start}–{end} / {filtered.length}</p>
-        <div>
+      {pageCount > 1 ? (
+        <div className="pagination" aria-label={locale === "en" ? "Pagination" : "Paginación"}>
+          <div>
           <button type="button" disabled={safePage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>{copy.previous}</button>
           <span>{safePage} / {pageCount}</span>
           <button type="button" disabled={safePage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>{copy.next}</button>
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 }

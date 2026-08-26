@@ -4,10 +4,10 @@ doc_type: current
 authority: canonical
 status: active
 scope: implemented-app-features
-last_verified: 2026-08-16
+last_verified: 2026-08-27
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:dd5ead277ec8ac88c185e97082fad3dea55c19c869023da5a98ffde44f632e39
+implementation_fingerprint: sha256:22594440573a294310ad0d42c8135c4ef695f49d763135c7e4195842a7b2f91a
 ---
 
 # App 功能登记册
@@ -21,7 +21,7 @@ implementation_fingerprint: sha256:dd5ead277ec8ac88c185e97082fad3dea55c19c869023
 | 编号 | 当前功能 | 人能得到的结果 | 主要入口与边界 |
 |---|---|---|---|
 | RDR-01 | 英语与西班牙语网站 | 浏览两套语言界面；只在目标语言页面真实存在时显示对应语言入口 | `/en`、`/es`；文章、人物和地点使用真实 alternate/canonical 地址 |
-| RDR-02 | 编辑型首页 | 查看站方主推、精选、最近更新、地点、人物和 Newsletter | `/{locale}`；只展示已公开且被站方选中的内容 |
+| RDR-02 | 人物连接首页 | 先按姓名、地点或兴趣找人，再浏览公开人物、他们当前的工作、Discord、来自社群的 Stories/Guides 和 Newsletter | `/{locale}`；人物与工作来自公开 Person/contribution，Figma 示例和私密 Discord 内容不进入页面 |
 | RDR-03 | Stories | 浏览站方选中的报道、观察、分析、评论和第一人称内容 | `/{locale}/stories` |
 | RDR-04 | Guides | 浏览带来源、时效和维护信息的实用指南 | `/{locale}/guides` |
 | RDR-05 | 稳定文章页 | 阅读标题、摘要、正文、封面或站方视觉、来源、日期和署名；正文可包含作者插入的图片（含说明文字）和 YouTube 视频，视频经 youtube-nocookie 惰性加载并保持 16:9；Member 稿进入作者主页，站方稿进入 About | `/{locale}/posts/{slug}`；旧 Stories/Guides 详情地址会永久转到稳定地址；正文只渲染白名单媒体节点，其他节点安全忽略，不输出原始 HTML |
@@ -29,16 +29,16 @@ implementation_fingerprint: sha256:dd5ead277ec8ac88c185e97082fad3dea55c19c869023
 | RDR-07 | Places | 浏览地点列表和地点详情，查看与该地点关联的文章和人物 | `/{locale}/places`、`/{locale}/places/{slug}` |
 | RDR-08 | Purpose 入口 | 按 Understand、Visit、Live、Study、Work、Business 找到站方内容 | `/{locale}/purposes/{slug}` |
 | RDR-09 | Topic 入口 | 按主题聚合站方内容 | `/{locale}/topics/{slug}` |
-| RDR-10 | People 目录 | 查看每周稳定轮换的一主两辅人物，并以判词名录行（判词 — 姓名 + 最近作品）浏览成员，可按姓名、主题、地点、语言筛选和分页 | `/{locale}/people`；桌面每页 24 人，移动端每页 12 人；无判词的成员只显示姓名行 |
-| RDR-11 | Person 主页 | 查看成员正式名片：肖像、姓名与汉字侧签、身份、地点、编辑判词、第三人称编辑传记、本人引语、能帮什么、主题、全部公开文章、站方精选和个人外链 | `/{locale}/people/{slug}`；编辑传记缺失回退第一人称介绍；其余新区块无数据整体隐藏；西语资料缺失时回退英语 |
+| RDR-10 | People 连接目录 | 直接搜索并连续浏览人物；每行显示肖像、姓名、身份、地点、当前工作，以及真实主题或能帮什么，可按主题、地点、语言筛选和分页 | `/{locale}/people`；无 Spotlight、人物判词开场、人数或排名；桌面每页 24 人，移动端每页 12 人；缺失字段隐藏 |
+| RDR-11 | Person 连接主页 | 先查看肖像、姓名、身份、地点、语言/主题和公开连接动作，再看当前工作、能帮什么、全部公开贡献和 About | `/{locale}/people/{slug}`；Discord 与其他外链只在已有公开链接时出现；Current work、Can help with、贡献等无数据整体隐藏；西语资料缺失时回退英语 |
 | RDR-12 | 人物导流 | Member 稿从首页、栏目、文章进入原作者主页；站方稿只在确有相关人物时提供人物入口 | 文章署名区和 Related people；站方稿不生成虚构 Person |
-| RDR-13 | Discord 联系入口 | 从 Person 页面经成员主语联系行进入该成员的 Discord | CMS Person 页底部；成员 links 无 discord 时整行不出现；静态回退 Person 页保留平台 Discord 入口 |
+| RDR-13 | Discord 联系入口 | 从全局导航和首页进入公开社群；从 Person 页经唯一的 `Connect on Discord` 进入成员本人公开 Discord | 全局与首页使用现有公开邀请；CMS Person 无 discord link 时不显示成员动作；不镜像聊天、人数或活动状态 |
 | RDR-14 | Newsletter 订阅 | 用邮箱和明确同意加入对应语言的邮件名单，收到成功或必要错误状态 | 首页与 `/{locale}/newsletter`；重复邮箱更新语言，不替用户重新开启已取消订阅状态 |
 | RDR-15 | About 与 Privacy | 了解产品定位、Newsletter 数据用途、公开人物资料、跟踪政策和联系邮箱 | `/{locale}/about`、`/{locale}/privacy` |
 | RDR-16 | 搜索引擎入口 | Production 可被索引，并提供 Article JSON-LD、分享信息、sitemap、canonical 和多语言 alternate；Preview 与草稿预览不索引 | `/robots.txt`、`/sitemap.xml` 与页面 metadata；Purpose、Topic 和已公开内容进入 sitemap |
-| RDR-17 | 响应式和键盘访问 | 在桌面与移动端使用主导航、移动菜单、表单、焦点状态和语义化页面 | 全部公共页面；当前验收宽度包含 390px |
+| RDR-17 | 响应式和键盘访问 | 在桌面与移动端使用主导航、移动菜单、表单、焦点状态和语义化页面 | 全部公共页面；当前本地验收覆盖 1440px、768px、390px 与 EN/ES，Production 仍是上次发布版本 |
 | RDR-18 | 不存在页面处理 | 无效人物、文章或地点返回 Not Found，并提供回到网站的入口 | 各动态详情页 |
-| RDR-19 | 一致品牌标识 | 在公共 Header 与 Footer 看到同一单行 `China, in Fact` 轮廓字标；浏览器与设备图标使用黑、朱砂红双形体及中央开放通道 | 全部 `/{locale}` 公共页面；字标与 favicon 均不依赖客户端字体 |
+| RDR-19 | 一致品牌系统 | 在公共页面看到同一轮廓字标、暖纸/墨色/朱砂语义颜色、Geist 产品字体、Newsreader 阅读字体与统一的间距、圆角、边框和控件状态 | 全部 `/{locale}` 公共页面；本地 Token 批次已完成，字标与 favicon 仍使用固定资产且不依赖客户端字体，Production 仍是上次发布版本 |
 
 ## Member（铲子计划成员）
 

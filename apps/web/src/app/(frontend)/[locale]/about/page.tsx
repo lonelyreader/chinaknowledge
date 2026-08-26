@@ -4,12 +4,12 @@ import { requireLocale } from "@/content";
 
 const copy = {
   en: {
-    body: "China, in Fact is an editorial publication built with people who know China closely. Stories, guides and places are reviewed, sourced and connected to the people behind them.",
+    body: "China, in Fact is a place to meet people in China through what they do, make and share. Stories, guides and places stay connected to the people behind them.",
     people: "Meet the people",
     title: "About China, in Fact",
   },
   es: {
-    body: "China, in Fact es una publicación editorial creada con personas que conocen China de cerca. Historias, guías y lugares se revisan, se documentan y se conectan con quienes están detrás de ellos.",
+    body: "China, in Fact es un lugar para conocer a personas en China a través de lo que hacen, crean y comparten. Las historias, guías y lugares siguen conectados con quienes están detrás de ellos.",
     people: "Conoce a las personas",
     title: "Sobre China, in Fact",
   },

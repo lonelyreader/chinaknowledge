@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-08-26
+last_verified: 2026-08-27
 max_lines: 160
 ---
 
@@ -17,9 +17,10 @@ max_lines: 160
 - 产品需求基线已经建立。
 - Stitch 设计系统已经建立。
 - 正式品牌名为 **China, in Fact**，正式网站为 [`chinainfact.com`](https://chinainfact.com)；域名已绑定 `china-in-fact` project，`www.chinainfact.com` 以 308 永久跳转到主域名，TLS、匿名访问和公开索引均已启用。Registrar 与 nameserver 均为 Vercel，到期日为 2027-07-27；邮件专用 DNS 保持独立。正式公共字标已经接入 Header 与 Footer；黑、朱砂红双形体与中央开放通道构成的定稿 favicon 已接入 ICO、SVG 和 Apple Touch Icon，三条 Production 路由与仓库 SHA-256 一致。商标可用性仍需另行核验。
-- 信息架构采用稳定内容对象、目的入口与横向语义分层：`Stories / Guides / Places / People` 为主导航，`Understand / Visit / Live / Study / Work / Business` 为目的入口，`Topics / Geography / Situation` 为横向发现。
-- 2026-08-26 产品方向已按当前供给推进为人物与社群优先：首要承诺是让世界遇见真实、有趣、有灵魂的中国人，并从他们正在做的事继续。People 是中心对象；项目、作品、经历、问题和内容都可成为人物证据。网站负责长期人物发现，Discord 负责交流与协作，Reddit 从真实问题进入外部对话；详见 ADR-0012。Figma AI 已完成 Home、People、Person 桌面/移动核心 proof 与组件样张，当前 Production 页面尚未实现这轮重排。
-- Stitch 公共站、People 机制及 Newsletter 状态已经形成 P1 视觉基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；公共 Article、Home 与 Person 已具备明显作者链接。`PUB-CURATION-001` 已把 Member publication 与 Editorial curation 两轴、同 Article 编辑和人物流量链路部署到 Production。
+- 信息架构采用稳定内容对象与横向语义分层：`People / Stories / Guides / Places` 为主导航，`Understand / Visit / Live / Study / Work / Business` 保留为内容目的入口，`Topics / Geography / Situation` 为横向发现。
+- 2026-08-26 产品方向已按当前供给推进为人物与社群优先：首要承诺是让世界遇见真实、有趣、有灵魂的中国人，并从他们正在做的事继续。People 是中心对象；项目、作品、经历、问题和内容都可成为人物证据。网站负责长期人物发现，Discord 负责交流与协作，Reddit 从真实问题进入外部对话；详见 ADR-0012。产品负责人已通过 Figma AI 的 Home、People、Person V3。
+- [`PEOPLE-COMMUNITY-FRONTEND-001`](roadmap/checklists/people-community-frontend.md) 已在本地工作树完成实现与响应式验收，因未提交、未发布仍保持 active：Home 先找人与人物列表，People 移除 Spotlight/判词专题开场，Person 先呈现身份、当前工作、能帮什么与公开连接动作；公共导航已改为 `People / Stories / Guides / Places + Join Discord`。实现只读取既有 Person、contribution、canHelpWith、links 与公开 Article，不含新 schema、真实数据或 Production 发布；线上仍保持上次 Production 版本。
+- [`SITE-TOKEN-SYSTEM-RETHEME-001`](roadmap/checklists/site-token-system-retheme.md) 已在同一 Figma 核心文件建立 119 个 Primitive、Semantic、Typography 与 Dimension 变量、18 个桌面/移动文字样式、3 个效果样式、7 类核心组件及连接/发现/阅读/工具模板；本地公共站已改为 Geist、Newsreader、Geist Mono 与暖纸/墨色/朱砂语义 Token，旧冷靛蓝只读基线已退出。EN/ES 的 Home、People、Person、Stories、Guides、Article、Places、About、Newsletter 已完成 1440/768/390px 回读；尚未 commit、Preview 或 Production 发布。
 - P0 Stitch 设计原型、P1 可运行公共产品切片、`P1-EDITORIAL-001` 编辑 CMS 基础与 `P2-PREVIEW-001` 均已完成并归档。
 - Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：Vercel Pro + Neon Launch + Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，异地备份使用 Cloudflare R2。Production 已完整执行 12 条 migration，形成 33 张 `public` 表；首位管理员、公开 Person、头像、原创 Article 封面和两篇英西 Article 均已进入恢复链路，migration 前后备份、读回、SHA、隔离恢复和 schema 断言均已通过。
 - 人工域名邮箱已复用现有飞书组织完成配置：`chinainfact.com` 邮箱域名、MX、SPF、DKIM 与监测态 DMARC 均已启用，公共邮箱 `hello@chinainfact.com` 已创建并授权给产品负责人；2026-07-27 从该地址向 `gexu@lonelyreader.com` 的真实测试邮件已发送并确认收达。Resend 使用已验证的 `mail.chinainfact.com / us-east-1` 承担程序邮件，真实事务邮件已由飞书主邮箱回读收达。
@@ -51,7 +52,7 @@ max_lines: 160
 
 `INFRA-PERSON-PAGE-001` 已在 Local 完成正式成员名片 schema、页面与名录实现，并通过隔离 migration recovery、权限/未公开隔离、EN/ES、build、桌面 1440px 与移动 390px 浏览器主流程及独立复审。Preview 已完成 Person migration apply/down/reapply 与 Agent Profile/X 虚构闭环；Production 已在前后恢复点下应用第 15 条 migration、部署页面，并由本人 MCP X 写入及 EN/ES 匿名公开页读回证明。专项 Member UI、Editor 判词与完整 EN/ES UI 仍由原 checklist 收尾。
 
-`INFRA-RETHEME-001`、`INFRA-ARTICLE-TEMPLATE-001`、`INFRA-OG-001` 与 `INFRA-FEEDS-001` 的 2026-08-12 worktree 分支均比当前 `main` 少 39 个主线提交，merge-tree 已出现冲突。成果保留为候选，不直接合并；核心页面 Figma AI proof 已完成，下一步先做 Project/Person 当前行动闭环，再按 RETHEME → ARTICLE → HOME → OG → FEEDS 移植。
+`INFRA-RETHEME-001`、`INFRA-ARTICLE-TEMPLATE-001`、`INFRA-OG-001` 与 `INFRA-FEEDS-001` 的 2026-08-12 worktree 分支均比当前 `main` 少 39 个主线提交，merge-tree 已出现冲突。成果保留为候选，不直接合并；后续前端批次必须从已归档的连接优先合同出发，不回收旧 editorial People 方向。
 
 `AGENT-WORKSPACE-007` 已完成 Local/独立复审、统一 Preview 与 Production 发布：Member Agent 可维护本人 Profile、X 等外链、Preview path、可见状态、媒体/文章分页和唯一翻译 draft。Production 当前账号已用 `my_links_save` 只追加本人 X，并由 MCP、数据库与 EN/ES 匿名页三方读回；原 link、Profile 与可见状态不变。
 
@@ -67,7 +68,7 @@ max_lines: 160
 
 ## 当前运行边界
 
-- 本地应用位于 `apps/web`；先运行 `npm run cms:db:up`，再用 `npm run dev` 启动。公共站与 CMS 已在 `http://127.0.0.1:3000` 完成浏览器验证。
+- 本地应用位于 `apps/web`。当前未提交视觉批次以 fixture read mode 在 `http://localhost:3000` 完成 EN/ES 公共页面的 1440px、768px、390px 浏览器验证；现有本地 CMS 数据库启动时因重复 `(translation_group, locale)=(acceptance-member-curation, en)` 无法创建 `translationGroup_locale_idx`，本批未改 schema 或本地数据，CMS 视觉读回待该既有环境问题另行处理。
 - `PUB-CURATION-001` 使用独立临时 PostgreSQL 完成 12 条 migration apply、clean rollback/reapply、populated fail-closed 和虚构权限/状态矩阵；最终集中运行 typecheck、lint、build、editorial、migration recovery 与 diff check，全部 PASS。
 - Production Neon 当前为 49 张表、15 条 migration；第 15 条 Person migration 单独位于 batch 8。Person `gexu` 保持公开，原个人站未变，并新增 `https://x.com/WorldlyGeXu`；EN/ES 匿名页均已读回。既有英西 Article 与冷启动 120 条站方 Article 未被本批改写。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容；Production 没有复制这些数据。

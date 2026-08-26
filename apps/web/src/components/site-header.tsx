@@ -26,7 +26,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const [languageHrefs, setLanguageHrefs] = useState<Partial<Record<Locale, string>>>({ [locale]: pathname });
   const copy = ui[locale];
-  const navHrefs = ["stories", "guides", "places", "people"];
+  const navHrefs = ["people", "stories", "guides", "places"];
 
   useEffect(() => {
     const readAlternates = () => {
@@ -69,9 +69,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
               </span>
             ))}
           </div>
-          <Link className="button button--compact desktop-subscribe" href={`/${locale}/newsletter`}>
+          <a className="button button--compact desktop-subscribe" href="https://discord.gg/CCUbfaRVd2" rel="noreferrer" target="_blank">
             {copy.subscribe}
-          </Link>
+          </a>
           <button
             className="menu-button"
             type="button"
@@ -91,9 +91,9 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             {item}
           </Link>
         ))}
-        <Link className="button" href={`/${locale}/newsletter`} onClick={() => setOpen(false)}>
+        <a className="button" href="https://discord.gg/CCUbfaRVd2" rel="noreferrer" target="_blank" onClick={() => setOpen(false)}>
           {copy.subscribe}
-        </Link>
+        </a>
       </nav>
     </header>
   );

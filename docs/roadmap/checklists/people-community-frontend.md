@@ -51,7 +51,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] Desktop 1440px 与 Mobile 390px 无重叠、截断、水平溢出或必要信息省略号。
 - [x] UI 不出现解释性操作文案、内部术语、虚构实时状态、人数、排名或社交证明。
 - [x] EN/ES 公共路由、文章 canonical、Person URL 与 CMS/fixture 双读取路径保持。
-- [ ] changed-path lint、typecheck、build、`npm run governance:check` 与 `git diff --check` 通过。
+- [x] changed-path lint、typecheck、build、候选提交治理检查与 `git diff --check` 通过。
 
 ## Validation
 
@@ -71,7 +71,8 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] 本批只授权本地前端、文档与验证，不含 schema、migration、真实数据或 Production。
 - [x] 本地实现与代表性浏览器验收完成（2026-08-27）。
 - [x] 连接优先 IA 与行为验收继续有效；颜色与排版基线已由 `SITE-TOKEN-SYSTEM-RETHEME-001` 接管，V3 冷靛蓝不再是视觉权威（2026-08-27）。
-- [ ] Git/发布批次另行批准；清单在未提交改动仍存在时保持 active。
+- [x] 产品负责人于 2026-08-27 批准本地 Git 提交；不含 push、Preview 或 Production。
+- [ ] Preview 与 Production 仍分别批准；清单在发布动作完成前保持 active。
 
 ## Closure evidence
 
@@ -79,4 +80,4 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - Fixture 模式下 EN/ES 的 Home、People、Person 均完成 1440px 与 390px 浏览器回读；六条西语组合均 `rendered`、无 Spotlight、无水平溢出，Person 的 `Connect on Discord` 精确一个。
 - `/en/people?q=Mobility` 精确返回 Chen Rui 与 Deng Ke，证明首页 GET search 与目录查询相连。
 - 本地 CMS 数据库因既有重复 `translationGroup_locale_idx` 数据无法启动页面；本批未改 schema 或数据。CMS 分支由 typecheck/build 覆盖，真实 CMS 浏览器读回留给独立环境修复，不影响本批 fixture 代表性 UI 验收。
-- `docs:governance:check` 与 `feature-registry:check` PASS；`change:intake:verify` 按治理规则不会让同一未提交 diff 中新建的 checklist 追溯授权实现，同时仓库已有 `outputs/facebook-group/**`、`outputs/reddit-brand/**`、`outputs/reddit-questions/**` 等无关脏树未被任何 active contract 覆盖。未获 commit 授权前保持本清单 active，不扩大 allowed paths。
+- Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check`，没有扩大 allowed paths。主工作树的 `outputs/facebook-group/**`、`outputs/reddit-brand/**`、`outputs/reddit-questions/**` 等无关改动未暂存、未提交。

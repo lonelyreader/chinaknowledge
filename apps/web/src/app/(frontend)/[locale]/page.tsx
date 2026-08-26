@@ -1,76 +1,104 @@
-import Image from "next/image";
 import Link from "next/link";
-import { NewsletterForm } from "@/components/newsletter-form";
+
+import { ArticleBylineLink } from "@/components/article-byline";
 import { CMSPersonRow } from "@/components/cms-person-row";
-import { ArticleBylineLink, HeroArticleByline } from "@/components/article-byline";
-import { EditorialCover } from "@/components/editorial-cover";
+import { NewsletterForm } from "@/components/newsletter-form";
 import { PersonRow } from "@/components/person-row";
 import { drivingGuide, kindLabels, localize, people, requireLocale, stories, ui } from "@/content";
-import { articlePath, cmsReadEnabled, getPublishedCMSHomepage, getPublishedCMSHomepagePeople, getPublishedCMSPlaces, placePath, stableWeeklyPeople } from "@/content/cms";
+import { articlePath, cmsReadEnabled, getPublishedCMSHomepage, getPublishedCMSPeople } from "@/content/cms";
 
 export const dynamic = "force-dynamic";
+
+const discordInvite = "https://discord.gg/CCUbfaRVd2";
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const locale = requireLocale((await params).locale);
   const copy = ui[locale];
+  const labels = locale === "en" ? {
+    community: "Community",
+    discordAction: "Join Discord",
+    discordTitle: "Keep the conversation going",
+    find: "Find people",
+    peopleTitle: "People to meet",
+    search: "Search by name, place or interest",
+    storiesTitle: "From the community",
+    viewAll: "View all people",
+    workTitle: "What people are working on",
+  } : {
+    community: "Comunidad",
+    discordAction: "Unirse a Discord",
+    discordTitle: "Sigue la conversación",
+    find: "Buscar personas",
+    peopleTitle: "Personas que conocer",
+    search: "Buscar por nombre, lugar o interés",
+    storiesTitle: "Desde la comunidad",
+    viewAll: "Ver todas las personas",
+    workTitle: "En qué están trabajando",
+  };
+
   if (cmsReadEnabled()) {
-    const [homepage, cmsPlaces, cmsPeople] = await Promise.all([
+    const [homepage, cmsPeople] = await Promise.all([
       getPublishedCMSHomepage(locale),
-      getPublishedCMSPlaces(locale),
-      getPublishedCMSHomepagePeople(locale),
+      getPublishedCMSPeople(locale),
     ]);
-    const { articles, lead, selected } = homepage;
-    const featuredPeople = stableWeeklyPeople(cmsPeople, 4);
-    const hasEditorialContent = Boolean(
-      lead || selected.length || articles.length || cmsPlaces.length || featuredPeople.length,
-    );
-    const purposeSlugs = ["understand", "visit", "live", "study", "work", "business"];
+    const peopleWithWork = cmsPeople.filter((person) => person.contribution).slice(0, 3);
+    const supportingArticles = [homepage.lead, ...homepage.selected, ...homepage.articles]
+      .filter((article, index, items): article is NonNullable<typeof article> => Boolean(article) && items.findIndex((item) => item?.slug === article?.slug) === index)
+      .slice(0, 3);
 
     return (
-      <main>
-        <nav className="purpose-nav" aria-label="Purpose">
-          {copy.purpose.map((purpose, index) => <Link key={purpose} href={`/${locale}/purposes/${purposeSlugs[index]}`}>{purpose}</Link>)}
-        </nav>
+      <main className="community-page community-home">
+        <section className="page-shell community-home-hero">
+          <p>{labels.community}</p>
+          <h1>{locale === "en" ? "Meet interesting people in China" : "Conoce a gente interesante en China"}</h1>
+          <form className="community-search" action={`/${locale}/people`} method="get">
+            <input aria-label={labels.search} name="q" placeholder={labels.search} type="search" />
+            <button type="submit">{labels.find}</button>
+          </form>
+        </section>
 
-        {lead ? (
-          <section className="home-hero page-shell">
-            <div className="home-hero__copy">
-              <p className="meta">{lead.purposes[0] ?? (lead.format === "guide" ? copy.guide : "Story")} · {lead.publishedAt.slice(0, 10)}</p>
-              <h1><Link href={articlePath(locale, lead)}>{lead.title}</Link></h1>
-              <p className="dek">{lead.summary}</p>
-              <HeroArticleByline author={lead.author} locale={locale} />
+        {cmsPeople.length ? (
+          <section className="page-shell community-section" aria-labelledby="people-to-meet">
+            <div className="community-section-heading">
+              <h2 id="people-to-meet">{labels.peopleTitle}</h2>
+              <Link href={`/${locale}/people`}>{labels.viewAll} →</Link>
             </div>
-            <Link className="home-hero__image" href={articlePath(locale, lead)}>
-              {lead.coverImage
-                ? <Image src={lead.coverImage.url} alt={lead.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 50vw" />
-                : <EditorialCover title={lead.title} />}
-            </Link>
+            <div className="community-person-list">
+              {cmsPeople.slice(0, 6).map((person) => <CMSPersonRow key={person.slug} person={person} locale={locale} />)}
+            </div>
           </section>
         ) : null}
 
-        {selected.length ? (
-          <section className="page-shell editorial-section">
-            <div className="section-heading"><h2>{copy.selected}</h2></div>
-            <div className="selected-grid">
-              {selected.map((article, index) => (
-                <article className={index === 0 ? "selected-story selected-story--lead" : "selected-story"} key={article.slug}>
-                  <p className="meta">{article.format === "guide" ? copy.guide : "Story"}{article.purposes[0] ? ` · ${article.purposes[0]}` : ""}</p>
-                  <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
-                  <p>{article.summary}</p>
-                  <ArticleBylineLink className="text-link" author={article.author} locale={locale} />
+        {peopleWithWork.length ? (
+          <section className="page-shell community-section" aria-labelledby="current-work">
+            <div className="community-section-heading"><h2 id="current-work">{labels.workTitle}</h2></div>
+            <div className="community-work-grid">
+              {peopleWithWork.map((person) => person.contribution ? (
+                <article className="community-work-card" key={person.slug}>
+                  <p>{person.name} · {person.city}</p>
+                  <h3><Link href={`/${locale}/posts/${person.contribution.slug}`}>{person.contribution.title}</Link></h3>
+                  {person.topics.length ? <div>{person.topics.slice(0, 2).map((topic) => <span key={topic}>{topic}</span>)}</div> : null}
                 </article>
-              ))}
+              ) : null)}
             </div>
           </section>
         ) : null}
 
-        {articles.length ? (
-          <section className="page-shell stream-section">
-            <div className="section-heading"><h2>{copy.latest}</h2></div>
-            <div className="story-stream">
-              {articles.slice(0, 12).map((article) => (
-                <article className="story-line" key={`${article.format}-${article.slug}`}>
-                  <p className="meta">{article.format === "guide" ? copy.guide : "Story"}<br />{article.publishedAt.slice(0, 10)}</p>
+        <section className="page-shell community-discord">
+          <div>
+            <p>Discord</p>
+            <h2>{labels.discordTitle}</h2>
+          </div>
+          <a href={discordInvite} rel="noreferrer" target="_blank">{labels.discordAction} ↗</a>
+        </section>
+
+        {supportingArticles.length ? (
+          <section className="page-shell community-section" aria-labelledby="community-stories">
+            <div className="community-section-heading"><h2 id="community-stories">{labels.storiesTitle}</h2></div>
+            <div className="community-story-grid">
+              {supportingArticles.map((article) => (
+                <article key={`${article.format}-${article.slug}`}>
+                  <p>{article.format === "guide" ? copy.guide : (locale === "en" ? "Story" : "Historia")}</p>
                   <h3><Link href={articlePath(locale, article)}>{article.title}</Link></h3>
                   <ArticleBylineLink author={article.author} locale={locale} />
                 </article>
@@ -79,107 +107,64 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </section>
         ) : null}
 
-        {cmsPlaces.length ? (
-          <section className="page-shell editorial-section">
-            <div className="section-heading section-heading--inline">
-              <h2>{locale === "en" ? "Places" : "Lugares"}</h2>
-              <Link className="text-link" href={`/${locale}/places`}>{locale === "en" ? "All places" : "Todos los lugares"} →</Link>
-            </div>
-            <div className="place-grid place-grid--compact">
-              {cmsPlaces.slice(0, 3).map((place) => (
-                <article className="place-card" key={place.slug}>
-                  <Link className="place-card__image" href={placePath(locale, place)}>
-                    <Image src={place.coverImage.url} alt={place.coverImage.alt} fill unoptimized sizes="(max-width: 767px) 100vw, 33vw" />
-                  </Link>
-                  <p className="meta">{place.geography.name}</p>
-                  <h3><Link href={placePath(locale, place)}>{place.name}</Link></h3>
-                </article>
-              ))}
-            </div>
-          </section>
-        ) : null}
-
-        {featuredPeople.length ? (
-          <section className="people-passage">
-            <div className="page-shell">
-              <div className="section-heading section-heading--inline">
-                <h2>{copy.people}</h2>
-                <Link className="text-link" href={`/${locale}/people`}>{copy.allPeople} →</Link>
-              </div>
-              <div className="people-passage__grid">
-                {featuredPeople.map((person) => <CMSPersonRow key={person.slug} person={person} locale={locale} />)}
-              </div>
-            </div>
-          </section>
-        ) : null}
-
-        <section className="newsletter-band">
-          <div className="page-shell newsletter-band__inner">
-            {hasEditorialContent ? <h2>{copy.newsletter}</h2> : <h1>{copy.newsletter}</h1>}
+        <section className="community-newsletter">
+          <div className="page-shell community-newsletter__inner">
+            <h2>{copy.newsletter}</h2>
             <NewsletterForm locale={locale} />
           </div>
         </section>
       </main>
     );
   }
-  const lead = stories[0];
-  const leadAuthor = people.find((person) => person.slug === lead.authorSlug)!;
 
   return (
-    <main>
-      <nav className="purpose-nav" aria-label="Purpose">
-        {copy.purpose.map((purpose) => <Link key={purpose} href={`/${locale}/stories`}>{purpose}</Link>)}
-      </nav>
-
-      <section className="home-hero page-shell">
-        <div className="home-hero__copy">
-          <p className="meta">{localize(lead.purpose, locale)} · {lead.date}</p>
-          <h1>{localize(lead.title, locale)}</h1>
-          <p className="dek">{localize(lead.summary, locale)}</p>
-          <div className="hero-byline">
-            <Image src={leadAuthor.image} alt={`${locale === "en" ? "Portrait of" : "Retrato de"} ${leadAuthor.name}`} width={64} height={64} />
-            <div>
-              <Link href={`/${locale}/people/${leadAuthor.slug}`}>{leadAuthor.name}</Link>
-              <span>{localize(leadAuthor.identity, locale)}, {localize(leadAuthor.city, locale)}</span>
-            </div>
-          </div>
-        </div>
-        <Link className="home-hero__image" href={`/${locale}/guides/driving-in-shanghai`}>
-          <Image src="/images/fixtures/shanghai-morning.webp" alt={locale === "en" ? "A Shanghai neighborhood street in the morning" : "Una calle de barrio en Shanghái por la mañana"} fill priority sizes="(max-width: 767px) 100vw, 50vw" />
-        </Link>
+    <main className="community-page community-home">
+      <section className="page-shell community-home-hero">
+        <p>{labels.community}</p>
+        <h1>{locale === "en" ? "Meet interesting people in China" : "Conoce a gente interesante en China"}</h1>
+        <form className="community-search" action={`/${locale}/people`} method="get">
+          <input aria-label={labels.search} name="q" placeholder={labels.search} type="search" />
+          <button type="submit">{labels.find}</button>
+        </form>
       </section>
 
-      <section className="page-shell editorial-section">
-        <div className="section-heading"><h2>{copy.selected}</h2></div>
-        <div className="selected-grid">
-          {stories.slice(1, 3).map((story, index) => {
-            const author = people.find((person) => person.slug === story.authorSlug)!;
-            return (
-              <article className={index === 0 ? "selected-story selected-story--lead" : "selected-story"} key={story.slug}>
-                <p className="meta">{kindLabels[locale][story.kind]} · {localize(story.purpose, locale)}</p>
-                <h3>{localize(story.title, locale)}</h3>
-                <p>{localize(story.summary, locale)}</p>
-                <Link className="text-link" href={`/${locale}/people/${author.slug}`}>{author.name}, {localize(author.city, locale)}</Link>
-              </article>
-            );
-          })}
-          <article className="guide-promo">
-            <p className="meta">{copy.recent} · {drivingGuide.reviewed}</p>
-            <h3><Link href={`/${locale}/guides/${drivingGuide.slug}`}>{localize(drivingGuide.title, locale)}</Link></h3>
-            <p>{localize(drivingGuide.summary, locale)}</p>
-          </article>
+      <section className="page-shell community-section" aria-labelledby="people-to-meet">
+        <div className="community-section-heading">
+          <h2 id="people-to-meet">{labels.peopleTitle}</h2>
+          <Link href={`/${locale}/people`}>{labels.viewAll} →</Link>
+        </div>
+        <div className="community-person-list">
+          {people.slice(0, 6).map((person) => <PersonRow key={person.slug} person={person} locale={locale} />)}
         </div>
       </section>
 
-      <section className="page-shell stream-section">
-        <div className="section-heading"><h2>{copy.latest}</h2></div>
-        <div className="story-stream">
-          {stories.map((story) => {
+      <section className="page-shell community-section" aria-labelledby="current-work">
+        <div className="community-section-heading"><h2 id="current-work">{labels.workTitle}</h2></div>
+        <div className="community-work-grid">
+          {people.slice(0, 3).map((person) => (
+            <article className="community-work-card" key={person.slug}>
+              <p>{person.name} · {localize(person.city, locale)}</p>
+              <h3><Link href={person.slug === "chen-rui" ? `/${locale}/guides/${drivingGuide.slug}` : `/${locale}/people/${person.slug}`}>{localize(person.contribution, locale)}</Link></h3>
+              <div>{person.topics.slice(0, 2).map((topic) => <span key={topic.en}>{localize(topic, locale)}</span>)}</div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="page-shell community-discord">
+        <div><p>Discord</p><h2>{labels.discordTitle}</h2></div>
+        <a href={discordInvite} rel="noreferrer" target="_blank">{labels.discordAction} ↗</a>
+      </section>
+
+      <section className="page-shell community-section" aria-labelledby="community-stories">
+        <div className="community-section-heading"><h2 id="community-stories">{labels.storiesTitle}</h2></div>
+        <div className="community-story-grid">
+          {stories.slice(0, 3).map((story) => {
             const author = people.find((person) => person.slug === story.authorSlug)!;
             return (
-              <article className="story-line" key={story.slug}>
-                <p className="meta">{kindLabels[locale][story.kind]}<br />{story.date}</p>
-                <h3>{localize(story.title, locale)}</h3>
+              <article key={story.slug}>
+                <p>{kindLabels[locale][story.kind]}</p>
+                <h3><Link href={story.slug === "morning-routes-shanghai" ? `/${locale}/guides/${drivingGuide.slug}` : `/${locale}/people/${author.slug}`}>{localize(story.title, locale)}</Link></h3>
                 <Link href={`/${locale}/people/${author.slug}`}>{author.name}</Link>
               </article>
             );
@@ -187,20 +172,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      <section className="people-passage">
-        <div className="page-shell">
-          <div className="section-heading section-heading--inline">
-            <h2>{copy.people}</h2>
-            <Link className="text-link" href={`/${locale}/people`}>{copy.allPeople} →</Link>
-          </div>
-          <div className="people-passage__grid">
-            {people.slice(0, 4).map((person) => <PersonRow key={person.slug} person={person} locale={locale} />)}
-          </div>
-        </div>
-      </section>
-
-      <section className="newsletter-band">
-        <div className="page-shell newsletter-band__inner">
+      <section className="community-newsletter">
+        <div className="page-shell community-newsletter__inner">
           <h2>{copy.newsletter}</h2>
           <NewsletterForm locale={locale} />
         </div>

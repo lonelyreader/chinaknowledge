@@ -7,9 +7,9 @@ import type { PublishedCMSPerson } from "@/content/cms";
 import { ui } from "@/content";
 import { PersonRosterRow } from "./person/roster-row";
 
-export function CMSPeopleDirectory({ people, locale }: { people: PublishedCMSPerson[]; locale: Locale }) {
+export function CMSPeopleDirectory({ people, locale, initialQuery = "" }: { people: PublishedCMSPerson[]; locale: Locale; initialQuery?: string }) {
   const copy = ui[locale];
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [topic, setTopic] = useState("");
   const [place, setPlace] = useState("");
   const [language, setLanguage] = useState("");
@@ -27,7 +27,8 @@ export function CMSPeopleDirectory({ people, locale }: { people: PublishedCMSPer
   const topics = useMemo(() => Array.from(new Set(people.flatMap((person) => person.topics))).sort(), [people]);
   const places = useMemo(() => Array.from(new Set(people.map((person) => person.city))).sort(), [people]);
   const filtered = useMemo(() => people.filter((person) => {
-    const nameMatch = person.name.toLowerCase().includes(query.toLowerCase());
+    const searchText = [person.name, person.identity, person.city, ...person.topics, ...person.canHelpWith].join(" ").toLowerCase();
+    const nameMatch = searchText.includes(query.trim().toLowerCase());
     const topicMatch = !topic || person.topics.includes(topic);
     const placeMatch = !place || person.city === place;
     const languageMatch = !language || person.languages.includes(language as Locale);
@@ -37,23 +38,17 @@ export function CMSPeopleDirectory({ people, locale }: { people: PublishedCMSPer
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount);
   const visible = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const start = filtered.length ? (safePage - 1) * pageSize + 1 : 0;
-  const end = Math.min(safePage * pageSize, filtered.length);
-
   function resetPage() {
     setPage(1);
   }
 
   return (
-    <section className="people-directory" aria-labelledby="all-people">
-      <div className="section-heading section-heading--inline">
-        <h2 id="all-people">{copy.allPeople}</h2>
-        <p>{filtered.length}</p>
-      </div>
+    <section className="people-directory community-directory" aria-labelledby="all-people">
+      <h2 className="community-directory__title" id="all-people">{copy.allPeople}</h2>
       <div className="people-filters">
         <label>
-          <span>{copy.search}</span>
-          <input type="search" value={query} onChange={(event) => { setQuery(event.target.value); resetPage(); }} />
+          <span className="sr-only">{copy.search}</span>
+          <input aria-label={copy.search} placeholder={copy.search} type="search" value={query} onChange={(event) => { setQuery(event.target.value); resetPage(); }} />
         </label>
         <label>
           <span>{copy.topic}</span>
@@ -78,17 +73,18 @@ export function CMSPeopleDirectory({ people, locale }: { people: PublishedCMSPer
           </select>
         </label>
       </div>
-      <div className="people-roster">
+      <div className="people-roster community-person-list">
         {visible.map((person) => <PersonRosterRow key={person.slug} person={person} locale={locale} />)}
       </div>
-      <div className="pagination" aria-label={locale === "en" ? "Pagination" : "Paginación"}>
-        <p>{copy.showing} {start}–{end} / {filtered.length}</p>
-        <div>
+      {pageCount > 1 ? (
+        <div className="pagination" aria-label={locale === "en" ? "Pagination" : "Paginación"}>
+          <div>
           <button type="button" disabled={safePage === 1} onClick={() => setPage((value) => Math.max(1, value - 1))}>{copy.previous}</button>
           <span>{safePage} / {pageCount}</span>
           <button type="button" disabled={safePage === pageCount} onClick={() => setPage((value) => Math.min(pageCount, value + 1))}>{copy.next}</button>
+          </div>
         </div>
-      </div>
+      ) : null}
     </section>
   );
 }

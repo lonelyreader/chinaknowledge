@@ -1,50 +1,57 @@
 # Design System: China, in Fact
 
-> Source of truth for product interface design, visible copy, and implementation review.
+> Source of truth for interface design, visible copy, and review.
 
 ## 1. Visual Theme & Atmosphere
 
-A public place to meet real Chinese people through what they do, make, ask, and publish. Selection and verification support trust; they are not the visible center or a media identity.
+A public place to meet real Chinese people through what they do, make, ask, and publish. Home, People, and Person are connection products; Stories and Guides remain reading products. Selection and verification support trust but stay backstage.
 
 - Internal brand context lives in [`docs/product-brief.md`](docs/product-brief.md#内部品牌语境非对外文案); it guides design but is never copied into public UI.
 - The public brand name is `China, in Fact`. Retain the comma everywhere.
 - The public wordmark is the fixed outlined asset at `apps/web/public/brand/china-in-fact-wordmark.svg` — artwork, not a font; never re-typeset or rebuild from HTML text. Ink covers the base name; cinnabar only `h`, the first `i`, the comma, and `act` (`hi, act`). Header and Footer share the asset.
-- The visual container is Song-dynasty editorial (水墨丹青): color from ink-painting theory, layout from album leaves and negative space, signatures from seal carving. Target texture: Hansheng magazine, Song album leaves, Zhonghua Book Company — never tourist chinoiserie. Content stays contemporary and documentary; the mono metadata layer is the modern counterweight.
+- The public site uses one warm, contemporary product system. Connection, discovery, reading, and utility templates share the same color, type, spacing, control, and motion tokens; page purpose changes the composition, not the brand system.
+- Connection surfaces use compact portraits, divided rows, clear current work, and direct continuation actions. They must not resemble a magazine profile, talent marketplace, or editorial feature package.
+- Reading surfaces use the same warm foundation with a dedicated prose role and documentary photography. Reading typography never determines the hierarchy of Home, People, or Person.
 - Every public screen answers "who is this, what are they doing now, and where can I continue" (ADR-0011, ADR-0012).
-- **Density** 5/10, **Variance** 7/10 (asymmetric compositions, varied story scale), **Motion** 4/10 (restrained, purposeful).
-- Hierarchy starts with one person-in-context, then a few supporting people or works.
-- People are the primary object beneath Stories, Guides, and Places. Projects, questions, places, and stories introduce people without turning every surface into a profile card.
+- **Community density** 7/10, **reading density** 5/10, **motion** 3/10.
+- Community hierarchy starts with finding people, then people rows, current work, and a continuation path.
+- People are the primary public object. Projects, questions, places, and stories introduce people without becoming a top-level directory or fake social graph.
 - Professionalism comes from hierarchy, editing, sourcing, and maintenance; warmth from portraits, names, locations, voices, and visible person-to-contribution links.
 
 ## 2. Color Palette & Roles
 
-Colors derive from ink-painting theory (墨分五色) and mineral pigments. These values are the contract; on-page calibration may fine-tune within the same hue only (directional changes go through ADR-0011).
+Every public page consumes semantic roles. Components never select primitive colors directly.
 
-- **Paper Gray** (`#EFF0EA`) — primary canvas; Ru-ware-glaze cool gray, outside the warm-cream zone.
-- **Paper White** (`#FBFBF8`) — reading surface and raised areas.
-- Text uses only the five ink tones: **焦** `#1A1A16` (headlines, body), **浓** `#333330` (secondary body), **重** `#55564F` (supporting), **淡** `#8A8A80` (metadata, disabled), **清** `#C6C7BE` (single hairline color for rules and borders).
-- **Seal Cinnabar** (`#A63A2B`) — only at seal size and logic: byline seals, end-of-article seal, fact marks, focus states. Never a large background or title-repeating block.
-- **Azurite** (`#2F5D8A`) — institutional layer for data, charts, and community modules; the 青 of 丹青.
-- Links use an ink underline, not the accent; seal red stays scarce.
+- **Paper primitives:** `paper/0 #FFFFFF`, `paper/50 #FFFDF8`, `paper/100 #F8F4EC`, `paper/200 #F1EADF`, `paper/300 #E3DACD`.
+- **Ink primitives:** `ink/950 #1F1D1A`, `ink/900 #292621`, `ink/700 #514C45`, `ink/600 #6C655D`, `ink/500 #898076`, `ink/300 #B8AEA1`, `ink/200 #D4CCC0`.
+- **Cinnabar primitives:** `800 #7C2F25`, `700 #91372B`, `600 #A44535`, `500 #B45441`, `100 #F5E7E2`. Cinnabar is the brand action, link, focus, and selected-state family; it is not a large decorative field.
+- **Tea status:** `700 #425C47`, `600 #55715B`, `100 #EAF1E9`. **Ochre status:** `700 #7A531E`, `100 #F6ECD9`. **Danger:** `700 #A1322A`, `100 #F8E5E2`. Status always includes text or shape.
+- **Background roles:** canvas `paper/100`, surface `paper/50`, elevated `paper/0`, subtle `paper/200`, inverse `ink/950`.
+- **Text roles:** primary `ink/950`, secondary `ink/700`, muted `ink/600`, inverse `paper/50`, brand `cinnabar/700`.
+- **Border roles:** default `ink/200`, strong `ink/300`, focus `cinnabar/600`.
+- **Action roles:** primary `cinnabar/700`, hover `cinnabar/800`, text `paper/0`; secondary surface `paper/50`, text `ink/950`.
+- **Selection roles:** background `cinnabar/100`, text `cinnabar/800`.
+- Body text contrast is at least `4.5:1`; primary actions and focus states meet WCAG AA.
 
-Never introduce purple, neon blue, metallic gold, flag-color combinations, or decorative gradients (azurite is functional, not neon). Ink-wash texture appears only as curated image assets, never CSS gradients. Kitsch bans in section 11 apply: the reference is a discipline, not a costume.
+Never introduce cold blue as the primary accent, metallic gold, flag-color combinations, decorative gradients, or a parallel page-specific palette. Ink-wash texture appears only as a curated reading asset.
 
 ## 3. Typography Rules
 
-- **Display and headlines:** `Instrument Serif` at extreme scale (tiers below); scale and tightness carry the personality, never ornament.
-- **Navigation, UI, body:** `Satoshi`.
-- **System layer:** `Geist Mono` for kickers, dates, captions, buttons, labels, and the language switch — `12px`, uppercase, letter-spacing `0.08em`.
+- **Product/UI layer:** `Geist` for navigation, controls, people, headings, cards, and normal body copy. Connection surfaces never use serif names, magazine dek, pull quote, or oversized portrait typography.
+- **Reading layer:** `Newsreader` for article and biographical prose only. It supports reading rhythm without turning profiles into editorial features.
+- **System layer:** `Geist Mono` for dates, compact metadata, codes, and short status labels — `12px`, letter-spacing `0.0667em` when uppercase metadata is required.
 - **Chinese layer:** `Noto Serif SC` for hanzi in the signature system, vertical side labels, and seal marks. Chinese never replaces English/Spanish running copy (section 10).
-- Fixed six-step scale; no ad-hoc sizes:
-  - `display-xl` — `clamp(48px, 7vw, 80px)` / `1.0` — hero, article H1.
-  - `display-l` — `clamp(36px, 4.5vw, 56px)` / `1.05` — section leads, Person name.
-  - `heading-l` — `clamp(24px, 2.5vw, 32px)` / `1.15` — article H2, module titles.
-  - `heading-m` — `20px` / `1.3`, Satoshi Medium — H3/H4, card titles.
-  - `body` — `18px` desktop, `16px` mobile / `1.65` — long-form measure `620px` (≈65ch).
-  - `meta` — `12px` mono, uppercase, `0.08em`.
-- Headlines use rhythm and line breaks; extreme tiers are for lead surfaces, not every heading.
+- Fixed nine-role scale; no ad-hoc sizes:
+  - `display` — desktop `64/68`, mobile `44/48`, tracking `-0.025em` — Home and page-entry H1 only.
+  - `page-title` — desktop `48/52`, mobile `36/40`, tracking `-0.02em` — People, Person, index, utility title.
+  - `section-title` — desktop `32/38`, mobile `28/34`, tracking `-0.015em`.
+  - `heading` — desktop `22/28`, mobile `20/26` — rows, cards, H3/H4.
+  - `body` — desktop `17/27`, mobile `16/25`.
+  - `prose` — desktop `19/31`, mobile `18/29`, Newsreader, maximum `680px`.
+  - `label` — `14/20`; `meta` — `12/16`; `small` — `13/19`.
+- Headlines use rhythm and line breaks; extreme tiers are for reading leads and the community Home/People H1 only, not Person names or row headings.
 - Admin screens are sans-serif only; no serif inside operational UI.
-- Never Inter, Times New Roman, Georgia, Garamond, or generic system typography as the brand voice.
+- Never mix in Inter, Times New Roman, Georgia, Garamond, or generic system typography as the brand voice.
 
 ## 4. Imagery
 
@@ -56,23 +63,22 @@ Never introduce purple, neon blue, metallic gold, flag-color combinations, or de
 
 ## 5. Public Components
 
-- **Global navigation:** compact wordmark, `People / Stories / Guides / Places`, language switch, Subscribe. Purpose and Topics are secondary; Projects is not top-level.
+- **Global navigation:** compact wordmark, `People / Stories / Guides / Places`, language switch, `Join Discord`. Projects is not top-level.
 - **Story presentation:** scale, image ratio, rules, whitespace — no card around every story.
 - **Section index:** strong title, one lead story, then an asymmetric grid or divided list.
-- **Homepage:** one person and one current pursuit form the first complete unit, using real portraiture and context in a left-aligned or split composition. Person is the primary link.
-- **Homepage composition:** person-and-pursuit lead; 4–6 other people with concrete anchors; recent work from them; useful Guides; community continuation; Newsletter. Never lead with `Latest`, counts, or equal cards. Scheduling stays invisible.
-- **Article and Guide page:** `620px` reading measure, calm margin, source notes when relevant. Signature block under the title; desktop left-rail TOC when ≥3 H2s, highlighting the current section (no progress bar). The page closes with the end seal, full author card (portrait, third-person bio, links, Discord line when active), and a routing module (related people, Discord deep link, next story) hidden when empty. Curation never replaces the member byline or pushes the person to the footer.
+- **Homepage:** a direct people-search entry, then 4–6 continuous person rows with name, identity, location, current work and real topics or help data. Current work, Discord, community Stories/Guides, and Newsletter follow. Never lead with an Article hero, `Latest`, Spotlight, counts, or editorial selection language.
+- **Article and Guide page:** `680px` maximum reading measure, calm margin, source notes when relevant. Signature block under the title; desktop left-rail TOC when ≥3 H2s, highlighting the current section (no progress bar). The page closes with the end seal, full author card (portrait, third-person bio, links, Discord line when active), and a routing module (related people, Discord deep link, next story) hidden when empty. Curation never replaces the member byline or pushes the person to the footer.
 - **Signature block (seal system):** the site's single signature element — small cinnabar seal, mono pinyin name + hanzi + city (`WEI LAN 蔚蓝 — DONGGUAN`), one-line editorial epithet. Member articles carry it at top; institutional articles show `Related people` instead. The end-of-article mark is a seal-styled `文`. Text-only bylines may serve dense lists.
-- **People index:** one person-in-context and two supporting people open the page, each tied to a project, work, question, or observation. Stable rotation may remain backstage; no weekly label is required. Never a staff directory, marketplace, or equal avatar grid.
-- **People at scale:** after the opening, `All people` provides name search, Topics, Places, Language, count, and pagination (~24/page). Each row leads with a current pursuit or recent work; filters remain secondary.
+- **People index:** `Meet people in China`, search, compact filters, and a continuous divided list. No Spotlight, featured person, editorial verdict, member count, staff directory, marketplace, or avatar grid.
+- **People at scale:** search covers name, identity, place, topics, and explicit help data; Topics, Places, and real Languages remain secondary. Paginate at about 24 desktop / 12 mobile. A row shows only fields that exist.
 - **Contextual people:** content surfaces may show a few automatically matched people via their published contributions — the relationship, never scores or matching explanations.
-- **Person page:** portrait, identity, location, introduction, then a prominent `Now` passage for current project, question, stage, and open connection. Selected work, full archive, topics, places, and links follow. It is a living surface, not a résumé.
-- **Current pursuit:** composed image and text, not a marketplace card. Show title, one sentence, stage/update, explicit collaborators, and one continuation link. Hide absent fields; never scrape Discord text.
+- **Person page:** compact portrait, name, identity, location, languages/topics, one explicit Discord action when owned, then `Now`, `Can help with`, Contributions, and About. It is a connection profile, not a feature story or résumé.
+- **Current work:** use the existing public contribution or later approved Project data. Hide the section when absent; never relabel an introduction as current activity or scrape Discord text.
 - **Curation distinction:** a restrained label or grouping separates site-selected work from the rest. Never describe unselected work as rejected, pending, or lower quality.
-- **Community continuation:** Discord has three evidence-based forms. Home: a compact, member-approved pulse near people/work. Article end: a relevant person or discussion deep link. Person: an active member-owned contact line. No popups, banners, or Forum mirroring.
+- **Community continuation:** Home has one real Discord continuation module; Person has one `Connect on Discord` action only when an owned link exists. Article may use a relevant person or discussion deep link. No popup, chat mirror, fake activity, or duplicate core action.
 - **Question continuation:** Reddit is not a promo module. Show a real public question only when attached to a useful person, project, or answer; omit engagement metrics and automation state.
 - **Author identity:** no follower counts, ratings, availability badges, popularity rank, transaction controls, or social scores.
-- **Newsletter module:** one field, one primary action, compact success/error states. Surface is ink or paper-white with a hairline; cinnabar only on the button, never the background.
+- **Newsletter module:** lower-priority continuation with one field, one primary action, and compact success/error states.
 - **Cover fallback:** cards and OG images without photography use the systematic fallback — paper-gray ground, curated ink-wash texture asset, seal or vertical hanzi punctuation, mono small-type title.
 - **Topic filters:** short horizontal labels with clear selected state, secondary to the four object sections.
 - **Buttons:** modest radius, flat fill, no outer glow; active state translates down `1px`.
@@ -81,7 +87,7 @@ Never introduce purple, neon blue, metallic gold, flag-color combinations, or de
 
 ## 6. Admin Components
 
-- Operational, calm, compact; `Satoshi` and `Geist Mono` only.
+- Operational, calm, compact; `Geist` and `Geist Mono` only.
 - Member entry points are `My work` and `My profile`; members never search full CMS collections for their own records.
 - `My work`: title, language, publication state, curation state, last saved, one clear next action. The focused editor supports save, preview, publish, update, withdraw — never Submit/Resubmit, approval waiting, or site-only curation fields.
 - `My profile`: one direct editing task (identity, portrait, location, introduction, languages, topics, external links) with preview and publish.
@@ -94,12 +100,11 @@ Never introduce purple, neon blue, metallic gold, flag-color combinations, or de
 
 ## 7. Layout Principles
 
-- Twelve-column desktop grid, maximum content width `1440px`.
+- Twelve-column desktop grid, maximum content width `1280px`; desktop gutter `48px`, mobile gutter `20px`.
 - Reading pages center the text measure but keep asymmetric composition via author, image, and related-story placement.
-- Replace three-equal-card rows with a lead-and-supporting grid, offset two-column composition, or divided list.
+- Use divided rows for people and contributions. Small three-column cards are allowed only for supporting current work or reading routes, never as the primary people representation.
 - Spacing groups content before containers. Negative space is an institution (留白): section spacing one step more generous than editorial defaults; emptiness is compositional material.
-- Corner-weighted asymmetry (Ma Yuan "one-corner") grounds the lead-and-supporting grid: mass gathers in one region, the rest breathes.
-- Vertical hanzi side labels (`writing-mode: vertical-rl`, Noto Serif SC) may mark sections as quiet punctuation; never navigation or required information.
+- Reading pages may keep asymmetric compositions and quiet hanzi punctuation; community surfaces do not use vertical sidemarks.
 - Warmth comes from proximity of portrait, name, voice, and contribution — not testimonial quotes or explanatory community copy.
 - Dense People results use divided rows or a restrained two-column list; smaller portraits, readable names and links. Mobile: one column, compact filter, pagination over endless scroll.
 - No overlapping elements; every block owns a clear spatial zone.
@@ -112,7 +117,7 @@ Never introduce purple, neon blue, metallic gold, flag-color combinations, or de
 - Display type scales with `clamp()` and never forces single-word lines.
 - Touch targets at least `44px`.
 - Inline headline imagery moves below the headline on mobile.
-- Mobile navigation is a compact menu preserving language and Subscribe.
+- Mobile navigation is a compact menu preserving language and `Join Discord`.
 - Long metadata rows wrap cleanly; no ellipsis on essential editorial status.
 
 ## 9. Motion & Interaction
@@ -139,11 +144,11 @@ Never introduce purple, neon blue, metallic gold, flag-color combinations, or de
 
 ## 11. Anti-Patterns
 
-- No emojis, pure black, purple or blue neon, outer glow, or decorative gradient text.
-- No three-column equal-card rows, centered heroes, glassmorphism dashboards, or oversized pill containers.
+- No emojis, blue neon, outer glow, or decorative gradient text.
+- No centered community hero, glassmorphism dashboard, oversized pill containers, or editorial portrait feature on Home/People/Person.
 - No generic placeholder people or fake metrics.
 - No China visual clichés: dragons/phoenixes, auspicious clouds, lanterns, gilt, Forbidden-City red-and-yellow, calligraphy display faces.
-- No large accent-color backgrounds (seal red only at seal size); no title-repeating cover blocks; no ink-wash CSS gradients or ink filters over photography.
+- No title-repeating cover blocks, ink-wash CSS gradients, or ink filters over community portraits.
 - No map-first homepage; no service marketplace treatment unless separately approved.
 - No corporate team grid, creator leaderboard, social feed, follower metrics, ratings, or community-member counters.
 - No article text hardcoded inside application components.

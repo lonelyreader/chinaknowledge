@@ -12,7 +12,7 @@ export default async function GuidesPage({ params }: { params: Promise<{ locale:
     return (
       <main className="page-shell index-page">
         <header className="index-header">
-          <p className="meta">{copy.nav[1]}</p>
+          <p className="meta">{copy.nav[2]}</p>
           <h1>{locale === "en" ? "Useful knowledge, kept current" : "Conocimiento útil, al día"}</h1>
         </header>
         {cmsGuides.map((guide) => (
@@ -28,7 +28,7 @@ export default async function GuidesPage({ params }: { params: Promise<{ locale:
   return (
     <main className="page-shell index-page">
       <header className="index-header">
-        <p className="meta">{copy.nav[1]}</p>
+        <p className="meta">{copy.nav[2]}</p>
         <h1>{locale === "en" ? "Useful knowledge, kept current" : "Conocimiento útil, al día"}</h1>
       </header>
       <article className="index-lead">

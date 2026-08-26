@@ -53,7 +53,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] EN/ES 路由、People 搜索筛选、Person 连接路径、文章 canonical 与 fixture/CMS 读取行为保持。
 - [x] 1440px、768px、390px 代表性页面无重叠、截断、水平溢出或失真的层级。
 - [x] 可见文案通过 explanation-first、内部术语和操作指导检查。
-- [x] changed-path lint、typecheck 与 build 通过；最终治理与 diff 门禁见下方验证回执。
+- [x] changed-path lint、typecheck、build、候选提交治理检查与 diff 门禁通过。
 
 ## Validation
 
@@ -74,6 +74,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] 本批授权 Figma 设计、本地公共前端实现与验证；Git、Preview、Production、数据和 schema 动作仍分别批准。
 - [x] Figma Foundations 与代表性页面完成并通过视觉、变量和可访问性检查。
 - [x] 本地公共网站实现与 EN/ES 响应式回读完成。
+- [x] 产品负责人于 2026-08-27 批准本地 Git 提交；不含 push、Preview、Production、数据或 schema 动作。
 
 ## Evidence
 
@@ -83,7 +84,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - 对比度：primary text/canvas `16.54:1`、secondary text/canvas `8.36:1`、muted text/canvas `5.65:1`、white/cinnabar-700 `7.54:1`。
 - 浏览器：EN/ES 的 Home、People、Person、Stories、Guides、Article、Places、About、Newsletter 在 1440px、768px、390px 无横向溢出；移动菜单开合通过；Article prose 为 Newsreader `18/29`，移动 display 为 Geist `44/48`。
 - 前端：`npm run typecheck` PASS；`npm run lint` 为 0 error、48 个既有 migration unused-parameter warning；`npm run build` PASS，77 个静态页面生成完成。
-- 仓库：`git diff --check` PASS；文档治理与功能登记指纹 PASS。`change:intake` 要求授权 checklist 先存在于 HEAD，本清单与同批实现均尚未获 commit 授权，且工作树另有本批未触碰的 `outputs/` 改动，因此完整 `governance:check` 在 commit 门禁前保持未关闭。
+- 仓库：Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check` 与 `git diff --check`。主工作树另有本批未触碰的 `outputs/` 改动，未暂存、未提交。
 
 ## Relationship
 
