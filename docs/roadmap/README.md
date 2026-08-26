@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: execution-roadmap
-last_verified: 2026-08-16
+last_verified: 2026-08-26
 max_lines: 100
 ---
 
@@ -18,6 +18,7 @@ max_lines: 100
 
 | 工作项 | 交付目标 |
 |---|---|
+| [`PEOPLE-COMMUNITY-DIRECTION-001`](checklists/people-community-direction.md) | 根据真实 People 与 Discord 项目供给，先纠偏人物/社群方向，再重写 HOME 与 PROJECTS 实现合同 |
 | [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文媒体能力（剩 Preview/生产验收） |
 | [`INFRA-BODY-MEDIA-002`](checklists/article-body-media-002.md) | 媒体权限收敛（已部署，剩生产验收） |
 | [`INFRA-RETHEME-001`](checklists/site-retheme-song.md) | 宋式视觉换装：token 值切换 |
@@ -27,7 +28,7 @@ max_lines: 100
 | [`INFRA-PERSON-PAGE-001`](checklists/person-page-expansion.md) | Person 页扩展与正式名片 |
 | [`INFRA-FEEDS-001`](checklists/feeds-structured-data.md) | RSS/JSON Feed 与结构化数据 |
 
-其余尚未启动的 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。
+其余尚未启动的 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。`INFRA-HOME-001` 与 `INFRA-PROJECTS-001` 的早期 mini-spec 已暂停作为实现依据，等待人物与社群方向纠偏完成。
 
 ## Completed：Agent Workspace 完整化
 

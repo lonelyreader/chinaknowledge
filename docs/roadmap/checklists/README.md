@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: active-checklists
-last_verified: 2026-08-16
+last_verified: 2026-08-26
 max_lines: 80
 ---
 
@@ -13,6 +13,10 @@ max_lines: 80
 本目录只存 active 执行清单。一个 checklist 对应一个交付目标，完成或被替代后移入 `docs/archive/`。
 
 Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.md) 记录；Site Infrastructure 的批次与依赖由 [`Site Infrastructure 父级清单`](../site-infrastructure-program.md) 记录；父级均不授权实现。
+
+当前产品方向纠偏：
+
+- [`PEOPLE-COMMUNITY-DIRECTION-001`](people-community-direction.md)：根据 Production People 与 Discord 成员项目的真实供给，把网站收敛为人物与社群优先的连接网络；本项只改正式文档合同，不实现页面或外部平台写入。
 
 Batch 1 收尾（代码已上线，剩验收归档）：
 

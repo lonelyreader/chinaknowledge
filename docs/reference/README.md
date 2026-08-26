@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: reference-index
-last_verified: 2026-08-10
+last_verified: 2026-08-26
 max_lines: 80
 ---
 
@@ -22,6 +22,7 @@ max_lines: 80
 | 密码重置恢复 | 24 小时有效期、最新链接规则、失效恢复页与 Production 匿名回读通过 | [`implementation/password-reset-recovery-2026-08-11.md`](implementation/password-reset-recovery-2026-08-11.md) |
 | UTM 与自定义事件命名约定 | active；供 INFRA-OUTBOUND-001 与社交流水线复用 | [`utm-and-event-naming.md`](utm-and-event-naming.md) |
 | 前台样式架构与 design token | active；token 命名、扩展规则与对照审计（INFRA-TOKENS-001） | [`style-architecture.md`](style-architecture.md) |
+| People 与社群方向现状 | active；Production People 与 Discord 成员项目的 2026-08-26 聚合证据 | [`people-community-direction-evidence-2026-08-26.md`](people-community-direction-evidence-2026-08-26.md) |
 
 规则：
 

@@ -4,7 +4,7 @@ doc_type: contract
 authority: canonical
 status: active
 scope: site-infrastructure-program-control
-last_verified: 2026-08-16
+last_verified: 2026-08-26
 max_lines: 240
 ---
 
@@ -14,7 +14,9 @@ max_lines: 240
 
 ## Program Goal
 
-把 chinainfact.com 建成两侧的基础设施：铲子计划成员获得完整的发布与展示能力（正文媒体、Agent 通道、正式个人名片、项目展示）；海外读者获得专业的阅读体验并被持续路由到真实的人（Discord、个人站、成员项目）；站方获得可测量、可分发的技术底盘（Analytics、OG、Feed、结构化数据）。内容本身与内容运营不属于本 program。
+把 chinainfact.com 建成让世界遇见真实中国人的公开入口。项目、作品、经历与内容共同证明一个人是谁、在关心什么、正在做什么；网站负责长期发现，Discord 负责持续交流与协作，Reddit 负责从真实问题进入外部对话。铲子计划成员仍获得发布与展示能力，站方仍维护可信编辑和可测量的技术底盘。内容本身与内容运营不属于本 program。
+
+2026-08-26 的方向纠偏优先于早期 Batch 3 假设。HOME 与 PROJECTS 在新合同完成前不得按旧 mini-spec 启动；“独立项目目录”不再是默认结论。
 
 ## 总路线图
 
@@ -35,8 +37,9 @@ flowchart LR
       M["FEEDS-001<br/>RSS 与结构化数据"]
     end
     subgraph B3["Batch 3"]
+      Q["PEOPLE-COMMUNITY-DIRECTION-001<br/>人物与社群方向纠偏"]
       O["HOME-001<br/>首页重组"]
-      I["PROJECTS-001<br/>Member Projects"]
+      I["PROJECTS-001<br/>项目作为人物证据"]
       J["AGENT-WORKSPACE-007<br/>Member MCP 闭环"]
       L["SEARCH-001<br/>站内搜索"]
       N["OUTBOUND-001<br/>出站点击计量"]
@@ -54,6 +57,8 @@ flowchart LR
     D --> O
     E --> O
     H --> I
+    Q --> O
+    Q --> I
     H --> J
     B --> L
     A --> N
@@ -74,8 +79,9 @@ flowchart LR
 | `INFRA-BODY-MEDIA-002` | 2 | active | 正文媒体权限收敛与发布管道补全（独立复审 F1/F2/F4），代码已上线，见 [checklist](checklists/article-body-media-002.md)；剩生产验收 | 无 |
 | `INFRA-PERSON-PAGE-001` | 2 | active | Person schema 扩展与个人页重构，[checklist](checklists/person-page-expansion.md) | 无（schema/migration 逐门禁批准） |
 | `INFRA-FEEDS-001` | 2 | active | RSS/JSON Feed、Person 与文章结构化数据补全，[checklist](checklists/feeds-structured-data.md) | 无（页面注入部分合并顺序最后） |
-| `INFRA-HOME-001` | 3 | queued | 首页重组：人物权重、社群模块、Hero 组合 | TOKENS、DESIGN-DIRECTION、ARTICLE-TEMPLATE |
-| `INFRA-PROJECTS-001` | 3 | queued | Member Projects 一等对象与展示入口 | PERSON-PAGE |
+| `PEOPLE-COMMUNITY-DIRECTION-001` | 方向门 | active | 人物与社群优先产品合同，[checklist](checklists/people-community-direction.md) | intake 进入 Git 基线后改 canonical docs |
+| `INFRA-HOME-001` | 3 | queued | 首页重组：首先让人遇见具体人物，再进入其项目、作品与内容 | PEOPLE-COMMUNITY-DIRECTION、ARTICLE-TEMPLATE |
+| `INFRA-PROJECTS-001` | 3 | queued | 项目作为 Person 的行动证据；是否需要跨人物入口由新合同决定 | PEOPLE-COMMUNITY-DIRECTION、PERSON-PAGE |
 | [`AGENT-WORKSPACE-007`](../archive/agent-workspace-member-completion.md) | 3 | done | 资料/外链、Profile 公开、媒体/文章发现与双语 draft 的 Member MCP 闭环已上线并归档 | 无 |
 | `INFRA-SEARCH-001` | 3 | queued | 站内搜索（Postgres 全文检索 + 搜索页） | TOKENS |
 | `INFRA-OUTBOUND-001` | 3 | queued | 作者外链、Discord、项目外链出站点击计量 | 无（MEASURE 已完成） |
@@ -135,13 +141,14 @@ flowchart LR
 
 ### INFRA-HOME-001（upgraded：首页公开面）
 
-- 目标：按修订后的 DESIGN.md 重组首页：Hero 支持人物+内容组合叙事、People 模块扩容、社群延续模块、Latest 呈现去机器感（发布节奏由内容侧负责，模板只保证形态）。
+- 旧目标暂停作为实现合同。新目标必须在 `PEOPLE-COMMUNITY-DIRECTION-001` 完成后重写：首页首屏或首个完整叙事单元让读者遇见具体的人，并从其当前项目、作品或观察继续；内容流与社群模块服务于人物发现，不反客为主。
 - 关键路径：`apps/web/src/app/(frontend)/[locale]/page.tsx` 与组件。
 
 ### INFRA-PROJECTS-001（upgraded：新 collection 与公开面）
 
-- 目标：`member-projects` collection（名称、一句话、封面、成员关系、外链、公开状态）+ Person 页项目区 + 独立入口页；成员自管、站方可精选。
-- 关键路径：新 collection、migration、前端页面；权限模型比照 Person 自管规则。
+- 旧的“独立项目入口”目标暂停作为实现合同。新目标：让本人选择公开的项目、当前问题、阶段、所需连接与外链成为 Person 的行动证据；跨人物浏览只在确实改善人物发现时建立，不默认增加顶级 Projects 导航。
+- Discord Forum 不是网站数据库。任何同步或导入必须先有稳定 Person 关联、本人确认公开范围、来源与更新时间、撤回和读回；不得按显示名自动合并。
+- 关键路径仍可能包含新 collection、migration 与前端页面，但必须由方向纠偏后的 upgraded checklist 重新冻结。
 
 ### AGENT-WORKSPACE-007（completed：Member Agent 完整闭环）
 
