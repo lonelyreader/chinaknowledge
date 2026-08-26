@@ -68,7 +68,7 @@ max_lines: 160
 
 ## 当前运行边界
 
-- 本地应用位于 `apps/web`。当前未提交视觉批次以 fixture read mode 在 `http://localhost:3000` 完成 EN/ES 公共页面的 1440px、768px、390px 浏览器验证；现有本地 CMS 数据库启动时因重复 `(translation_group, locale)=(acceptance-member-curation, en)` 无法创建 `translationGroup_locale_idx`，本批未改 schema 或本地数据，CMS 视觉读回待该既有环境问题另行处理。
+- 本地应用位于 `apps/web`。当前已提交视觉批次以 fixture read mode 在 `http://localhost:3000` 完成 EN/ES 公共页面的 1440px、768px、390px 浏览器验证；现有本地 CMS 数据库启动时因重复 `(translation_group, locale)=(acceptance-member-curation, en)` 无法创建 `translationGroup_locale_idx`，本批未改 schema 或本地数据，CMS 视觉读回由受保护 Preview 补齐。
 - `PUB-CURATION-001` 使用独立临时 PostgreSQL 完成 12 条 migration apply、clean rollback/reapply、populated fail-closed 和虚构权限/状态矩阵；最终集中运行 typecheck、lint、build、editorial、migration recovery 与 diff check，全部 PASS。
 - Production Neon 当前为 49 张表、15 条 migration；第 15 条 Person migration 单独位于 batch 8。Person `gexu` 保持公开，原个人站未变，并新增 `https://x.com/WorldlyGeXu`；EN/ES 匿名页均已读回。既有英西 Article 与冷启动 120 条站方 Article 未被本批改写。
 - 当前 Preview CMS 账户、内容、人物、来源说明和图像均为虚构验收数据，不是可公开的真实内容；Production 没有复制这些数据。
