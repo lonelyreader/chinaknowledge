@@ -18,17 +18,17 @@ max_lines: 100
 
 | 工作项 | 交付目标 |
 |---|---|
-| [`PEOPLE-COMMUNITY-DIRECTION-001`](checklists/people-community-direction.md) | 根据真实 People 与 Discord 项目供给，先纠偏人物/社群方向，再重写 HOME 与 PROJECTS 实现合同 |
+| [`PEOPLE-COMMUNITY-DIRECTION-001`](checklists/people-community-direction.md) | 人物与社群合同及 Figma AI 核心 proof 已完成，等待最终治理写回与归档 |
 | [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文媒体能力（剩 Preview/生产验收） |
 | [`INFRA-BODY-MEDIA-002`](checklists/article-body-media-002.md) | 媒体权限收敛（已部署，剩生产验收） |
-| [`INFRA-RETHEME-001`](checklists/site-retheme-song.md) | 宋式视觉换装：token 值切换 |
-| [`INFRA-ARTICLE-TEMPLATE-001`](checklists/article-page-template.md) | 文章页模板：目录、印章署名、文末路由 |
-| [`INFRA-OG-001`](checklists/dynamic-og-cover-fallback.md) | 动态 OG 与封面兜底 |
+| [`INFRA-RETHEME-001`](checklists/site-retheme-song.md) | 旧分支保存宋式 token 候选；等待人物核心页面 proof 后按当前主线收敛 |
+| [`INFRA-ARTICLE-TEMPLATE-001`](checklists/article-page-template.md) | 保留目录、署名、文末路由行为与测试；等待新页面合同后移植 |
+| [`INFRA-OG-001`](checklists/dynamic-og-cover-fallback.md) | 保留动态 OG 与封面兜底候选；等待 Person/Home 构图 |
 | [`INFRA-AGENT-MEDIA-001`](checklists/agent-media-tools.md) | Agent 媒体工具与正文合同 V2 |
-| [`INFRA-PERSON-PAGE-001`](checklists/person-page-expansion.md) | Person 页扩展与正式名片 |
-| [`INFRA-FEEDS-001`](checklists/feeds-structured-data.md) | RSS/JSON Feed 与结构化数据 |
+| [`INFRA-PERSON-PAGE-001`](checklists/person-page-expansion.md) | 正式名片已上线，只剩专项 UI 验收后归档，不扩入新 People 体验 |
+| [`INFRA-FEEDS-001`](checklists/feeds-structured-data.md) | 保留 feed/JSON-LD 候选；Person/Project 模型稳定后移植 |
 
-其余尚未启动的 Batch 2–3 工作项为 queued，进入条件与 mini-spec 见父级清单；queued 不构成实现授权。`INFRA-HOME-001` 与 `INFRA-PROJECTS-001` 的早期 mini-spec 已暂停作为实现依据，等待人物与社群方向纠偏完成。
+人物与社群方向合同及核心页面 Figma AI proof 已完成，当前只剩最终治理写回与归档。下一顺序为 `INFRA-PROJECTS-001` 人物当前行动闭环 → RETHEME → ARTICLE → `INFRA-HOME-001` 人物优先首页 → OG → FEEDS。Figma AI 负责 UI 重构，Codex 不先行改前端；实现、schema、migration、真实内容与 Production 仍需分别授权。
 
 ## Completed：Agent Workspace 完整化
 

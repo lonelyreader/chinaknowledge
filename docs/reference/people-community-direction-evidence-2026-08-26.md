@@ -84,6 +84,10 @@ flowchart LR
 - Reddit 只承担真实问题发现和人工参与；遵守社区规则，先回答问题，再决定是否提供相关链接。
 - 首期继续不做关注数、热度榜、评分、站内私信、交易撮合或自动推荐黑箱。
 
+## Design asset state
+
+2026-08-26 已新建 Figma 核心文件 [`ChinaInFact — People & Community Core Experience`](https://www.figma.com/design/uduLwDLMhjiP5FB79pHBPW/ChinaInFact-%E2%80%94-People---Community-Core-Experience?node-id=0-1&p=f&t=6LqYOiMf7RXGtkMF-0)。Figma AI 根据产品合同、真实数据形状和设计约束完成 Home desktop/mobile、People desktop、Person desktop/mobile 与 Core patterns 六个 frame；随后由 Figma AI 自行完成可见文案清理。独立 metadata 读回确认六个 frame 均存在，目标禁用词扫描为零。该文件是后续评审的设计 proof，不构成代码实现、schema、真实数据或 Production 授权；Codex 未改前端，也未手工替代 Figma AI 设计。
+
 ## 证据来源
 
 - 当前仓库：`docs/product-brief.md`、`DESIGN.md`、`docs/decisions/0011-song-editorial-design-direction.md`、People 页面源码。

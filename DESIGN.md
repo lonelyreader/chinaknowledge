@@ -4,16 +4,16 @@
 
 ## 1. Visual Theme & Atmosphere
 
-A global China information and people hub. Visitors find what they need, discover someone worth knowing, and continue into a deeper relationship. Selection, verification, and maintenance are operating mechanisms, not a reason to frame the brand as an editorial publication or media brand.
+A public place to meet real Chinese people through what they do, make, ask, and publish. Selection and verification support trust; they are not the visible center or a media identity.
 
 - Internal brand context lives in [`docs/product-brief.md`](docs/product-brief.md#内部品牌语境非对外文案); it guides design but is never copied into public UI.
 - The public brand name is `China, in Fact`. Retain the comma everywhere.
 - The public wordmark is the fixed outlined asset at `apps/web/public/brand/china-in-fact-wordmark.svg` — artwork, not a font; never re-typeset or rebuild from HTML text. Ink covers the base name; cinnabar only `h`, the first `i`, the comma, and `act` (`hi, act`). Header and Footer share the asset.
 - The visual container is Song-dynasty editorial (水墨丹青): color from ink-painting theory, layout from album leaves and negative space, signatures from seal carving. Target texture: Hansheng magazine, Song album leaves, Zhonghua Book Company — never tourist chinoiserie. Content stays contemporary and documentary; the mono metadata layer is the modern counterweight.
-- Every public screen must answer "who is behind this, and how do I reach them." The site is a bridge and router to real people, not a self-contained publication (ADR-0011).
+- Every public screen answers "who is this, what are they doing now, and where can I continue" (ADR-0011, ADR-0012).
 - **Density** 5/10, **Variance** 7/10 (asymmetric compositions, varied story scale), **Motion** 4/10 (restrained, purposeful).
-- Real editorial hierarchy: one dominant story, few supporting stories, strong section rhythm.
-- People are a primary object and the persistent human layer beneath Stories, Guides, and Places — present throughout without turning every surface into a profile card. Content and people feel discovered through curation, not retrieved from a database.
+- Hierarchy starts with one person-in-context, then a few supporting people or works.
+- People are the primary object beneath Stories, Guides, and Places. Projects, questions, places, and stories introduce people without turning every surface into a profile card.
 - Professionalism comes from hierarchy, editing, sourcing, and maintenance; warmth from portraits, names, locations, voices, and visible person-to-contribution links.
 
 ## 2. Color Palette & Roles
@@ -56,19 +56,21 @@ Never introduce purple, neon blue, metallic gold, flag-color combinations, or de
 
 ## 5. Public Components
 
-- **Global navigation:** compact wordmark, four object sections (`Stories / Guides / Places / People`), language switch, one Subscribe action. Purpose and Topics are secondary discovery controls.
+- **Global navigation:** compact wordmark, `People / Stories / Guides / Places`, language switch, Subscribe. Purpose and Topics are secondary; Projects is not top-level.
 - **Story presentation:** scale, image ratio, rules, whitespace — no card around every story.
 - **Section index:** strong title, one lead story, then an asymmetric grid or divided list.
-- **Homepage:** the hero may pair a person with their story — photography, `display-xl` headline, signature block — left-aligned or split, never centered. An editorially weighted people passage sits with the community-live module before the page ends. Show people through what they notice or know; never announce contributor counts.
-- **Homepage composition:** one scheduled lead, a small editorial selection, automatic `Recently updated` / `Latest` streams, a rotating `People to know` passage. Member stories in `Latest` show the real byline; institutional entries de-emphasize it so the stream never reads as one voice. Never expose scheduling or ranking logic.
+- **Homepage:** one person and one current pursuit form the first complete unit, using real portraiture and context in a left-aligned or split composition. Person is the primary link.
+- **Homepage composition:** person-and-pursuit lead; 4–6 other people with concrete anchors; recent work from them; useful Guides; community continuation; Newsletter. Never lead with `Latest`, counts, or equal cards. Scheduling stays invisible.
 - **Article and Guide page:** `620px` reading measure, calm margin, source notes when relevant. Signature block under the title; desktop left-rail TOC when ≥3 H2s, highlighting the current section (no progress bar). The page closes with the end seal, full author card (portrait, third-person bio, links, Discord line when active), and a routing module (related people, Discord deep link, next story) hidden when empty. Curation never replaces the member byline or pushes the person to the footer.
 - **Signature block (seal system):** the site's single signature element — small cinnabar seal, mono pinyin name + hanzi + city (`WEI LAN 蔚蓝 — DONGGUAN`), one-line editorial epithet. Member articles carry it at top; institutional articles show `Related people` instead. The end-of-article mark is a seal-styled `文`. Text-only bylines may serve dense lists.
-- **People index:** varied-scale portrait and contribution index — a weekly three-person Spotlight (one dominant, two supporting), then an epithet roster: `epithet — name` plus a recent-contribution link. Recently active people may get compact cards; the roster stays text-first. Never a staff directory, alumni page, marketplace, or equal avatar grid.
-- **People at scale:** the Spotlight is a stable window, not a fixed trio or carousel. Follow with a compact `All people` area: name search, Topics, Places, Language, result count, explicit pagination (~24/page); each row links identity, place, topics, and a recent contribution. Never 100–200 portraits in one wall.
+- **People index:** one person-in-context and two supporting people open the page, each tied to a project, work, question, or observation. Stable rotation may remain backstage; no weekly label is required. Never a staff directory, marketplace, or equal avatar grid.
+- **People at scale:** after the opening, `All people` provides name search, Topics, Places, Language, count, and pagination (~24/page). Each row leads with a current pursuit or recent work; filters remain secondary.
 - **Contextual people:** content surfaces may show a few automatically matched people via their published contributions — the relationship, never scores or matching explanations.
-- **Author profile:** portrait, chosen identity, location, first-person introduction, topics and places, site-selected work, complete public archive, external links. A continuing publication surface, not a résumé; unselected published work stays visible.
+- **Person page:** portrait, identity, location, introduction, then a prominent `Now` passage for current project, question, stage, and open connection. Selected work, full archive, topics, places, and links follow. It is a living surface, not a résumé.
+- **Current pursuit:** composed image and text, not a marketplace card. Show title, one sentence, stage/update, explicit collaborators, and one continuation link. Hide absent fields; never scrape Discord text.
 - **Curation distinction:** a restrained label or grouping separates site-selected work from the rest. Never describe unselected work as rejected, pending, or lower quality.
-- **Community continuation:** Discord appears in exactly three evidence-based forms — fact, not adjectives. Homepage: community-live module adjacent to People (online count only above a threshold, a real topic excerpt, 3–4 member avatars). Article end: an editorial-whisper deep link ("take the question to the person who wrote this," never "join us"). Person page: a member-owned contact line, shown only while the member is active. No popups, acquisition banners, or repeated promotion.
+- **Community continuation:** Discord has three evidence-based forms. Home: a compact, member-approved pulse near people/work. Article end: a relevant person or discussion deep link. Person: an active member-owned contact line. No popups, banners, or Forum mirroring.
+- **Question continuation:** Reddit is not a promo module. Show a real public question only when attached to a useful person, project, or answer; omit engagement metrics and automation state.
 - **Author identity:** no follower counts, ratings, availability badges, popularity rank, transaction controls, or social scores.
 - **Newsletter module:** one field, one primary action, compact success/error states. Surface is ink or paper-white with a hairline; cinnabar only on the button, never the background.
 - **Cover fallback:** cards and OG images without photography use the systematic fallback — paper-gray ground, curated ink-wash texture asset, seal or vertical hanzi punctuation, mono small-type title.

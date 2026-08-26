@@ -4,7 +4,7 @@ doc_type: current
 authority: canonical
 status: active
 scope: current-state
-last_verified: 2026-08-16
+last_verified: 2026-08-26
 max_lines: 160
 ---
 
@@ -18,7 +18,7 @@ max_lines: 160
 - Stitch 设计系统已经建立。
 - 正式品牌名为 **China, in Fact**，正式网站为 [`chinainfact.com`](https://chinainfact.com)；域名已绑定 `china-in-fact` project，`www.chinainfact.com` 以 308 永久跳转到主域名，TLS、匿名访问和公开索引均已启用。Registrar 与 nameserver 均为 Vercel，到期日为 2027-07-27；邮件专用 DNS 保持独立。正式公共字标已经接入 Header 与 Footer；黑、朱砂红双形体与中央开放通道构成的定稿 favicon 已接入 ICO、SVG 和 Apple Touch Icon，三条 Production 路由与仓库 SHA-256 一致。商标可用性仍需另行核验。
 - 信息架构采用稳定内容对象、目的入口与横向语义分层：`Stories / Guides / Places / People` 为主导航，`Understand / Visit / Live / Study / Work / Business` 为目的入口，`Topics / Geography / Situation` 为横向发现。
-- 产品进一步明确为由真实中国成员直接发布、经站方选择与策展的人物驱动信息 Hub；People 同时是独立对象和其他内容背后的常驻人格层。成员个人公开与站方官方分发是两个决定，站方在同一 Article 上编辑且不改变原作者署名。
+- 2026-08-26 产品方向已按当前供给推进为人物与社群优先：首要承诺是让世界遇见真实、有趣、有灵魂的中国人，并从他们正在做的事继续。People 是中心对象；项目、作品、经历、问题和内容都可成为人物证据。网站负责长期人物发现，Discord 负责交流与协作，Reddit 从真实问题进入外部对话；详见 ADR-0012。Figma AI 已完成 Home、People、Person 桌面/移动核心 proof 与组件样张，当前 Production 页面尚未实现这轮重排。
 - Stitch 公共站、People 机制及 Newsletter 状态已经形成 P1 视觉基线。People 使用每周稳定的一主两辅 Spotlight，配合规则匹配、至多一人临时置顶、搜索、筛选和分页；公共 Article、Home 与 Person 已具备明显作者链接。`PUB-CURATION-001` 已把 Member publication 与 Editorial curation 两轴、同 Article 编辑和人物流量链路部署到 Production。
 - P0 Stitch 设计原型、P1 可运行公共产品切片、`P1-EDITORIAL-001` 编辑 CMS 基础与 `P2-PREVIEW-001` 均已完成并归档。
 - Production launch 基线已由 [`ADR-0008`](decisions/0008-production-launch-foundation.md) 接受：Vercel Pro + Neon Launch + Production Blob + Resend，区域保持 `iad1 / us-east-1`，数据库使用 7 天恢复窗口，异地备份使用 Cloudflare R2。Production 已完整执行 12 条 migration，形成 33 张 `public` 表；首位管理员、公开 Person、头像、原创 Article 封面和两篇英西 Article 均已进入恢复链路，migration 前后备份、读回、SHA、隔离恢复和 schema 断言均已通过。
@@ -50,6 +50,8 @@ max_lines: 160
 [`AGENT-WORKSPACE-001`](archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-006`](archive/agent-workspace-codex-member-compatibility.md)、[`MEDIA-UPLOAD-001`](archive/media-upload-filename-collision.md)、[`MIDGAME-COLD-START-001`](archive/midgame-cold-start.md) 与 [`FAVICON-PROD-001`](archive/favicon-production-release.md) 均已完成并归档。[`INFRA-AGENT-MEDIA-001`](roadmap/checklists/agent-media-tools.md) 的实现、Local 独立复审、统一 Preview 和 Production 部署/discovery 均 `PASS`；Production 未用真实内容重演上传或封面写入，专项运行验收仍由原 checklist 收尾。冷启动已在 Production 完成第 14 条 migration、六个 Purpose、60 个中文母稿和 120 条英西 Site Article；60 个双语组各有 EN/ES 两条，全部 Article 为 `published + curated + _status=published`。公开由 Production MCP 分批执行，数据库聚合、三波六个匿名页面、机构署名、Guides、health 与含 122 条 post URL 的 sitemap 均已回读；恢复 run 为 `31405564024`。
 
 `INFRA-PERSON-PAGE-001` 已在 Local 完成正式成员名片 schema、页面与名录实现，并通过隔离 migration recovery、权限/未公开隔离、EN/ES、build、桌面 1440px 与移动 390px 浏览器主流程及独立复审。Preview 已完成 Person migration apply/down/reapply 与 Agent Profile/X 虚构闭环；Production 已在前后恢复点下应用第 15 条 migration、部署页面，并由本人 MCP X 写入及 EN/ES 匿名公开页读回证明。专项 Member UI、Editor 判词与完整 EN/ES UI 仍由原 checklist 收尾。
+
+`INFRA-RETHEME-001`、`INFRA-ARTICLE-TEMPLATE-001`、`INFRA-OG-001` 与 `INFRA-FEEDS-001` 的 2026-08-12 worktree 分支均比当前 `main` 少 39 个主线提交，merge-tree 已出现冲突。成果保留为候选，不直接合并；核心页面 Figma AI proof 已完成，下一步先做 Project/Person 当前行动闭环，再按 RETHEME → ARTICLE → HOME → OG → FEEDS 移植。
 
 `AGENT-WORKSPACE-007` 已完成 Local/独立复审、统一 Preview 与 Production 发布：Member Agent 可维护本人 Profile、X 等外链、Preview path、可见状态、媒体/文章分页和唯一翻译 draft。Production 当前账号已用 `my_links_save` 只追加本人 X，并由 MCP、数据库与 EN/ES 匿名页三方读回；原 link、Profile 与可见状态不变。
 

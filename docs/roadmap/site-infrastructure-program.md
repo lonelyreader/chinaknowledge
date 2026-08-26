@@ -36,10 +36,11 @@ flowchart LR
       H["PERSON-PAGE-001<br/>Person 页扩展"]
       M["FEEDS-001<br/>RSS 与结构化数据"]
     end
-    subgraph B3["Batch 3"]
+    subgraph B3["人物体验"]
       Q["PEOPLE-COMMUNITY-DIRECTION-001<br/>人物与社群方向纠偏"]
-      O["HOME-001<br/>首页重组"]
-      I["PROJECTS-001<br/>项目作为人物证据"]
+      V["Core Figma AI proof<br/>五个核心 frame"]
+      I["PROJECTS-001<br/>Person 当前行动闭环"]
+      O["HOME-001<br/>人物优先首页"]
       J["AGENT-WORKSPACE-007<br/>Member MCP 闭环"]
       L["SEARCH-001<br/>站内搜索"]
       N["OUTBOUND-001<br/>出站点击计量"]
@@ -57,8 +58,9 @@ flowchart LR
     D --> O
     E --> O
     H --> I
-    Q --> O
-    Q --> I
+    Q --> V
+    V --> I
+    I --> O
     H --> J
     B --> L
     A --> N
@@ -72,16 +74,16 @@ flowchart LR
 | `INFRA-TOKENS-001` | 1 | done | token 化重构上线，[已归档](../archive/design-token-architecture.md)；`globals.css` 修改权移交 RETHEME | 无 |
 | `INFRA-BODY-MEDIA-001` | 1 | active | 正文媒体能力已上线，剩 Preview/生产验收后归档 | 无 |
 | `DESIGN-DIRECTION-001` | 1 | done | 宋式方向写入 DESIGN.md 与 ADR-0011，[已归档](../archive/design-direction-revision.md) | 无 |
-| `INFRA-RETHEME-001` | 2 | active | 宋式视觉换装：token 值切换到 DESIGN.md 宋式定值，[checklist](checklists/site-retheme-song.md) | 无（DESIGN-DIRECTION 已完成） |
-| `INFRA-ARTICLE-TEMPLATE-001` | 2 | active | 文章页模板：目录、排版、印章署名、文末路由模块，[checklist](checklists/article-page-template.md) | 无（合并顺序在 RETHEME 后） |
-| `INFRA-OG-001` | 2 | active | 动态 OG 图生成与封面兜底视觉系统，[checklist](checklists/dynamic-og-cover-fallback.md) | 无 |
+| `INFRA-RETHEME-001` | 2 | active | 宋式 token 候选已在旧分支；核心页面 proof 后按当前主线收敛，[checklist](checklists/site-retheme-song.md) | PROJECTS 顺序门 |
+| `INFRA-ARTICLE-TEMPLATE-001` | 2 | active | 保留目录、署名、文末路由行为与测试；等待新页面合同后移植，[checklist](checklists/article-page-template.md) | RETHEME rebase |
+| `INFRA-OG-001` | 2 | active | 保留动态 OG 与封面兜底候选；等待 Person/Home 构图后校准，[checklist](checklists/dynamic-og-cover-fallback.md) | PEOPLE/HOME composition |
 | `INFRA-AGENT-MEDIA-001` | 2 | active | Agent 正文合同 V2、media_upload、set cover、发布预检，[checklist](checklists/agent-media-tools.md) | 无 |
 | `INFRA-BODY-MEDIA-002` | 2 | active | 正文媒体权限收敛与发布管道补全（独立复审 F1/F2/F4），代码已上线，见 [checklist](checklists/article-body-media-002.md)；剩生产验收 | 无 |
-| `INFRA-PERSON-PAGE-001` | 2 | active | Person schema 扩展与个人页重构，[checklist](checklists/person-page-expansion.md) | 无（schema/migration 逐门禁批准） |
-| `INFRA-FEEDS-001` | 2 | active | RSS/JSON Feed、Person 与文章结构化数据补全，[checklist](checklists/feeds-structured-data.md) | 无（页面注入部分合并顺序最后） |
-| `PEOPLE-COMMUNITY-DIRECTION-001` | 方向门 | active | 人物与社群优先产品合同，[checklist](checklists/people-community-direction.md) | intake 进入 Git 基线后改 canonical docs |
-| `INFRA-HOME-001` | 3 | queued | 首页重组：首先让人遇见具体人物，再进入其项目、作品与内容 | PEOPLE-COMMUNITY-DIRECTION、ARTICLE-TEMPLATE |
-| `INFRA-PROJECTS-001` | 3 | queued | 项目作为 Person 的行动证据；是否需要跨人物入口由新合同决定 | PEOPLE-COMMUNITY-DIRECTION、PERSON-PAGE |
+| `INFRA-PERSON-PAGE-001` | 2 | active | 正式名片已进 `main` 并上线，只剩专项 UI 验收后归档，[checklist](checklists/person-page-expansion.md) | 不扩入新 People 体验 |
+| `INFRA-FEEDS-001` | 2 | active | 保留 feed/JSON-LD 候选；Person/Project 公开模型稳定后最后移植，[checklist](checklists/feeds-structured-data.md) | PROJECTS、ARTICLE |
+| `PEOPLE-COMMUNITY-DIRECTION-001` | 方向门 | active | 人物与社群优先产品合同及 Core Figma AI proof 已完成，[checklist](checklists/people-community-direction.md) | 最终治理写回与归档 |
+| `INFRA-PROJECTS-001` | 3 | queued | 首个实现切片：公开 Project + Person `Now` + People 到本人外链的闭环；无 `/projects` | PEOPLE-COMMUNITY-DIRECTION closeout、PERSON-PAGE closeout |
+| `INFRA-HOME-001` | 3 | queued | 人物优先首页：person-and-pursuit lead、人物 passage、成员作品、Guides 与社群继续 | PROJECTS、ARTICLE-TEMPLATE |
 | [`AGENT-WORKSPACE-007`](../archive/agent-workspace-member-completion.md) | 3 | done | 资料/外链、Profile 公开、媒体/文章发现与双语 draft 的 Member MCP 闭环已上线并归档 | 无 |
 | `INFRA-SEARCH-001` | 3 | queued | 站内搜索（Postgres 全文检索 + 搜索页） | TOKENS |
 | `INFRA-OUTBOUND-001` | 3 | queued | 作者外链、Discord、项目外链出站点击计量 | 无（MEASURE 已完成） |
@@ -93,8 +95,8 @@ flowchart LR
 
 - Batch 1 四项可同时 active：路径互不重叠（MEASURE 走 layout/隐私页/Vercel 设置；TOKENS 走样式层；BODY-MEDIA 走 editor 配置与渲染器逻辑；DESIGN-DIRECTION 只改 docs）。
 - 样式冲突唯一热点是 `globals.css`：TOKENS 持有其结构性重写权；BODY-MEDIA 只允许在文件尾部追加独立注释块的最小样式，合并顺序固定为 TOKENS 先进 `main`，BODY-MEDIA 样式段随后 rebase。
-- Batch 2 内 ARTICLE-TEMPLATE 与 PERSON-PAGE 都改前端组件，但路由与组件文件不重叠；OG、AGENT-MEDIA、FEEDS 与两者无路径交集，可并行。
-- Batch 2 `globals.css` 合并顺序：RETHEME 持有结构性修改权先进 `main`；ARTICLE-TEMPLATE、PERSON-PAGE 各以独立注释块追加并在 RETHEME 后 rebase。
+- 2026-08-12 的 RETHEME、ARTICLE、OG 与 FEEDS 分支均已与当前 `main` 分叉 39 个提交，merge-tree 出现冲突；保留工作成果但不直接整枝合并。
+- 核心页面 Figma AI proof 已完成；后续顺序固定为 PROJECTS 人物闭环 → RETHEME → ARTICLE → HOME → OG → FEEDS。Figma AI 负责 UI 重构；代码只在设计验收后实现。每条旧分支只移植当前合同仍需要的部分，并重新验证。
 - Batch 2 名义 glob 相交但文件集不重叠的豁免：OG 的 `opengraph-image.tsx` 落在 posts/people 路由目录内但不属页面子级文件；FEEDS 对两个页面文件只插 JSON-LD，合并顺序在 ARTICLE-TEMPLATE 与 PERSON-PAGE 之后 rebase。
 - `CMSRichText.tsx` 与 `content/cms.ts` 的修改权转移：BODY-MEDIA-001/002 代码已冻结（仅剩验收与归档），Batch 2 内分别由 ARTICLE-TEMPLATE 与 PERSON-PAGE 持有。
 - Batch 2 全部实现线在独立 git worktree 分支进行，不写主工作树；合并由总控串行执行。
@@ -141,14 +143,14 @@ flowchart LR
 
 ### INFRA-HOME-001（upgraded：首页公开面）
 
-- 旧目标暂停作为实现合同。新目标必须在 `PEOPLE-COMMUNITY-DIRECTION-001` 完成后重写：首页首屏或首个完整叙事单元让读者遇见具体的人，并从其当前项目、作品或观察继续；内容流与社群模块服务于人物发现，不反客为主。
+- 旧目标暂停作为实现合同。新目标：首页按 `person-and-pursuit lead → 4–6 人物 passage → 来自他们的近期作品 → Guides → community continuation → Newsletter` 组织；首个完整叙事单元链接 Person，内容流与社群模块服务于人物发现。
 - 关键路径：`apps/web/src/app/(frontend)/[locale]/page.tsx` 与组件。
 
-### INFRA-PROJECTS-001（upgraded：新 collection 与公开面）
+### INFRA-PROJECTS-001（upgraded：Person 当前行动闭环）
 
-- 旧的“独立项目入口”目标暂停作为实现合同。新目标：让本人选择公开的项目、当前问题、阶段、所需连接与外链成为 Person 的行动证据；跨人物浏览只在确实改善人物发现时建立，不默认增加顶级 Projects 导航。
+- 首个实现闭环固定为 `People 上的具体行动 → Person Now → 本人 Project 外链或 Discord 联系`。新增成员自管 Project：owner/collaborators、标题、简述、阶段、图片、外链、当前近况、所需连接、更新时间与公开/撤回；不建 `/projects` 或顶级导航。
 - Discord Forum 不是网站数据库。任何同步或导入必须先有稳定 Person 关联、本人确认公开范围、来源与更新时间、撤回和读回；不得按显示名自动合并。
-- 关键路径仍可能包含新 collection、migration 与前端页面，但必须由方向纠偏后的 upgraded checklist 重新冻结。
+- 关键路径包含新 collection、migration、People opening、Person `Now` 与 My profile/Project 维护；实现前另建 upgraded checklist，并分别批准 schema、migration、真实数据、公开与部署。
 
 ### AGENT-WORKSPACE-007（completed：Member Agent 完整闭环）
 

@@ -16,21 +16,21 @@ Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.m
 
 当前产品方向纠偏：
 
-- [`PEOPLE-COMMUNITY-DIRECTION-001`](people-community-direction.md)：根据 Production People 与 Discord 成员项目的真实供给，把网站收敛为人物与社群优先的连接网络；本项只改正式文档合同，不实现页面或外部平台写入。
+- [`PEOPLE-COMMUNITY-DIRECTION-001`](people-community-direction.md)：人物与社群合同及 Figma AI 核心 proof 已完成，等待最终治理写回与归档；不授权页面实现或外部平台写入。
 
 Batch 1 收尾（代码已上线，剩验收归档）：
 
 - [`INFRA-BODY-MEDIA-001`](article-body-media.md)：正文媒体能力（upgraded），剩 Preview/生产验收。
 - [`INFRA-BODY-MEDIA-002`](article-body-media-002.md)：媒体权限收敛（upgraded），已部署剩生产验收。
 
-当前 active（Site Infrastructure Batch 2，可并行，合并顺序见父级）：
+当前 active（Site Infrastructure Batch 2；旧分支不得整枝合并，收敛顺序见父级）：
 
-- [`INFRA-RETHEME-001`](site-retheme-song.md)：宋式视觉换装，token 值切换。
-- [`INFRA-ARTICLE-TEMPLATE-001`](article-page-template.md)：文章页模板（upgraded）。
-- [`INFRA-OG-001`](dynamic-og-cover-fallback.md)：动态 OG 与封面兜底。
+- [`INFRA-RETHEME-001`](site-retheme-song.md)：保留宋式 token 候选，等待核心页面 proof 后按当前主线收敛。
+- [`INFRA-ARTICLE-TEMPLATE-001`](article-page-template.md)：保留行为与测试，RETHEME 后移植（upgraded）。
+- [`INFRA-OG-001`](dynamic-og-cover-fallback.md)：保留动态 OG 与封面兜底候选，等待 Person/Home 构图。
 - [`INFRA-AGENT-MEDIA-001`](agent-media-tools.md)：Agent 媒体工具与正文 V2（upgraded）。
-- [`INFRA-PERSON-PAGE-001`](person-page-expansion.md)：Person 页扩展与正式名片（upgraded）。
-- [`INFRA-FEEDS-001`](feeds-structured-data.md)：Feed 与结构化数据。
+- [`INFRA-PERSON-PAGE-001`](person-page-expansion.md)：正式名片已上线，只剩专项 UI 验收后归档（upgraded）。
+- [`INFRA-FEEDS-001`](feeds-structured-data.md)：保留 Feed 与 JSON-LD 候选，Person/Project 模型稳定后移植。
 
 非紧急收尾：
 
