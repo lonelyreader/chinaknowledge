@@ -7,7 +7,7 @@ scope: site-token-system-retheme
 last_verified: 2026-08-27
 max_lines: 180
 change_id: SITE-TOKEN-SYSTEM-RETHEME-001
-risk_tier: base
+risk_tier: upgraded
 validation_profile: work_item
 allowed_paths: apps/web/src/app/(frontend)/**, apps/web/src/components/**, apps/web/src/content/**, apps/web/public/fonts/**, PRODUCT.md, DESIGN.md, docs/roadmap/**, docs/reference/**, docs/current-state.md, docs/product-feature-registry.md
 approval_gates: commit, merge, push, preview, production-deploy, real-data, schema, migration
@@ -31,7 +31,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 
 - 不把旧 V3 冷靛蓝、旧 editorial 视觉或当前代码 token 当作新系统的视觉权威。
 - 不使用冷色主导、旗帜红、金色、中国风装饰、渐变、玻璃拟态或杂志式人物专题。
-- 不新增或修改 schema、migration、权限、CMS 数据模型、真实数据、外部社区配置或生产环境。
+- 不新增或修改 schema、migration、权限、CMS 数据模型、真实数据或外部社区配置；Production 只允许已批准的 `--prod --skip-domain` 分阶段候选，不切换正式域名。
 - 不改公开路由、canonical、EN/ES 内容关系或业务动作；不借视觉统一重构数据层。
 - 不为解释设计而增加可见帮助文案、实现术语或操作指导。
 
@@ -76,8 +76,9 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] 本地公共网站实现与 EN/ES 响应式回读完成。
 - [x] 产品负责人于 2026-08-27 批准本地 Git 提交。
 - [x] 产品负责人于 2026-08-27 另行批准分支 push、受保护 Preview 部署与 CMS 模式读回；虚构验收数据的技术 Preview 已通过。
-- [ ] 真实人物与真实内容在新版 Token 和版式中的代表性读回未执行；完成前不得据此放行 Production。
-- [ ] Production 部署、`main` 合并与 Production branch push 尚未批准。
+- [x] 产品负责人于 2026-08-27 确认 `--prod --skip-domain` 分阶段 Production 候选与只读真实数据回读；未授权真实数据写入、正式域名切换或 promote。
+- [x] 新版 Token 与版式已用 Production 的 11 位公开真实人物完成代表性桌面/移动回读。
+- [ ] 正式域名 promote、`main` 合并与 Production branch push 尚未批准。
 
 ## Evidence
 
@@ -87,9 +88,10 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - 对比度：primary text/canvas `16.54:1`、secondary text/canvas `8.36:1`、muted text/canvas `5.65:1`、white/cinnabar-700 `7.54:1`。
 - 浏览器：EN/ES 的 Home、People、Person、Stories、Guides、Article、Places、About、Newsletter 在 1440px、768px、390px 无横向溢出；移动菜单开合通过；Article prose 为 Newsreader `18/29`，移动 display 为 Geist `44/48`。
 - Preview：`codex/site-token-retheme-preview` 已推送；Vercel deployment `dpl_FKoZxwC5K6orRAHDmbSNDvoQPQtz` 为 `READY / target: preview`。CMS 模式使用 `Acceptance Person` 等虚构验收数据，Home、People、Person、Member Article 与 EN/ES 代表路由在 1440px、390px 的技术读回通过；坏图、横向溢出、浏览器 error/warn 均为零，匿名访问受 SSO 保护且保持 `noindex`。这组证据不代表真实内容已经通过。
+- 分阶段 Production：提交 `723d84f` 的 `dpl_FKLCUWhd59G28btAn6wmpnCTW1r8` 为 `READY / target: production`，只读 Production 的 11 位公开 Person；1440px 与 390px 的 EN/ES Home、People、全部 EN Person、可用 ES Person、代表性 Article、搜索和移动菜单通过，无水平溢出或 browser error/warn。空 Topic 筛选隐藏，本站 Media file 同源渲染；Tao 原图在正式域名和全新缓存键正常解码。
 - 前端：`npm run typecheck` PASS；`npm run lint` 为 0 error、48 个既有 migration unused-parameter warning；`npm run build` PASS，77 个静态页面生成完成。
 - 仓库：Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check` 与 `git diff --check`。主工作树另有本批未触碰的 `outputs/` 改动，未暂存、未提交。
-- 本地实现提交：`e974420`；Preview 治理基线：`570d502`。Production 未部署。
+- 本地实现提交：`e974420`；Preview 治理基线：`570d502`；真实数据修复基线：`723d84f`。正式域名仍绑定 `dpl_CQkJRqNYFHDPhWE7BsXW54KNFoQi`，候选未 promote。
 
 ## Relationship
 

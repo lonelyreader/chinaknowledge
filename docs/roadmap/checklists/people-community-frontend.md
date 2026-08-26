@@ -7,7 +7,7 @@ scope: people-community-frontend
 last_verified: 2026-08-27
 max_lines: 140
 change_id: PEOPLE-COMMUNITY-FRONTEND-001
-risk_tier: base
+risk_tier: upgraded
 validation_profile: work_item
 allowed_paths: apps/web/src/app/(frontend)/[locale]/layout.tsx, apps/web/src/app/(frontend)/[locale]/page.tsx, apps/web/src/app/(frontend)/[locale]/people/**, apps/web/src/components/site-header.tsx, apps/web/src/components/person-row.tsx, apps/web/src/components/cms-person-row.tsx, apps/web/src/components/people-directory.tsx, apps/web/src/components/cms-people-directory.tsx, apps/web/src/components/community/**, apps/web/src/content/index.ts, apps/web/src/app/(frontend)/globals.css, DESIGN.md, docs/roadmap/**, docs/reference/**, docs/current-state.md, docs/product-feature-registry.md
 approval_gates: commit, merge, push, preview, production-deploy, real-data, schema, migration
@@ -34,7 +34,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - 不把 Discord 帖子、私密内容或 Figma 虚构人物写进网站；只渲染当前公开数据。
 - 不做站内私信、关注、匹配、排名、评分、热度、在线状态、人数或虚构活动。
 - 不新建 `/projects`、`/questions` 或 `/community` 顶级路由；导航保持 `People / Stories / Guides / Places`。
-- 不修改真实数据、Preview、Production、DNS 或外部社区。
+- 不修改真实数据、DNS 或外部社区；Production 只允许已批准的 `--prod --skip-domain` 分阶段候选，不切换正式域名。
 - 不顺手重构 Article、Guide、Place、CMS Admin 或数据层。
 
 ## Data boundary
@@ -68,19 +68,22 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 ## Current gate
 
 - [x] 产品负责人通过 Figma V3 并要求建立 Checklist、避免过度工程、保证质量并全速实现（2026-08-26）。
-- [x] 本批只授权本地前端、文档与验证，不含 schema、migration、真实数据或 Production。
+- [x] 初始实现只授权本地前端、文档与验证，不含 schema、migration、真实数据或 Production。
 - [x] 本地实现与代表性浏览器验收完成（2026-08-27）。
 - [x] 连接优先 IA 与行为验收继续有效；颜色与排版基线已由 `SITE-TOKEN-SYSTEM-RETHEME-001` 接管，V3 冷靛蓝不再是视觉权威（2026-08-27）。
 - [x] 产品负责人于 2026-08-27 批准本地 Git 提交。
 - [x] 产品负责人于 2026-08-27 另行批准分支 push、受保护 Preview 部署与 CMS 模式读回；虚构验收数据的技术 Preview 已通过。
-- [ ] 真实人物与真实内容在新版 UI 中的代表性读回未执行；完成前不得据此放行 Production。
-- [ ] Production 部署、`main` 合并与 Production branch push 尚未批准；清单保持 active。
+- [x] 产品负责人于 2026-08-27 确认 `--prod --skip-domain` 分阶段 Production 候选与只读真实数据回读；未授权真实数据写入、正式域名切换或 promote。
+- [x] 新版 UI 已读取 Production 的 11 位公开真实人物，并完成 Home、People、全部 EN Person、可用 ES Person 与代表性 Article 的桌面/移动回读。
+- [ ] 正式域名 promote、`main` 合并与 Production branch push 尚未批准；清单保持 active。
 
 ## Closure evidence
 
 - `npm run typecheck`、`npm run build` PASS；`npm run lint` 零 error，48 个既有 migration unused-parameter warning。
 - Fixture 模式下 EN/ES 的 Home、People、Person 均完成 1440px 与 390px 浏览器回读；六条西语组合均 `rendered`、无 Spotlight、无水平溢出，Person 的 `Connect on Discord` 精确一个。
 - `/en/people?q=Mobility` 精确返回 Chen Rui 与 Deng Ke，证明首页 GET search 与目录查询相连。
-- 本地 CMS 数据库因既有重复 `translationGroup_locale_idx` 数据无法启动页面；本批未改 schema 或数据。受保护 Preview 只补齐了 CMS 运行模式：Home、People、Person 与 Member Article 读取的是 `Acceptance Person` 等虚构验收数据，缺少公开 Discord link 的 Person 正确隐藏连接动作；这不是对真实人物或真实内容的验证。
+- 本地 CMS 数据库因既有重复 `translationGroup_locale_idx` 数据无法启动页面；本批未改 schema 或数据。早期受保护 Preview 只补齐 CMS 运行模式，使用 `Acceptance Person` 等虚构验收数据；后续真实内容验收改由只读 Production 候选完成。
 - Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check`，没有扩大 allowed paths。主工作树的 `outputs/facebook-group/**`、`outputs/reddit-brand/**`、`outputs/reddit-questions/**` 等无关改动未暂存、未提交。
-- 实现提交 `e974420` 与治理写回 `570d502` 已推送至 `codex/site-token-retheme-preview`。受 SSO 保护的 Preview `dpl_FKoZxwC5K6orRAHDmbSNDvoQPQtz` 为 `READY`，`/api/health`、EN/ES、虚构 CMS 人物/文章、桌面与 390px 移动端技术读回通过；无坏图、横向溢出或浏览器 error/warn，匿名请求 302 至 Vercel SSO，页面保持 `noindex`。真实内容发布效果未验证，Production 未变。
+- 实现提交 `e974420` 与治理写回 `570d502` 已推送至 `codex/site-token-retheme-preview`；后续空 Topic 筛选与同源 Media 修复为 `30630e7`、`723d84f`。分阶段 Production 候选 `dpl_FKLCUWhd59G28btAn6wmpnCTW1r8` 为 `READY / target: production`，`/api/health=200`、公开 People API=`11`，读取同一 Production 数据库但未写数据。
+- 候选在 1440px 与 390px 回读 EN/ES Home、People、全部 11 个 EN Person、7 个可用 ES Person、代表性 Article、搜索和移动菜单；无水平溢出或浏览器 error/warn。没有 Topic 数据时筛选已隐藏，本站 Media file 以当前域名同源读取。Tao 原图经正式域名与全新缓存键均以 `1179×2556` 正常解码；一次受保护候选精确 URL 的失败缓存不构成文件或代码缺陷。
+- 候选匿名请求仍 302 至 Vercel SSO 且 `noindex`。`chinainfact.com` 继续绑定旧正式部署 `dpl_CQkJRqNYFHDPhWE7BsXW54KNFoQi`；没有 promote、正式流量切换、`main` 合并或 Production branch push。
