@@ -1965,6 +1965,14 @@ p {
   padding: .75rem;
 }
 
+.community-directory .people-filters--three-controls {
+  grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(130px, 1fr));
+}
+
+.community-directory .people-filters--two-controls {
+  grid-template-columns: minmax(240px, 2fr) minmax(130px, 1fr);
+}
+
 .community-directory .people-filters input,
 .community-directory .people-filters select {
   background: var(--community-canvas);

@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-27
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:d7d6f699b057269ac7f631d3dff21ebd1ba0e4ee0d2d2b31d1cdba0eaf8157bb
+implementation_fingerprint: sha256:83f7fe39ad6505a476710fa0a97874efab254d10e2e61970e8d35b60cc1c024f
 ---
 
 # App 功能登记册
@@ -29,7 +29,7 @@ implementation_fingerprint: sha256:d7d6f699b057269ac7f631d3dff21ebd1ba0e4ee0d2d2
 | RDR-07 | Places | 浏览地点列表和地点详情，查看与该地点关联的文章和人物 | `/{locale}/places`、`/{locale}/places/{slug}` |
 | RDR-08 | Purpose 入口 | 按 Understand、Visit、Live、Study、Work、Business 找到站方内容 | `/{locale}/purposes/{slug}` |
 | RDR-09 | Topic 入口 | 按主题聚合站方内容 | `/{locale}/topics/{slug}` |
-| RDR-10 | People 连接目录 | 直接搜索并连续浏览人物；每行显示肖像、姓名、身份、地点、当前工作，以及真实主题或能帮什么，可按主题、地点、语言筛选和分页 | `/{locale}/people`；无 Spotlight、人物判词开场、人数或排名；桌面每页 24 人，移动端每页 12 人；缺失字段隐藏 |
+| RDR-10 | People 连接目录 | 直接搜索并连续浏览人物；每行显示肖像、姓名、身份、地点、当前工作，以及真实主题或能帮什么，可按主题、地点、语言筛选和分页 | `/{locale}/people`；无 Spotlight、人物判词开场、人数或排名；桌面每页 24 人，移动端每页 12 人；缺失字段与没有可选项的筛选隐藏 |
 | RDR-11 | Person 连接主页 | 先查看肖像、姓名、身份、地点、语言/主题和公开连接动作，再看当前工作、能帮什么、全部公开贡献和 About | `/{locale}/people/{slug}`；Discord 与其他外链只在已有公开链接时出现；Current work、Can help with、贡献等无数据整体隐藏；西语资料缺失时回退英语 |
 | RDR-12 | 人物导流 | Member 稿从首页、栏目、文章进入原作者主页；站方稿只在确有相关人物时提供人物入口 | 文章署名区和 Related people；站方稿不生成虚构 Person |
 | RDR-13 | Discord 联系入口 | 从全局导航和首页进入公开社群；从 Person 页经唯一的 `Connect on Discord` 进入成员本人公开 Discord | 全局与首页使用现有公开邀请；CMS Person 无 discord link 时不显示成员动作；不镜像聊天、人数或活动状态 |

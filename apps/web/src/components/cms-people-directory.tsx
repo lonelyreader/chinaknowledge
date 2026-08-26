@@ -45,18 +45,20 @@ export function CMSPeopleDirectory({ people, locale, initialQuery = "" }: { peop
   return (
     <section className="people-directory community-directory" aria-labelledby="all-people">
       <h2 className="community-directory__title" id="all-people">{copy.allPeople}</h2>
-      <div className="people-filters">
+      <div className={`people-filters ${topics.length > 0 ? "" : "people-filters--three-controls"}`}>
         <label>
           <span className="sr-only">{copy.search}</span>
           <input aria-label={copy.search} placeholder={copy.search} type="search" value={query} onChange={(event) => { setQuery(event.target.value); resetPage(); }} />
         </label>
-        <label>
-          <span>{copy.topic}</span>
-          <select value={topic} onChange={(event) => { setTopic(event.target.value); resetPage(); }}>
-            <option value="">{copy.all}</option>
-            {topics.map((item) => <option key={item}>{item}</option>)}
-          </select>
-        </label>
+        {topics.length > 0 ? (
+          <label>
+            <span>{copy.topic}</span>
+            <select value={topic} onChange={(event) => { setTopic(event.target.value); resetPage(); }}>
+              <option value="">{copy.all}</option>
+              {topics.map((item) => <option key={item}>{item}</option>)}
+            </select>
+          </label>
+        ) : null}
         <label>
           <span>{copy.place}</span>
           <select value={place} onChange={(event) => { setPlace(event.target.value); resetPage(); }}>
