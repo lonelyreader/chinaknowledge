@@ -18,7 +18,6 @@ max_lines: 100
 
 | 工作项 | 交付目标 |
 |---|---|
-| [`PEOPLE-COMMUNITY-DIRECTION-001`](checklists/people-community-direction.md) | 人物与社群合同及 Figma AI 核心 proof 已完成，等待最终治理写回与归档 |
 | [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文媒体能力（剩 Preview/生产验收） |
 | [`INFRA-BODY-MEDIA-002`](checklists/article-body-media-002.md) | 媒体权限收敛（已部署，剩生产验收） |
 | [`INFRA-RETHEME-001`](checklists/site-retheme-song.md) | 旧分支保存宋式 token 候选；等待人物核心页面 proof 后按当前主线收敛 |
@@ -28,7 +27,7 @@ max_lines: 100
 | [`INFRA-PERSON-PAGE-001`](checklists/person-page-expansion.md) | 正式名片已上线，只剩专项 UI 验收后归档，不扩入新 People 体验 |
 | [`INFRA-FEEDS-001`](checklists/feeds-structured-data.md) | 保留 feed/JSON-LD 候选；Person/Project 模型稳定后移植 |
 
-人物与社群方向合同及核心页面 Figma AI proof 已完成，当前只剩最终治理写回与归档。下一顺序为 `INFRA-PROJECTS-001` 人物当前行动闭环 → RETHEME → ARTICLE → `INFRA-HOME-001` 人物优先首页 → OG → FEEDS。Figma AI 负责 UI 重构，Codex 不先行改前端；实现、schema、migration、真实内容与 Production 仍需分别授权。
+人物与社群方向合同及核心页面 Figma AI proof 已完成并[归档](../archive/people-community-direction.md)。下一顺序为 `INFRA-PROJECTS-001` 人物当前行动闭环 → RETHEME → ARTICLE → `INFRA-HOME-001` 人物优先首页 → OG → FEEDS。Figma AI 负责 UI 重构，Codex 不先行改前端；实现、schema、migration、真实内容与 Production 仍需分别授权。
 
 ## Completed：Agent Workspace 完整化
 

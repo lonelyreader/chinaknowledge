@@ -81,8 +81,8 @@ flowchart LR
 | `INFRA-BODY-MEDIA-002` | 2 | active | 正文媒体权限收敛与发布管道补全（独立复审 F1/F2/F4），代码已上线，见 [checklist](checklists/article-body-media-002.md)；剩生产验收 | 无 |
 | `INFRA-PERSON-PAGE-001` | 2 | active | 正式名片已进 `main` 并上线，只剩专项 UI 验收后归档，[checklist](checklists/person-page-expansion.md) | 不扩入新 People 体验 |
 | `INFRA-FEEDS-001` | 2 | active | 保留 feed/JSON-LD 候选；Person/Project 公开模型稳定后最后移植，[checklist](checklists/feeds-structured-data.md) | PROJECTS、ARTICLE |
-| `PEOPLE-COMMUNITY-DIRECTION-001` | 方向门 | active | 人物与社群优先产品合同及 Core Figma AI proof 已完成，[checklist](checklists/people-community-direction.md) | 最终治理写回与归档 |
-| `INFRA-PROJECTS-001` | 3 | queued | 首个实现切片：公开 Project + Person `Now` + People 到本人外链的闭环；无 `/projects` | PEOPLE-COMMUNITY-DIRECTION closeout、PERSON-PAGE closeout |
+| `PEOPLE-COMMUNITY-DIRECTION-001` | 方向门 | done | 人物与社群优先产品合同及 Core Figma AI proof，[已归档](../archive/people-community-direction.md) | 无 |
+| `INFRA-PROJECTS-001` | 3 | queued | 首个实现切片：公开 Project + Person `Now` + People 到本人外链的闭环；无 `/projects` | PERSON-PAGE closeout |
 | `INFRA-HOME-001` | 3 | queued | 人物优先首页：person-and-pursuit lead、人物 passage、成员作品、Guides 与社群继续 | PROJECTS、ARTICLE-TEMPLATE |
 | [`AGENT-WORKSPACE-007`](../archive/agent-workspace-member-completion.md) | 3 | done | 资料/外链、Profile 公开、媒体/文章发现与双语 draft 的 Member MCP 闭环已上线并归档 | 无 |
 | `INFRA-SEARCH-001` | 3 | queued | 站内搜索（Postgres 全文检索 + 搜索页） | TOKENS |

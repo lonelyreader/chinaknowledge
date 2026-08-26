@@ -2,7 +2,7 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: people-community-direction-reset
 last_verified: 2026-08-26
 max_lines: 140
@@ -17,7 +17,9 @@ approval_gates: intake-commit, implementation, schema, migration, discord-write,
 
 目标：根据 Production People 与 Discord 成员项目的当前供给，把 China, in Fact 从“内容把读者带到作者”的单向模型推进为“先遇见有趣的人，再从其项目、作品、经历和内容继续”的人物与社群网络；明确网站、Discord 与 Reddit 的初步联动职责，并重写 Batch 3 的实现前提。
 
-证据：[`People 与社群方向现状`](../../reference/people-community-direction-evidence-2026-08-26.md)。
+证据：[`People 与社群方向现状`](../reference/people-community-direction-evidence-2026-08-26.md)。
+
+结果：产品合同、ADR、设计合同和后续路线已写回；Figma AI 已交付核心体验 proof。未修改前端、schema、真实数据或 Production。
 
 ## Scope
 

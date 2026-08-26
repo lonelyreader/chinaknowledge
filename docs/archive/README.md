@@ -4,7 +4,7 @@ doc_type: router
 authority: routing
 status: active
 scope: archive-index
-last_verified: 2026-08-16
+last_verified: 2026-08-26
 max_lines: 80
 ---
 
@@ -36,6 +36,7 @@ max_lines: 80
 | `INFRA-MEASURE-001` | Vercel Web Analytics 与 GSC 验证 + sitemap 提交已上线，隐私文案同步；Bing 暂缓 | [`site-measurement-foundation.md`](site-measurement-foundation.md) |
 | `INFRA-TOKENS-001` | 81 token 样式架构上线，视觉零变化，编译产物字节级一致 | [`design-token-architecture.md`](design-token-architecture.md) |
 | `DESIGN-DIRECTION-001` | 宋式编辑部方向写入 DESIGN.md 与 ADR-0011，代码落地由 RETHEME-001 承接 | [`design-direction-revision.md`](design-direction-revision.md) |
+| `PEOPLE-COMMUNITY-DIRECTION-001` | 人物与社群优先合同、Figma AI 核心 proof 与后续实现顺序已接受 | [`people-community-direction.md`](people-community-direction.md) |
 
 规则：
 

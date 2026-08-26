@@ -14,10 +14,6 @@ max_lines: 80
 
 Agent Workspace 的阶段关系由 [`父级清单`](../agent-workspace-program.md) 记录；Site Infrastructure 的批次与依赖由 [`Site Infrastructure 父级清单`](../site-infrastructure-program.md) 记录；父级均不授权实现。
 
-当前产品方向纠偏：
-
-- [`PEOPLE-COMMUNITY-DIRECTION-001`](people-community-direction.md)：人物与社群合同及 Figma AI 核心 proof 已完成，等待最终治理写回与归档；不授权页面实现或外部平台写入。
-
 Batch 1 收尾（代码已上线，剩验收归档）：
 
 - [`INFRA-BODY-MEDIA-001`](article-body-media.md)：正文媒体能力（upgraded），剩 Preview/生产验收。
@@ -36,6 +32,6 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 
 - [`GUIDE-FOUNDATION-001`](guide-foundation-research-corpus.md)：语料采集与抽样已经完成，只等待报告写回和归档，不占用当前执行优先级。
 
-已完成的 [`INFRA-MEASURE-001`](../../archive/site-measurement-foundation.md)、[`INFRA-TOKENS-001`](../../archive/design-token-architecture.md)、[`DESIGN-DIRECTION-001`](../../archive/design-direction-revision.md)、[`AUTH-RESET-001`](../../archive/password-reset-recovery.md)、[`FAVICON-PROD-001`](../../archive/favicon-production-release.md)、[`MIDGAME-COLD-START-001`](../../archive/midgame-cold-start.md)、[`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-012`](../../archive/agent-workspace-production-release.md)、[`MEDIA-UPLOAD-001`](../../archive/media-upload-filename-collision.md)、[`CI-DOC-LINKS-001`](../../archive/ci-portable-evidence-links.md)、[`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 与 [`REPO-CONSOLIDATION-001`](../../archive/repository-main-consolidation.md) 位于 archive。
+已完成的 [`PEOPLE-COMMUNITY-DIRECTION-001`](../../archive/people-community-direction.md)、[`INFRA-MEASURE-001`](../../archive/site-measurement-foundation.md)、[`INFRA-TOKENS-001`](../../archive/design-token-architecture.md)、[`DESIGN-DIRECTION-001`](../../archive/design-direction-revision.md)、[`AUTH-RESET-001`](../../archive/password-reset-recovery.md)、[`FAVICON-PROD-001`](../../archive/favicon-production-release.md)、[`MIDGAME-COLD-START-001`](../../archive/midgame-cold-start.md)、[`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-012`](../../archive/agent-workspace-production-release.md)、[`MEDIA-UPLOAD-001`](../../archive/media-upload-filename-collision.md)、[`CI-DOC-LINKS-001`](../../archive/ci-portable-evidence-links.md)、[`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 与 [`REPO-CONSOLIDATION-001`](../../archive/repository-main-consolidation.md) 位于 archive。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`；已有清单覆盖当前工作时不重复创建。
