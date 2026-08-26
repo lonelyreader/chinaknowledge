@@ -81,3 +81,4 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - `/en/people?q=Mobility` 精确返回 Chen Rui 与 Deng Ke，证明首页 GET search 与目录查询相连。
 - 本地 CMS 数据库因既有重复 `translationGroup_locale_idx` 数据无法启动页面；本批未改 schema 或数据。CMS 分支由 typecheck/build 覆盖，真实 CMS 浏览器读回留给独立环境修复，不影响本批 fixture 代表性 UI 验收。
 - Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check`，没有扩大 allowed paths。主工作树的 `outputs/facebook-group/**`、`outputs/reddit-brand/**`、`outputs/reddit-questions/**` 等无关改动未暂存、未提交。
+- 本地实现提交：`e974420`；未 push、未创建 Preview、未部署 Production。

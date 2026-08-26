@@ -21,8 +21,8 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 
 当前 active（Site Infrastructure Batch 2；旧分支不得整枝合并，收敛顺序见父级）：
 
-- [`SITE-TOKEN-SYSTEM-RETHEME-001`](site-token-system-retheme.md)：Figma 重建全站 Token，并据此统一公共网站；接管 People V3 尚未提交实现的视觉基线。
-- [`PEOPLE-COMMUNITY-FRONTEND-001`](people-community-frontend.md)：三条连接优先页面已完成本地实现与响应式验收，等待独立 Git/发布批准。
+- [`SITE-TOKEN-SYSTEM-RETHEME-001`](site-token-system-retheme.md)：Figma 重建全站 Token，并据此统一公共网站；本地实现已提交，等待独立发布批准。
+- [`PEOPLE-COMMUNITY-FRONTEND-001`](people-community-frontend.md)：三条连接优先页面已完成本地实现、响应式验收与提交，等待独立发布批准。
 - [`INFRA-RETHEME-001`](site-retheme-song.md)：保留宋式 token 候选，等待核心页面 proof 后按当前主线收敛。
 - [`INFRA-ARTICLE-TEMPLATE-001`](article-page-template.md)：保留行为与测试，RETHEME 后移植（upgraded）。
 - [`INFRA-OG-001`](dynamic-og-cover-fallback.md)：保留动态 OG 与封面兜底候选，等待 Person/Home 构图。

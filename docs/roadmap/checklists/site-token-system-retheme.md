@@ -85,6 +85,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - 浏览器：EN/ES 的 Home、People、Person、Stories、Guides、Article、Places、About、Newsletter 在 1440px、768px、390px 无横向溢出；移动菜单开合通过；Article prose 为 Newsreader `18/29`，移动 display 为 Geist `44/48`。
 - 前端：`npm run typecheck` PASS；`npm run lint` 为 0 error、48 个既有 migration unused-parameter warning；`npm run build` PASS，77 个静态页面生成完成。
 - 仓库：Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check` 与 `git diff --check`。主工作树另有本批未触碰的 `outputs/` 改动，未暂存、未提交。
+- 本地实现提交：`e974420`；未 push、未创建 Preview、未部署 Production。
 
 ## Relationship
 
