@@ -71,14 +71,15 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] 本批只授权本地前端、文档与验证，不含 schema、migration、真实数据或 Production。
 - [x] 本地实现与代表性浏览器验收完成（2026-08-27）。
 - [x] 连接优先 IA 与行为验收继续有效；颜色与排版基线已由 `SITE-TOKEN-SYSTEM-RETHEME-001` 接管，V3 冷靛蓝不再是视觉权威（2026-08-27）。
-- [x] 产品负责人于 2026-08-27 批准本地 Git 提交；不含 push、Preview 或 Production。
-- [ ] Preview 与 Production 仍分别批准；清单在发布动作完成前保持 active。
+- [x] 产品负责人于 2026-08-27 批准本地 Git 提交。
+- [x] 产品负责人于 2026-08-27 另行批准分支 push、受保护 Preview 部署与真实 CMS 读回；Preview 已通过。
+- [ ] Production 部署、`main` 合并与 Production branch push 尚未批准；清单保持 active。
 
 ## Closure evidence
 
 - `npm run typecheck`、`npm run build` PASS；`npm run lint` 零 error，48 个既有 migration unused-parameter warning。
 - Fixture 模式下 EN/ES 的 Home、People、Person 均完成 1440px 与 390px 浏览器回读；六条西语组合均 `rendered`、无 Spotlight、无水平溢出，Person 的 `Connect on Discord` 精确一个。
 - `/en/people?q=Mobility` 精确返回 Chen Rui 与 Deng Ke，证明首页 GET search 与目录查询相连。
-- 本地 CMS 数据库因既有重复 `translationGroup_locale_idx` 数据无法启动页面；本批未改 schema 或数据。CMS 分支由 typecheck/build 覆盖，真实 CMS 浏览器读回留给独立环境修复，不影响本批 fixture 代表性 UI 验收。
+- 本地 CMS 数据库因既有重复 `translationGroup_locale_idx` 数据无法启动页面；本批未改 schema 或数据。真实 CMS 路径已由受保护 Preview 补齐：Home、People、Person 与 Member Article 均读到虚构验收数据，缺少公开 Discord link 的 Person 正确隐藏连接动作。
 - Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check`，没有扩大 allowed paths。主工作树的 `outputs/facebook-group/**`、`outputs/reddit-brand/**`、`outputs/reddit-questions/**` 等无关改动未暂存、未提交。
-- 本地实现提交：`e974420`；未 push、未创建 Preview、未部署 Production。
+- 实现提交 `e974420` 与治理写回 `570d502` 已推送至 `codex/site-token-retheme-preview`。受 SSO 保护的 Preview `dpl_FKoZxwC5K6orRAHDmbSNDvoQPQtz` 为 `READY`，`/api/health`、EN/ES、CMS 人物/文章、桌面与 390px 移动端读回通过；无坏图、横向溢出或浏览器 error/warn，匿名请求 302 至 Vercel SSO，页面保持 `noindex`。Production 未变。

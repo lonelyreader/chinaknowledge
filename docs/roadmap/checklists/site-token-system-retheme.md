@@ -74,7 +74,9 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] 本批授权 Figma 设计、本地公共前端实现与验证；Git、Preview、Production、数据和 schema 动作仍分别批准。
 - [x] Figma Foundations 与代表性页面完成并通过视觉、变量和可访问性检查。
 - [x] 本地公共网站实现与 EN/ES 响应式回读完成。
-- [x] 产品负责人于 2026-08-27 批准本地 Git 提交；不含 push、Preview、Production、数据或 schema 动作。
+- [x] 产品负责人于 2026-08-27 批准本地 Git 提交。
+- [x] 产品负责人于 2026-08-27 另行批准分支 push、受保护 Preview 部署与真实 CMS 读回；Preview 已通过。
+- [ ] Production 部署、`main` 合并与 Production branch push 尚未批准。
 
 ## Evidence
 
@@ -83,9 +85,10 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - Figma 样式与组件：18 个桌面/移动文本样式、3 个效果样式；Button、Search、Desktop/Mobile Header、Desktop/Mobile Person Row、Content Row、Footer 均绑定变量。
 - 对比度：primary text/canvas `16.54:1`、secondary text/canvas `8.36:1`、muted text/canvas `5.65:1`、white/cinnabar-700 `7.54:1`。
 - 浏览器：EN/ES 的 Home、People、Person、Stories、Guides、Article、Places、About、Newsletter 在 1440px、768px、390px 无横向溢出；移动菜单开合通过；Article prose 为 Newsreader `18/29`，移动 display 为 Geist `44/48`。
+- Preview：`codex/site-token-retheme-preview` 已推送；Vercel deployment `dpl_FKoZxwC5K6orRAHDmbSNDvoQPQtz` 为 `READY / target: preview`。真实 CMS 的 Home、People、Person、Member Article 与 EN/ES 代表路由在 1440px、390px 通过；坏图、横向溢出、浏览器 error/warn 均为零，匿名访问受 SSO 保护且保持 `noindex`。
 - 前端：`npm run typecheck` PASS；`npm run lint` 为 0 error、48 个既有 migration unused-parameter warning；`npm run build` PASS，77 个静态页面生成完成。
 - 仓库：Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check` 与 `git diff --check`。主工作树另有本批未触碰的 `outputs/` 改动，未暂存、未提交。
-- 本地实现提交：`e974420`；未 push、未创建 Preview、未部署 Production。
+- 本地实现提交：`e974420`；Preview 治理基线：`570d502`。Production 未部署。
 
 ## Relationship
 
