@@ -14,6 +14,7 @@ import {
   placePath,
   resolvePublishedCMSPlace,
 } from "@/content/cms";
+import { siteMediaSource } from "@/content/media";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +57,7 @@ export default async function PlacePage({ params }: { params: Promise<{ locale: 
           <p className="dek">{place.summary}</p>
         </header>
         <figure className="guide-image">
-          <Image src={place.coverImage.url} alt={place.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 1200px" />
+          <Image src={siteMediaSource(place.coverImage.url)} alt={place.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 1200px" />
         </figure>
         <section className="place-related">
           <div className="section-heading"><h2>{locale === "en" ? "From this place" : "Desde este lugar"}</h2></div>

@@ -3,6 +3,8 @@ import "server-only";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
+import { siteMediaSource } from "@/content/media";
+
 type LexicalNode = {
   children?: LexicalNode[];
   fields?: Record<string, unknown>;
@@ -108,7 +110,7 @@ function UploadImage({ node }: { node: LexicalNode }) {
   return (
     <figure className="rich-media-figure">
       <Image
-        src={src}
+        src={siteMediaSource(src)}
         alt={alt}
         width={width}
         height={height}

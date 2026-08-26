@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { localize, people, requireLocale, stories } from "@/content";
 import { cmsReadEnabled, getPublishedCMSPlaces, placePath } from "@/content/cms";
+import { siteMediaSource } from "@/content/media";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function PlacesPage({ params }: { params: Promise<{ locale:
           {places.map((place) => (
             <article className="place-card" key={place.slug}>
               <Link className="place-card__image" href={placePath(locale, place)}>
-                <Image src={place.coverImage.url} alt={place.coverImage.alt} fill unoptimized sizes="(max-width: 767px) 100vw, 50vw" />
+                <Image src={siteMediaSource(place.coverImage.url)} alt={place.coverImage.alt} fill unoptimized sizes="(max-width: 767px) 100vw, 50vw" />
               </Link>
               <p className="meta">{place.geography.name}</p>
               <h2><Link href={placePath(locale, place)}>{place.name}</Link></h2>

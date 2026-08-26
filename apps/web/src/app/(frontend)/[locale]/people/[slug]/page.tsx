@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { CMSRichText } from "@/components/CMSRichText";
 import { getPerson, kindLabels, localize, locales, people, requireLocale, stories } from "@/content";
 import { articlePath, cmsReadEnabled, getPreviewCMSPerson, getPublishedCMSPerson, getPublishedCMSPersonArticles } from "@/content/cms";
+import { siteMediaSource } from "@/content/media";
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +80,7 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
       <main className="community-page community-profile-page">
         <header className="page-shell community-profile-header">
           <div className="community-profile-header__portrait">
-            <Image src={person.image.url} alt={person.image.alt} fill priority unoptimized sizes="(max-width: 767px) 112px, 152px" />
+            <Image src={siteMediaSource(person.image.url)} alt={person.image.alt} fill priority unoptimized sizes="(max-width: 767px) 112px, 152px" />
           </div>
           <div className="community-profile-header__identity">
             <p>{person.city}</p>

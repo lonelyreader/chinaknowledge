@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import type { PublishedCMSByline } from "@/content/cms";
+import { siteMediaSource } from "@/content/media";
 import type { Locale } from "@/content/types";
 
 export function ArticleBylineLink({
@@ -24,7 +25,7 @@ export function HeroArticleByline({ author, locale }: { author: PublishedCMSByli
   return (
     <div className={`hero-byline hero-byline--${author.kind}`}>
       {author.kind === "person" ? (
-        <Image src={author.image.url} alt={author.image.alt} width={64} height={64} unoptimized />
+        <Image src={siteMediaSource(author.image.url)} alt={author.image.alt} width={64} height={64} unoptimized />
       ) : null}
       <div>
         <ArticleBylineLink author={author} locale={locale} />
@@ -48,7 +49,7 @@ export function GuideArticleByline({
   return (
     <div className={`guide-byline guide-byline--${author.kind}`}>
       {author.kind === "person" ? (
-        <Image src={author.image.url} alt={author.image.alt} width={72} height={72} unoptimized />
+        <Image src={siteMediaSource(author.image.url)} alt={author.image.alt} width={72} height={72} unoptimized />
       ) : null}
       <div>
         <span className="meta">{label}</span>

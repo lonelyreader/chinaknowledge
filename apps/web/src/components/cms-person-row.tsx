@@ -1,5 +1,6 @@
 import type { Locale } from "@/content";
 import type { PublishedCMSPerson } from "@/content/cms";
+import { siteMediaSource } from "@/content/media";
 import { PersonConnectionRow } from "@/components/community/person-connection-row";
 
 function contributionPath(locale: Locale, person: PublishedCMSPerson) {
@@ -27,7 +28,7 @@ export function CMSPersonRow({
         title: person.contribution.title,
       } : undefined}
       identity={person.identity}
-      image={{ alt: person.image.alt, src: person.image.url, unoptimized: true }}
+      image={{ alt: person.image.alt, src: siteMediaSource(person.image.url), unoptimized: true }}
       languages={person.languages}
       name={person.name}
       profileHref={`/${locale}/people/${person.slug}`}

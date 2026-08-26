@@ -9,6 +9,7 @@ import { ArticleBylineLink, GuideArticleByline } from "@/components/article-byli
 import { EditorialCover } from "@/components/editorial-cover";
 import { requireLocale, ui } from "@/content";
 import { articlePath, cmsReadEnabled, getDraftPreviewCMSArticle, getPublishedCMSArticle, getPublishedCMSArticleAlternates, resolvePublishedCMSArticle } from "@/content/cms";
+import { siteMediaSource } from "@/content/media";
 
 export const dynamic = "force-dynamic";
 
@@ -104,7 +105,7 @@ export default async function PostPage({ params, searchParams }: { params: Promi
         </header>
         {article.coverImage ? (
           <figure className="guide-image">
-            <Image src={article.coverImage.url} alt={article.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 1200px" />
+            <Image src={siteMediaSource(article.coverImage.url)} alt={article.coverImage.alt} fill priority unoptimized sizes="(max-width: 767px) 100vw, 1200px" />
           </figure>
         ) : <figure className="guide-image"><EditorialCover title={article.title} /></figure>}
         <div className="guide-body">
@@ -127,7 +128,7 @@ export default async function PostPage({ params, searchParams }: { params: Promi
         </div>
         {article.author.kind === "person" ? (
           <section className="author-passage">
-            <Image src={article.author.image.url} alt={article.author.image.alt} width={180} height={180} unoptimized />
+            <Image src={siteMediaSource(article.author.image.url)} alt={article.author.image.alt} width={180} height={180} unoptimized />
             <div>
               <p className="meta">{copy.aboutAuthor}</p>
               <h2>{article.author.name}</h2>
