@@ -2,14 +2,14 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: people-community-frontend
 last_verified: 2026-08-27
 max_lines: 140
 change_id: PEOPLE-COMMUNITY-FRONTEND-001
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: apps/web/src/app/(frontend)/[locale]/layout.tsx, apps/web/src/app/(frontend)/[locale]/page.tsx, apps/web/src/app/(frontend)/[locale]/people/**, apps/web/src/components/site-header.tsx, apps/web/src/components/person-row.tsx, apps/web/src/components/cms-person-row.tsx, apps/web/src/components/people-directory.tsx, apps/web/src/components/cms-people-directory.tsx, apps/web/src/components/community/**, apps/web/src/content/index.ts, apps/web/src/app/(frontend)/globals.css, DESIGN.md, docs/roadmap/**, docs/reference/**, docs/current-state.md, docs/product-feature-registry.md
+allowed_paths: apps/web/src/app/(frontend)/[locale]/layout.tsx, apps/web/src/app/(frontend)/[locale]/page.tsx, apps/web/src/app/(frontend)/[locale]/people/**, apps/web/src/components/site-header.tsx, apps/web/src/components/person-row.tsx, apps/web/src/components/cms-person-row.tsx, apps/web/src/components/people-directory.tsx, apps/web/src/components/cms-people-directory.tsx, apps/web/src/components/community/**, apps/web/src/content/index.ts, apps/web/src/app/(frontend)/globals.css, DESIGN.md, docs/roadmap/**, docs/archive/**, docs/reference/**, docs/current-state.md, docs/product-feature-registry.md
 approval_gates: commit, merge, push, preview, production-deploy, real-data, schema, migration
 ---
 
@@ -34,7 +34,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - 不把 Discord 帖子、私密内容或 Figma 虚构人物写进网站；只渲染当前公开数据。
 - 不做站内私信、关注、匹配、排名、评分、热度、在线状态、人数或虚构活动。
 - 不新建 `/projects`、`/questions` 或 `/community` 顶级路由；导航保持 `People / Stories / Guides / Places`。
-- 不修改真实数据、DNS 或外部社区；Production 只允许已批准的 `--prod --skip-domain` 分阶段候选，不切换正式域名。
+- 不修改真实数据、DNS 或外部社区；正式域名切换只能在分阶段候选验收和产品负责人明确批准后执行。
 - 不顺手重构 Article、Guide、Place、CMS Admin 或数据层。
 
 ## Data boundary
@@ -75,7 +75,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] 产品负责人于 2026-08-27 另行批准分支 push、受保护 Preview 部署与 CMS 模式读回；虚构验收数据的技术 Preview 已通过。
 - [x] 产品负责人于 2026-08-27 确认 `--prod --skip-domain` 分阶段 Production 候选与只读真实数据回读；未授权真实数据写入、正式域名切换或 promote。
 - [x] 新版 UI 已读取 Production 的 11 位公开真实人物，并完成 Home、People、全部 EN Person、可用 ES Person 与代表性 Article 的桌面/移动回读。
-- [ ] 正式域名 promote、`main` 合并与 Production branch push 尚未批准；清单保持 active。
+- [x] 产品负责人于 2026-08-27 明确批准正式上线；`main` fast-forward 至 `eebb43c`，Vercel 自动发布并将正式域名切换至 `dpl_HeTTVA54riLEprKkBeP6UcfJFtVZ`。
 
 ## Closure evidence
 
@@ -87,3 +87,4 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - 实现提交 `e974420` 与治理写回 `570d502` 已推送至 `codex/site-token-retheme-preview`；后续空 Topic 筛选与同源 Media 修复为 `30630e7`、`723d84f`。分阶段 Production 候选 `dpl_FKLCUWhd59G28btAn6wmpnCTW1r8` 为 `READY / target: production`，`/api/health=200`、公开 People API=`11`，读取同一 Production 数据库但未写数据。
 - 候选在 1440px 与 390px 回读 EN/ES Home、People、全部 11 个 EN Person、7 个可用 ES Person、代表性 Article、搜索和移动菜单；无水平溢出或浏览器 error/warn。没有 Topic 数据时筛选已隐藏，本站 Media file 以当前域名同源读取。Tao 原图经正式域名与全新缓存键均以 `1179×2556` 正常解码；一次受保护候选精确 URL 的失败缓存不构成文件或代码缺陷。
 - 候选匿名请求仍 302 至 Vercel SSO 且 `noindex`。`chinainfact.com` 继续绑定旧正式部署 `dpl_CQkJRqNYFHDPhWE7BsXW54KNFoQi`；没有 promote、正式流量切换、`main` 合并或 Production branch push。
+- 正式上线后 `chinainfact.com` 返回 200 与 `index, follow`，People API 返回 11 位公开真实人物；全部 EN Person、7 个 ES Person、Home、People、搜索、移动菜单在 1440px/390px 无坏图或水平溢出，Tao 头像正常，Vercel error log 为空。未修改 Production 数据、schema、DNS 或外部社区。

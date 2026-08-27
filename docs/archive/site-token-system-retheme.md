@@ -2,14 +2,14 @@
 doc_contract: DocContractV1
 doc_type: checklist
 authority: execution
-status: active
+status: completed
 scope: site-token-system-retheme
 last_verified: 2026-08-27
 max_lines: 180
 change_id: SITE-TOKEN-SYSTEM-RETHEME-001
 risk_tier: upgraded
 validation_profile: work_item
-allowed_paths: apps/web/src/app/(frontend)/**, apps/web/src/components/**, apps/web/src/content/**, apps/web/public/fonts/**, PRODUCT.md, DESIGN.md, docs/roadmap/**, docs/reference/**, docs/current-state.md, docs/product-feature-registry.md
+allowed_paths: apps/web/src/app/(frontend)/**, apps/web/src/components/**, apps/web/src/content/**, apps/web/public/fonts/**, PRODUCT.md, DESIGN.md, docs/roadmap/**, docs/archive/**, docs/reference/**, docs/current-state.md, docs/product-feature-registry.md
 approval_gates: commit, merge, push, preview, production-deploy, real-data, schema, migration
 ---
 
@@ -31,7 +31,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 
 - 不把旧 V3 冷靛蓝、旧 editorial 视觉或当前代码 token 当作新系统的视觉权威。
 - 不使用冷色主导、旗帜红、金色、中国风装饰、渐变、玻璃拟态或杂志式人物专题。
-- 不新增或修改 schema、migration、权限、CMS 数据模型、真实数据或外部社区配置；Production 只允许已批准的 `--prod --skip-domain` 分阶段候选，不切换正式域名。
+- 不新增或修改 schema、migration、权限、CMS 数据模型、真实数据或外部社区配置；正式域名切换只能在分阶段候选验收和产品负责人明确批准后执行。
 - 不改公开路由、canonical、EN/ES 内容关系或业务动作；不借视觉统一重构数据层。
 - 不为解释设计而增加可见帮助文案、实现术语或操作指导。
 
@@ -78,7 +78,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - [x] 产品负责人于 2026-08-27 另行批准分支 push、受保护 Preview 部署与 CMS 模式读回；虚构验收数据的技术 Preview 已通过。
 - [x] 产品负责人于 2026-08-27 确认 `--prod --skip-domain` 分阶段 Production 候选与只读真实数据回读；未授权真实数据写入、正式域名切换或 promote。
 - [x] 新版 Token 与版式已用 Production 的 11 位公开真实人物完成代表性桌面/移动回读。
-- [ ] 正式域名 promote、`main` 合并与 Production branch push 尚未批准。
+- [x] 产品负责人于 2026-08-27 明确批准正式上线；`main` fast-forward 至 `eebb43c`，正式域名发布完成。
 
 ## Evidence
 
@@ -91,7 +91,7 @@ approval_gates: commit, merge, push, preview, production-deploy, real-data, sche
 - 分阶段 Production：提交 `723d84f` 的 `dpl_FKLCUWhd59G28btAn6wmpnCTW1r8` 为 `READY / target: production`，只读 Production 的 11 位公开 Person；1440px 与 390px 的 EN/ES Home、People、全部 EN Person、可用 ES Person、代表性 Article、搜索和移动菜单通过，无水平溢出或 browser error/warn。空 Topic 筛选隐藏，本站 Media file 同源渲染；Tao 原图在正式域名和全新缓存键正常解码。
 - 前端：`npm run typecheck` PASS；`npm run lint` 为 0 error、48 个既有 migration unused-parameter warning；`npm run build` PASS，77 个静态页面生成完成。
 - 仓库：Checklist 与 router 先以 `2ffd2a3` 进入 HEAD；实现候选在隔离工作树通过 `npm run governance:check` 与 `git diff --check`。主工作树另有本批未触碰的 `outputs/` 改动，未暂存、未提交。
-- 本地实现提交：`e974420`；Preview 治理基线：`570d502`；真实数据修复基线：`723d84f`。正式域名仍绑定 `dpl_CQkJRqNYFHDPhWE7BsXW54KNFoQi`，候选未 promote。
+- 本地实现提交：`e974420`；Preview 治理基线：`570d502`；真实数据修复基线：`723d84f`；正式上线基线：`eebb43c / dpl_HeTTVA54riLEprKkBeP6UcfJFtVZ`。正式域名以 11 位真实人物完成 EN/ES、1440px/390px、搜索、移动菜单、媒体和索引回读，Vercel error log 为空。
 
 ## Relationship
 

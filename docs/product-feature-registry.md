@@ -7,7 +7,7 @@ scope: implemented-app-features
 last_verified: 2026-08-27
 max_lines: 200
 feature_registry_contract: FeatureRegistryV1
-implementation_fingerprint: sha256:a28b7216c9d233ed685395ad46e69ec0192aa96d6acb6fdd8ad3ccbb54b8b046
+implementation_fingerprint: sha256:2a1b5472538699ea465e03009edc7d302478914069446f7f09c3bc393f340530
 ---
 
 # App 功能登记册
@@ -36,9 +36,9 @@ implementation_fingerprint: sha256:a28b7216c9d233ed685395ad46e69ec0192aa96d6acb6
 | RDR-14 | Newsletter 订阅 | 用邮箱和明确同意加入对应语言的邮件名单，收到成功或必要错误状态 | 首页与 `/{locale}/newsletter`；重复邮箱更新语言，不替用户重新开启已取消订阅状态 |
 | RDR-15 | About 与 Privacy | 了解产品定位、Newsletter 数据用途、公开人物资料、跟踪政策和联系邮箱 | `/{locale}/about`、`/{locale}/privacy` |
 | RDR-16 | 搜索引擎入口 | Production 可被索引，并提供 Article JSON-LD、分享信息、sitemap、canonical 和多语言 alternate；Preview 与草稿预览不索引 | `/robots.txt`、`/sitemap.xml` 与页面 metadata；Purpose、Topic 和已公开内容进入 sitemap |
-| RDR-17 | 响应式和键盘访问 | 在桌面与移动端使用主导航、移动菜单、表单、焦点状态和语义化页面 | 全部公共页面；本地覆盖 1440px、768px、390px，分阶段 Production 候选已以 11 位公开真实人物覆盖 1440px、390px、EN/ES、搜索与移动菜单；正式域名仍是上次发布版本 |
+| RDR-17 | 响应式和键盘访问 | 在桌面与移动端使用主导航、移动菜单、表单、焦点状态和语义化页面 | 全部公共页面；正式域名已以 11 位公开真实人物覆盖 1440px、390px、全部 EN Person、7 个 ES Person、搜索与移动菜单 |
 | RDR-18 | 不存在页面处理 | 无效人物、文章或地点返回 Not Found，并提供回到网站的入口 | 各动态详情页 |
-| RDR-19 | 一致品牌系统 | 在公共页面看到同一轮廓字标、暖纸/墨色/朱砂语义颜色、Geist 产品字体、Newsreader 阅读字体与统一的间距、圆角、边框和控件状态 | 全部 `/{locale}` 公共页面；Token 批次已完成本地、受保护 Preview 和只读真实数据分阶段 Production 回读，字标与 favicon 仍使用固定资产且不依赖客户端字体；正式域名仍是上次发布版本 |
+| RDR-19 | 一致品牌系统 | 在公共页面看到同一轮廓字标、暖纸/墨色/朱砂语义颜色、Geist 产品字体、Newsreader 阅读字体与统一的间距、圆角、边框和控件状态 | 全部 `/{locale}` 公共页面；Token 系统已在正式域名上线，字标与 favicon 仍使用固定资产且不依赖客户端字体 |
 
 ## Member（铲子计划成员）
 

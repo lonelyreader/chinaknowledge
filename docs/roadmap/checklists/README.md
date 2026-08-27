@@ -21,8 +21,6 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 
 当前 active（Site Infrastructure Batch 2；旧分支不得整枝合并，收敛顺序见父级）：
 
-- [`SITE-TOKEN-SYSTEM-RETHEME-001`](site-token-system-retheme.md)：Figma 重建全站 Token，并据此统一公共网站；本地实现已提交，等待独立发布批准。
-- [`PEOPLE-COMMUNITY-FRONTEND-001`](people-community-frontend.md)：三条连接优先页面已完成本地实现、响应式验收与提交，等待独立发布批准。
 - [`INFRA-RETHEME-001`](site-retheme-song.md)：保留宋式 token 候选，等待核心页面 proof 后按当前主线收敛。
 - [`INFRA-ARTICLE-TEMPLATE-001`](article-page-template.md)：保留行为与测试，RETHEME 后移植（upgraded）。
 - [`INFRA-OG-001`](dynamic-og-cover-fallback.md)：保留动态 OG 与封面兜底候选，等待 Person/Home 构图。
@@ -34,6 +32,6 @@ Batch 1 收尾（代码已上线，剩验收归档）：
 
 - [`GUIDE-FOUNDATION-001`](guide-foundation-research-corpus.md)：语料采集与抽样已经完成，只等待报告写回和归档，不占用当前执行优先级。
 
-已完成的 [`PEOPLE-COMMUNITY-DIRECTION-001`](../../archive/people-community-direction.md)、[`INFRA-MEASURE-001`](../../archive/site-measurement-foundation.md)、[`INFRA-TOKENS-001`](../../archive/design-token-architecture.md)、[`DESIGN-DIRECTION-001`](../../archive/design-direction-revision.md)、[`AUTH-RESET-001`](../../archive/password-reset-recovery.md)、[`FAVICON-PROD-001`](../../archive/favicon-production-release.md)、[`MIDGAME-COLD-START-001`](../../archive/midgame-cold-start.md)、[`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-012`](../../archive/agent-workspace-production-release.md)、[`MEDIA-UPLOAD-001`](../../archive/media-upload-filename-collision.md)、[`CI-DOC-LINKS-001`](../../archive/ci-portable-evidence-links.md)、[`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 与 [`REPO-CONSOLIDATION-001`](../../archive/repository-main-consolidation.md) 位于 archive。
+已完成的 [`PEOPLE-COMMUNITY-FRONTEND-001`](../../archive/people-community-frontend.md)、[`SITE-TOKEN-SYSTEM-RETHEME-001`](../../archive/site-token-system-retheme.md)、[`PEOPLE-COMMUNITY-DIRECTION-001`](../../archive/people-community-direction.md)、[`INFRA-MEASURE-001`](../../archive/site-measurement-foundation.md)、[`INFRA-TOKENS-001`](../../archive/design-token-architecture.md)、[`DESIGN-DIRECTION-001`](../../archive/design-direction-revision.md)、[`AUTH-RESET-001`](../../archive/password-reset-recovery.md)、[`FAVICON-PROD-001`](../../archive/favicon-production-release.md)、[`MIDGAME-COLD-START-001`](../../archive/midgame-cold-start.md)、[`AGENT-WORKSPACE-001`](../../archive/agent-workspace-member-foundation.md)至 [`AGENT-WORKSPACE-012`](../../archive/agent-workspace-production-release.md)、[`MEDIA-UPLOAD-001`](../../archive/media-upload-filename-collision.md)、[`CI-DOC-LINKS-001`](../../archive/ci-portable-evidence-links.md)、[`GOV-INDEPENDENT-REVIEW-001`](../../archive/independent-review-boundary-governance.md) 与 [`REPO-CONSOLIDATION-001`](../../archive/repository-main-consolidation.md) 位于 archive。
 
 新清单必须先在本页和上级 [`roadmap/README.md`](../README.md) 登记，并遵守 `ChangeContractV1`；已有清单覆盖当前工作时不重复创建。

@@ -18,8 +18,6 @@ max_lines: 100
 
 | 工作项 | 交付目标 |
 |---|---|
-| [`SITE-TOKEN-SYSTEM-RETHEME-001`](checklists/site-token-system-retheme.md) | Figma 重建完整 Token，并据此统一公共网站；本地实现已提交，等待独立发布批准 |
-| [`PEOPLE-COMMUNITY-FRONTEND-001`](checklists/people-community-frontend.md) | Home / People / Person 本地实现、验收与提交完成；等待独立发布批准 |
 | [`INFRA-BODY-MEDIA-001`](checklists/article-body-media.md) | 正文媒体能力（剩 Preview/生产验收） |
 | [`INFRA-BODY-MEDIA-002`](checklists/article-body-media-002.md) | 媒体权限收敛（已部署，剩生产验收） |
 | [`INFRA-RETHEME-001`](checklists/site-retheme-song.md) | 旧分支保存宋式 token 候选；等待人物核心页面 proof 后按当前主线收敛 |
@@ -29,7 +27,7 @@ max_lines: 100
 | [`INFRA-PERSON-PAGE-001`](checklists/person-page-expansion.md) | 正式名片已上线，只剩专项 UI 验收后归档，不扩入新 People 体验 |
 | [`INFRA-FEEDS-001`](checklists/feeds-structured-data.md) | 保留 feed/JSON-LD 候选；Person/Project 模型稳定后移植 |
 
-人物与社群方向合同及 Figma AI proof 已[归档](../archive/people-community-direction.md)。Home / People / Person 的连接优先结构继续有效；颜色、排版与全站视觉系统现由 [`SITE-TOKEN-SYSTEM-RETHEME-001`](checklists/site-token-system-retheme.md) 接管。现有实现已提交、未发布；Project schema、migration、真实内容与 Production 仍需分别授权。
+人物与社群方向合同、连接优先 Home / People / Person 及全站 Token 系统均已上线并[归档](../archive/README.md)。Project schema、migration 与外部社区能力没有随本批扩展。
 
 ## Completed：Agent Workspace 完整化
 
